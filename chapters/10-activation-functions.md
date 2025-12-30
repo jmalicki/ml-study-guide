@@ -46,7 +46,11 @@ This visualization shows how different activation functions transform inputs. No
 - **GELU** (red) and **SiLU** (green) are smooth, non-monotonic functions that allow small negative values
 - **Sigmoid** (orange) and **Tanh** (purple) are bounded functions, with tanh centered around zero
 
-The smooth, non-monotonic nature of GELU and SiLU is why they perform better than ReLU in modern transformers. These functions provide better gradient flow and don't suffer from the "dying ReLU" problem.
+The smooth, non-monotonic nature of GELU and SiLU is why they perform better than ReLU in modern transformers. Key observations:
+- **Non-monotonic behavior**: Both GELU and SiLU have a characteristic "dip" - they become slightly negative for moderately negative inputs (around $x = -1$ to $-2$) before approaching zero. This is visible as a shallow minimum in their curves.
+- **Better gradient flow**: Unlike ReLU's zero gradient for all $x < 0$, GELU and SiLU maintain non-zero gradients everywhere, preventing "dying neurons"
+- **Smooth transitions**: The absence of sharp corners (like ReLU's kink at $x=0$) provides more stable optimization
+- **Self-gating property**: These functions naturally weight inputs by their magnitude, creating adaptive, context-dependent transformations
 
 ---
 
@@ -176,6 +180,28 @@ GELU can be thought of as a smooth version of ReLU that:
 - Has smooth gradients everywhere
 
 The key insight is that GELU multiplies the input by a value between 0 and 1 based on how much greater it is than other inputs. This creates a stochastic regularization effect where inputs are dropped with a probability that depends on their magnitude.
+
+**Understanding the Non-Monotonic Behavior (The "Dip"):**
+
+A distinctive feature of GELU is that it's **non-monotonic**: for moderately negative inputs (around $x \approx -1$ to $-2$), the function actually *decreases* slightly before asymptotically approaching zero. This happens because:
+
+1. **Mathematically**: GELU is $x \cdot \Phi(x)$ where $\Phi$ is the Gaussian CDF
+   - For negative $x$, we have a negative number multiplied by a positive probability
+   - As $x$ becomes more negative, $\Phi(x) \to 0$, so the product $x \cdot \Phi(x) \to 0$
+   - But initially (for moderately negative $x$), $\Phi(x)$ is still relatively large (e.g., $\Phi(-1) \approx 0.16$)
+   - This creates a minimum around $x \approx -0.82$ where $\text{GELU}(x) \approx -0.17$
+
+2. **Why this is beneficial**:
+   - **Implicit regularization**: The slight negative output for moderately negative inputs creates a "soft penalty" that can help with regularization, similar to L2 weight decay
+   - **Smooth gradient flow**: Unlike ReLU's hard zero gradient for negative inputs, GELU has non-zero gradients everywhere, preventing "dying neurons"
+   - **Differentiability**: The smooth, differentiable nature everywhere (no kink at 0 like ReLU) helps optimization converge more reliably
+   - **Self-gating property**: The function naturally weights inputs by their magnitude in a probabilistic way
+
+3. **Practical implications**:
+   - The non-monotonicity doesn't cause problems in practice - the minimum is shallow (only about -0.17)
+   - Models learn to work with this behavior effectively
+   - The smooth transition around zero is crucial for stable optimization in deep networks
+   - This behavior may contribute to implicit noise injection during training, providing regularization benefits
 
 ### Derivative
 
@@ -333,6 +359,36 @@ $$
 - **Smooth and non-monotonic**: Similar to GELU but with a simpler formula
 - **Self-gated**: The input gates itself through the sigmoid
 - **Unbounded above, bounded below**: Output range is approximately $[-0.28, \infty)$
+
+**Understanding the Non-Monotonic Behavior (The "Dip"):**
+
+Like GELU, SiLU exhibits a characteristic **non-monotonic** behavior where it dips slightly negative for moderately negative inputs before approaching zero. This is a key distinguishing feature from ReLU:
+
+1. **Mathematically**: SiLU is $f(x) = x \cdot \sigma(x)$ where $\sigma$ is the sigmoid function
+   - When $x$ is negative, $x$ itself is negative
+   - But $\sigma(x)$ is always positive (between 0 and 0.5 for negative $x$)
+   - The product is therefore negative: (negative) × (positive) = negative
+   - As $x$ becomes more negative, $\sigma(x) \to 0$, so the product approaches zero
+   - This creates a **minimum around $x \approx -1.28$ where $f(x) \approx -0.278$**
+   - The function is non-monotonic: it decreases from 0 to this minimum, then increases back toward 0
+
+2. **Why this is beneficial**:
+   - **Self-gating mechanism**: The input directly controls how much of itself passes through via the sigmoid. Large positive inputs pass through nearly unchanged ($\sigma(x) \approx 1$), while negative inputs are suppressed but not killed entirely
+   - **Gradient flow**: Unlike ReLU's hard zero gradient for $x < 0$, SiLU maintains non-zero gradients everywhere, preventing the "dying neuron" problem
+   - **Smoothness**: The continuous, differentiable nature everywhere (no kink at $x=0$) provides more stable optimization landscapes
+   - **Implicit regularization**: The shallow negative region creates a soft penalty for moderately negative activations, similar to a learned form of regularization
+
+3. **Connection to why SiLU outperforms ReLU**:
+   - **Smooth transition**: The smooth curve around zero (vs ReLU's sharp corner) provides better gradient information during backpropagation
+   - **Non-zero gradients for negative inputs**: Prevents neurons from permanently "dying" during training
+   - **Adaptive computation**: The self-gating property allows the network to learn context-dependent scaling of features
+   - **Better optimization**: The smooth derivatives help gradient-based optimizers find better solutions
+
+4. **Practical implications**:
+   - The minimum at approximately -0.278 is shallow and doesn't cause numerical issues
+   - Neural networks trained with SiLU learn to effectively utilize this non-monotonic behavior
+   - The smooth gradients contribute to more stable training dynamics in deep networks
+   - This behavior is particularly effective in transformers where smooth activations help with the complex, high-dimensional optimization landscape
 
 ### Comparison with GELU
 
