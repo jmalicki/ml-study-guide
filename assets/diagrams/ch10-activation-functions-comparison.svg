@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
+  <defs>
+    <style>
+      .grid-line { stroke: #e0e0e0; stroke-width: 1; }
+      .axis { stroke: #333; stroke-width: 2; }
+      .axis-label { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; fill: #333; }
+      .tick-label { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; fill: #666; }
+      .title { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 18px; font-weight: 600; fill: #222; }
+      .legend-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; fill: #333; }
+      .relu { stroke: #4A90A4; stroke-width: 2.5; fill: none; }
+      .gelu { stroke: #E57373; stroke-width: 2.5; fill: none; }
+      .silu { stroke: #81C784; stroke-width: 2.5; fill: none; }
+      .sigmoid { stroke: #FFB74D; stroke-width: 2.5; fill: none; }
+      .tanh { stroke: #9575CD; stroke-width: 2.5; fill: none; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="500" fill="white"/>
+
+  <!-- Title -->
+  <text x="400" y="30" class="title" text-anchor="middle">Activation Functions Comparison</text>
+
+  <!-- Plot area coordinates: x from 80 to 680, y from 80 to 420 -->
+  <!-- Data range: x from -4 to 4, y from -2 to 4 -->
+
+  <!-- Grid lines (vertical) -->
+  <line x1="155" y1="80" x2="155" y2="420" class="grid-line"/>
+  <line x1="230" y1="80" x2="230" y2="420" class="grid-line"/>
+  <line x1="305" y1="80" x2="305" y2="420" class="grid-line"/>
+  <line x1="380" y1="80" x2="380" y2="420" class="grid-line"/>
+  <line x1="455" y1="80" x2="455" y2="420" class="grid-line"/>
+  <line x1="530" y1="80" x2="530" y2="420" class="grid-line"/>
+  <line x1="605" y1="80" x2="605" y2="420" class="grid-line"/>
+  <line x1="680" y1="80" x2="680" y2="420" class="grid-line"/>
+
+  <!-- Grid lines (horizontal) -->
+  <line x1="80" y1="80" x2="680" y2="80" class="grid-line"/>
+  <line x1="80" y1="137" x2="680" y2="137" class="grid-line"/>
+  <line x1="80" y1="194" x2="680" y2="194" class="grid-line"/>
+  <line x1="80" y1="251" x2="680" y2="251" class="grid-line"/>
+  <line x1="80" y1="308" x2="680" y2="308" class="grid-line"/>
+  <line x1="80" y1="365" x2="680" y2="365" class="grid-line"/>
+  <line x1="80" y1="420" x2="680" y2="420" class="grid-line"/>
+
+  <!-- Axes -->
+  <line x1="80" y1="420" x2="680" y2="420" class="axis"/>
+  <line x1="80" y1="80" x2="80" y2="420" class="axis"/>
+
+  <!-- X-axis ticks and labels -->
+  <line x1="80" y1="420" x2="80" y2="425" class="axis"/>
+  <text x="80" y="445" class="tick-label" text-anchor="middle">-4</text>
+
+  <line x1="155" y1="420" x2="155" y2="425" class="axis"/>
+  <text x="155" y="445" class="tick-label" text-anchor="middle">-3</text>
+
+  <line x1="230" y1="420" x2="230" y2="425" class="axis"/>
+  <text x="230" y="445" class="tick-label" text-anchor="middle">-2</text>
+
+  <line x1="305" y1="420" x2="305" y2="425" class="axis"/>
+  <text x="305" y="445" class="tick-label" text-anchor="middle">-1</text>
+
+  <line x1="380" y1="420" x2="380" y2="425" class="axis"/>
+  <text x="380" y="445" class="tick-label" text-anchor="middle">0</text>
+
+  <line x1="455" y1="420" x2="455" y2="425" class="axis"/>
+  <text x="455" y="445" class="tick-label" text-anchor="middle">1</text>
+
+  <line x1="530" y1="420" x2="530" y2="425" class="axis"/>
+  <text x="530" y="445" class="tick-label" text-anchor="middle">2</text>
+
+  <line x1="605" y1="420" x2="605" y2="425" class="axis"/>
+  <text x="605" y="445" class="tick-label" text-anchor="middle">3</text>
+
+  <line x1="680" y1="420" x2="680" y2="425" class="axis"/>
+  <text x="680" y="445" class="tick-label" text-anchor="middle">4</text>
+
+  <!-- Y-axis ticks and labels -->
+  <line x1="75" y1="420" x2="80" y2="420" class="axis"/>
+  <text x="65" y="424" class="tick-label" text-anchor="end">-2</text>
+
+  <line x1="75" y1="365" x2="80" y2="365" class="axis"/>
+  <text x="65" y="369" class="tick-label" text-anchor="end">-1</text>
+
+  <line x1="75" y1="308" x2="80" y2="308" class="axis"/>
+  <text x="65" y="312" class="tick-label" text-anchor="end">0</text>
+
+  <line x1="75" y1="251" x2="80" y2="251" class="axis"/>
+  <text x="65" y="255" class="tick-label" text-anchor="end">1</text>
+
+  <line x1="75" y1="194" x2="80" y2="194" class="axis"/>
+  <text x="65" y="198" class="tick-label" text-anchor="end">2</text>
+
+  <line x1="75" y1="137" x2="80" y2="137" class="axis"/>
+  <text x="65" y="141" class="tick-label" text-anchor="end">3</text>
+
+  <line x1="75" y1="80" x2="80" y2="80" class="axis"/>
+  <text x="65" y="84" class="tick-label" text-anchor="end">4</text>
+
+  <!-- Axis labels -->
+  <text x="380" y="480" class="axis-label" text-anchor="middle">Input (x)</text>
+  <text x="30" y="250" class="axis-label" text-anchor="middle" transform="rotate(-90 30 250)">Output</text>
+
+  <!-- ReLU: max(0, x) -->
+  <polyline class="relu" points="80,308 155,308 230,308 305,308 380,308 455,251 530,194 605,137 680,80"/>
+
+  <!-- GELU: approximation using tanh formula -->
+  <!-- GELU(x) ≈ 0.5x(1 + tanh(sqrt(2/pi)(x + 0.044715x^3))) -->
+  <polyline class="gelu" points="80,420 97.5,413 115,405 132.5,395 150,383 167.5,370 185,355 202.5,338 220,320 237.5,302 255,284 272.5,267 290,251 307.5,236 325,223 342.5,211 360,201 377.5,193 395,187 412.5,183 430,180 447.5,178 465,178 482.5,179 500,182 517.5,186 535,192 552.5,199 570,207 587.5,217 605,228 622.5,240 640,253 657.5,267 675,281 692.5,296"/>
+
+  <!-- SiLU/Swish: x * sigmoid(x) = x / (1 + exp(-x)) -->
+  <polyline class="silu" points="80,420 97.5,413 115,405 132.5,396 150,386 167.5,374 185,361 202.5,346 220,331 237.5,315 255,299 272.5,283 290,267 307.5,252 325,238 342.5,226 360,214 377.5,204 395,196 412.5,189 430,183 447.5,179 465,176 482.5,174 500,174 517.5,175 535,178 552.5,182 570,188 587.5,195 605,203 622.5,213 640,224 657.5,236 675,249 692.5,263"/>
+
+  <!-- Sigmoid: 1 / (1 + exp(-x)) -->
+  <polyline class="sigmoid" points="80,308 97.5,308 115,307 132.5,306 150,305 167.5,303 185,301 202.5,298 220,294 237.5,290 255,285 272.5,279 290,272 307.5,264 325,255 342.5,245 360,234 377.5,223 395,211 412.5,199 430,187 447.5,176 465,165 482.5,154 500,145 517.5,136 535,128 552.5,121 570,115 587.5,109 605,104 622.5,100 640,97 657.5,94 675,92 692.5,90"/>
+
+  <!-- Tanh: (exp(x) - exp(-x)) / (exp(x) + exp(-x)) -->
+  <polyline class="tanh" points="80,365 97.5,364 115,363 132.5,362 150,360 167.5,357 185,353 202.5,348 220,342 237.5,335 255,326 272.5,316 290,304 307.5,291 325,276 342.5,260 360,243 377.5,225 395,207 412.5,189 430,172 447.5,156 465,141 482.5,128 500,116 517.5,106 535,97 552.5,90 570,84 587.5,79 605,76 622.5,73 640,71 657.5,70 675,69 692.5,69"/>
+
+  <!-- Legend -->
+  <g transform="translate(550, 380)">
+    <rect x="0" y="0" width="120" height="110" fill="white" stroke="#ccc" stroke-width="1" rx="5"/>
+
+    <!-- ReLU -->
+    <line x1="10" y1="15" x2="30" y2="15" class="relu"/>
+    <text x="35" y="19" class="legend-text">ReLU</text>
+
+    <!-- GELU -->
+    <line x1="10" y1="33" x2="30" y2="33" class="gelu"/>
+    <text x="35" y="37" class="legend-text">GELU</text>
+
+    <!-- SiLU -->
+    <line x1="10" y1="51" x2="30" y2="51" class="silu"/>
+    <text x="35" y="55" class="legend-text">SiLU</text>
+
+    <!-- Sigmoid -->
+    <line x1="10" y1="69" x2="30" y2="69" class="sigmoid"/>
+    <text x="35" y="73" class="legend-text">Sigmoid</text>
+
+    <!-- Tanh -->
+    <line x1="10" y1="87" x2="30" y2="87" class="tanh"/>
+    <text x="35" y="91" class="legend-text">Tanh</text>
+  </g>
+</svg>

@@ -35,6 +35,19 @@ $$
 
 where $W_1$ projects from model dimension $d_{\text{model}}$ to a larger dimension $d_{\text{ff}}$ (typically $4 \times d_{\text{model}}$), and $W_2$ projects back down.
 
+### Visual Comparison
+
+The following graph compares the most important activation functions used in modern LLMs:
+
+![Activation Functions Comparison](../assets/diagrams/ch10-activation-functions-comparison.svg)
+
+This visualization shows how different activation functions transform inputs. Notice:
+- **ReLU** (blue) has a hard cutoff at zero and grows linearly for positive values
+- **GELU** (red) and **SiLU** (green) are smooth, non-monotonic functions that allow small negative values
+- **Sigmoid** (orange) and **Tanh** (purple) are bounded functions, with tanh centered around zero
+
+The smooth, non-monotonic nature of GELU and SiLU is why they perform better than ReLU in modern transformers. These functions provide better gradient flow and don't suffer from the "dying ReLU" problem.
+
 ---
 
 ## ReLU and Its Limitations
