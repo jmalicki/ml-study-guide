@@ -606,6 +606,8 @@ class PositionInterpolationRoPE(nn.Module):
 
 ### Comparison of RoPE Scaling Methods
 
+![RoPE Scaling Methods Comparison](../assets/diagrams/ch27-rope-scaling-comparison.svg)
+
 | Method | Fine-tuning Required? | Strengths | Weaknesses |
 |--------|----------------------|-----------|------------|
 | Linear | Yes | Simple | Distorts relative positions |
@@ -799,6 +801,8 @@ class StreamingLLMCache:
         self.n_seen = 0
         self.recent_position = 0
 ```
+
+![StreamingLLM Cache Pattern](../assets/diagrams/ch27-streaming-llm-cache.svg)
 
 ### Practical Considerations
 
@@ -1077,6 +1081,8 @@ class LongLoRAAttention(nn.Module):
 - Full attention training on 32K: ~80GB per GPU
 - LongLoRA training on 32K: ~24GB per GPU
 - **3.3x reduction** in memory
+
+![Shifted Sparse Attention Pattern](../assets/diagrams/ch27-shifted-sparse-attention.svg)
 
 ### Results
 

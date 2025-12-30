@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
+  <!-- Title -->
+  <text x="400" y="30" text-anchor="middle" font-size="18" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#333">
+    Tokenization Trade-off: Vocabulary Size vs Sequence Length
+  </text>
+
+  <!-- Axes -->
+  <line x1="100" y1="450" x2="700" y2="450" stroke="#333" stroke-width="2"/>
+  <line x1="100" y1="450" x2="100" y2="80" stroke="#333" stroke-width="2"/>
+
+  <!-- X-axis label -->
+  <text x="400" y="485" text-anchor="middle" font-size="14" font-family="system-ui, -apple-system, sans-serif" fill="#333">
+    Vocabulary Size
+  </text>
+
+  <!-- Y-axis label -->
+  <text x="40" y="265" text-anchor="middle" font-size="14" font-family="system-ui, -apple-system, sans-serif" fill="#333" transform="rotate(-90 40 265)">
+    Sequence Length
+  </text>
+
+  <!-- X-axis ticks and labels -->
+  <line x1="150" y1="450" x2="150" y2="455" stroke="#333" stroke-width="1"/>
+  <text x="150" y="470" text-anchor="middle" font-size="11" font-family="system-ui, -apple-system, sans-serif" fill="#666">256</text>
+
+  <line x1="300" y1="450" x2="300" y2="455" stroke="#333" stroke-width="1"/>
+  <text x="300" y="470" text-anchor="middle" font-size="11" font-family="system-ui, -apple-system, sans-serif" fill="#666">10K</text>
+
+  <line x1="450" y1="450" x2="450" y2="455" stroke="#333" stroke-width="1"/>
+  <text x="450" y="470" text-anchor="middle" font-size="11" font-family="system-ui, -apple-system, sans-serif" fill="#666">32K</text>
+
+  <line x1="600" y1="450" x2="600" y2="455" stroke="#333" stroke-width="1"/>
+  <text x="600" y="470" text-anchor="middle" font-size="11" font-family="system-ui, -apple-system, sans-serif" fill="#666">50K</text>
+
+  <!-- Y-axis ticks and labels -->
+  <line x1="95" y1="400" x2="100" y2="400" stroke="#333" stroke-width="1"/>
+  <text x="85" y="405" text-anchor="end" font-size="11" font-family="system-ui, -apple-system, sans-serif" fill="#666">Short</text>
+
+  <line x1="95" y1="300" x2="100" y2="300" stroke="#333" stroke-width="1"/>
+  <text x="85" y="305" text-anchor="end" font-size="11" font-family="system-ui, -apple-system, sans-serif" fill="#666">Medium</text>
+
+  <line x1="95" y1="200" x2="100" y2="200" stroke="#333" stroke-width="1"/>
+  <text x="85" y="205" text-anchor="end" font-size="11" font-family="system-ui, -apple-system, sans-serif" fill="#666">Long</text>
+
+  <line x1="95" y1="100" x2="100" y2="100" stroke="#333" stroke-width="1"/>
+  <text x="85" y="105" text-anchor="end" font-size="11" font-family="system-ui, -apple-system, sans-serif" fill="#666">Very Long</text>
+
+  <!-- Curve showing inverse relationship -->
+  <path d="M 150 120 Q 300 200 450 330 T 650 410"
+        fill="none" stroke="#4A90A4" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Data points for different tokenization methods -->
+  <!-- Character-level -->
+  <circle cx="150" cy="120" r="8" fill="#E57373"/>
+  <text x="150" y="105" text-anchor="middle" font-size="12" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#E57373">Char</text>
+
+  <!-- Subword (BPE/WordPiece) -->
+  <circle cx="450" cy="330" r="8" fill="#81C784"/>
+  <text x="450" y="315" text-anchor="middle" font-size="12" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#81C784">Subword</text>
+
+  <!-- Word-level -->
+  <circle cx="620" cy="400" r="8" fill="#FFB74D"/>
+  <text x="620" y="385" text-anchor="middle" font-size="12" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#FFB74D">Word</text>
+
+  <!-- Annotation boxes -->
+  <g>
+    <rect x="520" y="150" width="250" height="90" fill="#f5f5f5" stroke="#666" stroke-width="1" rx="5"/>
+    <text x="645" y="172" text-anchor="middle" font-size="12" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#333">Key Trade-offs</text>
+    <text x="530" y="192" font-size="10" font-family="system-ui, -apple-system, sans-serif" fill="#666">
+      <tspan x="530" dy="0">• Small vocab → Long sequences</tspan>
+      <tspan x="530" dy="14">  → More computation (O(n²) attention)</tspan>
+      <tspan x="530" dy="14">• Large vocab → Short sequences</tspan>
+      <tspan x="530" dy="14">  → OOV problems, large embeddings</tspan>
+    </text>
+  </g>
+
+  <!-- Optimal zone highlighting -->
+  <rect x="380" y="280" width="140" height="100" fill="rgba(129, 199, 132, 0.15)" stroke="#81C784" stroke-width="2" stroke-dasharray="5,5" rx="8"/>
+  <text x="450" y="360" text-anchor="middle" font-size="11" font-style="italic" font-family="system-ui, -apple-system, sans-serif" fill="#81C784">Sweet Spot</text>
+
+  <!-- Legend -->
+  <g transform="translate(120, 60)">
+    <circle cx="0" cy="0" r="5" fill="#E57373"/>
+    <text x="12" y="4" font-size="11" font-family="system-ui, -apple-system, sans-serif" fill="#666">Character (~256 tokens)</text>
+
+    <circle cx="150" cy="0" r="5" fill="#81C784"/>
+    <text x="162" y="4" font-size="11" font-family="system-ui, -apple-system, sans-serif" fill="#666">Subword (10K-50K tokens)</text>
+
+    <circle cx="330" cy="0" r="5" fill="#FFB74D"/>
+    <text x="342" y="4" font-size="11" font-family="system-ui, -apple-system, sans-serif" fill="#666">Word (50K-500K tokens)</text>
+  </g>
+</svg>

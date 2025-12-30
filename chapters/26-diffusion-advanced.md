@@ -78,6 +78,17 @@ $$\nabla_{x_t} \log p(x_t|c) \approx \nabla_{x_t} \log p(x_t) + s \cdot (\nabla_
 
 This pushes the sample toward the conditional distribution while moving away from the unconditional distribution.
 
+![Classifier-Free Guidance Interpolation](../assets/diagrams/ch26-cfg-interpolation.svg)
+
+The diagram above illustrates how CFG interpolates between unconditional and conditional predictions. The guidance scale $s$ controls the strength of this interpolation, with higher values pushing the output closer to the conditional prediction at the cost of diversity.
+
+![Guidance Scale Trade-offs](../assets/diagrams/ch26-guidance-scale-tradeoffs.svg)
+
+Different guidance scale values produce different trade-offs:
+- **Low scale (s=1)**: High diversity but weak prompt adherence
+- **Medium scale (s=7.5)**: Balanced between diversity and prompt fidelity (typical for Stable Diffusion)
+- **High scale (s=20)**: Strong prompt adherence but may produce oversaturated images or artifacts
+
 ### Implementation
 
 ```python
@@ -348,6 +359,14 @@ Stable Diffusion consists of three main components:
 1. **VAE (Variational Autoencoder)**: Compress images to/from latent space
 2. **U-Net**: Diffusion model operating in latent space
 3. **Text Encoder**: CLIP for text conditioning
+
+![Latent Diffusion Model Architecture](../assets/diagrams/ch26-latent-diffusion-architecture.svg)
+
+The architecture above shows the complete Latent Diffusion pipeline:
+- **VAE Encoder** compresses the 512×512×3 image (786k dimensions) to a 64×64×4 latent (16k dimensions) - a 48× reduction
+- **U-Net** performs diffusion in this compact latent space, conditioned on text embeddings from CLIP
+- **VAE Decoder** reconstructs the final image from the denoised latent
+- This approach is 4-8× faster than pixel-space diffusion while maintaining the same quality
 
 ```python
 import torch

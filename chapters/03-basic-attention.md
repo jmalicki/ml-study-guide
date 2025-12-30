@@ -268,6 +268,8 @@ def attention_example():
 
 The version of attention used in transformers includes an important modification: **scaling by $\sqrt{d_k}$**.
 
+![Scaled Dot-Product Attention Flow](../assets/diagrams/ch03-scaled-dot-product-flow.svg)
+
 ### The Variance Problem
 
 When the dimension $d_k$ is large, the dot products grow large in magnitude. This pushes the softmax into regions with extremely small gradients, slowing down learning.
@@ -383,6 +385,8 @@ While $\sqrt{d_k}$ is the standard scaling factor, attention can be controlled m
 $$
 \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{T}\right)V
 $$
+
+![Temperature Effects on Attention Distribution](../assets/diagrams/ch03-temperature-effects.svg)
 
 The temperature controls the "sharpness" of the attention distribution:
 
@@ -580,6 +584,8 @@ Attention weights provide valuable insights into what the model is "looking at."
 - Debugging model behavior
 - Building intuition
 - Interpreting model decisions
+
+![Attention Heatmap Example](../assets/diagrams/ch03-attention-heatmap.svg)
 
 ### Extracting and Visualizing Attention
 

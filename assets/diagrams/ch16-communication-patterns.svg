@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 650">
+  <defs>
+    <style>
+      .title { font-family: Arial, sans-serif; font-size: 20px; font-weight: bold; fill: #333; }
+      .subtitle { font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; fill: #333; }
+      .label { font-family: Arial, sans-serif; font-size: 11px; fill: #333; }
+      .small-label { font-family: Arial, sans-serif; font-size: 9px; fill: #666; }
+      .gpu { fill: #4A90A4; stroke: #333; stroke-width: 2; }
+      .data { fill: #81C784; stroke: #333; stroke-width: 1; }
+      .comm-line { stroke: #E57373; stroke-width: 2; fill: none; }
+      .section-box { fill: #f9f9f9; stroke: #999; stroke-width: 1; }
+    </style>
+  </defs>
+
+  <!-- Title -->
+  <text x="400" y="30" text-anchor="middle" class="title">Communication Patterns in Distributed Training</text>
+
+  <!-- All-Reduce Section -->
+  <text x="140" y="70" text-anchor="middle" class="subtitle">All-Reduce (Data Parallel)</text>
+  <text x="140" y="85" text-anchor="middle" class="small-label">Ring topology - bandwidth optimal</text>
+
+  <!-- Ring of 4 GPUs -->
+  <circle cx="140" cy="140" r="20" class="gpu"/>
+  <text x="140" y="145" text-anchor="middle" class="label" fill="white">GPU 0</text>
+
+  <circle cx="220" cy="140" r="20" class="gpu"/>
+  <text x="220" y="145" text-anchor="middle" class="label" fill="white">GPU 1</text>
+
+  <circle cx="220" cy="200" r="20" class="gpu"/>
+  <text x="220" y="205" text-anchor="middle" class="label" fill="white">GPU 2</text>
+
+  <circle cx="140" cy="200" r="20" class="gpu"/>
+  <text x="140" y="205" text-anchor="middle" class="label" fill="white">GPU 3</text>
+
+  <!-- Ring connections -->
+  <path d="M 160 140 L 200 140" class="comm-line" marker-end="url(#arrow-red)"/>
+  <path d="M 220 160 L 220 180" class="comm-line" marker-end="url(#arrow-red)"/>
+  <path d="M 200 200 L 160 200" class="comm-line" marker-end="url(#arrow-red)"/>
+  <path d="M 140 180 L 140 160" class="comm-line" marker-end="url(#arrow-red)"/>
+
+  <!-- Info box -->
+  <rect x="50" y="230" width="180" height="75" class="section-box" rx="3"/>
+  <text x="140" y="248" text-anchor="middle" class="label" font-weight="bold">Ring All-Reduce</text>
+  <text x="60" y="262" class="small-label">Volume/GPU: ~2|gradients|</text>
+  <text x="60" y="274" class="small-label">Steps: 2(N-1) for N GPUs</text>
+  <text x="60" y="286" class="small-label">Use case: DDP gradient sync</text>
+  <text x="60" y="298" class="small-label" fill="#81C784">✓ Bandwidth optimal</text>
+
+  <!-- All-Gather / Reduce-Scatter Section -->
+  <text x="500" y="70" text-anchor="middle" class="subtitle">All-Gather (FSDP/ZeRO-3)</text>
+  <text x="500" y="85" text-anchor="middle" class="small-label">Gather sharded parameters</text>
+
+  <!-- GPUs with sharded data -->
+  <circle cx="430" cy="130" r="20" class="gpu"/>
+  <text x="430" y="135" text-anchor="middle" class="label" fill="white" font-size="9">GPU 0</text>
+  <rect x="420" y="145" width="20" height="8" class="data"/>
+  <text x="430" y="151" text-anchor="middle" class="small-label" fill="white" font-size="7">P0</text>
+
+  <circle cx="500" cy="130" r="20" class="gpu"/>
+  <text x="500" y="135" text-anchor="middle" class="label" fill="white" font-size="9">GPU 1</text>
+  <rect x="490" y="145" width="20" height="8" class="data"/>
+  <text x="500" y="151" text-anchor="middle" class="small-label" fill="white" font-size="7">P1</text>
+
+  <circle cx="570" cy="130" r="20" class="gpu"/>
+  <text x="570" y="135" text-anchor="middle" class="label" fill="white" font-size="9">GPU 2</text>
+  <rect x="560" y="145" width="20" height="8" class="data"/>
+  <text x="570" y="151" text-anchor="middle" class="small-label" fill="white" font-size="7">P2</text>
+
+  <!-- After all-gather (all GPUs have full data) -->
+  <text x="500" y="175" text-anchor="middle" class="small-label">After All-Gather ↓</text>
+
+  <circle cx="430" cy="200" r="20" class="gpu"/>
+  <text x="430" y="205" text-anchor="middle" class="label" fill="white" font-size="9">GPU 0</text>
+  <rect x="420" y="215" width="6" height="8" fill="#81C784" stroke="none"/>
+  <rect x="427" y="215" width="6" height="8" fill="#81C784" stroke="none"/>
+  <rect x="434" y="215" width="6" height="8" fill="#81C784" stroke="none"/>
+  <text x="430" y="233" text-anchor="middle" class="small-label" font-size="7">All parts</text>
+
+  <circle cx="500" cy="200" r="20" class="gpu"/>
+  <text x="500" y="205" text-anchor="middle" class="label" fill="white" font-size="9">GPU 1</text>
+  <rect x="490" y="215" width="6" height="8" fill="#81C784" stroke="none"/>
+  <rect x="497" y="215" width="6" height="8" fill="#81C784" stroke="none"/>
+  <rect x="504" y="215" width="6" height="8" fill="#81C784" stroke="none"/>
+  <text x="500" y="233" text-anchor="middle" class="small-label" font-size="7">All parts</text>
+
+  <circle cx="570" cy="200" r="20" class="gpu"/>
+  <text x="570" y="205" text-anchor="middle" class="label" fill="white" font-size="9">GPU 2</text>
+  <rect x="560" y="215" width="6" height="8" fill="#81C784" stroke="none"/>
+  <rect x="567" y="215" width="6" height="8" fill="#81C784" stroke="none"/>
+  <rect x="574" y="215" width="6" height="8" fill="#81C784" stroke="none"/>
+  <text x="570" y="233" text-anchor="middle" class="small-label" font-size="7">All parts</text>
+
+  <!-- Info box -->
+  <rect x="380" y="245" width="240" height="60" class="section-box" rx="3"/>
+  <text x="500" y="263" text-anchor="middle" class="label" font-weight="bold">All-Gather + Reduce-Scatter</text>
+  <text x="390" y="277" class="small-label">All-Gather: Each GPU gets full parameters</text>
+  <text x="390" y="289" class="small-label">Reduce-Scatter: Sum then distribute gradients</text>
+  <text x="390" y="301" class="small-label">Use case: FSDP parameter reconstruction</text>
+
+  <!-- Divider -->
+  <line x1="20" y1="325" x2="780" y2="325" stroke="#333" stroke-width="1"/>
+
+  <!-- Point-to-Point Section (Pipeline) -->
+  <text x="200" y="355" text-anchor="middle" class="subtitle">Point-to-Point (Pipeline Parallel)</text>
+  <text x="200" y="370" text-anchor="middle" class="small-label">Sequential activation transfer</text>
+
+  <!-- Pipeline stages -->
+  <rect x="50" y="385" width="80" height="50" class="gpu" rx="3"/>
+  <text x="90" y="405" text-anchor="middle" class="label" fill="white">GPU 0</text>
+  <text x="90" y="418" text-anchor="middle" class="small-label" fill="white">Layers 1-4</text>
+
+  <rect x="160" y="385" width="80" height="50" class="gpu" rx="3"/>
+  <text x="200" y="405" text-anchor="middle" class="label" fill="white">GPU 1</text>
+  <text x="200" y="418" text-anchor="middle" class="small-label" fill="white">Layers 5-8</text>
+
+  <rect x="270" y="385" width="80" height="50" class="gpu" rx="3"/>
+  <text x="310" y="405" text-anchor="middle" class="label" fill="white">GPU 2</text>
+  <text x="310" y="418" text-anchor="middle" class="small-label" fill="white">Layers 9-12</text>
+
+  <!-- Arrows between stages -->
+  <path d="M 130 410 L 155 410" stroke="#4A90A4" stroke-width="3" fill="none" marker-end="url(#arrow-blue)"/>
+  <text x="142" y="405" text-anchor="middle" class="small-label" fill="#4A90A4">Act</text>
+
+  <path d="M 240 410 L 265 410" stroke="#4A90A4" stroke-width="3" fill="none" marker-end="url(#arrow-blue)"/>
+  <text x="252" y="405" text-anchor="middle" class="small-label" fill="#4A90A4">Act</text>
+
+  <!-- Backward arrows -->
+  <path d="M 265 420 L 240 420" stroke="#E57373" stroke-width="3" fill="none" marker-end="url(#arrow-red)"/>
+  <text x="252" y="432" text-anchor="middle" class="small-label" fill="#E57373">Grad</text>
+
+  <path d="M 155 420 L 130 420" stroke="#E57373" stroke-width="3" fill="none" marker-end="url(#arrow-red)"/>
+  <text x="142" y="432" text-anchor="middle" class="small-label" fill="#E57373">Grad</text>
+
+  <!-- Info box -->
+  <rect x="50" y="450" width="300" height="60" class="section-box" rx="3"/>
+  <text x="200" y="468" text-anchor="middle" class="label" font-weight="bold">Pipeline P2P Communication</text>
+  <text x="60" y="482" class="small-label">Volume: batch_size × seq_len × hidden_dim</text>
+  <text x="60" y="494" class="small-label">Only adjacent stages communicate</text>
+  <text x="60" y="506" class="small-label" fill="#E57373">⚠ Pipeline bubbles reduce efficiency</text>
+
+  <!-- 3D Parallelism topology -->
+  <text x="550" y="355" text-anchor="middle" class="subtitle">3D Parallelism Topology</text>
+  <text x="550" y="370" text-anchor="middle" class="small-label">Hierarchical GPU organization</text>
+
+  <!-- Node 1 -->
+  <rect x="420" y="385" width="110" height="85" stroke="#666" stroke-width="2" fill="none" stroke-dasharray="5,3" rx="3"/>
+  <text x="475" y="400" text-anchor="middle" class="small-label" fill="#666">Node 1 (NVLink)</text>
+
+  <!-- Tensor parallel group in node 1 -->
+  <circle cx="445" cy="425" r="15" fill="#4A90A4" stroke="#333" stroke-width="1.5"/>
+  <text x="445" y="429" text-anchor="middle" class="small-label" fill="white">TP0</text>
+
+  <circle cx="505" cy="425" r="15" fill="#4A90A4" stroke="#333" stroke-width="1.5"/>
+  <text x="505" y="429" text-anchor="middle" class="small-label" fill="white">TP1</text>
+
+  <path d="M 460 425 L 490 425" stroke="#E57373" stroke-width="2" fill="none"/>
+  <path d="M 490 425 L 460 425" stroke="#E57373" stroke-width="2" fill="none"/>
+
+  <text x="475" y="453" text-anchor="middle" class="small-label" fill="#333">Stage 0</text>
+
+  <!-- Node 2 -->
+  <rect x="560" y="385" width="110" height="85" stroke="#666" stroke-width="2" fill="none" stroke-dasharray="5,3" rx="3"/>
+  <text x="615" y="400" text-anchor="middle" class="small-label" fill="#666">Node 2 (NVLink)</text>
+
+  <!-- Tensor parallel group in node 2 -->
+  <circle cx="585" cy="425" r="15" fill="#4A90A4" stroke="#333" stroke-width="1.5"/>
+  <text x="585" y="429" text-anchor="middle" class="small-label" fill="white">TP0</text>
+
+  <circle cx="645" cy="425" r="15" fill="#4A90A4" stroke="#333" stroke-width="1.5"/>
+  <text x="645" y="429" text-anchor="middle" class="small-label" fill="white">TP1</text>
+
+  <path d="M 600 425 L 630 425" stroke="#E57373" stroke-width="2" fill="none"/>
+  <path d="M 630 425 L 600 425" stroke="#E57373" stroke-width="2" fill="none"/>
+
+  <text x="615" y="453" text-anchor="middle" class="small-label" fill="#333">Stage 1</text>
+
+  <!-- Pipeline connection between nodes -->
+  <path d="M 530 440 L 560 440" stroke="#4A90A4" stroke-width="2" fill="none" marker-end="url(#arrow-blue)"/>
+  <text x="545" y="436" text-anchor="middle" class="small-label" fill="#4A90A4" font-size="8">IB</text>
+
+  <!-- Info box for 3D -->
+  <rect x="420" y="480" width="250" height="75" class="section-box" rx="3"/>
+  <text x="545" y="498" text-anchor="middle" class="label" font-weight="bold">3D Parallelism Strategy</text>
+  <text x="430" y="512" class="small-label">Tensor Parallel: Within node (NVLink ~900GB/s)</text>
+  <text x="430" y="524" class="small-label">Pipeline Parallel: Across nodes (InfiniBand ~25GB/s)</text>
+  <text x="430" y="536" class="small-label">Data Parallel: Across all replicas (gradients only)</text>
+  <text x="430" y="548" class="small-label" fill="#81C784">✓ Match communication to network topology</text>
+
+  <!-- Summary table -->
+  <text x="400" y="580" text-anchor="middle" class="subtitle">Communication Volume Comparison</text>
+
+  <rect x="50" y="590" width="700" height="50" class="section-box"/>
+
+  <!-- Table headers -->
+  <text x="70" y="605" class="label" font-weight="bold">Strategy</text>
+  <text x="230" y="605" class="label" font-weight="bold">Volume per Step</text>
+  <text x="440" y="605" class="label" font-weight="bold">Frequency</text>
+  <text x="600" y="605" class="label" font-weight="bold">Network</text>
+
+  <!-- Table rows -->
+  <text x="70" y="620" class="small-label">DDP</text>
+  <text x="230" y="620" class="small-label">2Θ (gradient all-reduce)</text>
+  <text x="440" y="620" class="small-label">Once per step</text>
+  <text x="600" y="620" class="small-label">IB OK</text>
+
+  <text x="70" y="632" class="small-label">FSDP/ZeRO-3</text>
+  <text x="230" y="632" class="small-label">4Θ (gather+scatter)</text>
+  <text x="440" y="632" class="small-label">Per layer</text>
+  <text x="600" y="632" class="small-label">IB OK</text>
+
+  <text x="420" y="620" class="small-label">Tensor Parallel</text>
+  <text x="540" y="620" class="small-label">2BSd per layer</text>
+  <text x="650" y="620" class="small-label">2× per layer</text>
+  <text x="720" y="620" class="small-label" fill="#E57373">Needs NVLink</text>
+
+  <text x="420" y="632" class="small-label">Pipeline Parallel</text>
+  <text x="540" y="632" class="small-label">BSd per stage</text>
+  <text x="650" y="632" class="small-label">Per micro-batch</text>
+  <text x="720" y="632" class="small-label">IB OK</text>
+
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrow-red" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#E57373"/>
+    </marker>
+    <marker id="arrow-blue" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#4A90A4"/>
+    </marker>
+  </defs>
+</svg>

@@ -35,6 +35,8 @@ DPO makes a key observation: we can derive a closed-form expression for the opti
 2. Optimize the policy directly using preference data
 3. Implicitly maintain the KL constraint from RLHF
 
+![DPO vs RLHF Pipeline Comparison](../assets/diagrams/ch22-dpo-vs-rlhf-pipeline.svg)
+
 ## Mathematical Foundation
 
 ### The Bradley-Terry Model
@@ -104,6 +106,17 @@ This can be rewritten more compactly as:
 $$
 \mathcal{L}_{\text{DPO}}(\pi_\theta; \pi_{\text{ref}}) = -\mathbb{E}_{(x, y_w, y_l) \sim \mathcal{D}} \left[\log \sigma\left(\beta \left[\log \frac{\pi_\theta(y_w \mid x)}{\pi_{\text{ref}}(y_w \mid x)} - \log \frac{\pi_\theta(y_l \mid x)}{\pi_{\text{ref}}(y_l \mid x)}\right]\right)\right]
 $$
+
+![DPO Preference Learning](../assets/diagrams/ch22-preference-learning.svg)
+
+The diagram above illustrates how DPO learns from preference data. Given a prompt and two responses (one chosen, one rejected), DPO trains the policy model to increase the probability of the chosen response while decreasing the probability of the rejected response, all relative to the frozen reference model.
+
+![DPO Loss Function Behavior](../assets/diagrams/ch22-loss-behavior.svg)
+
+The loss function has several important properties:
+- **Asymptotic behavior**: Loss approaches 0 when the model strongly prefers the chosen response, and increases unboundedly when it prefers the rejected response
+- **Gradient behavior**: Gradients are strongest when the model is uncertain (ratio near 0) and weaker when the model is confident
+- **β parameter**: Controls the strength of the implicit KL constraint - higher β keeps the policy closer to the reference model
 
 ## Implementation
 

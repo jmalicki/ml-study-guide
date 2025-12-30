@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 600">
+  <defs>
+    <style>
+      text { font-family: system-ui, -apple-system, sans-serif; fill: #333; }
+      .title { font-size: 18px; font-weight: 600; }
+      .label { font-size: 13px; font-weight: 600; }
+      .small { font-size: 11px; }
+      .axis-label { font-size: 12px; fill: #666; }
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#666"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="350" y="30" class="title" text-anchor="middle">Semantic Relationships in Embedding Space</text>
+  <text x="350" y="50" class="small" text-anchor="middle" fill="#666">(2D projection of 300-dimensional space)</text>
+
+  <!-- Coordinate system -->
+  <g id="axes" transform="translate(100, 450)">
+    <!-- X axis -->
+    <line x1="0" y1="0" x2="550" y2="0" stroke="#ccc" stroke-width="2"/>
+    <polygon points="550 0, 545 -3, 545 3" fill="#ccc"/>
+    <text x="520" y="-10" class="axis-label">Dimension 1 (e.g., "royalty")</text>
+
+    <!-- Y axis -->
+    <line x1="0" y1="0" x2="0" y2="-350" stroke="#ccc" stroke-width="2"/>
+    <polygon points="0 -350, -3 -345, 3 -345" fill="#ccc"/>
+    <text x="-10" y="-320" class="axis-label" text-anchor="end">Dimension 2 (e.g., "gender")</text>
+  </g>
+
+  <!-- Grid -->
+  <g id="grid" opacity="0.1">
+    <line x1="100" y1="100" x2="100" y2="450" stroke="#333"/>
+    <line x1="200" y1="100" x2="200" y2="450" stroke="#333"/>
+    <line x1="300" y1="100" x2="300" y2="450" stroke="#333"/>
+    <line x1="400" y1="100" x2="400" y2="450" stroke="#333"/>
+    <line x1="500" y1="100" x2="500" y2="450" stroke="#333"/>
+    <line x1="600" y1="100" x2="600" y2="450" stroke="#333"/>
+    <line x1="100" y1="150" x2="650" y2="150" stroke="#333"/>
+    <line x1="100" y1="250" x2="650" y2="250" stroke="#333"/>
+    <line x1="100" y1="350" x2="650" y2="350" stroke="#333"/>
+  </g>
+
+  <!-- Word embeddings -->
+  <!-- Male royalty cluster -->
+  <g id="male-royalty">
+    <circle cx="450" cy="180" r="6" fill="#4A90A4"/>
+    <text x="465" y="185" class="label" fill="#4A90A4">king</text>
+
+    <circle cx="440" cy="210" r="5" fill="#4A90A4" opacity="0.7"/>
+    <text x="455" y="215" class="small" fill="#4A90A4">prince</text>
+
+    <circle cx="430" cy="195" r="5" fill="#4A90A4" opacity="0.7"/>
+    <text x="445" y="200" class="small" fill="#4A90A4">emperor</text>
+  </g>
+
+  <!-- Female royalty cluster -->
+  <g id="female-royalty">
+    <circle cx="450" cy="310" r="6" fill="#E57373"/>
+    <text x="465" y="315" class="label" fill="#E57373">queen</text>
+
+    <circle cx="440" cy="340" r="5" fill="#E57373" opacity="0.7"/>
+    <text x="455" y="345" class="small" fill="#E57373">princess</text>
+
+    <circle cx="430" cy="325" r="5" fill="#E57373" opacity="0.7"/>
+    <text x="445" y="330" class="small" fill="#E57373">empress</text>
+  </g>
+
+  <!-- Male common cluster -->
+  <g id="male-common">
+    <circle cx="250" cy="180" r="6" fill="#4A90A4"/>
+    <text x="265" y="185" class="label" fill="#4A90A4">man</text>
+
+    <circle cx="240" cy="210" r="5" fill="#4A90A4" opacity="0.7"/>
+    <text x="255" y="215" class="small" fill="#4A90A4">boy</text>
+
+    <circle cx="230" cy="195" r="5" fill="#4A90A4" opacity="0.7"/>
+    <text x="245" y="200" class="small" fill="#4A90A4">gentleman</text>
+  </g>
+
+  <!-- Female common cluster -->
+  <g id="female-common">
+    <circle cx="250" cy="310" r="6" fill="#E57373"/>
+    <text x="265" y="315" class="label" fill="#E57373">woman</text>
+
+    <circle cx="240" cy="340" r="5" fill="#E57373" opacity="0.7"/>
+    <text x="255" y="345" class="small" fill="#E57373">girl</text>
+
+    <circle cx="230" cy="325" r="5" fill="#E57373" opacity="0.7"/>
+    <text x="245" y="330" class="small" fill="#E57373">lady</text>
+  </g>
+
+  <!-- Geography cluster -->
+  <g id="geography">
+    <circle cx="550" cy="250" r="5" fill="#9575CD"/>
+    <text x="565" y="255" class="small" fill="#9575CD">Paris</text>
+
+    <circle cx="580" cy="250" r="5" fill="#9575CD"/>
+    <text x="595" y="255" class="small" fill="#9575CD">France</text>
+
+    <circle cx="550" cy="280" r="5" fill="#9575CD"/>
+    <text x="565" y="285" class="small" fill="#9575CD">Rome</text>
+
+    <circle cx="580" cy="280" r="5" fill="#9575CD"/>
+    <text x="595" y="285" class="small" fill="#9575CD">Italy</text>
+  </g>
+
+  <!-- Vector arrows showing relationships -->
+  <!-- Gender vector (horizontal) -->
+  <g id="gender-vector">
+    <defs>
+      <marker id="arrow-gender" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#FFB74D"/>
+      </marker>
+    </defs>
+    <line x1="450" y1="180" x2="450" y2="300" stroke="#FFB74D" stroke-width="2.5"
+          stroke-dasharray="5,3" marker-end="url(#arrow-gender)" opacity="0.8"/>
+    <text x="460" y="245" class="label" fill="#FFB74D">gender</text>
+    <text x="460" y="260" class="small" fill="#FFB74D">vector</text>
+  </g>
+
+  <!-- Royalty vector (vertical) -->
+  <g id="royalty-vector">
+    <defs>
+      <marker id="arrow-royalty" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#81C784"/>
+      </marker>
+    </defs>
+    <line x1="250" y1="180" x2="440" y2="180" stroke="#81C784" stroke-width="2.5"
+          stroke-dasharray="5,3" marker-end="url(#arrow-royalty)" opacity="0.8"/>
+    <text x="340" y="170" class="label" fill="#81C784" text-anchor="middle">royalty vector</text>
+  </g>
+
+  <!-- Analogy demonstration -->
+  <g id="analogy" transform="translate(120, 500)">
+    <rect x="0" y="0" width="460" height="70" fill="#f5f5f5" rx="5"/>
+    <text x="230" y="20" class="label" text-anchor="middle">Vector Arithmetic: king - man + woman = ?</text>
+
+    <g transform="translate(30, 35)">
+      <text x="0" y="0" class="small">
+        <tspan fill="#4A90A4" font-weight="600">king</tspan>
+        <tspan> - </tspan>
+        <tspan fill="#4A90A4" font-weight="600">man</tspan>
+        <tspan> + </tspan>
+        <tspan fill="#E57373" font-weight="600">woman</tspan>
+        <tspan> ≈ </tspan>
+        <tspan fill="#E57373" font-weight="600">queen</tspan>
+      </text>
+    </g>
+
+    <text x="230" y="58" class="small" text-anchor="middle" fill="#666">
+      Semantic relationships encoded as consistent vector offsets
+    </text>
+  </g>
+
+  <!-- Legend -->
+  <g id="legend" transform="translate(20, 80)">
+    <text y="0" class="small" font-weight="600">Clusters:</text>
+    <circle cx="5" cy="15" r="4" fill="#4A90A4"/>
+    <text x="15" y="19" class="small">Male</text>
+    <circle cx="5" cy="35" r="4" fill="#E57373"/>
+    <text x="15" y="39" class="small">Female</text>
+    <circle cx="5" cy="55" r="4" fill="#9575CD"/>
+    <text x="15" y="59" class="small">Geography</text>
+  </g>
+</svg>

@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <!-- Title -->
+  <text x="400" y="30" font-size="18" font-weight="bold" text-anchor="middle" fill="#333">Pre-Norm vs Post-Norm Architecture</text>
+
+  <!-- Post-Norm (Original) -->
+  <g id="post-norm">
+    <text x="200" y="70" font-size="15" font-weight="bold" text-anchor="middle" fill="#333">Post-Norm (Original Transformer)</text>
+
+    <!-- Input -->
+    <rect x="160" y="90" width="80" height="35" fill="#E8F4F8" stroke="#4A90A4" stroke-width="2" rx="5"/>
+    <text x="200" y="112" font-size="13" text-anchor="middle" fill="#333" font-weight="bold">Input x</text>
+
+    <!-- Arrow down -->
+    <line x1="200" y1="125" x2="200" y2="145" stroke="#333" stroke-width="2" marker-end="url(#arrowhead-black)"/>
+
+    <!-- Attention Block -->
+    <rect x="160" y="145" width="80" height="40" fill="#FFE0B2" stroke="#FF9800" stroke-width="2" rx="5"/>
+    <text x="200" y="168" font-size="12" text-anchor="middle" fill="#333" font-weight="bold">Attention</text>
+
+    <!-- Split for residual -->
+    <line x1="200" y1="90" x2="120" y2="90" stroke="#4A90A4" stroke-width="2"/>
+    <line x1="120" y1="90" x2="120" y2="215" stroke="#4A90A4" stroke-width="2"/>
+    <circle cx="120" cy="200" r="3" fill="#4A90A4"/>
+
+    <!-- Add operation -->
+    <circle cx="200" cy="215" r="18" fill="#FFF" stroke="#333" stroke-width="2"/>
+    <text x="200" y="221" font-size="18" font-weight="bold" text-anchor="middle" fill="#333">+</text>
+
+    <!-- Arrow from Add to LayerNorm -->
+    <line x1="120" y1="215" x2="182" y2="215" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead-blue)"/>
+    <line x1="200" y1="185" x2="200" y2="197" stroke="#333" stroke-width="2" marker-end="url(#arrowhead-black)"/>
+    <line x1="200" y1="233" x2="200" y2="250" stroke="#333" stroke-width="2" marker-end="url(#arrowhead-black)"/>
+
+    <!-- LayerNorm 1 -->
+    <rect x="160" y="250" width="80" height="35" fill="#C8E6C9" stroke="#4CAF50" stroke-width="2" rx="5"/>
+    <text x="200" y="272" font-size="12" text-anchor="middle" fill="#333" font-weight="bold">LayerNorm</text>
+
+    <!-- Arrow down -->
+    <line x1="200" y1="285" x2="200" y2="305" stroke="#333" stroke-width="2" marker-end="url(#arrowhead-black)"/>
+
+    <!-- FFN Block -->
+    <rect x="160" y="305" width="80" height="40" fill="#FFE0B2" stroke="#FF9800" stroke-width="2" rx="5"/>
+    <text x="200" y="328" font-size="12" text-anchor="middle" fill="#333" font-weight="bold">FFN</text>
+
+    <!-- Split for residual 2 -->
+    <line x1="200" y1="250" x2="280" y2="250" stroke="#4A90A4" stroke-width="2"/>
+    <line x1="280" y1="250" x2="280" y2="375" stroke="#4A90A4" stroke-width="2"/>
+    <circle cx="280" cy="360" r="3" fill="#4A90A4"/>
+
+    <!-- Add operation 2 -->
+    <circle cx="200" cy="375" r="18" fill="#FFF" stroke="#333" stroke-width="2"/>
+    <text x="200" y="381" font-size="18" font-weight="bold" text-anchor="middle" fill="#333">+</text>
+
+    <!-- Arrow from Add to LayerNorm 2 -->
+    <line x1="218" y1="375" x2="262" y2="375" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead-blue)"/>
+    <line x1="200" y1="345" x2="200" y2="357" stroke="#333" stroke-width="2" marker-end="url(#arrowhead-black)"/>
+    <line x1="200" y1="393" x2="200" y2="410" stroke="#333" stroke-width="2" marker-end="url(#arrowhead-black)"/>
+
+    <!-- LayerNorm 2 -->
+    <rect x="160" y="410" width="80" height="35" fill="#C8E6C9" stroke="#4CAF50" stroke-width="2" rx="5"/>
+    <text x="200" y="432" font-size="12" text-anchor="middle" fill="#333" font-weight="bold">LayerNorm</text>
+
+    <!-- Output -->
+    <line x1="200" y1="445" x2="200" y2="465" stroke="#333" stroke-width="2" marker-end="url(#arrowhead-black)"/>
+    <rect x="160" y="465" width="80" height="35" fill="#E8F4F8" stroke="#4A90A4" stroke-width="2" rx="5"/>
+    <text x="200" y="487" font-size="13" text-anchor="middle" fill="#333" font-weight="bold">Output</text>
+
+    <!-- Issues label -->
+    <text x="200" y="525" font-size="11" text-anchor="middle" fill="#E57373">⚠ Harder to train deep models</text>
+    <text x="200" y="540" font-size="11" text-anchor="middle" fill="#E57373">Requires learning rate warmup</text>
+  </g>
+
+  <!-- Pre-Norm (Modern) -->
+  <g id="pre-norm">
+    <text x="600" y="70" font-size="15" font-weight="bold" text-anchor="middle" fill="#333">Pre-Norm (Modern Standard)</text>
+
+    <!-- Input -->
+    <rect x="560" y="90" width="80" height="35" fill="#E8F4F8" stroke="#4A90A4" stroke-width="2" rx="5"/>
+    <text x="600" y="112" font-size="13" text-anchor="middle" fill="#333" font-weight="bold">Input x</text>
+
+    <!-- Split for residual -->
+    <line x1="600" y1="125" x2="520" y2="125" stroke="#4A90A4" stroke-width="3"/>
+    <line x1="520" y1="125" x2="520" y2="215" stroke="#4A90A4" stroke-width="3"/>
+    <circle cx="520" cy="200" r="3" fill="#4A90A4"/>
+
+    <!-- Arrow down to LayerNorm -->
+    <line x1="600" y1="125" x2="600" y2="145" stroke="#333" stroke-width="2" marker-end="url(#arrowhead-black)"/>
+
+    <!-- LayerNorm 1 -->
+    <rect x="560" y="145" width="80" height="35" fill="#C8E6C9" stroke="#4CAF50" stroke-width="2" rx="5"/>
+    <text x="600" y="167" font-size="12" text-anchor="middle" fill="#333" font-weight="bold">LayerNorm</text>
+
+    <!-- Arrow to Attention -->
+    <line x1="600" y1="180" x2="600" y2="195" stroke="#333" stroke-width="2" marker-end="url(#arrowhead-black)"/>
+
+    <!-- Attention Block -->
+    <rect x="560" y="195" width="80" height="40" fill="#FFE0B2" stroke="#FF9800" stroke-width="2" rx="5"/>
+    <text x="600" y="218" font-size="12" text-anchor="middle" fill="#333" font-weight="bold">Attention</text>
+
+    <!-- Add operation -->
+    <circle cx="600" cy="265" r="18" fill="#FFF" stroke="#333" stroke-width="2"/>
+    <text x="600" y="271" font-size="18" font-weight="bold" text-anchor="middle" fill="#333">+</text>
+
+    <!-- Arrows to Add -->
+    <line x1="520" y1="215" x2="582" y2="265" stroke="#4A90A4" stroke-width="3" marker-end="url(#arrowhead-blue)"/>
+    <line x1="600" y1="235" x2="600" y2="247" stroke="#333" stroke-width="2" marker-end="url(#arrowhead-black)"/>
+
+    <!-- Arrow down from Add -->
+    <line x1="600" y1="283" x2="600" y2="305" stroke="#333" stroke-width="2" marker-end="url(#arrowhead-black)"/>
+
+    <!-- Split for residual 2 -->
+    <line x1="600" y1="305" x2="680" y2="305" stroke="#4A90A4" stroke-width="3"/>
+    <line x1="680" y1="305" x2="680" y2="425" stroke="#4A90A4" stroke-width="3"/>
+    <circle cx="680" cy="410" r="3" fill="#4A90A4"/>
+
+    <!-- LayerNorm 2 -->
+    <rect x="560" y="305" width="80" height="35" fill="#C8E6C9" stroke="#4CAF50" stroke-width="2" rx="5"/>
+    <text x="600" y="327" font-size="12" text-anchor="middle" fill="#333" font-weight="bold">LayerNorm</text>
+
+    <!-- Arrow to FFN -->
+    <line x1="600" y1="340" x2="600" y2="355" stroke="#333" stroke-width="2" marker-end="url(#arrowhead-black)"/>
+
+    <!-- FFN Block -->
+    <rect x="560" y="355" width="80" height="40" fill="#FFE0B2" stroke="#FF9800" stroke-width="2" rx="5"/>
+    <text x="600" y="378" font-size="12" text-anchor="middle" fill="#333" font-weight="bold">FFN</text>
+
+    <!-- Add operation 2 -->
+    <circle cx="600" cy="425" r="18" fill="#FFF" stroke="#333" stroke-width="2"/>
+    <text x="600" y="431" font-size="18" font-weight="bold" text-anchor="middle" fill="#333">+</text>
+
+    <!-- Arrows to Add 2 -->
+    <line x1="662" y1="425" x2="680" y2="425" stroke="#4A90A4" stroke-width="3" marker-end="url(#arrowhead-blue)"/>
+    <line x1="600" y1="395" x2="600" y2="407" stroke="#333" stroke-width="2" marker-end="url(#arrowhead-black)"/>
+
+    <!-- Output -->
+    <line x1="600" y1="443" x2="600" y2="465" stroke="#333" stroke-width="2" marker-end="url(#arrowhead-black)"/>
+    <rect x="560" y="465" width="80" height="35" fill="#E8F4F8" stroke="#4A90A4" stroke-width="2" rx="5"/>
+    <text x="600" y="487" font-size="13" text-anchor="middle" fill="#333" font-weight="bold">Output</text>
+
+    <!-- Benefits label -->
+    <text x="600" y="525" font-size="11" text-anchor="middle" fill="#81C784">✓ Better gradient flow</text>
+    <text x="600" y="540" font-size="11" text-anchor="middle" fill="#81C784">✓ More stable, trains deeper</text>
+  </g>
+
+  <!-- Comparison Legend -->
+  <g id="legend">
+    <rect x="310" y="560" width="180" height="30" fill="#f9f9f9" stroke="#999" stroke-width="1" rx="3"/>
+    <line x1="320" y1="575" x2="350" y2="575" stroke="#4A90A4" stroke-width="3"/>
+    <text x="360" y="580" font-size="11" fill="#333">Residual connection</text>
+  </g>
+
+  <!-- Key Insight -->
+  <g id="insight">
+    <text x="400" y="570" font-size="12" font-weight="bold" text-anchor="middle" fill="#4A90A4">Key Difference:</text>
+    <text x="400" y="585" font-size="11" text-anchor="middle" fill="#666">Pre-norm applies normalization before sublayers, post-norm after</text>
+  </g>
+
+  <!-- Arrow marker definitions -->
+  <defs>
+    <marker id="arrowhead-black" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#333"/>
+    </marker>
+    <marker id="arrowhead-blue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#4A90A4"/>
+    </marker>
+  </defs>
+</svg>

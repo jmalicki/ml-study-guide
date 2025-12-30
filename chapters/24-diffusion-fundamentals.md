@@ -67,6 +67,8 @@ This means the noisy image is a weighted combination of the original image (scal
 
 **Key Insight:** The beauty of this formulation is that we can jump to any noise level $t$ in one step without iterating through all intermediate steps. This is critical for efficient training, where we need to sample random timesteps during each training iteration.
 
+![Forward Diffusion Process](../assets/diagrams/ch24-forward-diffusion.svg)
+
 ```python
 import torch
 import torch.nn as nn
@@ -269,6 +271,8 @@ The choice of $\beta_t$ (variance schedule) significantly impacts training and s
 3. **Quadratic Schedule**:
    $$\beta_t = \beta_1 + \left(\frac{t-1}{T-1}\right)^2 (\beta_T - \beta_1)$$
 
+![Noise Schedules Comparison](../assets/diagrams/ch24-noise-schedules.svg)
+
 ### Understanding Variance Schedules
 
 **The Problem:** Different data types (images vs audio) and resolutions require different rates of noise addition. A schedule that's too aggressive destroys information too quickly; too conservative wastes timesteps.
@@ -358,6 +362,8 @@ Starting from $\mathbf{x}_T \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$, we iterat
 $$
 p_\theta(\mathbf{x}_{0:T}) = p(\mathbf{x}_T) \prod_{t=1}^{T} p_\theta(\mathbf{x}_{t-1} | \mathbf{x}_t)
 $$
+
+![Reverse Denoising Process](../assets/diagrams/ch24-reverse-denoising.svg)
 
 ### Reverse Process is Gaussian (with small $\beta_t$)
 

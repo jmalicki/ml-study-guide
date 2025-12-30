@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <!-- Title -->
+  <text x="400" y="30" font-size="18" font-weight="bold" text-anchor="middle" fill="#333">Layer Normalization Effect on Activations</text>
+
+  <!-- Before LayerNorm Section -->
+  <g id="before-norm">
+    <text x="150" y="70" font-size="14" font-weight="bold" text-anchor="middle" fill="#333">Before LayerNorm</text>
+
+    <!-- Distribution visualization - scattered points -->
+    <rect x="50" y="90" width="200" height="250" fill="none" stroke="#333" stroke-width="2"/>
+
+    <!-- Axes -->
+    <line x1="150" y1="90" x2="150" y2="340" stroke="#999" stroke-width="1" stroke-dasharray="3,3"/>
+    <line x1="50" y1="215" x2="250" y2="215" stroke="#999" stroke-width="1" stroke-dasharray="3,3"/>
+
+    <!-- Scattered points representing unnormalized activations -->
+    <circle cx="80" cy="180" r="4" fill="#E57373"/>
+    <circle cx="120" cy="120" r="4" fill="#E57373"/>
+    <circle cx="95" cy="280" r="4" fill="#E57373"/>
+    <circle cx="160" cy="140" r="4" fill="#E57373"/>
+    <circle cx="180" cy="260" r="4" fill="#E57373"/>
+    <circle cx="140" cy="110" r="4" fill="#E57373"/>
+    <circle cx="200" cy="190" r="4" fill="#E57373"/>
+    <circle cx="110" cy="300" r="4" fill="#E57373"/>
+    <circle cx="220" cy="150" r="4" fill="#E57373"/>
+    <circle cx="190" cy="200" r="4" fill="#E57373"/>
+    <circle cx="70" cy="240" r="4" fill="#E57373"/>
+    <circle cx="230" cy="270" r="4" fill="#E57373"/>
+
+    <!-- Labels -->
+    <text x="150" y="360" font-size="12" text-anchor="middle" fill="#666">High variance</text>
+    <text x="150" y="375" font-size="12" text-anchor="middle" fill="#666">μ ≠ 0, σ² large</text>
+  </g>
+
+  <!-- Arrow -->
+  <g id="arrow">
+    <line x1="270" y1="215" x2="330" y2="215" stroke="#4A90A4" stroke-width="3" marker-end="url(#arrowhead)"/>
+    <text x="300" y="205" font-size="13" font-weight="bold" text-anchor="middle" fill="#4A90A4">LayerNorm</text>
+  </g>
+
+  <!-- After LayerNorm Section -->
+  <g id="after-norm">
+    <text x="600" y="70" font-size="14" font-weight="bold" text-anchor="middle" fill="#333">After LayerNorm</text>
+
+    <!-- Distribution visualization - normalized points -->
+    <rect x="500" y="90" width="200" height="250" fill="none" stroke="#333" stroke-width="2"/>
+
+    <!-- Axes -->
+    <line x1="600" y1="90" x2="600" y2="340" stroke="#999" stroke-width="1" stroke-dasharray="3,3"/>
+    <line x1="500" y1="215" x2="700" y2="215" stroke="#999" stroke-width="1" stroke-dasharray="3,3"/>
+
+    <!-- Normalized points clustered around center -->
+    <circle cx="590" cy="210" r="4" fill="#81C784"/>
+    <circle cx="610" cy="220" r="4" fill="#81C784"/>
+    <circle cx="595" cy="205" r="4" fill="#81C784"/>
+    <circle cx="605" cy="215" r="4" fill="#81C784"/>
+    <circle cx="585" cy="225" r="4" fill="#81C784"/>
+    <circle cx="615" cy="210" r="4" fill="#81C784"/>
+    <circle cx="592" cy="218" r="4" fill="#81C784"/>
+    <circle cx="608" cy="212" r="4" fill="#81C784"/>
+    <circle cx="598" cy="222" r="4" fill="#81C784"/>
+    <circle cx="602" cy="208" r="4" fill="#81C784"/>
+    <circle cx="588" cy="213" r="4" fill="#81C784"/>
+    <circle cx="612" cy="217" r="4" fill="#81C784"/>
+
+    <!-- Ellipse showing normalized distribution -->
+    <ellipse cx="600" cy="215" rx="20" ry="15" fill="none" stroke="#81C784" stroke-width="2" stroke-dasharray="5,3"/>
+
+    <!-- Labels -->
+    <text x="600" y="360" font-size="12" text-anchor="middle" fill="#666">Low variance</text>
+    <text x="600" y="375" font-size="12" text-anchor="middle" fill="#666">μ ≈ 0, σ² ≈ 1</text>
+  </g>
+
+  <!-- Formula -->
+  <g id="formula">
+    <rect x="280" y="250" width="240" height="80" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+    <text x="400" y="275" font-size="13" text-anchor="middle" fill="#333" font-family="serif">
+      <tspan font-style="italic">x</tspan>
+      <tspan baseline-shift="sub" font-size="10">norm</tspan>
+      = γ ⊙
+      <tspan font-size="18">(</tspan>
+      <tspan font-size="16" baseline-shift="super">x - μ</tspan>
+      <tspan font-size="11">―――――</tspan>
+    </text>
+    <text x="400" y="295" font-size="13" text-anchor="middle" fill="#333" font-family="serif">
+      <tspan font-size="18">)</tspan>
+      <tspan baseline-shift="super" font-size="10">√(σ² + ε)</tspan>
+      + β
+    </text>
+    <text x="400" y="318" font-size="11" text-anchor="middle" fill="#666">Stabilizes activations</text>
+  </g>
+
+  <!-- Arrow marker definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#4A90A4"/>
+    </marker>
+  </defs>
+</svg>

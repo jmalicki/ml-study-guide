@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 700">
+  <!-- Title -->
+  <text x="400" y="30" font-size="22" font-weight="bold" fill="#333" text-anchor="middle">
+    GPU Memory Hierarchy
+  </text>
+  <text x="400" y="55" font-size="14" fill="#666" text-anchor="middle">
+    Understanding memory access speeds and optimization
+  </text>
+
+  <!-- Speed arrow on left -->
+  <g transform="translate(30, 100)">
+    <line x1="0" y1="0" x2="0" y2="500" stroke="#666" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <text x="-15" y="250" font-size="14" fill="#666" writing-mode="tb" transform="rotate(180 -15 250)">FASTER</text>
+  </g>
+
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+      <polygon points="0 0, 10 5, 0 10" fill="#666"/>
+    </marker>
+  </defs>
+
+  <!-- Registers -->
+  <g transform="translate(100, 90)">
+    <rect x="0" y="0" width="600" height="70" fill="#E57373" stroke="#333" stroke-width="2" rx="5"/>
+    <text x="20" y="25" font-size="16" font-weight="bold" fill="#fff">Registers</text>
+    <text x="20" y="45" font-size="13" fill="#fff">~20 TB/s bandwidth</text>
+    <text x="20" y="62" font-size="12" fill="#fff">Per-thread, ~256 KB per SM</text>
+
+    <text x="580" y="35" font-size="18" font-weight="bold" fill="#fff" text-anchor="end">~1 cycle</text>
+  </g>
+
+  <!-- L1 Cache / Shared Memory -->
+  <g transform="translate(100, 180)">
+    <rect x="0" y="0" width="600" height="75" fill="#FFB74D" stroke="#333" stroke-width="2" rx="5"/>
+    <text x="20" y="25" font-size="16" font-weight="bold" fill="#333">L1 Cache / Shared Memory (SRAM)</text>
+    <text x="20" y="45" font-size="13" fill="#333">~19 TB/s bandwidth</text>
+    <text x="20" y="62" font-size="12" fill="#333">Per-SM, 128-256 KB (configurable split)</text>
+
+    <text x="580" y="40" font-size="18" font-weight="bold" fill="#333" text-anchor="end">~28 cycles</text>
+  </g>
+
+  <!-- L2 Cache -->
+  <g transform="translate(100, 275)">
+    <rect x="0" y="0" width="600" height="75" fill="#FFD54F" stroke="#333" stroke-width="2" rx="5"/>
+    <text x="20" y="25" font-size="16" font-weight="bold" fill="#333">L2 Cache</text>
+    <text x="20" y="45" font-size="13" fill="#333">~4 TB/s bandwidth</text>
+    <text x="20" y="62" font-size="12" fill="#333">Shared across GPU, 40-60 MB (H100: 50 MB)</text>
+
+    <text x="580" y="40" font-size="18" font-weight="bold" fill="#333" text-anchor="end">~200 cycles</text>
+  </g>
+
+  <!-- HBM (Global Memory) -->
+  <g transform="translate(100, 370)">
+    <rect x="0" y="0" width="600" height="85" fill="#4A90A4" stroke="#333" stroke-width="2" rx="5"/>
+    <text x="20" y="25" font-size="16" font-weight="bold" fill="#fff">HBM (High Bandwidth Memory)</text>
+    <text x="20" y="48" font-size="13" fill="#fff">~3 TB/s bandwidth (H100), 2 TB/s (A100)</text>
+    <text x="20" y="68" font-size="12" fill="#fff">Main GPU memory: 40-80 GB (A100), 80-192 GB (H100/B200)</text>
+
+    <text x="580" y="45" font-size="18" font-weight="bold" fill="#fff" text-anchor="end">~380 cycles</text>
+  </g>
+
+  <!-- CPU Memory -->
+  <g transform="translate(100, 475)">
+    <rect x="0" y="0" width="600" height="75" fill="#81C784" stroke="#333" stroke-width="2" rx="5"/>
+    <text x="20" y="25" font-size="16" font-weight="bold" fill="#333">CPU Memory (DRAM)</text>
+    <text x="20" y="45" font-size="13" fill="#333">~100 GB/s bandwidth via PCIe 4.0</text>
+    <text x="20" y="62" font-size="12" fill="#333">Host memory: 128 GB - 2 TB</text>
+
+    <text x="580" y="40" font-size="18" font-weight="bold" fill="#333" text-anchor="end">~10,000+ cycles</text>
+  </g>
+
+  <!-- Disk Storage -->
+  <g transform="translate(100, 570)">
+    <rect x="0" y="0" width="600" height="65" fill="#9E9E9E" stroke="#333" stroke-width="2" rx="5"/>
+    <text x="20" y="25" font-size="16" font-weight="bold" fill="#fff">Disk Storage (NVMe SSD)</text>
+    <text x="20" y="45" font-size="13" fill="#fff">~7 GB/s bandwidth (PCIe 4.0 NVMe)</text>
+
+    <text x="580" y="35" font-size="18" font-weight="bold" fill="#fff" text-anchor="end">~1M+ cycles</text>
+  </g>
+
+  <!-- Key Optimization Insights -->
+  <g transform="translate(100, 660)">
+    <text x="0" y="0" font-size="14" font-weight="bold" fill="#333">Flash Attention Optimization:</text>
+    <text x="0" y="18" font-size="12" fill="#666">• Keeps data in SRAM (19 TB/s) instead of HBM (3 TB/s)</text>
+    <text x="0" y="33" font-size="12" fill="#666">• ~6× faster memory access = 2-4× overall speedup</text>
+  </g>
+</svg>

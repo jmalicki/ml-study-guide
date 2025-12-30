@@ -203,6 +203,10 @@ text = "Hello, world! 你好世界"
 
 ## 32.2 Common Benchmarks
 
+Modern LLMs are evaluated across a diverse suite of benchmarks, each targeting different capabilities. The following chart compares performance of leading models across major benchmarks:
+
+![Benchmark Comparison](../assets/diagrams/ch33-benchmark-comparison.svg)
+
 ### 32.2.1 MMLU (Massive Multitask Language Understanding)
 
 MMLU ([Hendrycks et al., 2021](https://arxiv.org/abs/2009.03300)) tests knowledge across 57 subjects including STEM, humanities, and social sciences. It uses multiple-choice questions.
@@ -2362,6 +2366,8 @@ class TruthfulnessEvaluator:
 
 Chatbot Arena ([Zheng et al., 2023](https://arxiv.org/abs/2403.04132)) uses pairwise comparisons with Elo ratings.
 
+![Elo Rating Evolution](../assets/diagrams/ch33-elo-evolution.svg)
+
 **Why Chatbot Arena / Elo Ratings Matter**: Traditional benchmarks measure narrow capabilities, but users care about **overall helpfulness** in conversations. Chatbot Arena addresses this by:
 - Using real user queries instead of curated datasets (avoiding benchmark overfitting)
 - Comparing models head-to-head (more reliable than absolute ratings)
@@ -3640,6 +3646,10 @@ def example_cost_estimation():
 ```
 
 ## 32.9 Comprehensive Evaluation Framework
+
+A comprehensive evaluation requires assessing models across multiple capability dimensions. The radar chart below visualizes how different models perform across key evaluation areas:
+
+![Capability Radar Chart](../assets/diagrams/ch33-capability-radar.svg)
 
 ```python
 from dataclasses import dataclass

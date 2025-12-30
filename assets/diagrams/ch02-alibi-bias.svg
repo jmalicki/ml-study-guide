@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
+  <defs>
+    <style>
+      text { font-family: system-ui, -apple-system, sans-serif; fill: #333; }
+      .title { font-size: 18px; font-weight: 600; }
+      .label { font-size: 13px; font-weight: 600; }
+      .small { font-size: 11px; }
+      .axis-label { font-size: 12px; fill: #666; }
+      .mono { font-family: 'Courier New', monospace; font-size: 10px; }
+    </style>
+  </defs>
+
+  <!-- Title -->
+  <text x="400" y="30" class="title" text-anchor="middle">ALiBi: Attention with Linear Biases</text>
+  <text x="400" y="50" class="small" text-anchor="middle" fill="#666">Distance-based position encoding without learned embeddings</text>
+
+  <!-- Heatmap visualization -->
+  <g id="heatmap" transform="translate(50, 80)">
+    <text x="150" y="-10" class="label" text-anchor="middle">Attention Bias Matrix (single head, m=0.5)</text>
+
+    <!-- Color scale legend -->
+    <g transform="translate(320, 0)">
+      <text y="-10" class="small">Bias value:</text>
+      <defs>
+        <linearGradient id="biasGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#1e3a8a;stop-opacity:1" />
+          <stop offset="25%" style="stop-color:#3b82f6;stop-opacity:1" />
+          <stop offset="50%" style="stop-color:#60a5fa;stop-opacity:1" />
+          <stop offset="75%" style="stop-color:#93c5fd;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#dbeafe;stop-opacity:1" />
+        </linearGradient>
+      </defs>
+      <rect x="0" y="0" width="100" height="15" fill="url(#biasGradient)"/>
+      <text x="0" y="30" class="small">-8</text>
+      <text x="90" y="30" class="small" text-anchor="end">0</text>
+    </g>
+
+    <!-- Grid -->
+    <g id="grid">
+      <!-- Draw 16x16 grid representing attention bias -->
+      <!-- Query positions (rows) attend to Key positions (columns) -->
+      <!-- Bias = -m * |query_pos - key_pos| -->
+      <g id="cells">
+        <!-- Diagonal (distance 0) - lightest -->
+        <rect x="0" y="0" width="18" height="18" fill="#dbeafe"/>
+        <rect x="20" y="20" width="18" height="18" fill="#dbeafe"/>
+        <rect x="40" y="40" width="18" height="18" fill="#dbeafe"/>
+        <rect x="60" y="60" width="18" height="18" fill="#dbeafe"/>
+        <rect x="80" y="80" width="18" height="18" fill="#dbeafe"/>
+        <rect x="100" y="100" width="18" height="18" fill="#dbeafe"/>
+        <rect x="120" y="120" width="18" height="18" fill="#dbeafe"/>
+        <rect x="140" y="140" width="18" height="18" fill="#dbeafe"/>
+        <rect x="160" y="160" width="18" height="18" fill="#dbeafe"/>
+        <rect x="180" y="180" width="18" height="18" fill="#dbeafe"/>
+        <rect x="200" y="200" width="18" height="18" fill="#dbeafe"/>
+        <rect x="220" y="220" width="18" height="18" fill="#dbeafe"/>
+        <rect x="240" y="240" width="18" height="18" fill="#dbeafe"/>
+        <rect x="260" y="260" width="18" height="18" fill="#dbeafe"/>
+        <rect x="280" y="280" width="18" height="18" fill="#dbeafe"/>
+
+        <!-- Distance 1 -->
+        <rect x="20" y="0" width="18" height="18" fill="#bfdbfe"/>
+        <rect x="0" y="20" width="18" height="18" fill="#bfdbfe"/>
+        <rect x="40" y="20" width="18" height="18" fill="#bfdbfe"/>
+        <rect x="20" y="40" width="18" height="18" fill="#bfdbfe"/>
+        <rect x="60" y="40" width="18" height="18" fill="#bfdbfe"/>
+        <rect x="40" y="60" width="18" height="18" fill="#bfdbfe"/>
+        <rect x="80" y="60" width="18" height="18" fill="#bfdbfe"/>
+        <rect x="60" y="80" width="18" height="18" fill="#bfdbfe"/>
+        <rect x="100" y="80" width="18" height="18" fill="#bfdbfe"/>
+        <rect x="80" y="100" width="18" height="18" fill="#bfdbfe"/>
+        <rect x="120" y="100" width="18" height="18" fill="#bfdbfe"/>
+        <rect x="100" y="120" width="18" height="18" fill="#bfdbfe"/>
+        <rect x="140" y="120" width="18" height="18" fill="#bfdbfe"/>
+        <rect x="120" y="140" width="18" height="18" fill="#bfdbfe"/>
+        <rect x="160" y="140" width="18" height="18" fill="#bfdbfe"/>
+        <rect x="140" y="160" width="18" height="18" fill="#bfdbfe"/>
+        <rect x="180" y="160" width="18" height="18" fill="#bfdbfe"/>
+        <rect x="160" y="180" width="18" height="18" fill="#bfdbfe"/>
+        <rect x="200" y="180" width="18" height="18" fill="#bfdbfe"/>
+        <rect x="180" y="200" width="18" height="18" fill="#bfdbfe"/>
+        <rect x="220" y="200" width="18" height="18" fill="#bfdbfe"/>
+        <rect x="200" y="220" width="18" height="18" fill="#bfdbfe"/>
+        <rect x="240" y="220" width="18" height="18" fill="#bfdbfe"/>
+        <rect x="220" y="240" width="18" height="18" fill="#bfdbfe"/>
+        <rect x="260" y="240" width="18" height="18" fill="#bfdbfe"/>
+        <rect x="240" y="260" width="18" height="18" fill="#bfdbfe"/>
+        <rect x="280" y="260" width="18" height="18" fill="#bfdbfe"/>
+        <rect x="260" y="280" width="18" height="18" fill="#bfdbfe"/>
+
+        <!-- Distance 2 and beyond - progressively darker -->
+        <rect x="40" y="0" width="18" height="18" fill="#93c5fd"/>
+        <rect x="0" y="40" width="18" height="18" fill="#93c5fd"/>
+        <rect x="60" y="0" width="18" height="18" fill="#60a5fa"/>
+        <rect x="0" y="60" width="18" height="18" fill="#60a5fa"/>
+        <rect x="80" y="0" width="18" height="18" fill="#3b82f6"/>
+        <rect x="0" y="80" width="18" height="18" fill="#3b82f6"/>
+        <rect x="100" y="0" width="18" height="18" fill="#2563eb"/>
+        <rect x="0" y="100" width="18" height="18" fill="#2563eb"/>
+
+        <!-- Fill remaining cells with gradient pattern -->
+        <rect x="60" y="20" width="18" height="18" fill="#93c5fd"/>
+        <rect x="20" y="60" width="18" height="18" fill="#93c5fd"/>
+        <rect x="80" y="20" width="18" height="18" fill="#60a5fa"/>
+        <rect x="20" y="80" width="18" height="18" fill="#60a5fa"/>
+        <rect x="100" y="20" width="18" height="18" fill="#3b82f6"/>
+        <rect x="20" y="100" width="18" height="18" fill="#3b82f6"/>
+
+        <!-- Continue pattern for middle sections -->
+        <rect x="120" y="60" width="18" height="18" fill="#93c5fd"/>
+        <rect x="60" y="120" width="18" height="18" fill="#93c5fd"/>
+        <rect x="140" y="60" width="18" height="18" fill="#60a5fa"/>
+        <rect x="60" y="140" width="18" height="18" fill="#60a5fa"/>
+        <rect x="160" y="60" width="18" height="18" fill="#3b82f6"/>
+        <rect x="60" y="160" width="18" height="18" fill="#3b82f6"/>
+
+        <rect x="200" y="140" width="18" height="18" fill="#93c5fd"/>
+        <rect x="140" y="200" width="18" height="18" fill="#93c5fd"/>
+        <rect x="220" y="140" width="18" height="18" fill="#60a5fa"/>
+        <rect x="140" y="220" width="18" height="18" fill="#60a5fa"/>
+        <rect x="240" y="140" width="18" height="18" fill="#3b82f6"/>
+        <rect x="140" y="240" width="18" height="18" fill="#3b82f6"/>
+        <rect x="260" y="140" width="18" height="18" fill="#2563eb"/>
+        <rect x="140" y="260" width="18" height="18" fill="#2563eb"/>
+        <rect x="280" y="140" width="18" height="18" fill="#1e3a8a"/>
+        <rect x="140" y="280" width="18" height="18" fill="#1e3a8a"/>
+      </g>
+
+      <!-- Grid lines -->
+      <g stroke="#666" stroke-width="0.5" opacity="0.3">
+        <line x1="0" y1="0" x2="300" y2="0"/>
+        <line x1="0" y1="60" x2="300" y2="60"/>
+        <line x1="0" y1="120" x2="300" y2="120"/>
+        <line x1="0" y1="180" x2="300" y2="180"/>
+        <line x1="0" y1="240" x2="300" y2="240"/>
+        <line x1="0" y1="300" x2="300" y2="300"/>
+
+        <line x1="0" y1="0" x2="0" y2="300"/>
+        <line x1="60" y1="0" x2="60" y2="300"/>
+        <line x1="120" y1="0" x2="120" y2="300"/>
+        <line x1="180" y1="0" x2="180" y2="300"/>
+        <line x1="240" y1="0" x2="240" y2="300"/>
+        <line x1="300" y1="0" x2="300" y2="300"/>
+      </g>
+    </g>
+
+    <!-- Axis labels -->
+    <text x="150" y="320" class="axis-label" text-anchor="middle">Key Position (j)</text>
+    <text x="-20" y="150" class="axis-label" text-anchor="middle" transform="rotate(-90, -20, 150)">Query Position (i)</text>
+
+    <!-- Position markers -->
+    <text x="10" y="-3" class="small">0</text>
+    <text x="290" y="-3" class="small">15</text>
+    <text x="-15" y="10" class="small">0</text>
+    <text x="-15" y="295" class="small">15</text>
+  </g>
+
+  <!-- Formula and explanation -->
+  <g id="formula" transform="translate(420, 80)">
+    <rect x="0" y="0" width="340" height="300" fill="#f5f5f5" rx="5" stroke="#ddd"/>
+
+    <text x="170" y="25" class="label" text-anchor="middle">How ALiBi Works</text>
+
+    <!-- Formula -->
+    <g transform="translate(20, 45)">
+      <text y="0" class="small" font-weight="600">Attention Score Formula:</text>
+      <text y="20" class="small" font-style="italic">score(q</text>
+      <text y="20" x="55" class="small" font-style="italic" font-size="9" dy="3">i</text>
+      <text y="20" x="62" class="small" font-style="italic">, k</text>
+      <text y="20" x="77" class="small" font-style="italic" font-size="9" dy="3">j</text>
+      <text y="20" x="85" class="small" font-style="italic">) = q</text>
+      <text y="20" x="110" class="small" font-style="italic" font-size="9" dy="3">i</text>
+      <text y="20" x="115" class="small" font-style="italic">ᵀ k</text>
+      <text y="20" x="135" class="small" font-style="italic" font-size="9" dy="3">j</text>
+      <text y="20" x="145" class="small" fill="#E57373" font-weight="600">- m · |i - j|</text>
+
+      <text y="45" class="small">where:</text>
+      <text y="65" class="small">• m = head-specific slope</text>
+      <text y="85" class="small">• |i - j| = distance between positions</text>
+    </g>
+
+    <!-- Key properties -->
+    <g transform="translate(20, 140)">
+      <text y="0" class="small" font-weight="600">Key Properties:</text>
+
+      <text y="20" class="small">✓ No position embeddings needed</text>
+      <text y="40" class="small">✓ Linear penalty for distance</text>
+      <text y="60" class="small">✓ Different slopes per head:</text>
+
+      <g transform="translate(20, 75)">
+        <text y="0" class="small mono">Head 0: m = 2⁻⁸ = 0.004</text>
+        <text y="15" class="small mono">Head 1: m = 2⁻⁷ = 0.008</text>
+        <text y="30" class="small mono">Head 2: m = 2⁻⁶ = 0.016</text>
+        <text y="45" class="small mono">   ...</text>
+        <text y="60" class="small mono">Head 7: m = 2⁻¹ = 0.500</text>
+      </g>
+    </g>
+
+    <g transform="translate(20, 255)">
+      <text y="0" class="small" font-weight="600" fill="#4A90A4">Benefit:</text>
+      <text y="18" class="small">Better extrapolation to longer</text>
+      <text y="33" class="small">sequences than seen in training!</text>
+    </g>
+  </g>
+
+  <!-- Distance-based bias graph -->
+  <g id="distance-graph" transform="translate(50, 420)">
+    <text x="200" y="-10" class="label" text-anchor="middle">Bias vs. Distance (different head slopes)</text>
+
+    <!-- Axes -->
+    <line x1="40" y1="60" x2="360" y2="60" stroke="#666" stroke-width="1.5"/>
+    <line x1="40" y1="0" x2="40" y2="60" stroke="#666" stroke-width="1.5"/>
+
+    <!-- X-axis labels -->
+    <text x="40" y="75" class="small" text-anchor="middle">0</text>
+    <text x="120" y="75" class="small" text-anchor="middle">4</text>
+    <text x="200" y="75" class="small" text-anchor="middle">8</text>
+    <text x="280" y="75" class="small" text-anchor="middle">12</text>
+    <text x="360" y="75" class="small" text-anchor="middle">16</text>
+    <text x="200" y="90" class="axis-label" text-anchor="middle">Distance |i - j|</text>
+
+    <!-- Y-axis labels -->
+    <text x="30" y="5" class="small" text-anchor="end">0</text>
+    <text x="30" y="63" class="small" text-anchor="end">-8</text>
+    <text x="5" y="35" class="axis-label" text-anchor="middle" transform="rotate(-90, 5, 35)">Bias</text>
+
+    <!-- Plot lines for different slopes -->
+    <!-- m = 0.5 (steep) -->
+    <path d="M 40 60 L 60 53 L 80 46 L 100 39 L 120 32 L 140 25 L 160 18 L 180 11 L 200 4"
+          stroke="#E57373" stroke-width="2.5" fill="none"/>
+    <text x="210" y="7" class="small" fill="#E57373">m=0.5</text>
+
+    <!-- m = 0.25 (medium) -->
+    <path d="M 40 60 L 60 56.5 L 80 53 L 100 49.5 L 120 46 L 140 42.5 L 160 39 L 180 35.5 L 200 32 L 220 28.5"
+          stroke="#4A90A4" stroke-width="2.5" fill="none"/>
+    <text x="230" y="31" class="small" fill="#4A90A4">m=0.25</text>
+
+    <!-- m = 0.125 (gentle) -->
+    <path d="M 40 60 L 60 58.2 L 80 56.5 L 100 54.7 L 120 53 L 140 51.2 L 160 49.5 L 180 47.7 L 200 46 L 220 44.2 L 240 42.5"
+          stroke="#81C784" stroke-width="2.5" fill="none"/>
+    <text x="250" y="45" class="small" fill="#81C784">m=0.125</text>
+
+    <!-- m = 0.0625 (very gentle) -->
+    <path d="M 40 60 L 60 59.1 L 80 58.2 L 100 57.4 L 120 56.5 L 140 55.6 L 160 54.7 L 180 53.8 L 200 53 L 220 52.1 L 240 51.2 L 260 50.4 L 280 49.5"
+          stroke="#FFB74D" stroke-width="2.5" fill="none"/>
+    <text x="290" y="52" class="small" fill="#FFB74D">m=0.0625</text>
+  </g>
+</svg>

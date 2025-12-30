@@ -90,6 +90,8 @@ print(f"All values non-zero: {(token_embedding != 0).all()}")  # True
 3. **Learnable**: Embeddings are optimized to capture relationships
 4. **Semantic**: Similar tokens have similar embeddings (after training)
 
+![One-Hot vs Dense Embeddings](../assets/diagrams/ch02-onehot-vs-dense.svg)
+
 ---
 
 ## Classical Word Embeddings
@@ -495,6 +497,8 @@ def demonstrate_word_arithmetic():
 
 demonstrate_word_arithmetic()
 ```
+
+![Semantic Relationships in Embedding Space](../assets/diagrams/ch02-semantic-space.svg)
 
 3. **Dimensionality**: Typical dimensions: 50-300 for Word2Vec/GloVe
    - Smaller: faster, less expressive
@@ -1195,6 +1199,8 @@ plt.grid(True)
 plt.tight_layout()
 plt.show()
 ```
+
+![ALiBi Attention Bias Pattern](../assets/diagrams/ch02-alibi-bias.svg)
 
 **Models using ALiBi**:
 - BLOOM (BigScience)

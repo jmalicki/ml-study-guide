@@ -102,6 +102,10 @@ Typical values: 0.01% - 1% of total parameters.
 3. **Reduced catastrophic forgetting**: Base model remains unchanged
 4. **Fast switching**: Load different adapters for different tasks
 
+![PEFT Methods Comparison](../assets/diagrams/ch20-peft-comparison.svg)
+
+*Figure: Comparison of PEFT methods showing trainable parameter percentages, memory requirements, and performance. LoRA and QLoRA achieve 96-97% of full fine-tuning performance while training only 0.2% of parameters and using dramatically less memory.*
+
 ---
 
 ## Low-Rank Adaptation (LoRA)
@@ -128,6 +132,10 @@ $$h = W_0 x + \Delta W x = W_0 x + BAx$$
 $$h = W_0 x + \frac{\alpha}{r} BAx$$
 
 The ratio $\frac{\alpha}{r}$ acts as a learning rate multiplier for the adapter.
+
+![LoRA Low-Rank Decomposition](../assets/diagrams/ch20-lora-decomposition.svg)
+
+*Figure: LoRA decomposes weight updates into low-rank matrices B and A. The pretrained weights W₀ remain frozen while only the small matrices B and A are trained, dramatically reducing parameters while maintaining performance.*
 
 #### Why Low Rank Works
 
@@ -1362,6 +1370,10 @@ Here:
 - vs **LoRA**: Adapters add non-linearity and new capacity; LoRA is purely linear and modifies existing weights
 - vs **Full Fine-tuning**: ~0.5-2% of parameters vs 100%; modular and swappable
 - vs **Prefix Tuning**: Adapters modify representations directly rather than through attention context; more powerful but less interpretable
+
+![Adapter Bottleneck Architecture](../assets/diagrams/ch20-adapter-architecture.svg)
+
+*Figure: Adapter architecture showing the bottleneck design with down-projection, non-linearity, and up-projection. The residual connection preserves the frozen base model while the adapter learns task-specific transformations in a compressed representation space.*
 
 **Key Insight:** Adapters demonstrate that adding small, strategically-placed bottleneck modules can effectively specialize a pre-trained model. The bottleneck acts as an information filter, learning what task-specific features to extract and amplify. The non-linear activation is crucial - without it, adapters would be mathematically equivalent to a low-rank linear transformation like LoRA.
 

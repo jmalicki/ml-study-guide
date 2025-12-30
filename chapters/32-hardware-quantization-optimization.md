@@ -216,6 +216,8 @@ Understanding data types is fundamental to quantization and mixed-precision trai
 
 ### Common Data Types
 
+![Numerical Precision Formats Comparison](../assets/diagrams/ch32-precision-formats.svg)
+
 ```python
 import torch
 import struct
@@ -289,6 +291,8 @@ def bf16_vs_fp16():
 ## Quantization Techniques
 
 Quantization reduces model size and speeds up inference by using lower-precision representations.
+
+![Quantization Levels Memory Comparison](../assets/diagrams/ch32-quantization-comparison.svg)
 
 ### Post-Training Quantization (PTQ)
 
@@ -1003,6 +1007,8 @@ def transformer_engine_usage():
 ### Flash Attention
 
 Flash Attention is an IO-aware attention algorithm that reduces memory usage from O(N²) to O(N) and speeds up computation by 2-4x.
+
+![GPU Memory Hierarchy](../assets/diagrams/ch32-gpu-memory-hierarchy.svg)
 
 ```python
 class FlashAttentionConcept:

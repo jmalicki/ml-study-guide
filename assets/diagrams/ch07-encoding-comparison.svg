@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600">
+  <!-- Title -->
+  <text x="450" y="30" text-anchor="middle" font-size="20" font-weight="bold" fill="#333">
+    Positional Encoding Methods Comparison
+  </text>
+
+  <!-- Sinusoidal Section -->
+  <g transform="translate(50, 60)">
+    <!-- Box -->
+    <rect x="0" y="0" width="380" height="240" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="8"/>
+
+    <!-- Title -->
+    <text x="190" y="25" text-anchor="middle" font-size="16" font-weight="bold" fill="#4A90A4">
+      Sinusoidal Encoding
+    </text>
+
+    <!-- Heatmap representation -->
+    <g transform="translate(20, 40)">
+      <text x="0" y="-5" font-size="11" fill="#666">Position →</text>
+      <text x="-15" y="80" font-size="11" fill="#666" transform="rotate(-90, -15, 80)">Dim ↓</text>
+
+      <!-- Heatmap rows showing frequency patterns -->
+      <rect x="0" y="0" width="340" height="15" fill="#E57373"/>
+      <rect x="0" y="0" width="10" height="15" fill="#fff" opacity="0.3"/>
+      <rect x="85" y="0" width="10" height="15" fill="#fff" opacity="0.3"/>
+      <rect x="170" y="0" width="10" height="15" fill="#fff" opacity="0.3"/>
+      <rect x="255" y="0" width="10" height="15" fill="#fff" opacity="0.3"/>
+      <rect x="330" y="0" width="10" height="15" fill="#fff" opacity="0.6"/>
+
+      <rect x="0" y="20" width="340" height="15" fill="#4A90A4"/>
+      <rect x="0" y="20" width="25" height="15" fill="#fff" opacity="0.3"/>
+      <rect x="113" y="20" width="25" height="15" fill="#fff" opacity="0.3"/>
+      <rect x="226" y="20" width="25" height="15" fill="#fff" opacity="0.3"/>
+
+      <rect x="0" y="40" width="340" height="15" fill="#81C784"/>
+      <rect x="0" y="40" width="50" height="15" fill="#fff" opacity="0.3"/>
+      <rect x="170" y="40" width="50" height="15" fill="#fff" opacity="0.3"/>
+
+      <rect x="0" y="60" width="340" height="15" fill="#BA68C8"/>
+      <rect x="0" y="60" width="85" height="15" fill="#fff" opacity="0.3"/>
+      <rect x="255" y="60" width="85" height="15" fill="#fff" opacity="0.3"/>
+
+      <rect x="0" y="80" width="340" height="15" fill="#FFB74D"/>
+      <rect x="0" y="80" width="120" height="15" fill="#fff" opacity="0.3"/>
+
+      <rect x="0" y="100" width="340" height="15" fill="#78909C"/>
+      <rect x="0" y="100" width="170" height="15" fill="#fff" opacity="0.3"/>
+
+      <rect x="0" y="120" width="340" height="15" fill="#A1887F"/>
+      <rect x="0" y="120" width="240" height="15" fill="#fff" opacity="0.3"/>
+
+      <!-- Labels -->
+      <text x="345" y="11" font-size="9" fill="#666">Dim 0</text>
+      <text x="345" y="31" font-size="9" fill="#666">Dim 16</text>
+      <text x="345" y="51" font-size="9" fill="#666">Dim 32</text>
+      <text x="345" y="71" font-size="9" fill="#666">Dim 48</text>
+      <text x="345" y="91" font-size="9" fill="#666">Dim 64</text>
+      <text x="345" y="111" font-size="9" fill="#666">Dim 80</text>
+      <text x="345" y="131" font-size="9" fill="#666">Dim 96</text>
+    </g>
+
+    <!-- Properties -->
+    <g transform="translate(20, 190)">
+      <text x="0" y="0" font-size="11" fill="#333">✓ Deterministic</text>
+      <text x="0" y="16" font-size="11" fill="#333">✓ Extrapolates to any length</text>
+      <text x="0" y="32" font-size="11" fill="#333">✓ 0 parameters</text>
+    </g>
+  </g>
+
+  <!-- Learned Section -->
+  <g transform="translate(470, 60)">
+    <!-- Box -->
+    <rect x="0" y="0" width="380" height="240" fill="#f5f5f5" stroke="#E57373" stroke-width="2" rx="8"/>
+
+    <!-- Title -->
+    <text x="190" y="25" text-anchor="middle" font-size="16" font-weight="bold" fill="#E57373">
+      Learned Embeddings
+    </text>
+
+    <!-- Heatmap representation (more random/learned patterns) -->
+    <g transform="translate(20, 40)">
+      <text x="0" y="-5" font-size="11" fill="#666">Position →</text>
+      <text x="-15" y="80" font-size="11" fill="#666" transform="rotate(-90, -15, 80)">Dim ↓</text>
+
+      <!-- Heatmap showing learned (less structured) patterns -->
+      <rect x="0" y="0" width="340" height="15" fill="#9E9E9E"/>
+      <rect x="20" y="0" width="15" height="15" fill="#E57373"/>
+      <rect x="120" y="0" width="25" height="15" fill="#4A90A4"/>
+      <rect x="240" y="0" width="20" height="15" fill="#81C784"/>
+
+      <rect x="0" y="20" width="340" height="15" fill="#9E9E9E"/>
+      <rect x="60" y="20" width="30" height="15" fill="#81C784"/>
+      <rect x="180" y="20" width="20" height="15" fill="#E57373"/>
+      <rect x="300" y="20" width="25" height="15" fill="#4A90A4"/>
+
+      <rect x="0" y="40" width="340" height="15" fill="#9E9E9E"/>
+      <rect x="40" y="40" width="20" height="15" fill="#4A90A4"/>
+      <rect x="150" y="40" width="35" height="15" fill="#81C784"/>
+      <rect x="260" y="40" width="15" height="15" fill="#E57373"/>
+
+      <rect x="0" y="60" width="340" height="15" fill="#9E9E9E"/>
+      <rect x="90" y="60" width="25" height="15" fill="#E57373"/>
+      <rect x="200" y="60" width="30" height="15" fill="#4A90A4"/>
+      <rect x="310" y="60" width="20" height="15" fill="#81C784"/>
+
+      <rect x="0" y="80" width="340" height="15" fill="#9E9E9E"/>
+      <rect x="30" y="80" width="20" height="15" fill="#81C784"/>
+      <rect x="130" y="80" width="25" height="15" fill="#E57373"/>
+      <rect x="280" y="80" width="30" height="15" fill="#4A90A4"/>
+
+      <rect x="0" y="100" width="340" height="15" fill="#9E9E9E"/>
+      <rect x="70" y="100" width="30" height="15" fill="#4A90A4"/>
+      <rect x="190" y="100" width="20" height="15" fill="#81C784"/>
+      <rect x="290" y="100" width="25" height="15" fill="#E57373"/>
+
+      <rect x="0" y="120" width="340" height="15" fill="#9E9E9E"/>
+      <rect x="50" y="120" width="25" height="15" fill="#E57373"/>
+      <rect x="160" y="120" width="30" height="15" fill="#4A90A4"/>
+      <rect x="270" y="120" width="20" height="15" fill="#81C784"/>
+
+      <!-- Labels -->
+      <text x="345" y="11" font-size="9" fill="#666">Dim 0</text>
+      <text x="345" y="31" font-size="9" fill="#666">Dim 16</text>
+      <text x="345" y="51" font-size="9" fill="#666">Dim 32</text>
+      <text x="345" y="71" font-size="9" fill="#666">Dim 48</text>
+      <text x="345" y="91" font-size="9" fill="#666">Dim 64</text>
+      <text x="345" y="111" font-size="9" fill="#666">Dim 80</text>
+      <text x="345" y="131" font-size="9" fill="#666">Dim 96</text>
+    </g>
+
+    <!-- Properties -->
+    <g transform="translate(20, 190)">
+      <text x="0" y="0" font-size="11" fill="#333">✓ Task-adaptive</text>
+      <text x="0" y="16" font-size="11" fill="#333">✗ Limited to max_len</text>
+      <text x="0" y="32" font-size="11" fill="#333">✗ max_len × d_model params</text>
+    </g>
+  </g>
+
+  <!-- Relative Position (ALiBi) Section -->
+  <g transform="translate(50, 330)">
+    <!-- Box -->
+    <rect x="0" y="0" width="380" height="210" fill="#f5f5f5" stroke="#81C784" stroke-width="2" rx="8"/>
+
+    <!-- Title -->
+    <text x="190" y="25" text-anchor="middle" font-size="16" font-weight="bold" fill="#81C784">
+      ALiBi (Attention Linear Bias)
+    </text>
+
+    <!-- Bias matrix visualization -->
+    <g transform="translate(70, 45)">
+      <text x="0" y="-5" font-size="11" fill="#666">Key Position →</text>
+      <text x="-55" y="60" font-size="11" fill="#666" transform="rotate(-90, -55, 60)">Query Pos ↓</text>
+
+      <!-- Diagonal pattern showing distance-based bias -->
+      <g transform="translate(0, 0)">
+        <!-- Create a gradient effect for distance -->
+        <defs>
+          <linearGradient id="distGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#fff;stop-opacity:0.9" />
+            <stop offset="100%" style="stop-color:#81C784;stop-opacity:0.3" />
+          </linearGradient>
+          <linearGradient id="distGrad2" x1="0%" y1="100%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#81C784;stop-opacity:0.3" />
+            <stop offset="100%" style="stop-color:#fff;stop-opacity:0.9" />
+          </linearGradient>
+        </defs>
+
+        <!-- Distance-based coloring -->
+        <rect x="0" y="0" width="240" height="120" fill="#81C784" opacity="0.1"/>
+
+        <!-- Diagonal stripes showing distance -->
+        <rect x="0" y="0" width="20" height="20" fill="#fff"/>
+        <rect x="20" y="0" width="20" height="20" fill="#81C784" opacity="0.2"/>
+        <rect x="40" y="0" width="20" height="20" fill="#81C784" opacity="0.3"/>
+        <rect x="60" y="0" width="20" height="20" fill="#81C784" opacity="0.4"/>
+        <rect x="80" y="0" width="20" height="20" fill="#81C784" opacity="0.5"/>
+        <rect x="100" y="0" width="20" height="20" fill="#81C784" opacity="0.6"/>
+        <rect x="120" y="0" width="120" height="20" fill="#81C784" opacity="0.7"/>
+
+        <rect x="0" y="20" width="20" height="20" fill="#81C784" opacity="0.2"/>
+        <rect x="20" y="20" width="20" height="20" fill="#fff"/>
+        <rect x="40" y="20" width="20" height="20" fill="#81C784" opacity="0.2"/>
+        <rect x="60" y="20" width="20" height="20" fill="#81C784" opacity="0.3"/>
+        <rect x="80" y="20" width="20" height="20" fill="#81C784" opacity="0.4"/>
+        <rect x="100" y="20" width="20" height="20" fill="#81C784" opacity="0.5"/>
+        <rect x="120" y="20" width="120" height="20" fill="#81C784" opacity="0.6"/>
+
+        <rect x="0" y="40" width="40" height="20" fill="#81C784" opacity="0.3"/>
+        <rect x="40" y="40" width="20" height="20" fill="#fff"/>
+        <rect x="60" y="40" width="20" height="20" fill="#81C784" opacity="0.2"/>
+        <rect x="80" y="40" width="20" height="20" fill="#81C784" opacity="0.3"/>
+        <rect x="100" y="40" width="20" height="20" fill="#81C784" opacity="0.4"/>
+        <rect x="120" y="40" width="120" height="20" fill="#81C784" opacity="0.5"/>
+
+        <rect x="0" y="60" width="60" height="20" fill="#81C784" opacity="0.4"/>
+        <rect x="60" y="60" width="20" height="20" fill="#fff"/>
+        <rect x="80" y="60" width="20" height="20" fill="#81C784" opacity="0.2"/>
+        <rect x="100" y="60" width="20" height="20" fill="#81C784" opacity="0.3"/>
+        <rect x="120" y="60" width="120" height="20" fill="#81C784" opacity="0.4"/>
+
+        <rect x="0" y="80" width="80" height="20" fill="#81C784" opacity="0.5"/>
+        <rect x="80" y="80" width="20" height="20" fill="#fff"/>
+        <rect x="100" y="80" width="20" height="20" fill="#81C784" opacity="0.2"/>
+        <rect x="120" y="80" width="120" height="20" fill="#81C784" opacity="0.3"/>
+
+        <rect x="0" y="100" width="100" height="20" fill="#81C784" opacity="0.6"/>
+        <rect x="100" y="100" width="20" height="20" fill="#fff"/>
+        <rect x="120" y="100" width="120" height="20" fill="#81C784" opacity="0.2"/>
+
+        <!-- Grid lines -->
+        <line x1="0" y1="0" x2="240" y2="0" stroke="#ccc" stroke-width="0.5"/>
+        <line x1="0" y1="120" x2="240" y2="120" stroke="#ccc" stroke-width="0.5"/>
+        <line x1="0" y1="0" x2="0" y2="120" stroke="#ccc" stroke-width="0.5"/>
+        <line x1="240" y1="0" x2="240" y2="120" stroke="#ccc" stroke-width="0.5"/>
+
+        <!-- Diagonal annotation -->
+        <text x="250" y="65" font-size="9" fill="#666">Darker =</text>
+        <text x="250" y="77" font-size="9" fill="#666">More penalty</text>
+      </g>
+    </g>
+
+    <!-- Properties -->
+    <g transform="translate(20, 165)">
+      <text x="0" y="0" font-size="11" fill="#333">✓ Excellent extrapolation</text>
+      <text x="0" y="16" font-size="11" fill="#333">✓ 0 positional params</text>
+      <text x="0" y="32" font-size="11" fill="#333">○ Linear distance penalty only</text>
+    </g>
+  </g>
+
+  <!-- RoPE Section -->
+  <g transform="translate(470, 330)">
+    <!-- Box -->
+    <rect x="0" y="0" width="380" height="210" fill="#f5f5f5" stroke="#BA68C8" stroke-width="2" rx="8"/>
+
+    <!-- Title -->
+    <text x="190" y="25" text-anchor="middle" font-size="16" font-weight="bold" fill="#BA68C8">
+      RoPE (Rotary Position Embedding)
+    </text>
+
+    <!-- Rotation visualization -->
+    <g transform="translate(120, 70)">
+      <!-- Circle representing rotation -->
+      <circle cx="60" cy="50" r="45" fill="none" stroke="#BA68C8" stroke-width="2" stroke-dasharray="5,3"/>
+
+      <!-- Position vectors at different angles -->
+      <line x1="60" y1="50" x2="105" y2="50" stroke="#E57373" stroke-width="2" marker-end="url(#arrowE57373)"/>
+      <text x="110" y="54" font-size="10" fill="#E57373">pos 0</text>
+
+      <line x1="60" y1="50" x2="92" y2="18" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrow4A90A4)"/>
+      <text x="95" y="15" font-size="10" fill="#4A90A4">pos 1</text>
+
+      <line x1="60" y1="50" x2="60" y2="5" stroke="#81C784" stroke-width="2" marker-end="url(#arrow81C784)"/>
+      <text x="35" y="5" font-size="10" fill="#81C784">pos 2</text>
+
+      <line x1="60" y1="50" x2="28" y2="18" stroke="#FFB74D" stroke-width="2" marker-end="url(#arrowFFB74D)"/>
+      <text x="5" y="15" font-size="10" fill="#FFB74D">pos 3</text>
+
+      <!-- Center point -->
+      <circle cx="60" cy="50" r="3" fill="#333"/>
+
+      <!-- Arrow markers -->
+      <defs>
+        <marker id="arrowE57373" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L0,6 L9,3 z" fill="#E57373" />
+        </marker>
+        <marker id="arrow4A90A4" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L0,6 L9,3 z" fill="#4A90A4" />
+        </marker>
+        <marker id="arrow81C784" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L0,6 L9,3 z" fill="#81C784" />
+        </marker>
+        <marker id="arrowFFB74D" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L0,6 L9,3 z" fill="#FFB74D" />
+        </marker>
+      </defs>
+
+      <text x="60" y="115" text-anchor="middle" font-size="9" fill="#666">Positions as rotations</text>
+      <text x="60" y="127" text-anchor="middle" font-size="9" fill="#666">in complex space</text>
+    </g>
+
+    <!-- Properties -->
+    <g transform="translate(20, 165)">
+      <text x="0" y="0" font-size="11" fill="#333">✓ Best extrapolation</text>
+      <text x="0" y="16" font-size="11" fill="#333">✓ 0 parameters</text>
+      <text x="0" y="32" font-size="11" fill="#333">✓ Used in modern LLMs (LLaMA)</text>
+    </g>
+  </g>
+
+  <!-- Bottom note -->
+  <text x="450" y="575" text-anchor="middle" font-size="11" fill="#666" font-style="italic">
+    See Chapter 8 for detailed RoPE implementation
+  </text>
+</svg>

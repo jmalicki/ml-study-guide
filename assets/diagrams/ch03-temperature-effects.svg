@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 550">
+  <!-- Title -->
+  <text x="400" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#333">
+    Softmax Temperature Effects on Attention Distribution
+  </text>
+
+  <!-- Subtitle -->
+  <text x="400" y="55" font-family="system-ui, -apple-system, sans-serif" font-size="12" text-anchor="middle" fill="#666">
+    How temperature (T) controls attention "sharpness" - same scores, different temperatures
+  </text>
+
+  <!-- Low Temperature (T = 0.5) - Sharp Distribution -->
+  <g id="low-temp">
+    <text x="140" y="95" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#E57373">T = 0.5 (Sharp)</text>
+
+    <!-- Bars -->
+    <rect x="50" y="280" width="40" height="20" fill="#E57373" opacity="0.3"/>
+    <text x="70" y="320" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#666">0.03</text>
+
+    <rect x="100" y="270" width="40" height="30" fill="#E57373" opacity="0.3"/>
+    <text x="120" y="320" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#666">0.05</text>
+
+    <rect x="150" y="110" width="40" height="190" fill="#E57373" opacity="0.8"/>
+    <text x="170" y="105" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#E57373">0.87</text>
+    <text x="170" y="320" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#666">0.87</text>
+
+    <rect x="200" y="275" width="40" height="25" fill="#E57373" opacity="0.3"/>
+    <text x="220" y="320" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#666">0.04</text>
+
+    <rect x="250" y="285" width="40" height="15" fill="#E57373" opacity="0.3"/>
+    <text x="270" y="320" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#666">0.01</text>
+
+    <!-- X-axis -->
+    <line x1="40" y1="305" x2="300" y2="305" stroke="#999" stroke-width="1"/>
+    <text x="170" y="345" font-family="system-ui, -apple-system, sans-serif" font-size="11" text-anchor="middle" fill="#666">Position</text>
+
+    <!-- Y-axis -->
+    <line x1="40" y1="100" x2="40" y2="305" stroke="#999" stroke-width="1"/>
+    <text x="10" y="200" font-family="system-ui, -apple-system, sans-serif" font-size="11" text-anchor="middle" fill="#666" transform="rotate(-90 10 200)">Probability</text>
+
+    <!-- Annotation -->
+    <rect x="50" y="360" width="240" height="55" fill="#FFE6E6" stroke="#E57373" stroke-width="1.5" rx="3"/>
+    <text x="170" y="377" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="#333">Model focuses strongly</text>
+    <text x="170" y="392" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#555">Almost all weight on highest</text>
+    <text x="170" y="405" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#555">score (greedy behavior)</text>
+  </g>
+
+  <!-- Standard Temperature (T = 1.0) - Balanced -->
+  <g id="standard-temp">
+    <text x="400" y="95" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#4A90A4">T = 1.0 (Balanced)</text>
+
+    <!-- Bars -->
+    <rect x="310" y="240" width="40" height="60" fill="#4A90A4" opacity="0.4"/>
+    <text x="330" y="320" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#666">0.12</text>
+
+    <rect x="360" y="220" width="40" height="80" fill="#4A90A4" opacity="0.5"/>
+    <text x="380" y="320" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#666">0.18</text>
+
+    <rect x="410" y="160" width="40" height="140" fill="#4A90A4" opacity="0.8"/>
+    <text x="430" y="150" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#4A90A4">0.45</text>
+    <text x="430" y="320" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#666">0.45</text>
+
+    <rect x="460" y="230" width="40" height="70" fill="#4A90A4" opacity="0.5"/>
+    <text x="480" y="320" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#666">0.15</text>
+
+    <rect x="510" y="250" width="40" height="50" fill="#4A90A4" opacity="0.4"/>
+    <text x="530" y="320" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#666">0.10</text>
+
+    <!-- X-axis -->
+    <line x1="300" y1="305" x2="560" y2="305" stroke="#999" stroke-width="1"/>
+    <text x="430" y="345" font-family="system-ui, -apple-system, sans-serif" font-size="11" text-anchor="middle" fill="#666">Position</text>
+
+    <!-- Y-axis -->
+    <line x1="300" y1="100" x2="300" y2="305" stroke="#999" stroke-width="1"/>
+
+    <!-- Annotation -->
+    <rect x="310" y="360" width="240" height="55" fill="#E6F3F7" stroke="#4A90A4" stroke-width="1.5" rx="3"/>
+    <text x="430" y="377" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="#333">Standard attention</text>
+    <text x="430" y="392" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#555">Uses sqrt(d_k) for stable</text>
+    <text x="430" y="405" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#555">gradients (default in transformers)</text>
+  </g>
+
+  <!-- High Temperature (T = 2.0) - Soft/Uniform -->
+  <g id="high-temp">
+    <text x="660" y="95" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#81C784">T = 2.0 (Soft)</text>
+
+    <!-- Bars - more uniform -->
+    <rect x="570" y="210" width="40" height="90" fill="#81C784" opacity="0.5"/>
+    <text x="590" y="320" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#666">0.17</text>
+
+    <rect x="620" y="200" width="40" height="100" fill="#81C784" opacity="0.6"/>
+    <text x="640" y="320" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#666">0.19</text>
+
+    <rect x="670" y="180" width="40" height="120" fill="#81C784" opacity="0.7"/>
+    <text x="690" y="170" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#81C784">0.28</text>
+    <text x="690" y="320" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#666">0.28</text>
+
+    <rect x="720" y="195" width="40" height="105" fill="#81C784" opacity="0.6"/>
+    <text x="740" y="320" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#666">0.20</text>
+
+    <rect x="770" y="205" width="40" height="95" fill="#81C784" opacity="0.5"/>
+    <text x="790" y="320" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#666">0.16</text>
+
+    <!-- X-axis -->
+    <line x1="560" y1="305" x2="820" y2="305" stroke="#999" stroke-width="1"/>
+    <text x="690" y="345" font-family="system-ui, -apple-system, sans-serif" font-size="11" text-anchor="middle" fill="#666">Position</text>
+
+    <!-- Y-axis -->
+    <line x1="560" y1="100" x2="560" y2="305" stroke="#999" stroke-width="1"/>
+
+    <!-- Annotation -->
+    <rect x="570" y="360" width="240" height="55" fill="#E8F5E9" stroke="#81C784" stroke-width="1.5" rx="3"/>
+    <text x="690" y="377" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="#333">More uniform attention</text>
+    <text x="690" y="392" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#555">Spreads attention across many</text>
+    <text x="690" y="405" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#555">positions (exploration)</text>
+  </g>
+
+  <!-- Bottom explanation -->
+  <rect x="50" y="440" width="700" height="90" fill="#F5F5F5" stroke="#999" stroke-width="1.5" rx="5"/>
+  <text x="400" y="462" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#333">Temperature Formula: softmax(scores / T)</text>
+
+  <text x="60" y="485" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#555">• T &lt; 1 (low): Divides scores by smaller number → larger values → sharper distribution (peaked)</text>
+  <text x="60" y="503" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#555">• T = 1 (standard): No scaling beyond sqrt(d_k) → balanced distribution (typical in transformers)</text>
+  <text x="60" y="521" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#555">• T &gt; 1 (high): Divides scores by larger number → smaller differences → softer distribution (uniform)</text>
+</svg>

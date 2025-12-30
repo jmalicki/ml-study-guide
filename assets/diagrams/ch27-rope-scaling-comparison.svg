@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600">
+  <!-- Title -->
+  <text x="450" y="30" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#333" text-anchor="middle">
+    RoPE Scaling Methods Comparison
+  </text>
+
+  <!-- Subtitle -->
+  <text x="450" y="55" font-family="Arial, sans-serif" font-size="14" fill="#666" text-anchor="middle">
+    Training Range: 0-2K tokens → Target Range: 0-8K tokens (4x extension)
+  </text>
+
+  <!-- Method 1: Standard RoPE (Extrapolation) -->
+  <g transform="translate(50, 90)">
+    <text x="0" y="0" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#333">
+      Standard RoPE (Fails)
+    </text>
+    <rect x="0" y="10" width="160" height="30" fill="#81C784" stroke="#333" stroke-width="1.5"/>
+    <text x="80" y="30" font-family="Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">
+      Trained (0-2K)
+    </text>
+    <rect x="160" y="10" width="480" height="30" fill="#E57373" stroke="#333" stroke-width="1.5" stroke-dasharray="4,4"/>
+    <text x="400" y="30" font-family="Arial, sans-serif" font-size="11" fill="#fff" text-anchor="middle">
+      Unseen Rotations (2K-8K) ✗
+    </text>
+    <text x="0" y="60" font-family="Arial, sans-serif" font-size="11" fill="#666">
+      ⚠ Extrapolation: Performance degrades
+    </text>
+  </g>
+
+  <!-- Method 2: Linear Scaling -->
+  <g transform="translate(50, 180)">
+    <text x="0" y="0" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#333">
+      Linear Scaling
+    </text>
+    <rect x="0" y="10" width="640" height="30" fill="#4A90A4" stroke="#333" stroke-width="1.5"/>
+    <text x="320" y="30" font-family="Arial, sans-serif" font-size="11" fill="#fff" text-anchor="middle">
+      Position m → m/4 (compresses all positions)
+    </text>
+
+    <!-- Compression arrows -->
+    <path d="M 160 50 L 160 70 L 40 70 L 40 50" fill="none" stroke="#666" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+    <path d="M 640 50 L 640 70 L 160 70" fill="none" stroke="#666" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+
+    <text x="0" y="95" font-family="Arial, sans-serif" font-size="11" fill="#666">
+      ⚠ Distorts relative distances, needs fine-tuning
+    </text>
+  </g>
+
+  <!-- Method 3: NTK Scaling -->
+  <g transform="translate(50, 280)">
+    <text x="0" y="0" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#333">
+      NTK-Aware Scaling
+    </text>
+    <rect x="0" y="10" width="640" height="30" fill="#4A90A4" stroke="#333" stroke-width="1.5"/>
+    <text x="320" y="30" font-family="Arial, sans-serif" font-size="11" fill="#fff" text-anchor="middle">
+      Base frequency: 10000 → 10000 × 4^(d/(d-2)) (stretches wavelengths)
+    </text>
+
+    <!-- Wavelength indicator -->
+    <path d="M 20 55 Q 70 45, 120 55" fill="none" stroke="#4A90A4" stroke-width="2"/>
+    <path d="M 20 75 Q 120 60, 220 75" fill="none" stroke="#81C784" stroke-width="2" stroke-dasharray="3,3"/>
+    <text x="130" y="70" font-family="Arial, sans-serif" font-size="10" fill="#666">Original</text>
+    <text x="230" y="80" font-family="Arial, sans-serif" font-size="10" fill="#666">Stretched</text>
+
+    <text x="0" y="105" font-family="Arial, sans-serif" font-size="11" fill="#666">
+      ✓ Preserves relative positions, often works zero-shot
+    </text>
+  </g>
+
+  <!-- Method 4: Dynamic NTK -->
+  <g transform="translate(50, 390)">
+    <text x="0" y="0" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#333">
+      Dynamic NTK Scaling
+    </text>
+    <rect x="0" y="10" width="160" height="30" fill="#81C784" stroke="#333" stroke-width="1.5"/>
+    <text x="80" y="30" font-family="Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">
+      ≤ 2K: Original
+    </text>
+    <rect x="160" y="10" width="480" height="30" fill="#4A90A4" stroke="#333" stroke-width="1.5"/>
+    <text x="400" y="30" font-family="Arial, sans-serif" font-size="11" fill="#fff" text-anchor="middle">
+      &gt; 2K: Adaptive NTK based on length
+    </text>
+    <text x="0" y="60" font-family="Arial, sans-serif" font-size="11" fill="#666">
+      ✓ Adapts to sequence length, best of both worlds
+    </text>
+  </g>
+
+  <!-- Method 5: YaRN -->
+  <g transform="translate(50, 480)">
+    <text x="0" y="0" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#333">
+      YaRN (Frequency-aware)
+    </text>
+
+    <!-- Three frequency bands -->
+    <rect x="0" y="10" width="213" height="30" fill="#81C784" stroke="#333" stroke-width="1.5"/>
+    <text x="106" y="30" font-family="Arial, sans-serif" font-size="10" fill="#333" text-anchor="middle">
+      High freq: No scale
+    </text>
+
+    <rect x="213" y="10" width="214" height="30" fill="#4A90A4" stroke="#333" stroke-width="1.5"/>
+    <text x="320" y="30" font-family="Arial, sans-serif" font-size="10" fill="#fff" text-anchor="middle">
+      Mid freq: Interpolate
+    </text>
+
+    <rect x="427" y="10" width="213" height="30" fill="#5FA4B8" stroke="#333" stroke-width="1.5"/>
+    <text x="533" y="30" font-family="Arial, sans-serif" font-size="10" fill="#fff" text-anchor="middle">
+      Low freq: Full scale
+    </text>
+
+    <text x="0" y="60" font-family="Arial, sans-serif" font-size="11" fill="#666">
+      ✓ Best performance, preserves local patterns + extends long-range
+    </text>
+  </g>
+
+  <!-- Legend -->
+  <g transform="translate(700, 100)">
+    <text x="0" y="0" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#333">
+      Legend
+    </text>
+    <rect x="0" y="10" width="30" height="15" fill="#81C784" stroke="#333" stroke-width="1"/>
+    <text x="35" y="22" font-family="Arial, sans-serif" font-size="11" fill="#333">Trained range</text>
+
+    <rect x="0" y="35" width="30" height="15" fill="#4A90A4" stroke="#333" stroke-width="1"/>
+    <text x="35" y="47" font-family="Arial, sans-serif" font-size="11" fill="#333">Extended range</text>
+
+    <rect x="0" y="60" width="30" height="15" fill="#E57373" stroke="#333" stroke-width="1"/>
+    <text x="35" y="72" font-family="Arial, sans-serif" font-size="11" fill="#333">Fails</text>
+  </g>
+
+  <!-- Arrow marker definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#666"/>
+    </marker>
+  </defs>
+</svg>

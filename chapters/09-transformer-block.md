@@ -277,6 +277,12 @@ if __name__ == "__main__":
 - RMSNorm preserves the mean but normalizes scale
 - RMSNorm is 10-15% faster
 
+**Visualization:**
+
+![Layer Normalization Effect](../assets/diagrams/ch09-layernorm-effect.svg)
+
+The diagram above illustrates how layer normalization transforms scattered, high-variance activations into a normalized distribution with controlled mean and variance, stabilizing training across deep networks.
+
 ---
 
 ## Feed-Forward Networks
@@ -566,6 +572,12 @@ if __name__ == "__main__":
 - Without residuals: gradients become very small (vanishing)
 - With residuals: gradients remain stable across layers
 
+**Visualization:**
+
+![Residual Connection Gradient Flow](../assets/diagrams/ch09-residual-flow.svg)
+
+The diagram illustrates how residual connections create an identity path for gradients to flow backward through the network. Without residuals, gradients must pass through multiple transformations and can vanish. With residuals, the identity path (I) ensures gradients can flow directly, maintaining stable gradient magnitudes throughout training.
+
 ---
 
 ## Pre-Norm vs Post-Norm
@@ -616,6 +628,12 @@ $$
 - More stable training for deep models (100+ layers)
 - Less sensitive to learning rate and initialization
 - Standard in modern LLMs (GPT-3, LLaMA, PaLM, etc.)
+
+**Visualization:**
+
+![Pre-Norm vs Post-Norm Architecture](../assets/diagrams/ch09-prenorm-postnorm.svg)
+
+The diagram compares the two architectural choices. In post-norm (left), normalization happens after the residual addition, forcing gradients to flow through normalization layers. In pre-norm (right), normalization happens before sub-layers, allowing gradients to flow directly through the residual connections (thick blue lines), resulting in more stable training.
 
 ### Why Pre-Norm is Standard
 

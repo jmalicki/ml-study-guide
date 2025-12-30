@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <!-- Title -->
+  <text x="400" y="30" text-anchor="middle" font-size="18" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#333">
+    BPE Merge Process: Building Subwords from Characters
+  </text>
+
+  <!-- Example word -->
+  <text x="400" y="60" text-anchor="middle" font-size="14" font-style="italic" font-family="system-ui, -apple-system, sans-serif" fill="#666">
+    Training on corpus: "lower lowest", "newer newest"
+  </text>
+
+  <!-- Step 0: Initial state -->
+  <g transform="translate(50, 90)">
+    <text x="0" y="0" font-size="14" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#4A90A4">Step 0: Character initialization</text>
+    <rect x="0" y="10" width="700" height="60" fill="#f5f5f5" stroke="#ddd" stroke-width="1" rx="5"/>
+
+    <text x="10" y="30" font-size="12" font-family="monospace" fill="#333">Word: "lowest"</text>
+    <g transform="translate(10, 45)">
+      <rect x="0" y="0" width="40" height="30" fill="#E0E0E0" stroke="#999" stroke-width="1" rx="3"/>
+      <text x="20" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#333">l</text>
+
+      <rect x="50" y="0" width="40" height="30" fill="#E0E0E0" stroke="#999" stroke-width="1" rx="3"/>
+      <text x="70" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#333">o</text>
+
+      <rect x="100" y="0" width="40" height="30" fill="#E0E0E0" stroke="#999" stroke-width="1" rx="3"/>
+      <text x="120" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#333">w</text>
+
+      <rect x="150" y="0" width="40" height="30" fill="#E0E0E0" stroke="#999" stroke-width="1" rx="3"/>
+      <text x="170" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#333">e</text>
+
+      <rect x="200" y="0" width="40" height="30" fill="#E0E0E0" stroke="#999" stroke-width="1" rx="3"/>
+      <text x="220" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#333">s</text>
+
+      <rect x="250" y="0" width="40" height="30" fill="#E0E0E0" stroke="#999" stroke-width="1" rx="3"/>
+      <text x="270" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#333">t</text>
+    </g>
+
+    <text x="450" y="45" font-size="11" font-family="system-ui, -apple-system, sans-serif" fill="#666">
+      <tspan x="450" dy="0">Vocab: {l, o, w, e, s, t, n, r, ...}</tspan>
+      <tspan x="450" dy="14">Size: ~26 chars</tspan>
+    </text>
+  </g>
+
+  <!-- Arrow -->
+  <path d="M 400 170 L 400 190" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <!-- Step 1: First merge -->
+  <g transform="translate(50, 200)">
+    <text x="0" y="0" font-size="14" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#4A90A4">Step 1: Merge most frequent pair (e, s) → "es"</text>
+    <rect x="0" y="10" width="700" height="60" fill="#f5f5f5" stroke="#ddd" stroke-width="1" rx="5"/>
+
+    <text x="10" y="30" font-size="12" font-family="monospace" fill="#333">Word: "lowest"</text>
+    <g transform="translate(10, 45)">
+      <rect x="0" y="0" width="40" height="30" fill="#E0E0E0" stroke="#999" stroke-width="1" rx="3"/>
+      <text x="20" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#333">l</text>
+
+      <rect x="50" y="0" width="40" height="30" fill="#E0E0E0" stroke="#999" stroke-width="1" rx="3"/>
+      <text x="70" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#333">o</text>
+
+      <rect x="100" y="0" width="40" height="30" fill="#E0E0E0" stroke="#999" stroke-width="1" rx="3"/>
+      <text x="120" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#333">w</text>
+
+      <rect x="150" y="0" width="50" height="30" fill="#81C784" stroke="#4CAF50" stroke-width="2" rx="3"/>
+      <text x="175" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#fff" font-weight="bold">es</text>
+
+      <rect x="210" y="0" width="40" height="30" fill="#E0E0E0" stroke="#999" stroke-width="1" rx="3"/>
+      <text x="230" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#333">t</text>
+    </g>
+
+    <text x="450" y="35" font-size="11" font-family="system-ui, -apple-system, sans-serif" fill="#666">
+      <tspan x="450" dy="0">Pair frequency: (e,s) appeared 4 times</tspan>
+      <tspan x="450" dy="14">(in "lowest", "newest", ...)</tspan>
+      <tspan x="450" dy="14">Vocab size: 27 (+1)</tspan>
+    </text>
+  </g>
+
+  <!-- Arrow -->
+  <path d="M 400 280 L 400 300" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <!-- Step 2: Second merge -->
+  <g transform="translate(50, 310)">
+    <text x="0" y="0" font-size="14" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#4A90A4">Step 2: Merge next frequent pair (es, t) → "est"</text>
+    <rect x="0" y="10" width="700" height="60" fill="#f5f5f5" stroke="#ddd" stroke-width="1" rx="5"/>
+
+    <text x="10" y="30" font-size="12" font-family="monospace" fill="#333">Word: "lowest"</text>
+    <g transform="translate(10, 45)">
+      <rect x="0" y="0" width="40" height="30" fill="#E0E0E0" stroke="#999" stroke-width="1" rx="3"/>
+      <text x="20" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#333">l</text>
+
+      <rect x="50" y="0" width="40" height="30" fill="#E0E0E0" stroke="#999" stroke-width="1" rx="3"/>
+      <text x="70" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#333">o</text>
+
+      <rect x="100" y="0" width="40" height="30" fill="#E0E0E0" stroke="#999" stroke-width="1" rx="3"/>
+      <text x="120" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#333">w</text>
+
+      <rect x="150" y="0" width="60" height="30" fill="#FFB74D" stroke="#FF9800" stroke-width="2" rx="3"/>
+      <text x="180" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#fff" font-weight="bold">est</text>
+    </g>
+
+    <text x="450" y="35" font-size="11" font-family="system-ui, -apple-system, sans-serif" fill="#666">
+      <tspan x="450" dy="0">Pair frequency: (es,t) appeared 3 times</tspan>
+      <tspan x="450" dy="14">Common suffix learned!</tspan>
+      <tspan x="450" dy="14">Vocab size: 28 (+1)</tspan>
+    </text>
+  </g>
+
+  <!-- Arrow -->
+  <path d="M 400 390 L 400 410" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <!-- Step 3: Third merge -->
+  <g transform="translate(50, 420)">
+    <text x="0" y="0" font-size="14" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#4A90A4">Step 3: Continue merging...</text>
+    <rect x="0" y="10" width="700" height="60" fill="#f5f5f5" stroke="#ddd" stroke-width="1" rx="5"/>
+
+    <text x="10" y="30" font-size="12" font-family="monospace" fill="#333">Word: "lowest"</text>
+    <g transform="translate(10, 45)">
+      <rect x="0" y="0" width="50" height="30" fill="#9575CD" stroke="#673AB7" stroke-width="2" rx="3"/>
+      <text x="25" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#fff" font-weight="bold">low</text>
+
+      <rect x="60" y="0" width="60" height="30" fill="#FFB74D" stroke="#FF9800" stroke-width="2" rx="3"/>
+      <text x="90" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#fff" font-weight="bold">est</text>
+    </g>
+
+    <text x="450" y="35" font-size="11" font-family="system-ui, -apple-system, sans-serif" fill="#666">
+      <tspan x="450" dy="0">After more merges: "lowest" = 2 tokens</tspan>
+      <tspan x="450" dy="14">vs 6 character tokens originally</tspan>
+      <tspan x="450" dy="14">Compression ratio: 3x</tspan>
+    </text>
+  </g>
+
+  <!-- Key insight box -->
+  <g transform="translate(50, 510)">
+    <rect x="0" y="0" width="700" height="70" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2" rx="5"/>
+    <text x="10" y="22" font-size="13" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#4A90A4">Key Insights:</text>
+    <text x="20" y="40" font-size="11" font-family="system-ui, -apple-system, sans-serif" fill="#333">
+      <tspan x="20" dy="0">• BPE is greedy: always merges most frequent pair</tspan>
+      <tspan x="20" dy="15">• Learns common morphemes: "est" (superlative), "ing" (gerund), "er" (comparative)</tspan>
+      <tspan x="20" dy="15">• Rare words decompose to subwords → No OOV tokens!</tspan>
+    </text>
+  </g>
+
+  <!-- Arrowhead marker definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#4A90A4"/>
+    </marker>
+  </defs>
+</svg>

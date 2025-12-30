@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 700">
+  <defs>
+    <style>
+      .title { font-family: Arial, sans-serif; font-size: 20px; font-weight: bold; fill: #333; }
+      .subtitle { font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; fill: #333; }
+      .label { font-family: Arial, sans-serif; font-size: 11px; fill: #333; }
+      .small-label { font-family: Arial, sans-serif; font-size: 9px; fill: #666; }
+      .params { fill: #4A90A4; stroke: #333; stroke-width: 1; }
+      .gradients { fill: #81C784; stroke: #333; stroke-width: 1; }
+      .optimizer { fill: #E57373; stroke: #333; stroke-width: 1; }
+      .gpu-box { fill: none; stroke: #666; stroke-width: 2; rx: 5; }
+      .section-box { fill: #f9f9f9; stroke: #999; stroke-width: 1; rx: 3; }
+    </style>
+  </defs>
+
+  <!-- Title -->
+  <text x="400" y="30" text-anchor="middle" class="title">ZeRO Optimization Stages</text>
+  <text x="400" y="50" text-anchor="middle" class="small-label">Progressive memory reduction through state sharding</text>
+
+  <!-- Standard DDP (Baseline) -->
+  <text x="100" y="85" text-anchor="middle" class="subtitle">Standard DDP (Baseline)</text>
+
+  <!-- GPU 0 -->
+  <rect x="20" y="95" width="80" height="180" class="gpu-box"/>
+  <text x="60" y="112" text-anchor="middle" class="label">GPU 0</text>
+
+  <!-- Parameters -->
+  <rect x="25" y="120" width="70" height="30" class="params"/>
+  <text x="60" y="138" text-anchor="middle" class="small-label" fill="white">Parameters</text>
+  <text x="60" y="148" text-anchor="middle" class="small-label" fill="white">2Θ</text>
+
+  <!-- Gradients -->
+  <rect x="25" y="155" width="70" height="30" class="gradients"/>
+  <text x="60" y="173" text-anchor="middle" class="small-label" fill="white">Gradients</text>
+  <text x="60" y="183" text-anchor="middle" class="small-label" fill="white">2Θ</text>
+
+  <!-- Optimizer States -->
+  <rect x="25" y="190" width="70" height="75" class="optimizer"/>
+  <text x="60" y="208" text-anchor="middle" class="small-label" fill="white">Optimizer</text>
+  <text x="60" y="220" text-anchor="middle" class="small-label" fill="white">FP32: 4Θ</text>
+  <text x="60" y="232" text-anchor="middle" class="small-label" fill="white">Momentum: 4Θ</text>
+  <text x="60" y="244" text-anchor="middle" class="small-label" fill="white">Variance: 4Θ</text>
+  <text x="60" y="256" text-anchor="middle" class="small-label" fill="white">Total: 12Θ</text>
+
+  <!-- GPU 1 -->
+  <rect x="120" y="95" width="80" height="180" class="gpu-box"/>
+  <text x="160" y="112" text-anchor="middle" class="label">GPU 1</text>
+
+  <!-- Duplicate content for GPU 1 -->
+  <rect x="125" y="120" width="70" height="30" class="params"/>
+  <text x="160" y="138" text-anchor="middle" class="small-label" fill="white">Parameters</text>
+  <text x="160" y="148" text-anchor="middle" class="small-label" fill="white">2Θ</text>
+  <rect x="125" y="155" width="70" height="30" class="gradients"/>
+  <text x="160" y="173" text-anchor="middle" class="small-label" fill="white">Gradients</text>
+  <text x="160" y="183" text-anchor="middle" class="small-label" fill="white">2Θ</text>
+  <rect x="125" y="190" width="70" height="75" class="optimizer"/>
+  <text x="160" y="228" text-anchor="middle" class="small-label" fill="white">Optimizer</text>
+  <text x="160" y="240" text-anchor="middle" class="small-label" fill="white">12Θ</text>
+
+  <!-- Memory total for DDP -->
+  <rect x="20" y="285" width="180" height="30" class="section-box"/>
+  <text x="110" y="300" text-anchor="middle" class="label" font-weight="bold">Memory per GPU: 16Θ</text>
+  <text x="110" y="312" text-anchor="middle" class="small-label" fill="#E57373">Full redundancy!</text>
+
+  <!-- ZeRO Stage 1 -->
+  <text x="350" y="85" text-anchor="middle" class="subtitle">ZeRO Stage 1</text>
+  <text x="350" y="100" text-anchor="middle" class="small-label">Optimizer State Sharding</text>
+
+  <!-- GPU 0 ZeRO-1 -->
+  <rect x="270" y="110" width="80" height="165" class="gpu-box"/>
+  <text x="310" y="127" text-anchor="middle" class="label">GPU 0</text>
+
+  <rect x="275" y="135" width="70" height="30" class="params"/>
+  <text x="310" y="153" text-anchor="middle" class="small-label" fill="white">Parameters</text>
+  <text x="310" y="163" text-anchor="middle" class="small-label" fill="white">2Θ</text>
+
+  <rect x="275" y="170" width="70" height="30" class="gradients"/>
+  <text x="310" y="188" text-anchor="middle" class="small-label" fill="white">Gradients</text>
+  <text x="310" y="198" text-anchor="middle" class="small-label" fill="white">2Θ</text>
+
+  <!-- Partitioned optimizer -->
+  <rect x="275" y="205" width="70" height="60" class="optimizer"/>
+  <text x="310" y="223" text-anchor="middle" class="small-label" fill="white">Optimizer</text>
+  <text x="310" y="235" text-anchor="middle" class="small-label" fill="white">(Partition 0)</text>
+  <text x="310" y="247" text-anchor="middle" class="small-label" fill="white">12Θ / N</text>
+
+  <!-- GPU 1 ZeRO-1 -->
+  <rect x="370" y="110" width="80" height="165" class="gpu-box"/>
+  <text x="410" y="127" text-anchor="middle" class="label">GPU 1</text>
+
+  <rect x="375" y="135" width="70" height="30" class="params"/>
+  <text x="410" y="153" text-anchor="middle" class="small-label" fill="white">Parameters</text>
+  <text x="410" y="163" text-anchor="middle" class="small-label" fill="white">2Θ</text>
+
+  <rect x="375" y="170" width="70" height="30" class="gradients"/>
+  <text x="410" y="188" text-anchor="middle" class="small-label" fill="white">Gradients</text>
+  <text x="410" y="198" text-anchor="middle" class="small-label" fill="white">2Θ</text>
+
+  <rect x="375" y="205" width="70" height="60" class="optimizer"/>
+  <text x="410" y="223" text-anchor="middle" class="small-label" fill="white">Optimizer</text>
+  <text x="410" y="235" text-anchor="middle" class="small-label" fill="white">(Partition 1)</text>
+  <text x="410" y="247" text-anchor="middle" class="small-label" fill="white">12Θ / N</text>
+
+  <!-- Memory total for ZeRO-1 -->
+  <rect x="270" y="285" width="180" height="30" class="section-box"/>
+  <text x="360" y="300" text-anchor="middle" class="label" font-weight="bold">Memory per GPU: 4Θ + 12Θ/N</text>
+  <text x="360" y="312" text-anchor="middle" class="small-label" fill="#81C784">~4x reduction for N=8</text>
+
+  <!-- ZeRO Stage 2 -->
+  <text x="600" y="85" text-anchor="middle" class="subtitle">ZeRO Stage 2</text>
+  <text x="600" y="100" text-anchor="middle" class="small-label">+ Gradient Sharding</text>
+
+  <!-- GPU 0 ZeRO-2 -->
+  <rect x="520" y="110" width="80" height="165" class="gpu-box"/>
+  <text x="560" y="127" text-anchor="middle" class="label">GPU 0</text>
+
+  <rect x="525" y="135" width="70" height="30" class="params"/>
+  <text x="560" y="153" text-anchor="middle" class="small-label" fill="white">Parameters</text>
+  <text x="560" y="163" text-anchor="middle" class="small-label" fill="white">2Θ</text>
+
+  <!-- Partitioned gradients -->
+  <rect x="525" y="170" width="70" height="30" class="gradients"/>
+  <text x="560" y="188" text-anchor="middle" class="small-label" fill="white">Gradients</text>
+  <text x="560" y="198" text-anchor="middle" class="small-label" fill="white">2Θ / N</text>
+
+  <rect x="525" y="205" width="70" height="60" class="optimizer"/>
+  <text x="560" y="223" text-anchor="middle" class="small-label" fill="white">Optimizer</text>
+  <text x="560" y="235" text-anchor="middle" class="small-label" fill="white">(Partition 0)</text>
+  <text x="560" y="247" text-anchor="middle" class="small-label" fill="white">12Θ / N</text>
+
+  <!-- GPU 1 ZeRO-2 -->
+  <rect x="620" y="110" width="80" height="165" class="gpu-box"/>
+  <text x="660" y="127" text-anchor="middle" class="label">GPU 1</text>
+
+  <rect x="625" y="135" width="70" height="30" class="params"/>
+  <text x="660" y="153" text-anchor="middle" class="small-label" fill="white">Parameters</text>
+  <text x="660" y="163" text-anchor="middle" class="small-label" fill="white">2Θ</text>
+
+  <rect x="625" y="170" width="70" height="30" class="gradients"/>
+  <text x="660" y="188" text-anchor="middle" class="small-label" fill="white">Gradients</text>
+  <text x="660" y="198" text-anchor="middle" class="small-label" fill="white">2Θ / N</text>
+
+  <rect x="625" y="205" width="70" height="60" class="optimizer"/>
+  <text x="660" y="223" text-anchor="middle" class="small-label" fill="white">Optimizer</text>
+  <text x="660" y="235" text-anchor="middle" class="small-label" fill="white">(Partition 1)</text>
+  <text x="660" y="247" text-anchor="middle" class="small-label" fill="white">12Θ / N</text>
+
+  <!-- Memory total for ZeRO-2 -->
+  <rect x="520" y="285" width="180" height="30" class="section-box"/>
+  <text x="610" y="300" text-anchor="middle" class="label" font-weight="bold">Memory per GPU: 2Θ + 14Θ/N</text>
+  <text x="610" y="312" text-anchor="middle" class="small-label" fill="#81C784">~8x reduction for N=8</text>
+
+  <!-- Divider line -->
+  <line x1="20" y1="340" x2="780" y2="340" stroke="#333" stroke-width="1"/>
+
+  <!-- ZeRO Stage 3 / FSDP -->
+  <text x="400" y="370" text-anchor="middle" class="subtitle">ZeRO Stage 3 / FSDP (Fully Sharded Data Parallel)</text>
+  <text x="400" y="385" text-anchor="middle" class="small-label">Optimizer State + Gradient + Parameter Sharding</text>
+
+  <!-- GPU 0 ZeRO-3 -->
+  <rect x="240" y="400" width="120" height="200" class="gpu-box"/>
+  <text x="300" y="417" text-anchor="middle" class="label">GPU 0</text>
+
+  <!-- Partitioned parameters -->
+  <rect x="250" y="430" width="100" height="35" class="params"/>
+  <text x="300" y="450" text-anchor="middle" class="small-label" fill="white">Parameters (Partition 0)</text>
+  <text x="300" y="460" text-anchor="middle" class="small-label" fill="white">2Θ / N</text>
+
+  <!-- Partitioned gradients -->
+  <rect x="250" y="470" width="100" height="35" class="gradients"/>
+  <text x="300" y="490" text-anchor="middle" class="small-label" fill="white">Gradients (Partition 0)</text>
+  <text x="300" y="500" text-anchor="middle" class="small-label" fill="white">2Θ / N</text>
+
+  <!-- Partitioned optimizer -->
+  <rect x="250" y="510" width="100" height="75" class="optimizer"/>
+  <text x="300" y="530" text-anchor="middle" class="small-label" fill="white">Optimizer</text>
+  <text x="300" y="542" text-anchor="middle" class="small-label" fill="white">(Partition 0)</text>
+  <text x="300" y="554" text-anchor="middle" class="small-label" fill="white">FP32: 4Θ/N</text>
+  <text x="300" y="566" text-anchor="middle" class="small-label" fill="white">Momentum: 4Θ/N</text>
+  <text x="300" y="578" text-anchor="middle" class="small-label" fill="white">Variance: 4Θ/N</text>
+
+  <!-- GPU 1 ZeRO-3 -->
+  <rect x="440" y="400" width="120" height="200" class="gpu-box"/>
+  <text x="500" y="417" text-anchor="middle" class="label">GPU 1</text>
+
+  <rect x="450" y="430" width="100" height="35" class="params"/>
+  <text x="500" y="450" text-anchor="middle" class="small-label" fill="white">Parameters (Partition 1)</text>
+  <text x="500" y="460" text-anchor="middle" class="small-label" fill="white">2Θ / N</text>
+
+  <rect x="450" y="470" width="100" height="35" class="gradients"/>
+  <text x="500" y="490" text-anchor="middle" class="small-label" fill="white">Gradients (Partition 1)</text>
+  <text x="500" y="500" text-anchor="middle" class="small-label" fill="white">2Θ / N</text>
+
+  <rect x="450" y="510" width="100" height="75" class="optimizer"/>
+  <text x="500" y="548" text-anchor="middle" class="small-label" fill="white">Optimizer (Partition 1)</text>
+  <text x="500" y="560" text-anchor="middle" class="small-label" fill="white">12Θ / N</text>
+
+  <!-- Communication note -->
+  <path d="M 360 500 L 440 500" stroke="#4A90A4" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <path d="M 440 500 L 360 500" stroke="#4A90A4" stroke-width="2" fill="none"/>
+  <text x="400" y="492" text-anchor="middle" class="small-label" fill="#4A90A4">All-gather before</text>
+  <text x="400" y="504" text-anchor="middle" class="small-label" fill="#4A90A4">forward/backward</text>
+
+  <!-- Memory total for ZeRO-3 -->
+  <rect x="240" y="610" width="320" height="35" class="section-box"/>
+  <text x="400" y="628" text-anchor="middle" class="label" font-weight="bold">Memory per GPU: 16Θ / N</text>
+  <text x="400" y="642" text-anchor="middle" class="small-label" fill="#81C784">Linear scaling! 16x reduction for N=8, 100x for N=100</text>
+
+  <!-- Legend and summary -->
+  <text x="400" y="670" text-anchor="middle" class="subtitle">Memory Breakdown Formula</text>
+  <text x="100" y="690" text-anchor="start" class="small-label">Θ = number of parameters | N = number of GPUs</text>
+  <text x="500" y="690" text-anchor="start" class="small-label">Bytes: FP16 params/grads = 2, FP32 optimizer = 12</text>
+
+  <!-- Arrow marker -->
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#4A90A4"/>
+    </marker>
+  </defs>
+</svg>

@@ -27,6 +27,10 @@ The fundamental tension in tokenization is between **granularity** and **vocabul
 - Coarse-grained (word-level): Large vocabulary, short sequences
 - Middle ground (subword): Balanced approach used by modern LLMs
 
+![Vocabulary Size vs Sequence Length Trade-off](../assets/diagrams/ch01-vocab-vs-sequence-tradeoff.svg)
+
+This visualization shows the inverse relationship between vocabulary size and sequence length. Character-level tokenization produces very long sequences (high computational cost in O(n²) attention), while word-level creates short sequences but requires huge vocabularies. Subword methods like BPE and WordPiece occupy the "sweet spot" with moderate vocabulary sizes (10K-50K) and manageable sequence lengths.
+
 ## 1.2 Character-Level Tokenization
 
 Character-level tokenization splits text into individual characters. It has the smallest possible vocabulary size but produces the longest sequences.
@@ -609,6 +613,10 @@ By greedily merging these, we capture both complete common words and reusable su
 3. **Compression vs semantics**: Early merges create common words ("the", "and"); later merges may create non-semantic units ("er", "##ion") that exist purely for compression.
 
 4. **Character initialization**: Starting from characters ensures we can represent any word, avoiding the OOV problem entirely.
+
+![BPE Merge Process](../assets/diagrams/ch01-bpe-merge-process.svg)
+
+This visualization demonstrates how BPE iteratively builds up subword units from characters. Starting with character-level tokens, BPE greedily merges the most frequent adjacent pairs at each step. Common morphemes like "est" (superlative suffix) emerge naturally from the frequency-based merging process, creating a vocabulary that balances compression with semantic meaning.
 
 ```python
 import re
@@ -1428,6 +1436,10 @@ if __name__ == "__main__":
 ```
 
 ## 1.5 Comparison of Tokenization Methods
+
+![Tokenization Methods Comparison](../assets/diagrams/ch01-tokenization-comparison.svg)
+
+This side-by-side comparison shows how different tokenization methods split the same input text. Notice how character-level produces 25 tokens (very long), word-level produces just 3 tokens (shortest but can't handle rare words), while subword methods (BPE, WordPiece) produce 6-7 tokens - striking a balance. The visualization also shows the computational trade-off: character-level requires 625 attention operations (25²) versus only 36 for BPE (6²), while vocabulary sizes range from 256 (character) to 50K+ (word).
 
 | Method | Vocab Size | Seq Length | OOV Handling | Pros | Cons | Used In |
 |--------|-----------|------------|--------------|------|------|---------|

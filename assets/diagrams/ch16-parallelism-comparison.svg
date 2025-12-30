@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <defs>
+    <style>
+      .title { font-family: Arial, sans-serif; font-size: 18px; font-weight: bold; fill: #333; }
+      .subtitle { font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; fill: #333; }
+      .label { font-family: Arial, sans-serif; font-size: 12px; fill: #333; }
+      .small-label { font-family: Arial, sans-serif; font-size: 10px; fill: #666; }
+      .layer { fill: #4A90A4; stroke: #333; stroke-width: 1.5; }
+      .data-batch { fill: #81C784; stroke: #333; stroke-width: 1.5; }
+      .gpu-box { fill: #f0f0f0; stroke: #666; stroke-width: 2; stroke-dasharray: 5,5; }
+    </style>
+  </defs>
+
+  <!-- Title -->
+  <text x="400" y="25" text-anchor="middle" class="title">Parallelism Strategies Comparison</text>
+
+  <!-- Data Parallelism Section -->
+  <text x="130" y="60" text-anchor="middle" class="subtitle">Data Parallelism</text>
+  <text x="130" y="75" text-anchor="middle" class="small-label">Replicate model, split batch</text>
+
+  <!-- GPU 0 -->
+  <rect x="20" y="90" width="100" height="140" class="gpu-box"/>
+  <text x="70" y="105" text-anchor="middle" class="label">GPU 0</text>
+
+  <!-- Model layers on GPU 0 -->
+  <rect x="30" y="115" width="80" height="15" class="layer"/>
+  <text x="70" y="126" text-anchor="middle" class="small-label" fill="white">Layer 1</text>
+  <rect x="30" y="135" width="80" height="15" class="layer"/>
+  <text x="70" y="146" text-anchor="middle" class="small-label" fill="white">Layer 2</text>
+  <rect x="30" y="155" width="80" height="15" class="layer"/>
+  <text x="70" y="166" text-anchor="middle" class="small-label" fill="white">Layer 3</text>
+  <rect x="30" y="175" width="80" height="15" class="layer"/>
+  <text x="70" y="186" text-anchor="middle" class="small-label" fill="white">Layer 4</text>
+
+  <!-- Data batch 0 -->
+  <rect x="35" y="200" width="70" height="20" class="data-batch"/>
+  <text x="70" y="213" text-anchor="middle" class="small-label">Batch 0</text>
+
+  <!-- GPU 1 -->
+  <rect x="140" y="90" width="100" height="140" class="gpu-box"/>
+  <text x="190" y="105" text-anchor="middle" class="label">GPU 1</text>
+
+  <!-- Model layers on GPU 1 -->
+  <rect x="150" y="115" width="80" height="15" class="layer"/>
+  <text x="190" y="126" text-anchor="middle" class="small-label" fill="white">Layer 1</text>
+  <rect x="150" y="135" width="80" height="15" class="layer"/>
+  <text x="190" y="146" text-anchor="middle" class="small-label" fill="white">Layer 2</text>
+  <rect x="150" y="155" width="80" height="15" class="layer"/>
+  <text x="190" y="166" text-anchor="middle" class="small-label" fill="white">Layer 3</text>
+  <rect x="150" y="175" width="80" height="15" class="layer"/>
+  <text x="190" y="186" text-anchor="middle" class="small-label" fill="white">Layer 4</text>
+
+  <!-- Data batch 1 -->
+  <rect x="155" y="200" width="70" height="20" class="data-batch"/>
+  <text x="190" y="213" text-anchor="middle" class="small-label">Batch 1</text>
+
+  <!-- All-reduce arrow -->
+  <path d="M 120 210 L 140 210" stroke="#E57373" stroke-width="2" fill="none" marker-end="url(#arrowred)"/>
+  <path d="M 140 210 L 120 210" stroke="#E57373" stroke-width="2" fill="none"/>
+  <text x="130" y="240" text-anchor="middle" class="small-label" fill="#E57373">All-reduce gradients</text>
+
+  <!-- Tensor Parallelism Section -->
+  <text x="420" y="60" text-anchor="middle" class="subtitle">Tensor Parallelism</text>
+  <text x="420" y="75" text-anchor="middle" class="small-label">Split layers horizontally</text>
+
+  <!-- GPU 0 (TP) -->
+  <rect x="310" y="90" width="100" height="140" class="gpu-box"/>
+  <text x="360" y="105" text-anchor="middle" class="label">GPU 0</text>
+
+  <!-- Split layers on GPU 0 -->
+  <rect x="320" y="115" width="35" height="15" class="layer"/>
+  <text x="337" y="126" text-anchor="middle" class="small-label" fill="white" font-size="8">L1a</text>
+  <rect x="320" y="135" width="35" height="15" class="layer"/>
+  <text x="337" y="146" text-anchor="middle" class="small-label" fill="white" font-size="8">L2a</text>
+  <rect x="320" y="155" width="35" height="15" class="layer"/>
+  <text x="337" y="166" text-anchor="middle" class="small-label" fill="white" font-size="8">L3a</text>
+  <rect x="320" y="175" width="35" height="15" class="layer"/>
+  <text x="337" y="186" text-anchor="middle" class="small-label" fill="white" font-size="8">L4a</text>
+
+  <!-- Full batch -->
+  <rect x="315" y="200" width="90" height="20" class="data-batch"/>
+  <text x="360" y="213" text-anchor="middle" class="small-label">Full Batch</text>
+
+  <!-- GPU 1 (TP) -->
+  <rect x="430" y="90" width="100" height="140" class="gpu-box"/>
+  <text x="480" y="105" text-anchor="middle" class="label">GPU 1</text>
+
+  <!-- Split layers on GPU 1 -->
+  <rect x="475" y="115" width="35" height="15" class="layer"/>
+  <text x="492" y="126" text-anchor="middle" class="small-label" fill="white" font-size="8">L1b</text>
+  <rect x="475" y="135" width="35" height="15" class="layer"/>
+  <text x="492" y="146" text-anchor="middle" class="small-label" fill="white" font-size="8">L2b</text>
+  <rect x="475" y="155" width="35" height="15" class="layer"/>
+  <text x="492" y="166" text-anchor="middle" class="small-label" fill="white" font-size="8">L3b</text>
+  <rect x="475" y="175" width="35" height="15" class="layer"/>
+  <text x="492" y="186" text-anchor="middle" class="small-label" fill="white" font-size="8">L4b</text>
+
+  <!-- Full batch -->
+  <rect x="435" y="200" width="90" height="20" class="data-batch"/>
+  <text x="480" y="213" text-anchor="middle" class="small-label">Full Batch</text>
+
+  <!-- All-reduce per layer -->
+  <path d="M 355 122 L 475 122" stroke="#E57373" stroke-width="1.5" fill="none"/>
+  <path d="M 475 122 L 355 122" stroke="#E57373" stroke-width="1.5" fill="none"/>
+  <text x="415" y="240" text-anchor="middle" class="small-label" fill="#E57373">All-reduce per layer</text>
+
+  <!-- Pipeline Parallelism Section -->
+  <text x="680" y="60" text-anchor="middle" class="subtitle">Pipeline Parallelism</text>
+  <text x="680" y="75" text-anchor="middle" class="small-label">Split layers vertically</text>
+
+  <!-- GPU 0 (PP) -->
+  <rect x="630" y="90" width="100" height="50" class="gpu-box"/>
+  <text x="680" y="105" text-anchor="middle" class="label">GPU 0</text>
+  <rect x="640" y="115" width="80" height="15" class="layer"/>
+  <text x="680" y="126" text-anchor="middle" class="small-label" fill="white">L1, L2</text>
+
+  <!-- GPU 1 (PP) -->
+  <rect x="630" y="150" width="100" height="50" class="gpu-box"/>
+  <text x="680" y="165" text-anchor="middle" class="label">GPU 1</text>
+  <rect x="640" y="175" width="80" height="15" class="layer"/>
+  <text x="680" y="186" text-anchor="middle" class="small-label" fill="white">L3, L4</text>
+
+  <!-- Pipeline arrow -->
+  <path d="M 680 140 L 680 150" stroke="#4A90A4" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <text x="710" y="148" class="small-label">Activations</text>
+
+  <!-- Micro-batches -->
+  <rect x="640" y="210" width="30" height="15" class="data-batch"/>
+  <text x="655" y="220" text-anchor="middle" class="small-label" font-size="8">μB0</text>
+  <rect x="675" y="210" width="30" height="15" class="data-batch"/>
+  <text x="690" y="220" text-anchor="middle" class="small-label" font-size="8">μB1</text>
+  <rect x="710" y="210" width="30" height="15" class="data-batch"/>
+  <text x="725" y="220" text-anchor="middle" class="small-label" font-size="8">μB2</text>
+
+  <text x="680" y="240" text-anchor="middle" class="small-label" fill="#4A90A4">Point-to-point transfer</text>
+
+  <!-- Lower comparison section -->
+  <line x1="20" y1="270" x2="780" y2="270" stroke="#333" stroke-width="1"/>
+
+  <!-- Memory usage comparison -->
+  <text x="400" y="295" text-anchor="middle" class="subtitle">Memory & Communication</text>
+
+  <!-- Data Parallelism info -->
+  <rect x="20" y="310" width="220" height="120" rx="5" fill="#f9f9f9" stroke="#666" stroke-width="1"/>
+  <text x="130" y="330" text-anchor="middle" class="label" font-weight="bold">Data Parallelism</text>
+  <text x="30" y="350" class="small-label">Memory: Full model per GPU</text>
+  <text x="30" y="370" class="small-label">Communication: 2Θ (gradients)</text>
+  <text x="30" y="390" class="small-label">Frequency: Once per step</text>
+  <text x="30" y="410" class="small-label" fill="#81C784">✓ Low communication overhead</text>
+
+  <!-- Tensor Parallelism info -->
+  <rect x="290" y="310" width="220" height="120" rx="5" fill="#f9f9f9" stroke="#666" stroke-width="1"/>
+  <text x="400" y="330" text-anchor="middle" class="label" font-weight="bold">Tensor Parallelism</text>
+  <text x="300" y="350" class="small-label">Memory: Model / N per GPU</text>
+  <text x="300" y="370" class="small-label">Communication: 2BSd</text>
+  <text x="300" y="390" class="small-label">Frequency: 2× per layer</text>
+  <text x="300" y="410" class="small-label" fill="#E57373">⚠ High communication (needs NVLink)</text>
+
+  <!-- Pipeline Parallelism info -->
+  <rect x="560" y="310" width="220" height="120" rx="5" fill="#f9f9f9" stroke="#666" stroke-width="1"/>
+  <text x="670" y="330" text-anchor="middle" class="label" font-weight="bold">Pipeline Parallelism</text>
+  <text x="570" y="350" class="small-label">Memory: Model / P per GPU</text>
+  <text x="570" y="370" class="small-label">Communication: BSd</text>
+  <text x="570" y="390" class="small-label">Frequency: Per micro-batch</text>
+  <text x="570" y="410" class="small-label" fill="#E57373">⚠ Pipeline bubbles (idle time)</text>
+
+  <!-- Best use cases -->
+  <text x="400" y="460" text-anchor="middle" class="subtitle">Best Use Cases</text>
+
+  <text x="130" y="485" text-anchor="middle" class="small-label" fill="#333">Models fitting in 1 GPU</text>
+  <text x="130" y="500" text-anchor="middle" class="small-label" fill="#333">Need throughput scaling</text>
+
+  <text x="400" y="485" text-anchor="middle" class="small-label" fill="#333">Within-node parallelism</text>
+  <text x="400" y="500" text-anchor="middle" class="small-label" fill="#333">Large layers (attention, FFN)</text>
+
+  <text x="670" y="485" text-anchor="middle" class="small-label" fill="#333">Very deep models</text>
+  <text x="670" y="500" text-anchor="middle" class="small-label" fill="#333">Cross-node distribution</text>
+
+  <!-- Key at bottom -->
+  <text x="400" y="540" text-anchor="middle" class="small-label" fill="#666">Θ = parameters, B = batch size, S = sequence length, d = hidden dimension, N = GPUs, P = pipeline stages</text>
+  <text x="400" y="560" text-anchor="middle" class="small-label" fill="#666" font-weight="bold">Modern LLMs use 3D Parallelism: Combine all three strategies for optimal efficiency</text>
+
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#4A90A4"/>
+    </marker>
+    <marker id="arrowred" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#E57373"/>
+    </marker>
+  </defs>
+</svg>

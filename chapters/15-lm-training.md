@@ -533,6 +533,15 @@ def train_language_model():
 
 ### Logging and Monitoring
 
+Tracking training and validation loss over time is crucial for monitoring model performance and detecting issues like overfitting.
+
+![Training Loss Curves](../assets/diagrams/ch15-training-loss-curves.svg)
+
+The diagram above shows typical training dynamics:
+- **Training loss** (blue) decreases smoothly as the model learns patterns in the data
+- **Validation loss** (red dashed) follows a similar trend but may plateau or increase if overfitting occurs
+- The gap between training and validation loss indicates generalization performance
+
 ```python
 from torch.utils.tensorboard import SummaryWriter
 import wandb
@@ -806,6 +815,15 @@ def train_with_checkpointing():
 
 **Key Insight**: Gradient accumulation simulates large batch training without additional memory cost.
 
+![Gradient Accumulation Visualization](../assets/diagrams/ch15-gradient-accumulation.svg)
+
+The diagram illustrates the gradient accumulation process:
+1. Process 4 micro-batches sequentially (each with batch size 16)
+2. Accumulate gradients from each backward pass (loss is scaled by 1/4)
+3. After all micro-batches, perform a single optimizer step with accumulated gradients
+4. Zero gradients and repeat for the next cycle
+5. This achieves the same result as a batch size of 64, but with 4× less memory usage
+
 ```python
 def gradient_accumulation_explained():
     """
@@ -1037,6 +1055,17 @@ Mixed precision training uses FP16 or BF16 for most operations while keeping FP3
 - Minimal accuracy loss
 
 See [Hardware, Quantization, and Training Optimization](32-hardware-quantization-optimization.md) for detailed coverage of mixed precision training, including FP8.
+
+![Mixed Precision Training Flow](../assets/diagrams/ch15-mixed-precision-flow.svg)
+
+The diagram shows the complete mixed precision training pipeline:
+- **Forward pass** uses FP16/BF16 for fast matrix operations and reduced memory
+- **Loss computation** happens in FP16/BF16
+- **FP16 only**: Loss is scaled up by a factor (e.g., 1024) to prevent gradient underflow
+- **Backward pass** computes gradients in FP16/BF16
+- **Gradients are converted to FP32** and unscaled (for FP16)
+- **Optimizer updates** use FP32 master weights for numerical stability
+- Updated weights are copied back to FP16/BF16 for the next iteration
 
 ```python
 from torch.cuda.amp import autocast, GradScaler

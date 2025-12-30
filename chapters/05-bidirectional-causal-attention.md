@@ -118,13 +118,11 @@ scores = scores.masked_fill(mask == 0, float('-inf'))
 
 For a sequence of length 4, all positions can attend to all positions:
 
-```
-        Token 0  Token 1  Token 2  Token 3
-Token 0    ✓        ✓        ✓        ✓
-Token 1    ✓        ✓        ✓        ✓
-Token 2    ✓        ✓        ✓        ✓
-Token 3    ✓        ✓        ✓        ✓
-```
+![Bidirectional vs Causal Attention Masks](../assets/diagrams/ch05-attention-mask-comparison.svg)
+
+The figure above shows the key difference between bidirectional and causal attention masks:
+- **Left (Bidirectional)**: Full matrix with all 1s - each token can attend to all tokens
+- **Right (Causal)**: Lower triangular matrix - each token can only attend to previous tokens and itself
 
 ### Implementation
 
@@ -325,13 +323,11 @@ tensor([[1, 0, 0, 0],
 
 **Visualization:**
 
-```
-        Token 0  Token 1  Token 2  Token 3
-Token 0    ✓        ✗        ✗        ✗     (can only see itself)
-Token 1    ✓        ✓        ✗        ✗     (can see 0 and 1)
-Token 2    ✓        ✓        ✓        ✗     (can see 0, 1, 2)
-Token 3    ✓        ✓        ✓        ✓     (can see all)
-```
+![Token Visibility in Attention Types](../assets/diagrams/ch05-token-visibility.svg)
+
+The figure above illustrates what each token can "see" in different attention mechanisms:
+- **Bidirectional**: Token "brown" (position 2) can attend to all tokens in both directions
+- **Causal**: Token "brown" (position 2) can only attend to previous tokens ("The", "quick") and itself; future tokens ("fox", "jumps") are masked out
 
 ### Causal Implementation
 
@@ -962,6 +958,15 @@ prefix_mask = create_prefix_lm_mask(seq_len=8, prefix_len=3)
 print("Prefix LM mask (prefix_len=3):")
 print(prefix_mask.int())
 ```
+
+**Visualization of Prefix LM Mask:**
+
+![Prefix Language Modeling Attention Pattern](../assets/diagrams/ch05-prefix-lm-mask.svg)
+
+This hybrid attention pattern shows:
+- **Green cells (top-left)**: Prefix tokens (0-2) use bidirectional attention within the prefix
+- **Blue cells (lower-left)**: Generated tokens (3+) use causal attention to all previous tokens including the prefix
+- **Gray cells**: Masked positions that cannot be attended to
 
 ---
 

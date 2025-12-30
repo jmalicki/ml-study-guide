@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 650">
+  <!-- Title -->
+  <text x="450" y="30" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#333" text-anchor="middle">
+    LongLoRA: Shifted Sparse Attention
+  </text>
+
+  <text x="450" y="55" font-family="Arial, sans-serif" font-size="14" fill="#666" text-anchor="middle">
+    Training-time sparse attention enables efficient long-context fine-tuning
+  </text>
+
+  <!-- Full Attention (Baseline) -->
+  <g transform="translate(50, 90)">
+    <text x="150" y="0" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#333" text-anchor="middle">
+      Full Attention (Inference)
+    </text>
+
+    <!-- Attention matrix -->
+    <g transform="translate(0, 15)">
+      <text x="-5" y="105" font-family="Arial, sans-serif" font-size="11" fill="#333" text-anchor="end">Query</text>
+      <text x="155" y="-5" font-family="Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">Key</text>
+
+      <!-- Draw attention matrix grid -->
+      <rect x="0" y="0" width="300" height="200" fill="none" stroke="#333" stroke-width="1"/>
+
+      <!-- Fill lower triangle (causal mask) -->
+      <defs>
+        <pattern id="fullAttention" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
+          <rect width="10" height="10" fill="#4A90A4"/>
+        </pattern>
+      </defs>
+
+      <!-- Causal attention pattern -->
+      <polygon points="0,0 0,200 300,200 300,0" fill="url(#fullAttention)" opacity="0.7"/>
+      <polygon points="0,0 300,200 300,0" fill="#E8E8E8"/>
+
+      <!-- Grid lines -->
+      <line x1="0" y1="0" x2="300" y2="200" stroke="#333" stroke-width="1.5"/>
+      <line x1="50" y1="0" x2="50" y2="200" stroke="#333" stroke-width="0.5" opacity="0.3"/>
+      <line x1="100" y1="0" x2="100" y2="200" stroke="#333" stroke-width="0.5" opacity="0.3"/>
+      <line x1="150" y1="0" x2="150" y2="200" stroke="#333" stroke-width="0.5" opacity="0.3"/>
+      <line x1="200" y1="0" x2="200" y2="200" stroke="#333" stroke-width="0.5" opacity="0.3"/>
+      <line x1="250" y1="0" x2="250" y2="200" stroke="#333" stroke-width="0.5" opacity="0.3"/>
+
+      <line x1="0" y1="50" x2="300" y2="50" stroke="#333" stroke-width="0.5" opacity="0.3"/>
+      <line x1="0" y1="100" x2="300" y2="100" stroke="#333" stroke-width="0.5" opacity="0.3"/>
+      <line x1="0" y1="150" x2="300" y2="150" stroke="#333" stroke-width="0.5" opacity="0.3"/>
+    </g>
+
+    <text x="150" y="235" font-family="Arial, sans-serif" font-size="12" fill="#666" text-anchor="middle">
+      Complexity: O(n²) memory
+    </text>
+  </g>
+
+  <!-- Shifted Sparse Attention - Head Group 1 -->
+  <g transform="translate(450, 90)">
+    <text x="150" y="0" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#333" text-anchor="middle">
+      Head Group 1 (Training)
+    </text>
+    <text x="150" y="17" font-family="Arial, sans-serif" font-size="12" fill="#4A90A4" text-anchor="middle">
+      Attend to: i, i-2, i-4, i-6, ...
+    </text>
+
+    <!-- Sparse attention matrix -->
+    <g transform="translate(0, 30)">
+      <rect x="0" y="0" width="300" height="200" fill="#E8E8E8" stroke="#333" stroke-width="1"/>
+
+      <!-- Diagonal stripes (sparse pattern) -->
+      <g opacity="0.8">
+        <!-- Main diagonal -->
+        <line x1="0" y1="0" x2="300" y2="200" stroke="#4A90A4" stroke-width="8"/>
+        <!-- i-2 -->
+        <line x1="0" y1="13.3" x2="286.7" y2="200" stroke="#4A90A4" stroke-width="8"/>
+        <!-- i-4 -->
+        <line x1="0" y1="26.6" x2="273.4" y2="200" stroke="#4A90A4" stroke-width="8"/>
+        <!-- i-6 -->
+        <line x1="0" y1="40" x2="260" y2="200" stroke="#4A90A4" stroke-width="8"/>
+        <!-- i-8 -->
+        <line x1="0" y1="53.3" x2="246.7" y2="200" stroke="#4A90A4" stroke-width="8"/>
+        <!-- i-10 -->
+        <line x1="0" y1="66.6" x2="233.4" y2="200" stroke="#4A90A4" stroke-width="8"/>
+        <!-- i-12 -->
+        <line x1="0" y1="80" x2="220" y2="200" stroke="#4A90A4" stroke-width="8"/>
+        <!-- i-14 -->
+        <line x1="0" y1="93.3" x2="206.7" y2="200" stroke="#4A90A4" stroke-width="8"/>
+      </g>
+
+      <!-- Grid -->
+      <rect x="0" y="0" width="300" height="200" fill="none" stroke="#333" stroke-width="1"/>
+      <line x1="0" y1="0" x2="300" y2="200" stroke="#333" stroke-width="1.5"/>
+    </g>
+
+    <text x="150" y="250" font-family="Arial, sans-serif" font-size="12" fill="#666" text-anchor="middle">
+      Stride = 2, covers even offsets
+    </text>
+  </g>
+
+  <!-- Shifted Sparse Attention - Head Group 2 -->
+  <g transform="translate(450, 355)">
+    <text x="150" y="0" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#333" text-anchor="middle">
+      Head Group 2 (Training)
+    </text>
+    <text x="150" y="17" font-family="Arial, sans-serif" font-size="12" fill="#81C784" text-anchor="middle">
+      Attend to: i-1, i-3, i-5, i-7, ...
+    </text>
+
+    <!-- Sparse attention matrix -->
+    <g transform="translate(0, 30)">
+      <rect x="0" y="0" width="300" height="200" fill="#E8E8E8" stroke="#333" stroke-width="1"/>
+
+      <!-- Diagonal stripes (shifted pattern) -->
+      <g opacity="0.8">
+        <!-- i-1 -->
+        <line x1="0" y1="6.6" x2="293.4" y2="200" stroke="#81C784" stroke-width="8"/>
+        <!-- i-3 -->
+        <line x1="0" y1="20" x2="280" y2="200" stroke="#81C784" stroke-width="8"/>
+        <!-- i-5 -->
+        <line x1="0" y1="33.3" x2="266.7" y2="200" stroke="#81C784" stroke-width="8"/>
+        <!-- i-7 -->
+        <line x1="0" y1="46.6" x2="253.4" y2="200" stroke="#81C784" stroke-width="8"/>
+        <!-- i-9 -->
+        <line x1="0" y1="60" x2="240" y2="200" stroke="#81C784" stroke-width="8"/>
+        <!-- i-11 -->
+        <line x1="0" y1="73.3" x2="226.7" y2="200" stroke="#81C784" stroke-width="8"/>
+        <!-- i-13 -->
+        <line x1="0" y1="86.6" x2="213.4" y2="200" stroke="#81C784" stroke-width="8"/>
+      </g>
+
+      <!-- Grid -->
+      <rect x="0" y="0" width="300" height="200" fill="none" stroke="#333" stroke-width="1"/>
+      <line x1="0" y1="0" x2="300" y2="200" stroke="#333" stroke-width="1.5"/>
+    </g>
+
+    <text x="150" y="250" font-family="Arial, sans-serif" font-size="12" fill="#666" text-anchor="middle">
+      Stride = 2, covers odd offsets
+    </text>
+  </g>
+
+  <!-- Combined Coverage Explanation -->
+  <g transform="translate(50, 355)">
+    <text x="150" y="0" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#333" text-anchor="middle">
+      Combined Coverage
+    </text>
+
+    <!-- Position line showing coverage -->
+    <g transform="translate(0, 25)">
+      <text x="0" y="0" font-family="Arial, sans-serif" font-size="11" fill="#333">Position i:</text>
+
+      <!-- Timeline -->
+      <line x1="0" y1="20" x2="280" y2="20" stroke="#333" stroke-width="2"/>
+
+      <!-- Position markers -->
+      <circle cx="20" cy="20" r="6" fill="#4A90A4"/>
+      <text x="20" y="40" font-family="Arial, sans-serif" font-size="9" fill="#333" text-anchor="middle">i</text>
+
+      <circle cx="50" cy="20" r="6" fill="#81C784"/>
+      <text x="50" y="40" font-family="Arial, sans-serif" font-size="9" fill="#333" text-anchor="middle">i-1</text>
+
+      <circle cx="80" cy="20" r="6" fill="#4A90A4"/>
+      <text x="80" y="40" font-family="Arial, sans-serif" font-size="9" fill="#333" text-anchor="middle">i-2</text>
+
+      <circle cx="110" cy="20" r="6" fill="#81C784"/>
+      <text x="110" y="40" font-family="Arial, sans-serif" font-size="9" fill="#333" text-anchor="middle">i-3</text>
+
+      <circle cx="140" cy="20" r="6" fill="#4A90A4"/>
+      <text x="140" y="40" font-family="Arial, sans-serif" font-size="9" fill="#333" text-anchor="middle">i-4</text>
+
+      <circle cx="170" cy="20" r="6" fill="#81C784"/>
+      <text x="170" y="40" font-family="Arial, sans-serif" font-size="9" fill="#333" text-anchor="middle">i-5</text>
+
+      <circle cx="200" cy="20" r="6" fill="#4A90A4"/>
+      <text x="200" y="40" font-family="Arial, sans-serif" font-size="9" fill="#333" text-anchor="middle">i-6</text>
+
+      <text x="230" y="25" font-family="Arial, sans-serif" font-size="12" fill="#333">...</text>
+    </g>
+
+    <text x="0" y="75" font-family="Arial, sans-serif" font-size="12" fill="#666">
+      ✓ All positions covered through shifted groups
+    </text>
+    <text x="0" y="95" font-family="Arial, sans-serif" font-size="12" fill="#666">
+      ✓ Memory: O(n·s) where s = stride (vs O(n²))
+    </text>
+    <text x="0" y="115" font-family="Arial, sans-serif" font-size="12" fill="#666">
+      ✓ Gradient flow maintained for training
+    </text>
+    <text x="0" y="135" font-family="Arial, sans-serif" font-size="12" fill="#666">
+      ✓ Can switch to full attention at inference
+    </text>
+  </g>
+
+  <!-- Legend -->
+  <g transform="translate(50, 570)">
+    <text x="0" y="0" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#333">
+      Key Insight:
+    </text>
+    <text x="0" y="20" font-family="Arial, sans-serif" font-size="12" fill="#666">
+      By dividing attention heads into groups with shifted sparse patterns, LongLoRA achieves:
+    </text>
+    <text x="0" y="40" font-family="Arial, sans-serif" font-size="12" fill="#666">
+      • 4-8x memory reduction during training • Full position coverage • No degradation at inference
+    </text>
+  </g>
+</svg>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600">
+  <!-- Title -->
+  <text x="450" y="30" font-size="22" font-weight="bold" fill="#333" text-anchor="middle">
+    Quantization Levels: Memory Savings Comparison
+  </text>
+  <text x="450" y="55" font-size="14" fill="#666" text-anchor="middle">
+    70B Parameter Model Example
+  </text>
+
+  <!-- FP32 Baseline -->
+  <g transform="translate(50, 90)">
+    <text x="0" y="0" font-size="16" font-weight="bold" fill="#333">FP32</text>
+    <rect x="0" y="10" width="800" height="60" fill="#E57373" stroke="#333" stroke-width="2" rx="5"/>
+    <text x="400" y="45" font-size="18" font-weight="bold" fill="#fff" text-anchor="middle">280 GB</text>
+    <text x="0" y="85" font-size="12" fill="#666">Full precision training (rarely used for LLMs)</text>
+    <text x="810" y="45" font-size="14" font-weight="bold" fill="#333">1.0×</text>
+  </g>
+
+  <!-- FP16/BF16 -->
+  <g transform="translate(50, 190)">
+    <text x="0" y="0" font-size="16" font-weight="bold" fill="#333">FP16/BF16</text>
+    <rect x="0" y="10" width="400" height="60" fill="#4A90A4" stroke="#333" stroke-width="2" rx="5"/>
+    <text x="200" y="45" font-size="18" font-weight="bold" fill="#fff" text-anchor="middle">140 GB</text>
+    <text x="0" y="85" font-size="12" fill="#666">Standard training precision</text>
+    <text x="810" y="45" font-size="14" font-weight="bold" fill="#4A90A4">2.0×</text>
+    <rect x="405" y="15" width="12" height="50" fill="#f0f0f0" stroke="#ccc" stroke-width="1" rx="2"/>
+    <rect x="420" y="15" width="12" height="50" fill="#f0f0f0" stroke="#ccc" stroke-width="1" rx="2"/>
+    <rect x="435" y="15" width="12" height="50" fill="#f0f0f0" stroke="#ccc" stroke-width="1" rx="2"/>
+  </g>
+
+  <!-- INT8 -->
+  <g transform="translate(50, 290)">
+    <text x="0" y="0" font-size="16" font-weight="bold" fill="#333">INT8</text>
+    <rect x="0" y="10" width="200" height="60" fill="#81C784" stroke="#333" stroke-width="2" rx="5"/>
+    <text x="100" y="45" font-size="18" font-weight="bold" fill="#fff" text-anchor="middle">70 GB</text>
+    <text x="0" y="85" font-size="12" fill="#666">PTQ inference, minimal accuracy loss</text>
+    <text x="810" y="45" font-size="14" font-weight="bold" fill="#81C784">4.0×</text>
+    <rect x="205" y="15" width="8" height="50" fill="#f0f0f0" stroke="#ccc" stroke-width="1" rx="2"/>
+    <rect x="216" y="15" width="8" height="50" fill="#f0f0f0" stroke="#ccc" stroke-width="1" rx="2"/>
+    <rect x="227" y="15" width="8" height="50" fill="#f0f0f0" stroke="#ccc" stroke-width="1" rx="2"/>
+  </g>
+
+  <!-- INT4 (GPTQ/AWQ) -->
+  <g transform="translate(50, 390)">
+    <text x="0" y="0" font-size="16" font-weight="bold" fill="#333">INT4 (GPTQ/AWQ)</text>
+    <rect x="0" y="10" width="100" height="60" fill="#9575CD" stroke="#333" stroke-width="2" rx="5"/>
+    <text x="50" y="45" font-size="18" font-weight="bold" fill="#fff" text-anchor="middle">35 GB</text>
+    <text x="0" y="85" font-size="12" fill="#666">Advanced quantization, &lt;1% accuracy loss</text>
+    <text x="810" y="45" font-size="14" font-weight="bold" fill="#9575CD">8.0×</text>
+    <rect x="105" y="15" width="5" height="50" fill="#f0f0f0" stroke="#ccc" stroke-width="1" rx="2"/>
+    <rect x="113" y="15" width="5" height="50" fill="#f0f0f0" stroke="#ccc" stroke-width="1" rx="2"/>
+    <rect x="121" y="15" width="5" height="50" fill="#f0f0f0" stroke="#ccc" stroke-width="1" rx="2"/>
+  </g>
+
+  <!-- FP4 (Blackwell) -->
+  <g transform="translate(50, 490)">
+    <text x="0" y="0" font-size="16" font-weight="bold" fill="#333">FP4 (Blackwell)</text>
+    <rect x="0" y="10" width="100" height="60" fill="#FFB74D" stroke="#333" stroke-width="2" rx="5"/>
+    <text x="50" y="45" font-size="18" font-weight="bold" fill="#333" text-anchor="middle">35 GB</text>
+    <text x="0" y="85" font-size="12" fill="#666">Block-scaled floating point, H100/B200</text>
+    <text x="810" y="45" font-size="14" font-weight="bold" fill="#FFB74D">8.0×</text>
+    <rect x="105" y="15" width="5" height="50" fill="#f0f0f0" stroke="#ccc" stroke-width="1" rx="2"/>
+    <rect x="113" y="15" width="5" height="50" fill="#f0f0f0" stroke="#ccc" stroke-width="1" rx="2"/>
+    <rect x="121" y="15" width="5" height="50" fill="#f0f0f0" stroke="#ccc" stroke-width="1" rx="2"/>
+  </g>
+
+  <!-- Key Insights Box -->
+  <g transform="translate(50, 570)">
+    <rect x="0" y="0" width="800" height="20" fill="#f5f5f5" stroke="#333" stroke-width="1" rx="3"/>
+    <text x="10" y="14" font-size="12" font-weight="bold" fill="#333">
+      Key: Shaded boxes represent saved memory. Quantization enables running larger models on consumer hardware.
+    </text>
+  </g>
+</svg>

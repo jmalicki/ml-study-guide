@@ -400,6 +400,10 @@ print(f"With activation checkpointing: {checkpointed:.2f} GB")
 
 The simplest parallelism strategy: replicate the model on each GPU, split the batch.
 
+![Parallelism Strategies Comparison](../assets/diagrams/ch16-parallelism-comparison.svg)
+
+*Figure: Comparison of Data Parallelism, Tensor Parallelism, and Pipeline Parallelism strategies. Data parallelism replicates the full model on each GPU and splits the batch, tensor parallelism splits individual layers horizontally across GPUs, and pipeline parallelism splits the model vertically by layers.*
+
 ### Basic Data Parallelism (DP)
 
 PyTorch's `nn.DataParallel` (simple but inefficient):
@@ -1721,6 +1725,10 @@ for i, (stage, op, mb, chunk) in enumerate(schedule[:20]):
 
 But we only need each GPU to compute updates for its data shard. Can we partition the states?
 
+![ZeRO Optimization Stages](../assets/diagrams/ch16-zero-stages.svg)
+
+*Figure: ZeRO optimization stages showing progressive memory reduction. ZeRO-1 shards optimizer states, ZeRO-2 adds gradient sharding, and ZeRO-3 (FSDP) shards everything including parameters, achieving linear memory scaling with the number of GPUs.*
+
 ### ZeRO Stage 1: Optimizer State Sharding
 
 Each GPU stores optimizer states for only a subset of parameters.
@@ -2585,6 +2593,10 @@ calculate_3d_parallelism(128, 13)    # LLaMA-13B scale
 ---
 
 ## Communication Costs and Trade-offs
+
+![Communication Patterns](../assets/diagrams/ch16-communication-patterns.svg)
+
+*Figure: Communication patterns in distributed training. Shows ring all-reduce for data parallelism, all-gather/reduce-scatter for FSDP, point-to-point transfers for pipeline parallelism, and the hierarchical 3D parallelism topology that combines all three strategies efficiently.*
 
 ### Bandwidth Hierarchy
 

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <!-- Title -->
+  <text x="400" y="25" font-size="18" font-weight="bold" text-anchor="middle" fill="#333">
+    Multi-Head Attention: MHA vs GQA vs MQA
+  </text>
+
+  <!-- MHA Section -->
+  <g id="mha">
+    <text x="133" y="55" font-size="14" font-weight="bold" text-anchor="middle" fill="#333">MHA</text>
+
+    <!-- Query Heads -->
+    <text x="50" y="85" font-size="12" fill="#666">Query:</text>
+    <rect x="50" y="95" width="30" height="40" fill="#4A90A4" stroke="#333" stroke-width="1"/>
+    <rect x="85" y="95" width="30" height="40" fill="#4A90A4" stroke="#333" stroke-width="1"/>
+    <rect x="120" y="95" width="30" height="40" fill="#4A90A4" stroke="#333" stroke-width="1"/>
+    <rect x="155" y="95" width="30" height="40" fill="#4A90A4" stroke="#333" stroke-width="1"/>
+    <rect x="190" y="95" width="30" height="40" fill="#4A90A4" stroke="#333" stroke-width="1"/>
+    <text x="133" y="120" font-size="11" text-anchor="middle" fill="#fff">8 heads</text>
+
+    <!-- KV Heads -->
+    <text x="50" y="155" font-size="12" fill="#666">Key/Val:</text>
+    <rect x="50" y="165" width="30" height="40" fill="#81C784" stroke="#333" stroke-width="1"/>
+    <rect x="85" y="165" width="30" height="40" fill="#81C784" stroke="#333" stroke-width="1"/>
+    <rect x="120" y="165" width="30" height="40" fill="#81C784" stroke="#333" stroke-width="1"/>
+    <rect x="155" y="165" width="30" height="40" fill="#81C784" stroke="#333" stroke-width="1"/>
+    <rect x="190" y="165" width="30" height="40" fill="#81C784" stroke="#333" stroke-width="1"/>
+    <text x="133" y="190" font-size="11" text-anchor="middle" fill="#fff">8 heads</text>
+
+    <!-- Connection lines -->
+    <line x1="65" y1="135" x2="65" y2="165" stroke="#333" stroke-width="1.5"/>
+    <line x1="100" y1="135" x2="100" y2="165" stroke="#333" stroke-width="1.5"/>
+    <line x1="135" y1="135" x2="135" y2="165" stroke="#333" stroke-width="1.5"/>
+    <line x1="170" y1="135" x2="170" y2="165" stroke="#333" stroke-width="1.5"/>
+    <line x1="205" y1="135" x2="205" y2="165" stroke="#333" stroke-width="1.5"/>
+
+    <!-- Info -->
+    <text x="133" y="230" font-size="11" text-anchor="middle" fill="#333">Each Q head has</text>
+    <text x="133" y="245" font-size="11" text-anchor="middle" fill="#333">its own K,V head</text>
+    <text x="133" y="265" font-size="10" font-weight="bold" text-anchor="middle" fill="#E57373">KV cache: 8x</text>
+  </g>
+
+  <!-- GQA Section -->
+  <g id="gqa">
+    <text x="400" y="55" font-size="14" font-weight="bold" text-anchor="middle" fill="#333">GQA (4 groups)</text>
+
+    <!-- Query Heads -->
+    <text x="317" y="85" font-size="12" fill="#666">Query:</text>
+    <rect x="317" y="95" width="30" height="40" fill="#4A90A4" stroke="#333" stroke-width="1"/>
+    <rect x="352" y="95" width="30" height="40" fill="#4A90A4" stroke="#333" stroke-width="1"/>
+    <rect x="387" y="95" width="30" height="40" fill="#4A90A4" stroke="#333" stroke-width="1"/>
+    <rect x="422" y="95" width="30" height="40" fill="#4A90A4" stroke="#333" stroke-width="1"/>
+    <rect x="457" y="95" width="30" height="40" fill="#4A90A4" stroke="#333" stroke-width="1"/>
+    <text x="400" y="120" font-size="11" text-anchor="middle" fill="#fff">8 heads</text>
+
+    <!-- KV Heads (fewer) -->
+    <text x="317" y="155" font-size="12" fill="#666">Key/Val:</text>
+    <rect x="335" y="165" width="50" height="40" fill="#81C784" stroke="#333" stroke-width="1"/>
+    <rect x="415" y="165" width="50" height="40" fill="#81C784" stroke="#333" stroke-width="1"/>
+    <text x="360" y="190" font-size="11" text-anchor="middle" fill="#fff">2 heads</text>
+    <text x="440" y="190" font-size="11" text-anchor="middle" fill="#fff">(4 groups)</text>
+
+    <!-- Connection lines showing grouping -->
+    <line x1="332" y1="135" x2="360" y2="165" stroke="#333" stroke-width="1.5"/>
+    <line x1="367" y1="135" x2="360" y2="165" stroke="#333" stroke-width="1.5"/>
+    <line x1="402" y1="135" x2="360" y2="165" stroke="#333" stroke-width="1.5"/>
+
+    <line x1="437" y1="135" x2="440" y2="165" stroke="#333" stroke-width="1.5"/>
+    <line x1="472" y1="135" x2="440" y2="165" stroke="#333" stroke-width="1.5"/>
+
+    <!-- Info -->
+    <text x="400" y="230" font-size="11" text-anchor="middle" fill="#333">Groups of Q heads</text>
+    <text x="400" y="245" font-size="11" text-anchor="middle" fill="#333">share K,V heads</text>
+    <text x="400" y="265" font-size="10" font-weight="bold" text-anchor="middle" fill="#4A90A4">KV cache: 4x</text>
+  </g>
+
+  <!-- MQA Section -->
+  <g id="mqa">
+    <text x="667" y="55" font-size="14" font-weight="bold" text-anchor="middle" fill="#333">MQA</text>
+
+    <!-- Query Heads -->
+    <text x="584" y="85" font-size="12" fill="#666">Query:</text>
+    <rect x="584" y="95" width="30" height="40" fill="#4A90A4" stroke="#333" stroke-width="1"/>
+    <rect x="619" y="95" width="30" height="40" fill="#4A90A4" stroke="#333" stroke-width="1"/>
+    <rect x="654" y="95" width="30" height="40" fill="#4A90A4" stroke="#333" stroke-width="1"/>
+    <rect x="689" y="95" width="30" height="40" fill="#4A90A4" stroke="#333" stroke-width="1"/>
+    <rect x="724" y="95" width="30" height="40" fill="#4A90A4" stroke="#333" stroke-width="1"/>
+    <text x="667" y="120" font-size="11" text-anchor="middle" fill="#fff">8 heads</text>
+
+    <!-- Single KV Head -->
+    <text x="584" y="155" font-size="12" fill="#666">Key/Val:</text>
+    <rect x="619" y="165" width="96" height="40" fill="#81C784" stroke="#333" stroke-width="1"/>
+    <text x="667" y="190" font-size="11" text-anchor="middle" fill="#fff">1 shared head</text>
+
+    <!-- Connection lines all to one -->
+    <line x1="599" y1="135" x2="667" y2="165" stroke="#333" stroke-width="1.5"/>
+    <line x1="634" y1="135" x2="667" y2="165" stroke="#333" stroke-width="1.5"/>
+    <line x1="669" y1="135" x2="667" y2="165" stroke="#333" stroke-width="1.5"/>
+    <line x1="704" y1="135" x2="667" y2="165" stroke="#333" stroke-width="1.5"/>
+    <line x1="739" y1="135" x2="667" y2="165" stroke="#333" stroke-width="1.5"/>
+
+    <!-- Info -->
+    <text x="667" y="230" font-size="11" text-anchor="middle" fill="#333">All Q heads share</text>
+    <text x="667" y="245" font-size="11" text-anchor="middle" fill="#333">single K,V head</text>
+    <text x="667" y="265" font-size="10" font-weight="bold" text-anchor="middle" fill="#81C784">KV cache: 1x</text>
+  </g>
+
+  <!-- Summary comparison -->
+  <g id="summary">
+    <rect x="50" y="290" width="700" height="90" fill="#f5f5f5" stroke="#333" stroke-width="1"/>
+    <text x="400" y="315" font-size="13" font-weight="bold" text-anchor="middle" fill="#333">
+      Trade-offs
+    </text>
+    <text x="400" y="335" font-size="11" text-anchor="middle" fill="#333">
+      MHA: Best quality, highest memory • GQA: 99% quality, 4-8x cache reduction • MQA: 97% quality, 32-64x cache reduction
+    </text>
+    <text x="400" y="355" font-size="11" text-anchor="middle" fill="#666">
+      Modern LLMs (LLaMA 3, Mistral, Qwen) use GQA as the sweet spot
+    </text>
+  </g>
+</svg>

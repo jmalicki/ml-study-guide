@@ -127,6 +127,13 @@ Where:
 - $d_{model}$ is the embedding dimension
 - $10000$ is an empirically chosen base that provides wavelengths ranging from $2\pi$ to $10000 \cdot 2\pi$ across dimensions, creating a geometric progression of frequencies
 
+![Position-Dimension Heatmap](../assets/diagrams/ch07-dimension-heatmap.svg)
+
+The heatmap above illustrates how sinusoidal encoding varies across both positions (horizontal axis) and dimensions (vertical axis). Notice how:
+- **Top rows** (low dimensions) show rapid alternation between values - these high-frequency components capture fine-grained position differences
+- **Bottom rows** (high dimensions) change slowly across positions - these low-frequency components provide coarse positional context
+- Each **column** (position) has a unique pattern across all dimensions, creating a distinctive "fingerprint"
+
 ### Intuition
 
 The sinusoidal encoding uses different frequencies for different dimensions:
@@ -134,6 +141,10 @@ The sinusoidal encoding uses different frequencies for different dimensions:
 - **High dimensions**: Low frequency (changes slowly with position)
 
 This creates a unique "fingerprint" for each position, similar to binary encoding but with smooth, continuous values.
+
+![Sinusoidal Positional Encoding Pattern](../assets/diagrams/ch07-sinusoidal-pattern.svg)
+
+The visualization above shows how different dimensions oscillate at different frequencies. High-frequency dimensions (like dimension 0) change rapidly with each position, providing fine-grained positional information. Low-frequency dimensions (like dimension 120) change slowly, capturing coarse-grained positional information. Together, these create a unique pattern for each position.
 
 ### Why This Approach Works
 
@@ -501,6 +512,14 @@ if __name__ == "__main__":
 ## Comparison: Sinusoidal vs Learned
 
 Now that we understand both approaches theoretically, let's empirically compare them to validate the trade-offs.
+
+![Positional Encoding Methods Comparison](../assets/diagrams/ch07-encoding-comparison.svg)
+
+The comparison above illustrates the key differences between four major positional encoding approaches:
+- **Sinusoidal**: Regular wave patterns with different frequencies across dimensions
+- **Learned**: More irregular patterns optimized for the specific task
+- **ALiBi**: Distance-based bias matrix applied directly to attention scores
+- **RoPE**: Position encoded as rotations in complex space (detailed in Chapter 8)
 
 ### Why Compare Empirically?
 

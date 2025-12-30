@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
+  <defs>
+    <style>
+      text { font-family: system-ui, -apple-system, sans-serif; fill: #333; }
+      .title { font-size: 18px; font-weight: 600; }
+      .label { font-size: 14px; }
+      .small { font-size: 12px; }
+      .math { font-family: 'Times New Roman', serif; font-style: italic; }
+    </style>
+  </defs>
+
+  <!-- Title -->
+  <text x="400" y="30" class="title" text-anchor="middle">One-Hot vs Dense Embeddings</text>
+
+  <!-- One-Hot Encoding Section -->
+  <g id="onehot">
+    <text x="150" y="70" class="label" text-anchor="middle" font-weight="600">One-Hot Encoding</text>
+
+    <!-- Dimension label -->
+    <text x="30" y="110" class="small">Vocab Size: 50,000</text>
+
+    <!-- Sparse vector representation -->
+    <rect x="50" y="120" width="200" height="60" fill="none" stroke="#E57373" stroke-width="2" stroke-dasharray="5,5"/>
+    <text x="150" y="155" class="small" text-anchor="middle" fill="#E57373">99.998% zeros</text>
+
+    <!-- Sample one-hot -->
+    <g transform="translate(50, 200)">
+      <text y="-5" class="small">Token "cat" (ID=42):</text>
+      <rect x="0" y="5" width="3" height="15" fill="#ddd"/>
+      <rect x="5" y="5" width="3" height="15" fill="#ddd"/>
+      <rect x="10" y="5" width="3" height="15" fill="#ddd"/>
+      <rect x="15" y="5" width="3" height="15" fill="#ddd"/>
+      <text x="20" y="17" class="small">...</text>
+      <rect x="40" y="5" width="3" height="15" fill="#E57373"/>
+      <text x="45" y="17" class="small">1</text>
+      <text x="50" y="17" class="small">...</text>
+      <rect x="70" y="5" width="3" height="15" fill="#ddd"/>
+      <rect x="75" y="5" width="3" height="15" fill="#ddd"/>
+    </g>
+
+    <!-- Distance calculation -->
+    <g transform="translate(50, 250)">
+      <text y="0" class="small">Distance("cat", "dog") = √2</text>
+      <text y="20" class="small">Distance("cat", "car") = √2</text>
+      <text y="45" class="small" fill="#E57373" font-weight="600">⚠ No semantic similarity!</text>
+    </g>
+
+    <!-- Stats -->
+    <g transform="translate(50, 330)">
+      <text y="0" class="small" font-weight="600">Problems:</text>
+      <text y="20" class="small">• High dimensional (50K)</text>
+      <text y="40" class="small">• Sparse (wasteful)</text>
+      <text y="60" class="small">• No relationships</text>
+    </g>
+  </g>
+
+  <!-- Dense Embeddings Section -->
+  <g id="dense" transform="translate(350, 0)">
+    <text x="150" y="70" class="label" text-anchor="middle" font-weight="600">Dense Embeddings</text>
+
+    <!-- Dimension label -->
+    <text x="30" y="110" class="small">Embedding Dim: 768</text>
+
+    <!-- Dense vector representation -->
+    <rect x="50" y="120" width="200" height="60" fill="none" stroke="#81C784" stroke-width="2"/>
+    <text x="150" y="155" class="small" text-anchor="middle" fill="#81C784">All values meaningful</text>
+
+    <!-- Sample dense embedding -->
+    <g transform="translate(50, 200)">
+      <text y="-5" class="small">Token "cat" (ID=42):</text>
+      <rect x="0" y="5" width="8" height="15" fill="#4A90A4" opacity="0.7"/>
+      <rect x="10" y="5" width="8" height="15" fill="#4A90A4" opacity="0.9"/>
+      <rect x="20" y="5" width="8" height="15" fill="#4A90A4" opacity="0.6"/>
+      <rect x="30" y="5" width="8" height="15" fill="#4A90A4" opacity="0.8"/>
+      <text x="40" y="17" class="small">...</text>
+      <rect x="60" y="5" width="8" height="15" fill="#4A90A4" opacity="0.5"/>
+      <text x="70" y="17" class="small">...</text>
+      <rect x="90" y="5" width="8" height="15" fill="#4A90A4" opacity="0.7"/>
+      <rect x="100" y="5" width="8" height="15" fill="#4A90A4" opacity="0.8"/>
+      <text y="40" class="small" fill="#4A90A4">All 768 values learned</text>
+    </g>
+
+    <!-- Semantic relationships -->
+    <g transform="translate(50, 260)">
+      <text y="0" class="small">Distance("cat", "dog") = 0.3</text>
+      <text y="20" class="small">Distance("cat", "car") = 0.9</text>
+      <text y="45" class="small" fill="#81C784" font-weight="600">✓ Captures semantics!</text>
+    </g>
+
+    <!-- Stats -->
+    <g transform="translate(50, 330)">
+      <text y="0" class="small" font-weight="600">Benefits:</text>
+      <text y="20" class="small">• Compact (768 vs 50K)</text>
+      <text y="40" class="small">• Dense (efficient)</text>
+      <text y="60" class="small">• Learnable relationships</text>
+    </g>
+  </g>
+
+  <!-- Comparison arrow -->
+  <g transform="translate(300, 150)">
+    <path d="M 0 0 L 30 0" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <text x="15" y="-10" class="small" text-anchor="middle">65x smaller</text>
+  </g>
+
+  <!-- Arrow marker -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#333"/>
+    </marker>
+  </defs>
+
+  <!-- Bottom note -->
+  <text x="400" y="480" class="small" text-anchor="middle" fill="#666">
+    Dense embeddings are the foundation of modern NLP - compact, learnable, and semantically meaningful
+  </text>
+</svg>

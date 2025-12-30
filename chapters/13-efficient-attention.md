@@ -93,6 +93,8 @@ def analyze_attention_complexity():
 
 **The solutions in this chapter address one or both of these bottlenecks.**
 
+![Attention Complexity Comparison](../assets/diagrams/ch13-attention-complexity.svg)
+
 #### Why This Complexity Analysis Matters
 
 Before diving into solutions, it's crucial to understand the practical impact of quadratic complexity. The function below demonstrates how quickly attention becomes infeasible:
@@ -681,6 +683,8 @@ class LongformerAttention(nn.Module):
 
 Sliding window attention limits each token to attending only to the previous $w$ tokens. Used by Mistral 7B.
 
+![Sliding Window Attention Pattern](../assets/diagrams/ch13-sliding-window.svg)
+
 ```python
 class SlidingWindowAttention(nn.Module):
     """
@@ -1209,6 +1213,8 @@ vLLM (which implements PagedAttention) has become the standard for LLM serving b
 ## Multi-Query Attention (MQA)
 
 MQA reduces KV cache size by sharing key and value heads across all query heads.
+
+![MHA vs GQA vs MQA Comparison](../assets/diagrams/ch13-mqa-gqa-mha-comparison.svg)
 
 ```python
 class MultiQueryAttention(nn.Module):
