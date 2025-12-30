@@ -93,61 +93,6 @@ where $N_c$, $D_c$, $C_c$ are constants and $\alpha_N \approx 0.076$, $\alpha_D 
 
 **Recommendation:** Train very large models on relatively limited data (e.g., 200B tokens for a 175B parameter model like GPT-3).
 
-```python
-import numpy as np
-
-class KaplanScalingLaw:
-    """
-    Kaplan et al. scaling law implementation.
-
-    Models the relationship between model size, data, compute, and loss.
-    """
-
-    def __init__(
-        self,
-        N_c: float = 8.8e13,  # Critical parameter count
-        D_c: float = 5.4e13,  # Critical dataset size (tokens)
-        C_c: float = 3.1e8,   # Critical compute (PF-days)
-        alpha_N: float = 0.076,  # Model size exponent
-        alpha_D: float = 0.095,  # Data size exponent
-        alpha_C: float = 0.050,  # Compute exponent
-    ):
-        self.N_c = N_c
-        self.D_c = D_c
-        self.C_c = C_c
-        self.alpha_N = alpha_N
-        self.alpha_D = alpha_D
-        self.alpha_C = alpha_C
-
-    def loss_from_params(self, N: float) -> float:
-        """Compute loss as function of model parameters."""
-        return (self.N_c / N) ** self.alpha_N
-
-    def loss_from_data(self, D: float) -> float:
-        """Compute loss as function of training tokens."""
-        return (self.D_c / D) ** self.alpha_D
-
-    def loss_from_compute(self, C: float) -> float:
-        """Compute loss as function of compute budget."""
-        return (self.C_c / C) ** self.alpha_C
-
-    def optimal_allocation(self, C: float) -> tuple[float, float]:
-        """
-        Given compute budget C, find optimal N and D.
-
-        From Kaplan et al., the optimal allocation is:
-        N ∝ C^a, D ∝ C^b
-        where a + b ≈ 1
-        """
-        # From Kaplan: N should scale roughly as C^0.73
-        # and D should scale roughly as C^0.27
-        N_optimal = (C / 6) ** 0.73
-        D_optimal = (C / 6) ** 0.27
-        return N_optimal, D_optimal
-
-
-```
-
 **Kaplan Scaling Laws Visualization:**
 
 <svg viewBox="0 0 1200 350" xmlns="http://www.w3.org/2000/svg">
@@ -209,38 +154,6 @@ class KaplanScalingLaw:
   </g>
 </svg>
 
-```python
-
-
-# Example: GPT-3 was trained according to Kaplan scaling laws
-def gpt3_allocation():
-    """
-    GPT-3 (175B parameters, 300B tokens) follows Kaplan scaling.
-
-    According to Kaplan, this allocation prioritizes model size
-    over training data.
-    """
-    kaplan = KaplanScalingLaw()
-
-    # GPT-3 specs
-    N_gpt3 = 175e9  # 175B parameters
-    D_gpt3 = 300e9  # 300B tokens
-
-    # Compute (approximate)
-    # C ≈ 6ND (assuming training to completion)
-    C_gpt3 = 6 * N_gpt3 * D_gpt3
-
-    # What would be optimal according to Kaplan?
-    N_opt, D_opt = kaplan.optimal_allocation(C_gpt3)
-
-    print(f"GPT-3 Configuration:")
-    print(f"  Parameters: {N_gpt3/1e9:.0f}B")
-    print(f"  Tokens: {D_gpt3/1e9:.0f}B")
-    print(f"\nKaplan Optimal Configuration (same compute):")
-    print(f"  Parameters: {N_opt/1e9:.0f}B")
-    print(f"  Tokens: {D_opt/1e9:.0f}B")
-```
-
 ### The Chinchilla Scaling Laws
 
 In 2022, DeepMind published revised scaling laws that challenged Kaplan's conclusions, showing that models should be trained on much more data.
@@ -296,68 +209,6 @@ Optimizing this under the compute constraint $C = 6ND$ shows that $N_{opt}$ and 
 - **Impact**: For the same compute, Chinchilla approach trains a 4× smaller model on 4× more data, achieving better performance
 
 **Key Insight:** The "bigger is better" intuition from Kaplan was misleading. While larger models are more sample-efficient per token, they need far more tokens to reach their potential. The optimal strategy balances both dimensions equally.
-
-```python
-class ChinchillaScalingLaw:
-    """
-    Chinchilla (Hoffmann et al., 2022) scaling law implementation.
-
-    Key insight: Model size and training data should scale equally.
-    """
-
-    def __init__(
-        self,
-        a: float = 406.4,  # Coefficient for loss equation
-        b: float = 410.7,  # Coefficient for loss equation
-        alpha: float = 0.34,  # Exponent for model size
-        beta: float = 0.28,   # Exponent for data
-        A: float = 0.3,    # Coefficient for optimal N
-        B: float = 0.6,    # Coefficient for optimal D
-    ):
-        self.a = a
-        self.b = b
-        self.alpha = alpha
-        self.beta = beta
-        self.A = A
-        self.B = B
-
-    def loss(self, N: float, D: float) -> float:
-        """
-        Compute loss given model size and training tokens.
-
-        L(N, D) = a/N^α + b/D^β + L_∞
-
-        where L_∞ is the irreducible loss (we ignore it here).
-        """
-        return self.a / (N ** self.alpha) + self.b / (D ** self.beta)
-
-    def optimal_allocation(self, C: float) -> tuple[float, float]:
-        """
-        Given compute budget C (in FLOPs), find optimal N and D.
-
-        From Chinchilla: N_opt and D_opt both scale as C^0.5
-        """
-        # Approximate relationship: C ≈ 6ND
-        # Solving the constraint optimization:
-        # N_opt ≈ (C/6)^0.5 * constant
-        # D_opt ≈ 20 * N_opt
-
-        N_optimal = self.A * (C ** 0.5)
-        D_optimal = self.B * (C ** 0.5)
-
-        return N_optimal, D_optimal
-
-    def tokens_per_parameter(self, N: float, C: float) -> float:
-        """
-        Compute optimal training tokens per parameter.
-
-        According to Chinchilla, this should be about 20.
-        """
-        _, D_optimal = self.optimal_allocation(C)
-        return D_optimal / N
-
-
-```
 
 **Kaplan vs Chinchilla Comparison:**
 
@@ -416,32 +267,17 @@ class ChinchillaScalingLaw:
   </g>
 </svg>
 
-```python
+**Examples of Models and Their Training Regimes:**
 
+| Model | Parameters | Training Tokens | Tokens/Param | Scaling Approach |
+|-------|-----------|-----------------|--------------|------------------|
+| GPT-3 | 175B | 300B | ~2 | Kaplan (undertrained) |
+| Chinchilla | 70B | 1.4T | 20 | Chinchilla optimal |
+| LLaMA | 65B | 1.4T | 22 | Chinchilla-like |
+| LLaMA 2 | 70B | 2T | 29 | Beyond Chinchilla |
+| LLaMA 3 | 70B | 15T | 214 | Far beyond Chinchilla |
 
-def chinchilla_examples():
-    """Examples of models following Chinchilla scaling."""
-    chinchilla = ChinchillaScalingLaw()
-
-    models = [
-        ("GPT-3", 175e9, 300e9),
-        ("Chinchilla", 70e9, 1.4e12),
-        ("LLaMA", 65e9, 1.4e12),
-        ("LLaMA 2", 70e9, 2e12),
-        ("LLaMA 3", 70e9, 15e12),
-    ]
-
-    print("Model Training Efficiency (Chinchilla Scaling)")
-    print("=" * 60)
-    print(f"{'Model':<15} {'Params':<10} {'Tokens':<12} {'Tokens/Param':<15}")
-    print("-" * 60)
-
-    for name, params, tokens in models:
-        ratio = tokens / params
-        print(f"{name:<15} {params/1e9:>7.0f}B  {tokens/1e12:>8.1f}T    {ratio:>10.1f}")
-
-    print("\nChinchilla optimal: ~20 tokens per parameter")
-```
+The trend shows modern models training far beyond the Chinchilla optimal point of ~20 tokens per parameter, trading additional compute for quality improvements.
 
 ### Practical Implications
 
@@ -500,132 +336,12 @@ where:
 
 **Key Insight:** The factor of 6 is approximate but remarkably accurate across different architectures. Use it for planning, then apply an efficiency factor (0.3-0.6) based on your hardware and implementation quality.
 
-```python
-class ComputeCalculator:
-    """
-    Calculate compute requirements for LLM training.
+**Example Compute Calculations:**
 
-    Based on the approximation C ≈ 6ND plus overhead.
-    """
-
-    def __init__(self, efficiency: float = 0.5):
-        """
-        Args:
-            efficiency: Hardware utilization (0-1). Accounts for:
-                - Attention operations (not pure matmul)
-                - Communication overhead
-                - Memory-bound operations
-                Typical: 0.3-0.6 for real training
-        """
-        self.efficiency = efficiency
-
-    def compute_flops(
-        self,
-        n_params: float,
-        n_tokens: float,
-        include_backward: bool = True
-    ) -> float:
-        """
-        Compute FLOPs required for training.
-
-        Args:
-            n_params: Model parameters (non-embedding)
-            n_tokens: Training tokens
-            include_backward: If True, multiply by 3 (forward + backward)
-
-        Returns:
-            Total FLOPs required
-        """
-        # Forward pass: 2ND (matmul is 2 ops per element)
-        forward_flops = 2 * n_params * n_tokens
-
-        if include_backward:
-            # Backward pass: ~2× forward (gradients + optimizer)
-            total_flops = forward_flops * 3
-        else:
-            total_flops = forward_flops
-
-        # Account for efficiency
-        actual_flops = total_flops / self.efficiency
-
-        return actual_flops
-
-    def training_time(
-        self,
-        n_params: float,
-        n_tokens: float,
-        device_tflops: float,
-        n_devices: int = 1
-    ) -> float:
-        """
-        Estimate training time in hours.
-
-        Args:
-            n_params: Model parameters
-            n_tokens: Training tokens
-            device_tflops: Peak TFLOPS per device (e.g., 312 for A100)
-            n_devices: Number of GPUs/TPUs
-
-        Returns:
-            Training time in hours
-        """
-        total_flops = self.compute_flops(n_params, n_tokens)
-
-        # Convert TFLOPS to FLOPS/sec
-        total_flops_per_sec = device_tflops * 1e12 * n_devices
-
-        # Time in seconds
-        time_seconds = total_flops / total_flops_per_sec
-
-        # Convert to hours
-        return time_seconds / 3600
-
-    def cost_estimate(
-        self,
-        n_params: float,
-        n_tokens: float,
-        device_tflops: float,
-        n_devices: int,
-        cost_per_gpu_hour: float
-    ) -> float:
-        """
-        Estimate training cost.
-
-        Args:
-            cost_per_gpu_hour: Cloud GPU cost (e.g., $2.50 for A100)
-
-        Returns:
-            Total cost in dollars
-        """
-        hours = self.training_time(n_params, n_tokens, device_tflops, n_devices)
-        return hours * n_devices * cost_per_gpu_hour
-
-
-def compute_examples():
-    """Examples of compute calculations for real models."""
-    calc = ComputeCalculator(efficiency=0.4)
-
-    models = [
-        # (name, params, tokens, GPUs, GPU_TFLOPS)
-        ("GPT-3", 175e9, 300e9, 1024, 312),  # A100
-        ("Chinchilla", 70e9, 1.4e12, 1024, 312),
-        ("LLaMA 65B", 65e9, 1.4e12, 2048, 312),
-        ("LLaMA 2 70B", 70e9, 2e12, 2048, 312),
-    ]
-
-    print("Training Compute and Time Estimates")
-    print("=" * 80)
-    print(f"{'Model':<15} {'Params':<10} {'Tokens':<10} {'FLOPs':<15} {'Days':<10}")
-    print("-" * 80)
-
-    for name, params, tokens, gpus, tflops in models:
-        flops = calc.compute_flops(params, tokens)
-        hours = calc.training_time(params, tokens, tflops, gpus)
-        days = hours / 24
-
-        print(f"{name:<15} {params/1e9:>7.0f}B  {tokens/1e12:>7.1f}T  "
-              f"{flops:.2e}  {days:>7.1f}")
-```
+For a 70B parameter model trained on 1.4T tokens (Chinchilla):
+- Total FLOPs: $C \approx 6 \times 70 \times 10^9 \times 1.4 \times 10^{12} = 5.88 \times 10^{23}$ FLOPs
+- With efficiency factor of 0.4: $\approx 1.47 \times 10^{24}$ FLOPs actual
+- On 1024 A100 GPUs (312 TFLOPS each): $\approx 1.47 \times 10^{24} / (312 \times 10^{12} \times 1024) \approx 4.6$ million seconds $\approx 53$ days
 
 ---
 
