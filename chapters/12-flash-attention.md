@@ -354,86 +354,64 @@ Flash Attention is designed around the principle: **minimize HBM access, even at
 
 ### Core Principles
 
-```python
-class FlashAttentionPrinciples:
-    """
-    Core design principles of Flash Attention.
-    """
+Flash Attention is built on three key design principles that work together to achieve both memory efficiency and speed:
 
-    @staticmethod
-    def principle_1_tiling():
-        """
-        Principle 1: Tiling (Kernel Fusion)
+#### Principle 1: Tiling (Kernel Fusion)
 
-        Standard approach (3 separate kernels):
-        - Kernel 1: Compute QK^T, write to HBM
-        - Kernel 2: Softmax, read from HBM, write to HBM
-        - Kernel 3: Multiply by V, read from HBM
+**Standard approach (3 separate kernels):**
+- Kernel 1: Compute $QK^T$, write to HBM
+- Kernel 2: Softmax, read from HBM, write to HBM
+- Kernel 3: Multiply by V, read from HBM
 
-        Flash Attention (1 fused kernel):
-        - Process Q, K, V in blocks that fit in SRAM
-        - Never write intermediate attention matrix to HBM
-        - Output final result directly
+**Flash Attention (1 fused kernel):**
+- Process Q, K, V in blocks that fit in SRAM
+- Never write intermediate attention matrix to HBM
+- Output final result directly
 
-        Key: Do all operations on a tile while it's in SRAM.
-        """
-        pass
+**Key insight:** Do all operations on a tile while it's in SRAM. This kernel fusion eliminates expensive HBM read/write operations between steps.
 
-    @staticmethod
-    def principle_2_recomputation():
-        """
-        Principle 2: Recomputation in Backward Pass
+#### Principle 2: Recomputation in Backward Pass
 
-        Standard approach:
-        - Store attention matrix for backward pass
-        - Cost: O(N²) memory
+**Standard approach:**
+- Store attention matrix for backward pass
+- Cost: $O(N^2)$ memory
 
-        Flash Attention:
-        - Don't store attention matrix
-        - Recompute it on-the-fly during backward pass
-        - Cost: O(N) memory, but extra computation
+**Flash Attention:**
+- Don't store attention matrix
+- Recompute it on-the-fly during backward pass
+- Cost: $O(N)$ memory, but extra computation
 
-        Trade-off: Memory bandwidth vs. compute
-        - Modern GPUs have excess compute capacity
-        - But limited memory bandwidth
-        - Therefore: Recomputation is actually faster!
-        """
-        pass
+**Trade-off: Memory bandwidth vs. compute**
+- Modern GPUs have excess compute capacity
+- But limited memory bandwidth
+- Therefore: Recomputation is actually faster!
 
-    @staticmethod
-    def principle_3_online_softmax():
-        """
-        Principle 3: Online (Incremental) Softmax
+This counter-intuitive design choice is at the heart of Flash Attention's efficiency.
 
-        Challenge: How to compute softmax over blocks?
+#### Principle 3: Online (Incremental) Softmax
 
-        Softmax requires global statistics (max and sum over all elements).
-        But we're processing in blocks!
+**Challenge:** How to compute softmax over blocks?
 
-        Solution: Online softmax algorithm
-        - Maintain running max and sum
-        - Update incrementally as we process each block
-        - Mathematically exact, no approximation
+Softmax requires global statistics (max and sum over all elements), but we're processing in blocks!
 
-        This is the key algorithmic innovation.
-        """
-        pass
+**Solution: Online softmax algorithm**
+- Maintain running max and sum
+- Update incrementally as we process each block
+- Mathematically exact, no approximation
 
+This is the key algorithmic innovation that makes tiled attention possible.
 
-def visualize_standard_vs_flash():
-    """
-    Visualize data movement: Standard vs Flash Attention.
+### Data Movement: Standard vs Flash Attention
 
-    Standard Attention:
+**Standard Attention:**
+
 ![Chapter 12 flash attention diagram](../assets/diagrams/ch12-flash-attention-diagram.svg)
 
-    Flash Attention:
+**Flash Attention:**
+
 ![Chapter 12 flash attention diagram 2](../assets/diagrams/ch12-flash-attention-diagram-2.svg)
 
-    Key difference: Intermediate results never leave SRAM!
-    """
-    pass
-```
+**Key difference:** Intermediate results never leave SRAM!
 
 ---
 
@@ -981,6 +959,167 @@ if __name__ == "__main__":
 
 The key win is in HBM access pattern, not FLOP count.
 
+### Complete Educational Implementation
+
+Here's a complete, standalone implementation with detailed explanations:
+
+```python
+import torch
+import torch.nn.functional as F
+import math
+
+
+def flash_attention_forward(Q, K, V, block_size=64):
+    """
+    Simplified Flash Attention implementation demonstrating the tiling algorithm.
+
+    This is an educational implementation showing the core ideas:
+    1. Process Q in blocks to limit memory usage
+    2. For each Q block, iterate through K,V blocks
+    3. Use online softmax to avoid materializing full attention matrix
+    4. Accumulate outputs incrementally
+
+    Args:
+        Q: Query tensor [batch, heads, seq_len, head_dim]
+        K: Key tensor [batch, heads, seq_len, head_dim]
+        V: Value tensor [batch, heads, seq_len, head_dim]
+        block_size: Size of blocks for tiling
+
+    Returns:
+        Output tensor [batch, heads, seq_len, head_dim]
+    """
+    batch, heads, seq_len, head_dim = Q.shape
+    scale = 1.0 / math.sqrt(head_dim)
+
+    # Output accumulator
+    O = torch.zeros_like(Q)
+
+    # For numerical stability in online softmax
+    L = torch.zeros(batch, heads, seq_len, 1, device=Q.device)  # log-sum-exp
+    M = torch.full((batch, heads, seq_len, 1), float('-inf'), device=Q.device)  # max
+
+    # Number of blocks
+    num_blocks = (seq_len + block_size - 1) // block_size
+
+    # Process K,V in blocks (outer loop in Flash Attention)
+    for j in range(num_blocks):
+        j_start = j * block_size
+        j_end = min(j_start + block_size, seq_len)
+
+        # Load K,V block
+        Kj = K[:, :, j_start:j_end, :]  # [batch, heads, block, head_dim]
+        Vj = V[:, :, j_start:j_end, :]
+
+        # Process Q in blocks (inner loop)
+        for i in range(num_blocks):
+            i_start = i * block_size
+            i_end = min(i_start + block_size, seq_len)
+
+            # Load Q block
+            Qi = Q[:, :, i_start:i_end, :]
+
+            # Compute attention scores for this block
+            # S_ij = Q_i @ K_j^T * scale
+            Sij = torch.matmul(Qi, Kj.transpose(-2, -1)) * scale
+
+            # Online softmax update
+            # Get current max and new max
+            Mi = M[:, :, i_start:i_end, :]
+            mi_new = torch.maximum(Mi, Sij.max(dim=-1, keepdim=True).values)
+
+            # Compute exp with numerical stability
+            P = torch.exp(Sij - mi_new)
+
+            # Update running sum
+            Li = L[:, :, i_start:i_end, :]
+            li_new = torch.exp(Mi - mi_new) * Li + P.sum(dim=-1, keepdim=True)
+
+            # Update output: rescale old output and add new contribution
+            Oi = O[:, :, i_start:i_end, :]
+            O[:, :, i_start:i_end, :] = (
+                torch.exp(Mi - mi_new) * Oi + torch.matmul(P, Vj)
+            )
+
+            # Update statistics
+            M[:, :, i_start:i_end, :] = mi_new
+            L[:, :, i_start:i_end, :] = li_new
+
+    # Final normalization
+    O = O / L
+
+    return O
+
+
+def verify_flash_attention():
+    """Verify our implementation matches standard attention."""
+    torch.manual_seed(42)
+
+    batch, heads, seq_len, head_dim = 2, 4, 128, 64
+    Q = torch.randn(batch, heads, seq_len, head_dim)
+    K = torch.randn(batch, heads, seq_len, head_dim)
+    V = torch.randn(batch, heads, seq_len, head_dim)
+
+    # Standard attention
+    scale = 1.0 / math.sqrt(head_dim)
+    scores = torch.matmul(Q, K.transpose(-2, -1)) * scale
+    attn = F.softmax(scores, dim=-1)
+    standard_out = torch.matmul(attn, V)
+
+    # Flash attention
+    flash_out = flash_attention_forward(Q, K, V, block_size=32)
+
+    # Compare
+    max_diff = (standard_out - flash_out).abs().max().item()
+    print(f"Max difference: {max_diff:.2e}")
+    print(f"Match: {max_diff < 1e-5}")
+
+    return max_diff < 1e-5
+
+
+if __name__ == "__main__":
+    verify_flash_attention()
+```
+
+**Key insights explained:**
+
+**1. Online Softmax Algorithm**
+
+The core innovation is how we compute softmax incrementally. Standard softmax requires:
+
+$$\text{softmax}(x_i) = \frac{e^{x_i}}{\sum_j e^{x_j}}$$
+
+This needs the full sequence to compute the sum in the denominator. Flash Attention solves this by maintaining:
+- $M$: running maximum (for numerical stability)
+- $L$: running sum of exponentials
+
+When we see a new block with max $m_{new}$:
+1. Rescale previous values: multiply by $e^{m_{old} - m_{new}}$
+2. Add new contributions
+3. Update running statistics
+
+This is **mathematically exact**—we get the same result as if we computed the full softmax!
+
+**2. Why we track M (max) and L (sum) separately**
+
+Tracking M separately provides numerical stability. In standard softmax, we compute:
+
+$$\text{softmax}(x_i) = \frac{e^{x_i - \max(x)}}{\sum_j e^{x_j - \max(x)}}$$
+
+Subtracting the max prevents overflow. In online softmax, when we see a new max:
+- Old values need rescaling by $e^{m_{old} - m_{new}}$
+- New values are computed with $e^{x - m_{new}}$
+- The running sum L needs the same rescaling
+
+**3. How this avoids materializing the O(n²) attention matrix**
+
+Standard attention computes the full $N \times N$ matrix $S = QK^T$, then softmax, then multiply by V. Flash Attention only ever computes small $B \times B$ blocks of S, processes them immediately, and discards them.
+
+**4. Memory complexity: O(n) instead of O(n²)**
+
+- Standard attention: Store $N \times N$ attention matrix = $O(N^2)$ memory
+- Flash Attention: Store only $M$ and $L$ (each $N \times 1$) = $O(N)$ memory
+- We recompute attention scores during backward pass instead of storing them
+
 ---
 
 ## Backward Pass and Recomputation
@@ -1328,334 +1467,270 @@ Flash Attention has evolved through three major versions, each with significant 
 
 ### FlashAttention 1 (2022)
 
-```python
-class FlashAttention1:
-    """
-    FlashAttention 1: Original algorithm.
-
-    Paper: "FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"
-    Authors: Dao, Fu, Ermon, Rudra, Ré (Stanford, 2022)
-
-    Key contributions:
-    1. IO-aware algorithm design
-    2. Tiling strategy
-    3. Online softmax
-    4. Recomputation in backward
-
-    Performance:
-    - 2-4x faster than PyTorch attention
-    - O(N) memory vs O(N²)
-    - Exact (no approximation)
-
-    Limitations:
-    - Head dimension limited to 64 or 128
-    - Not fully optimized for all sequence lengths
-    - Ampere architecture (A100) focus
-    """
-
-    speedup_vs_pytorch = "2-4x"
-    memory_reduction = "N² → N"
-    supported_head_dims = [64, 128]
-    target_architecture = "NVIDIA Ampere (A100)"
-
-
-class FlashAttention2:
-    """
-    FlashAttention 2: Better parallelism and work partitioning.
-
-    Paper: "FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning"
-    Authors: Dao (Together AI, 2023)
-
-    Improvements over FA1:
-
-    1. Better parallelization:
-       - Parallelize over sequence length, not just batch/heads
-       - Reduces number of non-matmul FLOPs
-       - Better GPU utilization
-
-    2. Work partitioning:
-       - Better distribution of work across SMs
-       - Reduced thread block synchronization
-
-    3. Support for longer head dimensions:
-       - Up to 256 (vs 128 in FA1)
-       - Important for models with larger heads
-
-    4. Causal attention optimization:
-       - More efficient masking
-       - Skips unnecessary blocks
-
-    Performance:
-    - ~2x faster than FA1
-    - 4-8x faster than PyTorch
-    - Up to 225 TFLOPs/s on A100 (vs 115 for FA1)
-    """
-
-    speedup_vs_fa1 = "~2x"
-    speedup_vs_pytorch = "4-8x"
-    supported_head_dims = [64, 128, 256]
-    target_architecture = "NVIDIA Ampere (A100, RTX 3090, RTX 4090)"
-
-    @staticmethod
-    def improvements_summary():
-        """
-        Summary of improvements in FA2 vs FA1.
-
-        | Metric | FA1 | FA2 | Improvement |
-        |--------|-----|-----|-------------|
-        | TFLOPs/s (A100, seq=2K, d=64) | 115 | 225 | 1.96x |
-        | TFLOPs/s (A100, seq=8K, d=64) | 120 | 230 | 1.92x |
-        | Non-matmul FLOPs reduction | - | 2x | Better |
-        | Parallelism | Batch/head | + Sequence | More |
-        | Max head dim | 128 | 256 | 2x |
-        """
-        pass
-
-
-class FlashAttention3:
-    """
-    FlashAttention 3: Hopper-optimized with asynchronous operations.
-
-    Paper: "FlashAttention-3: Fast and Accurate Attention with Asynchrony and Low-precision"
-    Authors: Shah, Dao, et al. (Together AI & Colfax Research, 2024)
-
-    Hopper-specific optimizations:
-
-    1. Warp specialization:
-       - Different warps do different tasks
-       - Producer warps: Load data
-       - Consumer warps: Compute
-       - Overlapping for better throughput
-
-    2. Asynchronous GEMM:
-       - Use Hopper's async Tensor Core instructions
-       - Pipeline data loading and computation
-       - Hide memory latency
-
-    3. Low-precision support:
-       - FP8 (E4M3 and E5M2)
-       - Block-wise scaling
-       - Maintains accuracy
-
-    4. New Hopper instructions:
-       - WGMMA (Warp Group Matrix Multiply-Accumulate)
-       - TMA (Tensor Memory Accelerator)
-       - Async barrier synchronization
-
-    Performance:
-    - ~75% of Tensor Core theoretical max (vs 35% for FA2 on H100)
-    - 1.5-2x faster than FA2 on H100
-    - FP8: 2.6x faster than FA2 BF16
-
-    Limitations:
-    - Requires Hopper architecture (H100, H200)
-    - More complex implementation
-    """
-
-    speedup_vs_fa2_h100 = "1.5-2x"
-    tensor_core_utilization = "~75%"
-    supported_precisions = ["FP16", "BF16", "FP8_E4M3", "FP8_E5M2"]
-    target_architecture = "NVIDIA Hopper (H100, H200)"
-
-    @staticmethod
-    def performance_comparison():
-        """
-        Performance comparison on H100.
-
-        Configuration: Batch=1, Heads=32, Seq=8192, Head_dim=128
-
-        | Implementation | Precision | TFLOPs/s | % of Peak |
-        |----------------|-----------|----------|-----------|
-        | PyTorch SDPA   | BF16      | 450      | 22%       |
-        | FlashAttention 2 | BF16    | 700      | 35%       |
-        | FlashAttention 3 | BF16    | 1,500    | 75%       |
-        | FlashAttention 3 | FP8     | 2,800    | 70% (of FP8 peak) |
-
-        Note: FA3 achieves near-optimal hardware utilization!
-        """
-        pass
-
-    @staticmethod
-    def fp8_example():
-        """
-        Example of using FP8 with FlashAttention 3.
-
-        FP8 formats:
-        - E4M3: 1 sign, 4 exponent, 3 mantissa bits
-          * Better for forward pass (wider dynamic range)
-          * Range: ~[-448, 448]
-        - E5M2: 1 sign, 5 exponent, 2 mantissa bits
-          * Better for backward pass (even wider range)
-          * Range: ~[-57344, 57344]
-
-        Block-wise scaling:
-        - Maintain per-block scaling factors
-        - Prevents over/underflow
-        - Minimal accuracy loss
-        """
-        import torch
-
-        # Note: This is conceptual - actual FP8 support requires
-        # torch.float8_e4m3fn and torch.float8_e5m2 dtypes (PyTorch 2.1+)
-
-        print("FP8 FlashAttention 3 (Conceptual Example)")
-        print("=" * 60)
-
-        batch, n_heads, seq_len, head_dim = 4, 32, 2048, 128
-
-        # Simulating FP8 workflow (actual implementation uses native FP8 types)
-
-        # Step 1: Convert to FP8 (with scaling)
-        print("\n1. Convert to FP8:")
-        print("   - Compute per-block max values")
-        print("   - Scale to fit FP8 range")
-        print("   - Quantize to FP8")
-
-        # In actual code:
-        # Q_fp8 = Q.to(torch.float8_e4m3fn)
-        # K_fp8 = K.to(torch.float8_e4m3fn)
-        # V_fp8 = V.to(torch.float8_e4m3fn)
-
-        print("\n2. Block-wise Scaling:")
-        print("   For each block of Q, K, V:")
-        print("     amax = max(abs(block))")
-        print("     scale = FP8_MAX / amax")
-        print("     block_fp8 = round(block * scale)")
-
-        print("\n3. FP8 Attention Computation:")
-        print("   - Compute QK^T in FP8")
-        print("   - Softmax accumulation in FP32 (for stability)")
-        print("   - Multiply by V in FP8")
-        print("   - Descale output to BF16/FP16")
-
-        print("\n4. Accuracy Preservation:")
-        print("   - Softmax statistics (m, l) kept in FP32")
-        print("   - Block-wise descaling prevents accumulation errors")
-        print("   - Typical accuracy loss: <0.1%")
-
-        print("\n5. Performance Gain:")
-        print("   - FP8 Tensor Cores: 2x throughput vs FP16")
-        print("   - Reduced memory bandwidth (1 byte vs 2 bytes)")
-        print("   - Combined: ~2.6x speedup over FP16 FA2")
-
-    @staticmethod
-    def warp_specialization_explained():
-        """
-        Explain warp specialization in FlashAttention 3.
-
-        Traditional (FA1/FA2):
-        - All warps do the same work
-        - Synchronize at kernel boundaries
-        - Underutilizes async capabilities
-
-        FA3 Warp Specialization:
-        - Producer warps: Load Q, K, V from HBM to shared memory
-        - Consumer warps: Compute attention on data in shared memory
-        - Overlap loading and computation
-        - Use async barriers for synchronization
-        """
-        print("Warp Specialization in FlashAttention 3")
-        print("=" * 60)
-
-        print("\nTraditional Approach (FA2):")
-        print("  All warps execute:")
-        print("    1. Load Q block → shared memory")
-        print("    2. Load K block → shared memory")
-        print("    3. Wait for loads to complete (sync)")
-        print("    4. Compute attention scores")
-        print("    5. Load V block")
-        print("    6. Wait (sync)")
-        print("    7. Compute output")
-        print("\n  Problem: Idle time during loads and syncs")
-
-        print("\nFA3 Warp Specialization:")
-        print("  Producer Warps (load data):")
-        print("    - Continuously load Q, K, V from HBM")
-        print("    - Use TMA (Tensor Memory Accelerator)")
-        print("    - Prefetch next blocks")
-        print("    - Signal consumer warps via async barriers")
-
-        print("\n  Consumer Warps (compute):")
-        print("    - Continuously compute attention")
-        print("    - Use WGMMA (async matrix multiply)")
-        print("    - Pipeline multiple blocks")
-        print("    - No idle time waiting for loads")
-
-        print("\n  Benefits:")
-        print("    - Overlap memory and compute")
-        print("    - Hide memory latency")
-        print("    - Better Tensor Core utilization")
-        print("    - Result: ~2x speedup vs FA2 on H100")
-
-        print("\n  Visual Timeline:")
-        print("\n  FA2 (Sequential):")
-        print("    |--Load--|  (idle)  |--Compute--|  (idle)  |--Load--|")
-
-        print("\n  FA3 (Overlapped):")
-        print("    Producer: |--Load1--|--Load2--|--Load3--|--Load4--|")
-        print("    Consumer:   (setup) |--Comp1--|--Comp2--|--Comp3--|")
-        print("    Net:        |----------Continuous Work---------|")
-
-
-# Example usage for FA3
-def flash_attention_3_demo():
-    """
-    Demonstrate FlashAttention 3 concepts.
-    """
-    print("FlashAttention 3 Features")
-    print("=" * 70)
-
-    print("\n1. FP8 Support:")
-    FlashAttention3.fp8_example()
-
-    print("\n\n2. Warp Specialization:")
-    FlashAttention3.warp_specialization_explained()
-
-    print("\n\n3. Hardware Requirements:")
-    print("  - NVIDIA H100 or H200 (Hopper architecture)")
-    print("  - CUDA 12.0+")
-    print("  - PyTorch 2.1+ for FP8 support")
-    print("  - Driver 525+")
-
-    print("\n\n4. When to Use FA3:")
-    print("  Use if:")
-    print("    ✓ Have H100/H200 GPU")
-    print("    ✓ Long sequences (N > 2K)")
-    print("    ✓ Large batch sizes")
-    print("    ✓ Training or high-throughput inference")
-
-    print("\n  Don't use if:")
-    print("    ✗ Older GPU (A100, RTX) → use FA2 instead")
-    print("    ✗ Short sequences → overhead not worth it")
-    print("    ✗ Low-latency inference → FP8 quantization overhead")
-
-    print("\n\n5. Practical Deployment:")
-    print("  - Often bundled in inference frameworks (vLLM, TGI, TensorRT-LLM)")
-    print("  - PyTorch SDPA may auto-select FA3 on H100")
-    print("  - For standalone: Use official flash-attn library v3.x")
-
-
-if __name__ == "__main__":
-    flash_attention_3_demo()
-
-
-def flashattention_version_comparison():
-    """
-    Summary comparison of FlashAttention versions.
-
-    | Feature | FA1 (2022) | FA2 (2023) | FA3 (2024) |
-    |---------|------------|------------|------------|
-    | **Target GPU** | A100 | A100/RTX | H100 |
-    | **Speedup vs PyTorch** | 2-4x | 4-8x | 8-15x |
-    | **Max head dim** | 128 | 256 | 256 |
-    | **Precision** | FP16/BF16 | FP16/BF16 | FP16/BF16/FP8 |
-    | **Tensor Core util** | ~30% | ~35% | ~75% |
-    | **Key innovation** | Tiling + online softmax | Better parallelism | Async + warp specialization |
-    | **Backward pass** | Recomputation | Improved recomputation | Optimized recomputation |
-    | **Production ready** | Yes | Yes | Yes (H100 only) |
-    """
-    pass
+**Paper:** "FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"
+**Authors:** Dao, Fu, Ermon, Rudra, Ré (Stanford, 2022)
+
+**Key contributions:**
+1. IO-aware algorithm design
+2. Tiling strategy
+3. Online softmax
+4. Recomputation in backward
+
+**Performance:**
+- 2-4x faster than PyTorch attention
+- $O(N)$ memory vs $O(N^2)$
+- Exact (no approximation)
+
+**Limitations:**
+- Head dimension limited to 64 or 128
+- Not fully optimized for all sequence lengths
+- Ampere architecture (A100) focus
+
+**Specifications:**
+- Speedup vs PyTorch: 2-4x
+- Memory reduction: $N^2 \rightarrow N$
+- Supported head dimensions: 64, 128
+- Target architecture: NVIDIA Ampere (A100)
+
+### FlashAttention 2 (2023)
+
+**Paper:** "FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning"
+**Authors:** Dao (Together AI, 2023)
+
+**Improvements over FA1:**
+
+1. **Better parallelization:**
+   - Parallelize over sequence length, not just batch/heads
+   - Reduces number of non-matmul FLOPs
+   - Better GPU utilization
+
+2. **Work partitioning:**
+   - Better distribution of work across SMs
+   - Reduced thread block synchronization
+
+3. **Support for longer head dimensions:**
+   - Up to 256 (vs 128 in FA1)
+   - Important for models with larger heads
+
+4. **Causal attention optimization:**
+   - More efficient masking
+   - Skips unnecessary blocks
+
+**Performance:**
+- ~2x faster than FA1
+- 4-8x faster than PyTorch
+- Up to 225 TFLOPs/s on A100 (vs 115 for FA1)
+
+**Specifications:**
+- Speedup vs FA1: ~2x
+- Speedup vs PyTorch: 4-8x
+- Supported head dimensions: 64, 128, 256
+- Target architecture: NVIDIA Ampere (A100, RTX 3090, RTX 4090)
+
+**Improvements summary (FA2 vs FA1):**
+
+| Metric | FA1 | FA2 | Improvement |
+|--------|-----|-----|-------------|
+| TFLOPs/s (A100, seq=2K, d=64) | 115 | 225 | 1.96x |
+| TFLOPs/s (A100, seq=8K, d=64) | 120 | 230 | 1.92x |
+| Non-matmul FLOPs reduction | - | 2x | Better |
+| Parallelism | Batch/head | + Sequence | More |
+| Max head dim | 128 | 256 | 2x |
+
+### FlashAttention 3 (2024)
+
+**Paper:** "FlashAttention-3: Fast and Accurate Attention with Asynchrony and Low-precision"
+**Authors:** Shah, Dao, et al. (Together AI & Colfax Research, 2024)
+
+**Hopper-specific optimizations:**
+
+1. **Warp specialization:**
+   - Different warps do different tasks
+   - Producer warps: Load data
+   - Consumer warps: Compute
+   - Overlapping for better throughput
+
+2. **Asynchronous GEMM:**
+   - Use Hopper's async Tensor Core instructions
+   - Pipeline data loading and computation
+   - Hide memory latency
+
+3. **Low-precision support:**
+   - FP8 (E4M3 and E5M2)
+   - Block-wise scaling
+   - Maintains accuracy
+
+4. **New Hopper instructions:**
+   - WGMMA (Warp Group Matrix Multiply-Accumulate)
+   - TMA (Tensor Memory Accelerator)
+   - Async barrier synchronization
+
+**Performance:**
+- ~75% of Tensor Core theoretical max (vs 35% for FA2 on H100)
+- 1.5-2x faster than FA2 on H100
+- FP8: 2.6x faster than FA2 BF16
+
+**Limitations:**
+- Requires Hopper architecture (H100, H200)
+- More complex implementation
+
+**Specifications:**
+- Speedup vs FA2 on H100: 1.5-2x
+- Tensor Core utilization: ~75%
+- Supported precisions: FP16, BF16, FP8 (E4M3 and E5M2)
+- Target architecture: NVIDIA Hopper (H100, H200)
+
+**Performance comparison on H100:**
+
+Configuration: Batch=1, Heads=32, Seq=8192, Head_dim=128
+
+| Implementation | Precision | TFLOPs/s | % of Peak |
+|----------------|-----------|----------|-----------|
+| PyTorch SDPA   | BF16      | 450      | 22%       |
+| FlashAttention 2 | BF16    | 700      | 35%       |
+| FlashAttention 3 | BF16    | 1,500    | 75%       |
+| FlashAttention 3 | FP8     | 2,800    | 70% (of FP8 peak) |
+
+Note: FA3 achieves near-optimal hardware utilization!
+
+#### FP8 Support in FlashAttention 3
+
+**FP8 formats:**
+- **E4M3:** 1 sign, 4 exponent, 3 mantissa bits
+  - Better for forward pass (wider dynamic range)
+  - Range: ~[-448, 448]
+- **E5M2:** 1 sign, 5 exponent, 2 mantissa bits
+  - Better for backward pass (even wider range)
+  - Range: ~[-57344, 57344]
+
+**Block-wise scaling:**
+- Maintain per-block scaling factors
+- Prevents over/underflow
+- Minimal accuracy loss
+
+**FP8 workflow (requires PyTorch 2.1+ with torch.float8_e4m3fn and torch.float8_e5m2 dtypes):**
+
+1. **Convert to FP8:**
+   - Compute per-block max values
+   - Scale to fit FP8 range
+   - Quantize to FP8
+
+2. **Block-wise Scaling:**
+   - For each block of Q, K, V:
+     - `amax = max(abs(block))`
+     - `scale = FP8_MAX / amax`
+     - `block_fp8 = round(block * scale)`
+
+3. **FP8 Attention Computation:**
+   - Compute $QK^T$ in FP8
+   - Softmax accumulation in FP32 (for stability)
+   - Multiply by V in FP8
+   - Descale output to BF16/FP16
+
+4. **Accuracy Preservation:**
+   - Softmax statistics (m, l) kept in FP32
+   - Block-wise descaling prevents accumulation errors
+   - Typical accuracy loss: <0.1%
+
+5. **Performance Gain:**
+   - FP8 Tensor Cores: 2x throughput vs FP16
+   - Reduced memory bandwidth (1 byte vs 2 bytes)
+   - Combined: ~2.6x speedup over FP16 FA2
+
+#### Warp Specialization in FlashAttention 3
+
+**Traditional approach (FA1/FA2):**
+- All warps do the same work
+- Synchronize at kernel boundaries
+- Underutilizes async capabilities
+
+**FA3 Warp Specialization:**
+- **Producer warps:** Load Q, K, V from HBM to shared memory
+- **Consumer warps:** Compute attention on data in shared memory
+- Overlap loading and computation
+- Use async barriers for synchronization
+
+**Traditional Approach (FA2) - All warps execute:**
+1. Load Q block → shared memory
+2. Load K block → shared memory
+3. Wait for loads to complete (sync)
+4. Compute attention scores
+5. Load V block
+6. Wait (sync)
+7. Compute output
+
+**Problem:** Idle time during loads and syncs
+
+**FA3 Warp Specialization:**
+
+**Producer Warps (load data):**
+- Continuously load Q, K, V from HBM
+- Use TMA (Tensor Memory Accelerator)
+- Prefetch next blocks
+- Signal consumer warps via async barriers
+
+**Consumer Warps (compute):**
+- Continuously compute attention
+- Use WGMMA (async matrix multiply)
+- Pipeline multiple blocks
+- No idle time waiting for loads
+
+**Benefits:**
+- Overlap memory and compute
+- Hide memory latency
+- Better Tensor Core utilization
+- Result: ~2x speedup vs FA2 on H100
+
+**Visual Timeline:**
+
 ```
+FA2 (Sequential):
+  |--Load--|  (idle)  |--Compute--|  (idle)  |--Load--|
+
+FA3 (Overlapped):
+  Producer: |--Load1--|--Load2--|--Load3--|--Load4--|
+  Consumer:   (setup) |--Comp1--|--Comp2--|--Comp3--|
+  Net:        |----------Continuous Work---------|
+```
+
+#### FlashAttention 3 Summary
+
+**Hardware Requirements:**
+- NVIDIA H100 or H200 (Hopper architecture)
+- CUDA 12.0+
+- PyTorch 2.1+ for FP8 support
+- Driver 525+
+
+**When to Use FA3:**
+
+Use if:
+- ✓ Have H100/H200 GPU
+- ✓ Long sequences (N > 2K)
+- ✓ Large batch sizes
+- ✓ Training or high-throughput inference
+
+Don't use if:
+- ✗ Older GPU (A100, RTX) → use FA2 instead
+- ✗ Short sequences → overhead not worth it
+- ✗ Low-latency inference → FP8 quantization overhead
+
+**Practical Deployment:**
+- Often bundled in inference frameworks (vLLM, TGI, TensorRT-LLM)
+- PyTorch SDPA may auto-select FA3 on H100
+- For standalone: Use official flash-attn library v3.x
+
+### Version Comparison Summary
+
+| Feature | FA1 (2022) | FA2 (2023) | FA3 (2024) |
+|---------|------------|------------|------------|
+| **Target GPU** | A100 | A100/RTX | H100 |
+| **Speedup vs PyTorch** | 2-4x | 4-8x | 8-15x |
+| **Max head dim** | 128 | 256 | 256 |
+| **Precision** | FP16/BF16 | FP16/BF16 | FP16/BF16/FP8 |
+| **Tensor Core util** | ~30% | ~35% | ~75% |
+| **Key innovation** | Tiling + online softmax | Better parallelism | Async + warp specialization |
+| **Backward pass** | Recomputation | Improved recomputation | Optimized recomputation |
+| **Production ready** | Yes | Yes | Yes (H100 only) |
 
 **Key papers:**
 - [FlashAttention (v1)](https://arxiv.org/abs/2205.14135) (Dao et al., 2022)
@@ -2850,182 +2925,122 @@ if __name__ == "__main__":
 
 ### Issue 4: Installation Problems
 
+The official flash-attn library can be tricky to install. Here's a step-by-step guide.
+
+**Prerequisites:**
+- CUDA 11.6+ or 12.x
+- PyTorch 2.0+ with CUDA support
+- GPU: Ampere (RTX 30xx, A100) or newer
+- Linux (Windows/Mac support limited)
+
+**Check your CUDA version:**
+```bash
+python -c 'import torch; print(torch.version.cuda)'
+```
+
+**Installation options:**
+
+**Option A: pip install (compiles from source, SLOW)**
+```bash
+pip install flash-attn --no-build-isolation
+```
+- ⚠️ This can take 30+ minutes and uses lots of RAM
+- ⚠️ Requires nvcc (CUDA compiler)
+
+**Option B: Pre-built wheels (if available)**
+- Check https://github.com/Dao-AILab/flash-attention/releases
+
+**Option C: Use PyTorch's built-in SDPA (recommended)**
+- No installation needed! PyTorch 2.0+ includes Flash Attention
 ```python
-class FlashAttentionInstallation:
-    """
-    Guide for installing Flash Attention library.
+import torch.nn.functional as F
+F.scaled_dot_product_attention(Q, K, V)
+```
 
-    The official flash-attn library can be tricky to install.
-    """
+**Common installation errors:**
 
-    @staticmethod
-    def installation_guide():
-        """
-        Step-by-step installation guide.
-        """
-        print("Flash Attention Installation Guide")
-        print("=" * 60)
+| Error | Solution |
+|-------|----------|
+| ninja: build stopped: subcommand failed | Install ninja: `pip install ninja` |
+| CUDA out of memory during compilation | Use fewer parallel jobs: `MAX_JOBS=1 pip install flash-attn` |
+| nvcc not found | Install CUDA toolkit and add to PATH |
+| incompatible CUDA architectures | Ensure flash-attn version matches your GPU architecture |
 
-        print("\n1. Prerequisites:")
-        print("   - CUDA 11.6+ or 12.x")
-        print("   - PyTorch 2.0+ with CUDA support")
-        print("   - GPU: Ampere (RTX 30xx, A100) or newer")
-        print("   - Linux (Windows/Mac support limited)")
+**Verification script:**
 
-        print("\n2. Check your CUDA version:")
-        print("   python -c 'import torch; print(torch.version.cuda)'")
+```python
+def verify_flash_attention_installation():
+    """Verify flash-attn library is installed correctly."""
+    print("\nVerifying flash-attn installation...")
 
-        print("\n3. Installation options:")
-        print("\n   Option A: pip install (compiles from source, SLOW)")
-        print("   pip install flash-attn --no-build-isolation")
-        print("   ⚠️  This can take 30+ minutes and uses lots of RAM")
-        print("   ⚠️  Requires nvcc (CUDA compiler)")
+    try:
+        from flash_attn import flash_attn_func
+        print("✓ flash-attn library is installed")
 
-        print("\n   Option B: Pre-built wheels (if available)")
-        print("   Check https://github.com/Dao-AILab/flash-attention/releases")
+        # Try to run it
+        import torch
+        Q = torch.randn(1, 128, 8, 64, device='cuda', dtype=torch.float16)
+        K = torch.randn(1, 128, 8, 64, device='cuda', dtype=torch.float16)
+        V = torch.randn(1, 128, 8, 64, device='cuda', dtype=torch.float16)
 
-        print("\n   Option C: Use PyTorch's built-in SDPA (recommended)")
-        print("   No installation needed! PyTorch 2.0+ includes Flash Attention")
-        print("   import torch.nn.functional as F")
-        print("   F.scaled_dot_product_attention(Q, K, V)")
+        output = flash_attn_func(Q, K, V)
+        print("✓ flash-attn is working correctly")
 
-        print("\n4. Common installation errors:")
-        errors = [
-            {
-                'error': "ninja: build stopped: subcommand failed",
-                'solution': "Install ninja: pip install ninja"
-            },
-            {
-                'error': "CUDA out of memory during compilation",
-                'solution': "Use fewer parallel jobs: MAX_JOBS=1 pip install flash-attn"
-            },
-            {
-                'error': "nvcc not found",
-                'solution': "Install CUDA toolkit and add to PATH"
-            },
-            {
-                'error': "incompatible CUDA architectures",
-                'solution': "Ensure flash-attn version matches your GPU architecture"
-            }
-        ]
+        # Check version
+        import flash_attn
+        print(f"  Version: {flash_attn.__version__}")
 
-        for err in errors:
-            print(f"\n   Error: {err['error']}")
-            print(f"   Solution: {err['solution']}")
+    except ImportError:
+        print("❌ flash-attn library not installed")
+        print("\n   Recommendation: Use PyTorch's built-in SDPA instead")
+        print("   It includes Flash Attention without extra installation")
 
-    @staticmethod
-    def verify_installation():
-        """
-        Verify flash-attn library is installed correctly.
-        """
-        print("\nVerifying flash-attn installation...")
-
-        try:
-            from flash_attn import flash_attn_func
-            print("✓ flash-attn library is installed")
-
-            # Try to run it
-            import torch
-            Q = torch.randn(1, 128, 8, 64, device='cuda', dtype=torch.float16)
-            K = torch.randn(1, 128, 8, 64, device='cuda', dtype=torch.float16)
-            V = torch.randn(1, 128, 8, 64, device='cuda', dtype=torch.float16)
-
-            output = flash_attn_func(Q, K, V)
-            print("✓ flash-attn is working correctly")
-
-            # Check version
-            import flash_attn
-            print(f"  Version: {flash_attn.__version__}")
-
-        except ImportError:
-            print("❌ flash-attn library not installed")
-            print("\n   Recommendation: Use PyTorch's built-in SDPA instead")
-            print("   It includes Flash Attention without extra installation")
-
-        except Exception as e:
-            print(f"❌ flash-attn installed but not working: {e}")
+    except Exception as e:
+        print(f"❌ flash-attn installed but not working: {e}")
 
 
 if __name__ == "__main__":
-    FlashAttentionInstallation.installation_guide()
-    print("\n" + "="*60 + "\n")
-    FlashAttentionInstallation.verify_installation()
+    verify_flash_attention_installation()
 ```
 
 ### Common Error Messages and Solutions
 
-```python
-class CommonErrors:
-    """
-    Common error messages and their solutions.
-    """
+**1. "Flash Attention is not supported on this GPU"**
+- **Cause:** GPU compute capability < 8.0 (pre-Ampere)
+- **Solutions:**
+  - Upgrade to Ampere or newer GPU (RTX 30xx, A100, etc.)
+  - Use memory-efficient attention instead
+  - Fall back to standard attention
 
-    errors = {
-        "Flash Attention is not supported on this GPU": {
-            "cause": "GPU compute capability < 8.0 (pre-Ampere)",
-            "solution": [
-                "Upgrade to Ampere or newer GPU (RTX 30xx, A100, etc.)",
-                "Use memory-efficient attention instead",
-                "Fall back to standard attention"
-            ]
-        },
+**2. "RuntimeError: expected scalar type Half but found Float"**
+- **Cause:** Mixed precision types (FP32 and FP16)
+- **Solutions:**
+  - Ensure Q, K, V are all same dtype
+  - Convert to FP16: `Q = Q.half()`
+  - Or use FP32 for all (slower)
 
-        "RuntimeError: expected scalar type Half but found Float": {
-            "cause": "Mixed precision types (FP32 and FP16)",
-            "solution": [
-                "Ensure Q, K, V are all same dtype",
-                "Convert to FP16: Q = Q.half()",
-                "Or use FP32 for all (slower)"
-            ]
-        },
+**3. "RuntimeError: CUDA out of memory"**
+- **Cause:** Sequence length too long even for Flash Attention
+- **Solutions:**
+  - Reduce batch size
+  - Use gradient checkpointing
+  - Split sequence into smaller chunks
+  - Use Ring Attention for multi-GPU
 
-        "RuntimeError: CUDA out of memory": {
-            "cause": "Sequence length too long even for Flash Attention",
-            "solution": [
-                "Reduce batch size",
-                "Use gradient checkpointing",
-                "Split sequence into smaller chunks",
-                "Use Ring Attention for multi-GPU"
-            ]
-        },
+**4. "Numerical instability / NaN values"**
+- **Cause:** Softmax overflow in FP16 with large attention scores
+- **Solutions:**
+  - Use BF16 instead of FP16 (better dynamic range)
+  - Scale attention scores: `scores = scores * 0.1`
+  - Check for inf values in Q, K before attention
 
-        "Numerical instability / NaN values": {
-            "cause": "Softmax overflow in FP16 with large attention scores",
-            "solution": [
-                "Use BF16 instead of FP16 (better dynamic range)",
-                "Scale attention scores: scores = scores * 0.1",
-                "Check for inf values in Q, K before attention"
-            ]
-        },
-
-        "Performance slower than expected": {
-            "cause": "Multiple possible causes",
-            "solution": [
-                "Verify Flash Attention is actually being used (profiler)",
-                "Check sequence length > 512",
-                "Ensure warmup before benchmarking",
-                "Check GPU utilization (nvidia-smi)"
-            ]
-        }
-    }
-
-    @staticmethod
-    def print_error_guide():
-        """Print formatted error guide."""
-        print("Common Flash Attention Errors and Solutions")
-        print("=" * 70)
-
-        for error, info in CommonErrors.errors.items():
-            print(f"\n❌ Error: {error}")
-            print(f"   Cause: {info['cause']}")
-            print("   Solutions:")
-            for i, sol in enumerate(info['solution'], 1):
-                print(f"     {i}. {sol}")
-
-
-if __name__ == "__main__":
-    CommonErrors.print_error_guide()
-```
+**5. "Performance slower than expected"**
+- **Cause:** Multiple possible causes
+- **Solutions:**
+  - Verify Flash Attention is actually being used (profiler)
+  - Check sequence length > 512
+  - Ensure warmup before benchmarking
+  - Check GPU utilization (nvidia-smi)
 
 **Summary: Debugging Checklist**
 
@@ -4024,151 +4039,106 @@ This mirrors the design pattern of having a common interface (scaled_dot_product
 - Sequence length and batch size
 - Precision requirements (FP16, BF16, FP8)
 
-```python
-class FlashAttentionExtensions:
-    """
-    Extensions and variants of Flash Attention.
-    """
+### Flash Attention Extensions
 
-    @staticmethod
-    def flash_decoding():
-        """
-        Flash-Decoding: Optimized for generation (decoding).
+**Flash-Decoding: Optimized for generation (decoding)**
 
-        Problem: During generation, we append one token at a time.
-        - Query: 1 token
-        - Key, Value: All previous tokens (growing)
+Problem: During generation, we append one token at a time.
+- Query: 1 token
+- Key, Value: All previous tokens (growing)
 
-        Standard Flash Attention parallelizes over queries,
-        but with 1 query token, we have no parallelism!
+Standard Flash Attention parallelizes over queries, but with 1 query token, we have no parallelism!
 
-        Flash-Decoding solution:
-        - Parallelize over K, V instead
-        - Split K, V into blocks
-        - Compute attention for each block in parallel
-        - Reduce using online softmax
+Flash-Decoding solution:
+- Parallelize over K, V instead
+- Split K, V into blocks
+- Compute attention for each block in parallel
+- Reduce using online softmax
 
-        Result: Up to 8x faster decoding for long contexts.
+Result: Up to 8x faster decoding for long contexts.
 
-        Paper: "Flash-Decoding for long-context inference" (2023)
-        """
-        pass
+Paper: "Flash-Decoding for long-context inference" (2023)
 
-    @staticmethod
-    def paged_flash_attention():
-        """
-        Paged Flash Attention: Combining Flash Attention with PagedAttention.
+**Paged Flash Attention: Combining Flash Attention with PagedAttention**
 
-        PagedAttention (from vLLM) manages KV cache in pages (see [Hardware, Quantization, and Training Optimization](32-hardware-quantization-optimization.md))
+PagedAttention (from vLLM) manages KV cache in pages (see [Hardware, Quantization, and Training Optimization](32-hardware-quantization-optimization.md))
 
-        Paged Flash Attention:
-        - Use Flash Attention for computation
-        - Use paged memory management for KV cache
-        - Best of both worlds!
+Paged Flash Attention:
+- Use Flash Attention for computation
+- Use paged memory management for KV cache
+- Best of both worlds!
 
-        Enables:
-        - Long context with Flash Attention efficiency
-        - Memory efficient KV cache management
-        - Continuous batching for inference
+Enables:
+- Long context with Flash Attention efficiency
+- Memory efficient KV cache management
+- Continuous batching for inference
 
-        Used in: vLLM, TensorRT-LLM
-        """
-        pass
+Used in: vLLM, TensorRT-LLM
 
-    @staticmethod
-    def block_sparse_flash_attention():
-        """
-        Block-Sparse Flash Attention.
+**Block-Sparse Flash Attention**
 
-        Idea: Combine Flash Attention with block sparsity patterns.
+Idea: Combine Flash Attention with block sparsity patterns.
 
-        Applications:
-        - Longformer-style attention (local + global)
-        - BigBird attention patterns
-        - Custom sparsity patterns
+Applications:
+- Longformer-style attention (local + global)
+- BigBird attention patterns
+- Custom sparsity patterns
 
-        Implementation:
-        - Skip blocks that are masked out
-        - Only process non-zero blocks
-        - Maintains Flash Attention efficiency
+Implementation:
+- Skip blocks that are masked out
+- Only process non-zero blocks
+- Maintains Flash Attention efficiency
 
-        Paper: "Flash-Attention with Block-Sparse Attention" (Dao et al.)
-        """
-        pass
+Paper: "Flash-Attention with Block-Sparse Attention" (Dao et al.)
 
-    @staticmethod
-    def multi_query_flash_attention():
-        """
-        Flash Attention for Multi-Query and Grouped-Query Attention.
+**Flash Attention for Multi-Query and Grouped-Query Attention**
 
-        MQA/GQA: Fewer K, V heads than Q heads (see [Multi-Head Attention](04-multi-head-attention.md))
+MQA/GQA: Fewer K, V heads than Q heads (see [Multi-Head Attention](04-multi-head-attention.md))
 
-        Optimizations:
-        - K, V blocks are smaller
-        - Can fit more K, V in SRAM
-        - Better K, V reuse across Q heads
+Optimizations:
+- K, V blocks are smaller
+- Can fit more K, V in SRAM
+- Better K, V reuse across Q heads
 
-        Result: Even faster than standard Flash Attention!
-        """
-        pass
+Result: Even faster than standard Flash Attention!
 
-    @staticmethod
-    def ring_attention():
-        """
-        Ring Attention: Distributed Flash Attention.
+**Ring Attention: Distributed Flash Attention**
 
-        For sequences longer than single-GPU memory:
-        - Split sequence across multiple GPUs
-        - Pass K, V blocks in a ring
-        - Each GPU processes its Q block with all K, V
+For sequences longer than single-GPU memory:
+- Split sequence across multiple GPUs
+- Pass K, V blocks in a ring
+- Each GPU processes its Q block with all K, V
 
-        Enables:
-        - Multi-million token contexts
-        - Distributed training on long sequences
+Enables:
+- Multi-million token contexts
+- Distributed training on long sequences
 
-        Paper: "Ring Attention with Blockwise Transformers for Near-Infinite Context" (2023)
-        """
-        pass
+Paper: "Ring Attention with Blockwise Transformers for Near-Infinite Context" (2023)
 
+### Flash Attention Variants
 
-class FlashAttentionVariants:
-    """
-    Attention mechanisms inspired by Flash Attention principles.
-    """
+**Memory-Efficient Attention (Xformers)**
 
-    @staticmethod
-    def memory_efficient_attention():
-        """
-        Memory-Efficient Attention (Xformers).
+Similar to Flash Attention but different approach:
+- Focuses on reducing peak memory
+- Uses gradient checkpointing strategically
+- Supports more flexible attention masks
 
-        Similar to Flash Attention but different approach:
-        - Focuses on reducing peak memory
-        - Uses gradient checkpointing strategically
-        - Supports more flexible attention masks
+Trade-offs vs Flash Attention:
+- More flexible (arbitrary masks)
+- Slightly slower
+- Lower memory peak
 
-        Trade-offs vs Flash Attention:
-        - More flexible (arbitrary masks)
-        - Slightly slower
-        - Lower memory peak
+Used in: Stable Diffusion, many vision models
 
-        Used in: Stable Diffusion, many vision models
-        """
-        pass
+**Fused Attention (NVIDIA Apex)**
 
-    @staticmethod
-    def fused_attention():
-        """
-        Fused Attention (NVIDIA Apex).
+NVIDIA's optimized attention implementation:
+- Fused CUDA kernels
+- Similar principles to Flash Attention
+- Integrated with Apex mixed precision training
 
-        NVIDIA's optimized attention implementation:
-        - Fused CUDA kernels
-        - Similar principles to Flash Attention
-        - Integrated with Apex mixed precision training
-
-        Superseded by Flash Attention in most use cases.
-        """
-        pass
-```
+Superseded by Flash Attention in most use cases.
 
 ---
 
