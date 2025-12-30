@@ -12,8 +12,9 @@ This chapter provides a comprehensive, hands-on guide to implementing diffusion 
 6. [Sampling Algorithms](#sampling-algorithms)
 7. [Complete Working Example](#complete-working-example)
 8. [Practical Considerations](#practical-considerations)
-9. [Exercises](#exercises)
-10. [References](#references)
+9. [Conditional Generation](#conditional-generation)
+10. [Exercises](#exercises)
+11. [References](#references)
 
 ---
 
@@ -75,6 +76,42 @@ Output (predicted noise)
 ```
 
 ### Basic Building Blocks
+
+#### Problem and Motivation
+
+The core challenge in diffusion models is building a neural network that can denoise images at different noise levels. We need a network that can:
+1. Process images at the same resolution throughout (preserving spatial details)
+2. Incorporate information about the current noise level (timestep)
+3. Learn complex denoising patterns through multiple layers
+4. Maintain stable gradients for deep architectures
+
+#### Theoretical Justification
+
+Residual connections solve the vanishing gradient problem in deep networks by allowing gradients to flow directly through skip connections. For diffusion models, this is critical because:
+- The denoising function is complex and requires deep networks
+- Without residuals, gradients vanish and the network can't learn fine-grained denoising
+- The identity mapping baseline helps the network learn incremental refinements
+
+Time conditioning is injected through additive embeddings because:
+- Addition preserves spatial structure while modulating features
+- It allows the network to learn time-dependent denoising strategies
+- The broadcast operation applies the same time information across all spatial locations
+
+#### Comparison to Alternatives
+
+Alternative approaches include:
+- **Plain CNNs**: Suffer from vanishing gradients and can't scale to the depth needed
+- **Concatenating time**: Wastes parameters and breaks spatial structure
+- **Gating mechanisms**: More complex than needed; addition works well
+- **Attention-only**: Computationally expensive for high-resolution images
+
+#### Key Insights
+
+The ResidualBlock design is elegant because:
+1. **GroupNorm** normalizes activations for stable training regardless of batch size
+2. **SiLU** (Swish) activation provides smooth, non-monotonic gradients
+3. **Time embedding injection** between conv layers allows the network to modulate features based on noise level
+4. **Residual connection** ensures the network can always fall back to an identity mapping
 
 ```python
 import torch
@@ -185,6 +222,22 @@ class AttentionBlock(nn.Module):
         h = self.proj(h)
 
         return x + h  # Residual connection
+
+
+# Note: For production use, consider Flash Attention (see [Flash Attention](14-flash-attention.md))
+# which provides 2-4x speedup with lower memory usage:
+#
+# from torch.nn.functional import scaled_dot_product_attention
+#
+# def forward_with_flash_attention(self, x: torch.Tensor) -> torch.Tensor:
+#     B, C, H, W = x.shape
+#     h = self.norm(x)
+#     qkv = self.qkv(h).reshape(B, 3, self.num_heads, C // self.num_heads, H * W)
+#     qkv = qkv.permute(1, 0, 2, 4, 3)  # (3, B, num_heads, H*W, head_dim)
+#     q, k, v = qkv[0], qkv[1], qkv[2]
+#     h = scaled_dot_product_attention(q, k, v)  # Uses Flash Attention when available
+#     h = h.permute(0, 1, 3, 2).reshape(B, C, H, W)
+#     return x + self.proj(h)
 
 
 class DownBlock(nn.Module):
@@ -604,6 +657,43 @@ def sigmoid_beta_schedule(timesteps: int, beta_start: float = 0.0001, beta_end: 
 
 ### Noise Schedule Helper Class
 
+#### Problem and Motivation
+
+Computing noise schedule values on-the-fly during training would be inefficient and error-prone. We need:
+1. Fast access to schedule-dependent constants during training
+2. Consistent noise application across forward and reverse processes
+3. Efficient memory usage by precomputing derived quantities
+4. Support for multiple noise schedules without code duplication
+
+#### Theoretical Justification
+
+The forward diffusion process requires several derived quantities from the base noise schedule $\{\beta_t\}$:
+
+- $\alpha_t = 1 - \beta_t$ controls signal retention at each step
+- $\bar{\alpha}_t = \prod_{s=1}^t \alpha_s$ enables direct sampling at any timestep without iterating
+- The posterior variance $\tilde{\beta}_t = \frac{\beta_t(1-\bar{\alpha}_{t-1})}{1-\bar{\alpha}_t}$ is needed for sampling
+
+Precomputing these allows us to use the closed-form sampling equation:
+$$\mathbf{x}_t = \sqrt{\bar{\alpha}_t}\mathbf{x}_0 + \sqrt{1-\bar{\alpha}_t}\epsilon$$
+
+This O(1) sampling replaces O(t) iterative forward diffusion, making training practical.
+
+#### Comparison to Alternatives
+
+Alternative approaches:
+- **On-the-fly computation**: Too slow, recomputes values millions of times during training
+- **Separate schedule classes**: Code duplication, harder to maintain
+- **Dictionary-based storage**: Slower indexing, no type safety
+- **Lazy computation**: Adds complexity without benefits since we need all values
+
+#### Key Insights
+
+The NoiseSchedule class is efficient because:
+1. **Precomputation**: All constants computed once in `__init__`
+2. **Vectorization**: Batch indexing with `[t]` enables efficient GPU operations
+3. **Unified interface**: All schedules expose the same methods
+4. **Memory locality**: Related values stored together for cache efficiency
+
 ```python
 class NoiseSchedule:
     """Manages noise scheduling and precomputes constants.
@@ -693,6 +783,42 @@ class NoiseSchedule:
 ```
 
 ### Visualizing Schedules
+
+#### Problem and Motivation
+
+Choosing the right noise schedule is critical but non-intuitive. Without visualization, we can't:
+1. Understand how different schedules add noise over time
+2. Compare signal retention ($\bar{\alpha}_t$) across methods
+3. Debug training issues related to too much/too little noise
+4. Make informed decisions about which schedule fits our data
+
+Visual comparison reveals subtle differences that impact sample quality.
+
+#### Theoretical Justification
+
+The noise schedule determines the forward process dynamics. Key quantities to visualize:
+- $\beta_t$: Instantaneous noise addition rate at step $t$
+- $\bar{\alpha}_t$: Cumulative signal retention from $\mathbf{x}_0$ to $\mathbf{x}_t$
+
+The relationship $\bar{\alpha}_t = \prod_{s=1}^t (1-\beta_s)$ shows how small differences in $\beta_t$ compound over timesteps. For instance:
+- Linear schedule: $\bar{\alpha}_t$ decreases linearly, may destroy signal too quickly
+- Cosine schedule: $\bar{\alpha}_t$ decreases slowly at first, preserves structure longer
+
+#### Comparison to Alternatives
+
+Other schedule selection methods:
+- **Trial and error**: Expensive, requires full training runs
+- **Literature values**: May not transfer to your data distribution
+- **Theoretical analysis**: Complex, requires deep mathematical knowledge
+- **Visualization**: Quick, intuitive, guides hyperparameter search
+
+#### Key Insights
+
+Visualization reveals:
+1. **Cosine preserves more signal early**: $\bar{\alpha}_t$ stays high longer, better for images
+2. **Linear is aggressive**: Signal drops faster, can work for simple data
+3. **Sigmoid is smooth**: Continuous derivatives, can help training stability
+4. **Final $\bar{\alpha}_T$**: Should be close to 0 but not exactly 0 (avoid numerical issues)
 
 ```python
 import matplotlib.pyplot as plt
@@ -852,6 +978,42 @@ def train_diffusion_model(
 4. **EMA**: Use exponential moving average of weights for better samples
 5. **Mixed Precision**: Use torch.cuda.amp for faster training
 
+#### EMA: Problem and Motivation
+
+Neural network weights during training fluctuate due to stochastic gradient descent, but we want stable, high-quality samples. The problem is:
+1. Training weights are optimized for low loss, not necessarily best samples
+2. Recent weight updates may be noisy or suboptimal
+3. We need a stable version of the model for evaluation
+4. Checkpointing only captures snapshots, not a smoothed trajectory
+
+#### Theoretical Justification
+
+Exponential Moving Average (EMA) computes a weighted average of past model parameters:
+$$\theta_{\text{EMA},t} = \beta \cdot \theta_{\text{EMA},t-1} + (1-\beta) \cdot \theta_t$$
+
+With decay $\beta \approx 0.9999$, the EMA weights represent roughly the average of the last 10,000 training steps. This smoothing:
+- Reduces variance from stochastic gradients
+- Captures the trajectory rather than individual points
+- Provides implicit regularization by averaging away spurious updates
+
+Theoretically, this is related to Polyak averaging from convex optimization, adapted for non-convex deep learning.
+
+#### Comparison to Alternatives
+
+Alternative stabilization methods:
+- **Checkpointing best loss**: Only captures one snapshot, misses overall trajectory
+- **Weight averaging**: Simple mean loses recent information; EMA weighs recent steps more
+- **Snapshot ensembling**: Requires storing multiple models, expensive
+- **No averaging**: Training weights are too noisy for high-quality generation
+
+#### Key Insights
+
+EMA works exceptionally well for diffusion models because:
+1. **Denoising is sensitive**: Small parameter changes significantly affect sample quality
+2. **Decay rate matters**: 0.9999 balances stability (high decay) and adaptability (low decay)
+3. **Negligible cost**: Only adds a parameter copy and lightweight update per step
+4. **Universal improvement**: Almost always improves FID and visual quality by 10-20%
+
 ```python
 class EMA:
     """Exponential Moving Average of model parameters.
@@ -979,6 +1141,24 @@ def sample_ddpm_with_variance(
 
     Uses the posterior variance from the forward process:
     tilde_beta_t = (1 - alpha_bar_{t-1}) / (1 - alpha_bar_t) * beta_t
+
+    When to use this version vs simple sample_ddpm():
+
+    Use sample_ddpm_with_variance when:
+    - You need better sample quality at the cost of slightly more computation
+    - You've trained with learned variance prediction
+    - You want to use the theoretically correct posterior variance
+    - You're working on high-fidelity generation tasks
+
+    Use simple sample_ddpm when:
+    - You want faster sampling with minimal quality difference
+    - Fixed variance (sqrt(beta_t)) works well enough for your use case
+    - You're prototyping or need quick iterations
+    - Memory or compute is constrained
+
+    The difference is in how variance is computed for the noise added at each step.
+    This version uses the posterior variance from the forward process, which is
+    theoretically more accurate but requires additional computation.
     """
     model.eval()
     x = torch.randn(num_samples, channels, image_size, image_size, device=device)
@@ -1089,7 +1269,7 @@ def sample_ddim(
             t_prev = timesteps[i + 1]
             alpha_bar_t_prev = model.noise_schedule.alphas_cumprod[t_prev]
         else:
-            alpha_bar_t_prev = torch.tensor(1.0)
+            alpha_bar_t_prev = torch.tensor(1.0, device=device)
 
         # Predict x_0
         pred_x_0 = (x - torch.sqrt(1 - alpha_bar_t) * predicted_noise) / torch.sqrt(alpha_bar_t)
@@ -1127,6 +1307,45 @@ def sample_ddim(
 ---
 
 ## Complete Working Example
+
+#### Problem and Motivation
+
+After presenting individual components (U-Net, noise schedule, training, sampling), readers need:
+1. A concrete, runnable example tying everything together
+2. Proof that the components actually work end-to-end
+3. A starting point they can modify for their own projects
+4. Realistic hyperparameters and training procedures
+
+MNIST provides an ideal testbed: small, fast, well-understood, visually interpretable.
+
+#### Theoretical Justification
+
+This example demonstrates the complete diffusion training pipeline:
+1. **Data preparation**: Normalize to $[-1, 1]$ so the model learns a zero-mean distribution
+2. **Model instantiation**: Smaller U-Net for 28×28 images (fewer parameters than needed for high-res)
+3. **Training loop**: Implements the simplified loss $\mathcal{L} = \mathbb{E}[\|\epsilon - \epsilon_\theta(\mathbf{x}_t, t)\|^2]$
+4. **EMA tracking**: Maintains stable weights for evaluation
+5. **Sampling**: Demonstrates both DDPM and DDIM for comparison
+
+The complete pipeline validates that theory translates to practice.
+
+#### Comparison to Alternatives
+
+Example dataset choices:
+- **Random noise**: Can't verify quality, no ground truth
+- **Simple synthetic**: (circles, gaussians) Too simple, doesn't test real capabilities
+- **CIFAR-10**: Larger, slower, harder to debug
+- **ImageNet**: Way too large for an example
+- **MNIST**: Perfect balance - fast, interpretable, sufficient complexity
+
+#### Key Insights
+
+This example shows:
+1. **Simplicity**: Only ~100 lines of training code for a working diffusion model
+2. **MNIST-specific sizing**: Channel mult (1,2,4) and smaller model_channels (64) fit the task
+3. **Normalization matters**: [-1,1] range matches the model's output range
+4. **EMA is essential**: Compare samples with/without EMA to see quality difference
+5. **Sampling speed**: DDIM with 50 steps is 20× faster than DDPM with 1000 steps
 
 Let's put it all together with a minimal example on MNIST:
 
@@ -1274,23 +1493,105 @@ if __name__ == "__main__":
 
 For high-resolution images, memory becomes a bottleneck:
 
+#### Problem and Motivation
+
+Training diffusion models on high-resolution images (512x512 or larger) requires enormous GPU memory because:
+1. U-Net stores activations at multiple resolutions for backpropagation
+2. Batch sizes must be large for stable training
+3. Skip connections duplicate feature maps in memory
+4. Attention mechanisms scale quadratically with spatial resolution
+
+A single forward pass can consume 16GB+ of memory, making training infeasible on consumer GPUs.
+
+#### Theoretical Justification
+
+The backpropagation algorithm stores intermediate activations during the forward pass to compute gradients. For a network with $L$ layers, standard backprop has:
+- **Memory**: $O(L)$ - stores all activations
+- **Compute**: $O(L)$ - one forward, one backward pass
+
+Gradient checkpointing selectively saves activations and recomputes others during backprop:
+- **Memory**: $O(\sqrt{L})$ - only stores checkpoints
+- **Compute**: $O(L \sqrt{L})$ - recomputes segments between checkpoints
+
+This trades ~30% more computation for 5-10x less memory, making the training feasible.
+
+#### Comparison to Alternatives
+
+Memory reduction techniques:
+- **Smaller batch size**: Hurts training stability and convergence
+- **Lower resolution**: Defeats the purpose of high-res generation
+- **Smaller model**: Reduces quality significantly
+- **CPU offloading**: 10-100x slower due to transfer overhead
+- **Gradient checkpointing**: Best trade-off for diffusion models
+
+#### Key Insights
+
+Gradient checkpointing is ideal for U-Net because:
+1. **Layered structure**: Natural checkpointing boundaries (down/up blocks)
+2. **Repeated blocks**: Same computation pattern, easy to recompute
+3. **Memory-bound**: U-Net's bottleneck is memory, not compute
+4. **Selective checkpointing**: Can checkpoint only expensive operations (attention blocks)
+
 ```python
 # 1. Gradient checkpointing
 class UNetCheckpointed(UNet):
-    """U-Net with gradient checkpointing for memory efficiency."""
+    """U-Net with gradient checkpointing for memory efficiency.
+
+    Gradient checkpointing trades compute for memory by not storing
+    intermediate activations during the forward pass. Instead, they're
+    recomputed during the backward pass.
+
+    This allows training with much larger batch sizes or higher resolutions,
+    at the cost of ~20-30% slower training.
+
+    Reference:
+        See [Distributed Training and Parallelism](16-distributed-training.md)
+        for more details on gradient checkpointing.
+    """
     def forward(self, x, t):
         from torch.utils.checkpoint import checkpoint
 
-        # Checkpoint expensive blocks
-        def custom_forward(module):
-            def forward(*inputs):
-                return module(*inputs)
-            return forward
+        # Time embedding (always compute, not checkpointed as it's small)
+        t_emb = self.time_mlp(t)
 
-        # Use checkpointing for down/up blocks
-        # Trades compute for memory
-        # See [Distributed Training and Parallelism](16-distributed-training.md)
-        pass
+        # Initial convolution
+        x = self.conv_in(x)
+
+        # Downsample with checkpointing
+        skips = []
+        for block in self.down_blocks:
+            # Checkpoint each down block to save memory
+            # use_reentrant=False is recommended for better compatibility
+            x, skip = checkpoint(
+                block,
+                x,
+                t_emb,
+                use_reentrant=False
+            )
+            skips.append(skip)
+
+        # Bottleneck (checkpoint the expensive attention block)
+        x = checkpoint(self.mid_block1, x, t_emb, use_reentrant=False)
+        x = checkpoint(self.mid_attn, x, use_reentrant=False)
+        x = checkpoint(self.mid_block2, x, t_emb, use_reentrant=False)
+
+        # Upsample with checkpointing
+        for block in self.up_blocks:
+            skip = skips.pop()
+            x = checkpoint(
+                block,
+                x,
+                skip,
+                t_emb,
+                use_reentrant=False
+            )
+
+        # Final output (small, no need to checkpoint)
+        x = self.norm_out(x)
+        x = F.silu(x)
+        x = self.conv_out(x)
+
+        return x
 
 
 # 2. Mixed precision training
@@ -1316,6 +1617,56 @@ def train_with_mixed_precision(model, dataloader, optimizer):
 ```
 
 ### Inference Optimization
+
+#### Problem and Motivation
+
+Training diffusion models is slow but happens once. Inference (sampling) happens repeatedly for every user request, so we need:
+1. Faster sample generation (reduce latency)
+2. Higher throughput (more samples per second)
+3. Lower memory usage (fit more concurrent requests)
+4. Maintaining quality while speeding up
+
+Without optimization, generating a single 512×512 image can take 10-30 seconds - unacceptable for production.
+
+#### Theoretical Justification
+
+Inference optimization exploits three key observations:
+
+1. **Compilation**: PyTorch 2.0's `torch.compile` uses TorchInductor to fuse operations and eliminate Python overhead. For diffusion models with repeated denoising steps, this eliminates kernel launch overhead.
+
+2. **DDIM subsampling**: DDIM's deterministic formulation allows skipping timesteps. Sampling at timesteps $\{0, 20, 40, \ldots, 980\}$ instead of $\{0, 1, 2, \ldots, 999\}$ gives a 50× speedup with minimal quality loss because:
+   - The denoising function $\epsilon_\theta$ is smooth across timesteps
+   - Adjacent steps produce highly correlated predictions
+   - Non-Markovian formulation of DDIM enables valid large steps
+
+3. **Batch generation**: GPUs are throughput-oriented. Generating 64 images in one batch is much faster than 64 sequential generations due to:
+   - Amortized memory transfer costs
+   - Better GPU utilization (higher occupancy)
+   - Kernel fusion opportunities
+
+#### Comparison to Alternatives
+
+Inference speedup techniques:
+- **Distillation**: 4-8× faster but requires retraining student models
+- **Pruning/Quantization**: Modest speedups (1.5-2×), can degrade quality
+- **Custom CUDA kernels**: Significant engineering effort, maintenance burden
+- **ONNX/TensorRT**: Good speedups but deployment complexity
+- **DDIM + compile + batching**: Easy wins with minimal effort
+
+#### Key Insights
+
+Practical inference optimization:
+1. **DDIM is free**: No retraining needed, just change sampling code
+2. **Compile once**: First inference is slow (compilation), subsequent ones are fast
+3. **Sweet spot**: 20-50 DDIM steps balances speed and quality for most applications
+4. **Batch size**: Limited by GPU memory; find the maximum that fits
+5. **Quality monitoring**: Always compare samples before/after optimization
+
+Recommended stack for production:
+- DDIM with 25-50 steps (20-50× speedup)
+- `torch.compile` (1.3-2× speedup)
+- Batch generation (near-linear scaling)
+- Total: 30-100× faster than naive DDPM
 
 ```python
 # 1. Compile model (PyTorch 2.0+)
@@ -1360,6 +1711,456 @@ def generate_batch(model, batch_size=64):
   - Use DDIM instead of DDPM
   - Reduce ddim_steps (25-50 is usually enough)
   - Consider distillation (see [Model Merging and Distillation](30-merging-distillation.md))
+
+---
+
+## Conditional Generation
+
+So far we've covered unconditional generation - generating random samples from the learned distribution. In practice, we often want to control what we generate using conditions like class labels, text prompts, or other guidance signals.
+
+### Class-Conditional Diffusion
+
+The simplest form of conditioning is on discrete class labels (e.g., generating specific MNIST digits).
+
+#### Method 1: Embedding-Based Conditioning
+
+#### Problem and Motivation
+
+Unconditional generation produces random samples, but we often want control over what we generate. For class-conditional generation, we need:
+1. A way to encode discrete class labels (e.g., "cat" vs "dog")
+2. Integration of class information throughout the denoising process
+3. The ability to learn class-specific denoising patterns
+4. Minimal architectural changes to the existing U-Net
+
+#### Theoretical Justification
+
+Class conditioning modifies the denoising distribution to be class-aware:
+$$p_\theta(\mathbf{x}_{t-1}|\mathbf{x}_t, y) = \mathcal{N}(\mathbf{x}_{t-1}; \mu_\theta(\mathbf{x}_t, t, y), \Sigma_\theta(\mathbf{x}_t, t, y))$$
+
+where $y$ is the class label. We implement this by conditioning the noise prediction:
+$$\epsilon_\theta(\mathbf{x}_t, t, y)$$
+
+Learned embeddings map discrete labels to continuous representations that can be combined with time embeddings. This is analogous to word embeddings in NLP, where discrete tokens map to semantic vector spaces.
+
+#### Comparison to Alternatives
+
+Other conditioning approaches:
+- **Concatenation**: Wastes parameters, requires architectural changes
+- **Adaptive normalization (AdaIN/AdaGN)**: More complex, marginal quality gains
+- **Separate networks per class**: Not scalable, can't generalize
+- **One-hot encoding**: High-dimensional, inefficient, no learned semantics
+- **Embedding addition**: Simple, effective, preserves architecture
+
+#### Key Insights
+
+Embedding-based conditioning works because:
+1. **Learned semantics**: Embeddings learn meaningful class representations
+2. **Shared computation**: Same network for all classes, efficient parameter use
+3. **Gradient flow**: Class information flows through the entire network via conditioning
+4. **Flexibility**: Easy to extend to multiple conditions or continuous values
+
+Add class information through learned embeddings that are combined with time embeddings:
+
+```python
+class ConditionalUNet(UNet):
+    """U-Net with class conditioning via embeddings.
+
+    The class embedding is added to the time embedding, allowing
+    the model to learn class-specific denoising behavior.
+    """
+    def __init__(self, num_classes: int, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Class embedding layer
+        self.class_emb = nn.Embedding(num_classes, self.time_emb_dim)
+
+        # Optional: learn to combine class and time embeddings
+        self.cond_mlp = nn.Sequential(
+            nn.Linear(self.time_emb_dim * 2, self.time_emb_dim),
+            nn.SiLU(),
+            nn.Linear(self.time_emb_dim, self.time_emb_dim)
+        )
+
+    def forward(self, x: torch.Tensor, t: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+        """
+        Args:
+            x: (batch, channels, H, W) - noisy images
+            t: (batch,) - timesteps
+            y: (batch,) - class labels
+
+        Returns:
+            (batch, channels, H, W) - predicted noise
+        """
+        # Time embedding
+        t_emb = self.time_mlp(t)
+
+        # Class embedding
+        y_emb = self.class_emb(y)
+
+        # Combine embeddings
+        # Simple addition works, but learned combination can be better
+        cond_emb = self.cond_mlp(torch.cat([t_emb, y_emb], dim=-1))
+
+        # Rest of forward pass uses cond_emb instead of t_emb
+        x = self.conv_in(x)
+
+        skips = []
+        for block in self.down_blocks:
+            x, skip = block(x, cond_emb)
+            skips.append(skip)
+
+        x = self.mid_block1(x, cond_emb)
+        x = self.mid_attn(x)
+        x = self.mid_block2(x, cond_emb)
+
+        for block in self.up_blocks:
+            skip = skips.pop()
+            x = block(x, skip, cond_emb)
+
+        x = self.norm_out(x)
+        x = F.silu(x)
+        x = self.conv_out(x)
+
+        return x
+
+
+class ConditionalDiffusionModel(DiffusionModel):
+    """Diffusion model with class conditioning."""
+    def __init__(self, unet: ConditionalUNet, **kwargs):
+        super().__init__(unet, **kwargs)
+
+    def forward(self, x_0: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+        """Training forward pass with class labels.
+
+        Args:
+            x_0: (batch, C, H, W) - real images
+            y: (batch,) - class labels
+
+        Returns:
+            loss: Scalar MSE loss
+        """
+        batch_size = x_0.shape[0]
+        device = x_0.device
+
+        # Sample random timesteps
+        t = torch.randint(0, self.timesteps, (batch_size,), device=device).long()
+
+        # Sample noise
+        noise = torch.randn_like(x_0)
+
+        # Create noisy images
+        x_t = self.noise_schedule.q_sample(x_0, t, noise)
+
+        # Predict noise (conditioned on class)
+        predicted_noise = self.unet(x_t, t, y)
+
+        # Compute loss
+        loss = F.mse_loss(predicted_noise, noise)
+
+        return loss
+```
+
+#### Conditional Sampling
+
+When generating, we provide the desired class label:
+
+```python
+@torch.no_grad()
+def sample_conditional(
+    model: ConditionalDiffusionModel,
+    class_labels: torch.Tensor,
+    image_size: int = 32,
+    channels: int = 3,
+    device: str = "cuda"
+) -> torch.Tensor:
+    """Generate samples conditioned on class labels.
+
+    Args:
+        model: Trained conditional diffusion model
+        class_labels: (num_samples,) - desired class labels
+        image_size: Size of generated images
+        channels: Number of channels
+        device: Device to sample on
+
+    Returns:
+        Generated images with specified class labels
+    """
+    model.eval()
+    num_samples = len(class_labels)
+
+    # Start from pure noise
+    x = torch.randn(num_samples, channels, image_size, image_size, device=device)
+
+    # Reverse diffusion process
+    for t in reversed(range(model.timesteps)):
+        t_batch = torch.full((num_samples,), t, device=device, dtype=torch.long)
+
+        # Predict noise conditioned on class
+        predicted_noise = model.unet(x, t_batch, class_labels)
+
+        # Same denoising step as DDPM
+        alpha = model.noise_schedule.alphas[t]
+        alpha_bar = model.noise_schedule.alphas_cumprod[t]
+        beta = model.noise_schedule.betas[t]
+
+        x = (1 / torch.sqrt(alpha)) * (
+            x - ((beta) / torch.sqrt(1 - alpha_bar)) * predicted_noise
+        )
+
+        if t > 0:
+            noise = torch.randn_like(x)
+            sigma = torch.sqrt(beta)
+            x += sigma * noise
+
+    return x
+
+
+# Example: Generate specific MNIST digits
+def generate_mnist_digits():
+    """Generate one sample of each MNIST digit (0-9)."""
+    # Create labels for digits 0-9
+    class_labels = torch.arange(10, device='cuda')
+
+    # Generate
+    samples = sample_conditional(
+        model,
+        class_labels=class_labels,
+        image_size=28,
+        channels=1,
+        device='cuda'
+    )
+
+    return samples  # Will contain one image of each digit
+```
+
+### Method 2: Classifier-Free Guidance
+
+#### Problem and Motivation
+
+Embedding-based conditioning gives us some control, but samples often don't strongly adhere to the specified class. We want:
+1. Stronger alignment between samples and conditions
+2. No separate classifier network (simpler architecture)
+3. Ability to trade off between sample quality and diversity
+4. A unified model that handles both conditional and unconditional generation
+
+The key question: How do we make the model follow conditions more faithfully without additional components?
+
+#### Theoretical Justification
+
+Classifier-free guidance (CFG) uses implicit guidance through the difference between conditional and unconditional predictions:
+
+$$\tilde{\epsilon}_\theta(\mathbf{x}_t, y) = \epsilon_\theta(\mathbf{x}_t, \emptyset) + s \cdot (\epsilon_\theta(\mathbf{x}_t, y) - \epsilon_\theta(\mathbf{x}_t, \emptyset))$$
+
+where $s$ is the guidance scale. This can be rewritten as:
+$$\tilde{\epsilon}_\theta = (1-s)\epsilon_\theta(\mathbf{x}_t, \emptyset) + s\cdot\epsilon_\theta(\mathbf{x}_t, y)$$
+
+The guidance amplifies the conditional prediction while suppressing the unconditional one. Theoretically, this approximates sampling from:
+$$p(\mathbf{x}_t|y) \propto p(\mathbf{x}_t)^{1-s} \cdot p(\mathbf{x}_t|y)^s$$
+
+For $s > 1$, this overemphasizes the conditional distribution, leading to samples that more strongly exhibit class-specific features.
+
+#### Comparison to Alternatives
+
+Alternative guidance methods:
+- **Classifier guidance**: Requires training a separate classifier on noisy images, computationally expensive
+- **CLIP guidance**: Uses a pretrained model but requires gradients through CLIP at sampling time (slow)
+- **Embedding scaling**: Simply scales embeddings, doesn't separate conditional/unconditional
+- **Conditional GAN discriminator**: Requires adversarial training, unstable
+- **Classifier-free guidance**: Single model, no extra networks, fast sampling
+
+#### Key Insights
+
+Classifier-free guidance is revolutionary because:
+1. **Single model**: One network learns both $p(\mathbf{x})$ and $p(\mathbf{x}|y)$ by randomly dropping conditions
+2. **No gradients at inference**: Unlike classifier guidance, CFG only requires forward passes
+3. **Tunable strength**: Guidance scale $s$ controls condition adherence at sampling time
+4. **Universal applicability**: Works for any conditioning (class, text, image, etc.)
+5. **Simple implementation**: Just 10% conditioning dropout during training
+
+This technique enabled the success of models like DALL-E 2 and Stable Diffusion.
+
+Classifier-free guidance is a more powerful technique that doesn't require a separate classifier. It jointly trains conditional and unconditional models by randomly dropping the condition during training.
+
+```python
+class ClassifierFreeGuidanceUNet(ConditionalUNet):
+    """U-Net with classifier-free guidance support.
+
+    During training, randomly replace class labels with a special
+    "unconditional" token to learn both conditional and unconditional
+    generation in a single model.
+    """
+    def __init__(self, num_classes: int, dropout_prob: float = 0.1, *args, **kwargs):
+        # Add 1 for the unconditional token
+        super().__init__(num_classes + 1, *args, **kwargs)
+        self.dropout_prob = dropout_prob
+        self.num_classes = num_classes
+        self.uncond_token = num_classes  # Last token is "unconditional"
+
+    def forward(self, x: torch.Tensor, t: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+        """
+        Args:
+            x: (batch, channels, H, W) - noisy images
+            t: (batch,) - timesteps
+            y: (batch,) - class labels (may include uncond_token)
+
+        Returns:
+            Predicted noise
+        """
+        # During training, randomly drop conditioning
+        if self.training and self.dropout_prob > 0:
+            # Create mask for which samples to make unconditional
+            mask = torch.rand(y.shape[0], device=y.device) < self.dropout_prob
+            y = torch.where(mask, self.uncond_token, y)
+
+        # Rest is same as ConditionalUNet
+        return super().forward(x, t, y)
+
+
+@torch.no_grad()
+def sample_with_cfg(
+    model: ClassifierFreeGuidanceUNet,
+    class_labels: torch.Tensor,
+    guidance_scale: float = 7.5,
+    image_size: int = 32,
+    channels: int = 3,
+    device: str = "cuda"
+) -> torch.Tensor:
+    """Sample with classifier-free guidance.
+
+    The guidance equation is:
+        epsilon_pred = epsilon_uncond + guidance_scale * (epsilon_cond - epsilon_uncond)
+
+    This amplifies the effect of conditioning, leading to more accurate
+    but potentially less diverse samples.
+
+    Args:
+        model: Trained model with CFG support
+        class_labels: (num_samples,) - desired class labels
+        guidance_scale: How strongly to follow the condition (typically 3-15)
+                       1.0 = no guidance, higher = stronger guidance
+        image_size: Size of images to generate
+        channels: Number of channels
+        device: Device to sample on
+
+    Returns:
+        Generated images
+    """
+    model.eval()
+    num_samples = len(class_labels)
+
+    # Start from noise
+    x = torch.randn(num_samples, channels, image_size, image_size, device=device)
+
+    # Create unconditional labels
+    uncond_labels = torch.full_like(class_labels, model.uncond_token)
+
+    for t in reversed(range(model.timesteps)):
+        t_batch = torch.full((num_samples,), t, device=device, dtype=torch.long)
+
+        # Predict noise with and without conditioning
+        # We do this in a single batch for efficiency
+        x_input = torch.cat([x, x], dim=0)
+        t_input = torch.cat([t_batch, t_batch], dim=0)
+        y_input = torch.cat([uncond_labels, class_labels], dim=0)
+
+        # Get predictions
+        noise_pred = model(x_input, t_input, y_input)
+
+        # Split into unconditional and conditional
+        noise_pred_uncond, noise_pred_cond = noise_pred.chunk(2)
+
+        # Apply guidance
+        predicted_noise = noise_pred_uncond + guidance_scale * (
+            noise_pred_cond - noise_pred_uncond
+        )
+
+        # Denoising step
+        alpha = model.noise_schedule.alphas[t]
+        alpha_bar = model.noise_schedule.alphas_cumprod[t]
+        beta = model.noise_schedule.betas[t]
+
+        x = (1 / torch.sqrt(alpha)) * (
+            x - ((beta) / torch.sqrt(1 - alpha_bar)) * predicted_noise
+        )
+
+        if t > 0:
+            noise = torch.randn_like(x)
+            sigma = torch.sqrt(beta)
+            x += sigma * noise
+
+    return x
+```
+
+### Training with Classifier-Free Guidance
+
+```python
+def train_cfg_model(
+    model: ClassifierFreeGuidanceUNet,
+    dataloader,
+    num_epochs: int = 100,
+    device: str = "cuda"
+):
+    """Train model with classifier-free guidance.
+
+    The key difference from standard training is that we randomly
+    drop conditions during training by replacing class labels with
+    the unconditional token.
+    """
+    model = model.to(device)
+    diffusion_model = ConditionalDiffusionModel(model, timesteps=1000, schedule="cosine")
+    diffusion_model.noise_schedule.to(device)
+
+    optimizer = torch.optim.AdamW(model.parameters(), lr=2e-4)
+
+    for epoch in range(num_epochs):
+        model.train()
+        total_loss = 0
+
+        for images, labels in dataloader:
+            images = images.to(device)
+            labels = labels.to(device)
+
+            # Forward pass (dropout is applied inside the model)
+            loss = diffusion_model(images, labels)
+
+            # Backward pass
+            optimizer.zero_grad()
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            optimizer.step()
+
+            total_loss += loss.item()
+
+        avg_loss = total_loss / len(dataloader)
+        print(f"Epoch {epoch}: Loss = {avg_loss:.4f}")
+
+        # Generate samples with different guidance scales
+        if (epoch + 1) % 10 == 0:
+            model.eval()
+            class_labels = torch.arange(10, device=device)
+
+            for guidance in [1.0, 3.0, 7.5]:
+                samples = sample_with_cfg(
+                    model,
+                    class_labels,
+                    guidance_scale=guidance,
+                    image_size=28,
+                    channels=1,
+                    device=device
+                )
+                save_image_grid(samples, f"cfg_{guidance}_epoch_{epoch}.png")
+```
+
+### Effect of Guidance Scale
+
+The guidance scale controls the trade-off between sample quality and diversity:
+
+- **guidance_scale = 1.0**: No guidance, purely conditional generation
+- **guidance_scale = 3-5**: Moderate guidance, good balance
+- **guidance_scale = 7-15**: Strong guidance, high fidelity to condition but less diversity
+- **guidance_scale > 15**: Very strong guidance, may lead to artifacts
+
+In practice, guidance scales around 7.5 work well for most applications (this is the default in Stable Diffusion).
 
 ---
 

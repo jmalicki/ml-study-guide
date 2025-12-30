@@ -43,7 +43,24 @@ $$\tau(T) = [id(c_1), id(c_2), ..., id(c_n)]$$
 
 where $id: \Sigma \rightarrow \{0, 1, ..., |\Sigma|-1\}$ is a bijective mapping.
 
-### 1.2.2 Advantages and Disadvantages
+### 1.2.2 Computational Complexity
+
+**Training Complexity:**
+$$O(N)$$
+
+where $N$ is the total number of characters in the corpus. Training simply involves collecting all unique characters.
+
+**Encoding Complexity:**
+$$O(n)$$
+
+where $n$ is the length of the text to encode. Each character is mapped to its ID in constant time.
+
+**Space Complexity:**
+$$O(|\Sigma|)$$
+
+where $|\Sigma|$ is the alphabet size (typically 256-150K for Unicode).
+
+### 1.2.3 Advantages and Disadvantages
 
 **Advantages:**
 - Very small vocabulary size (typically < 256 for ASCII, < 150K for Unicode)
@@ -55,7 +72,36 @@ where $id: \Sigma \rightarrow \{0, 1, ..., |\Sigma|-1\}$ is a bijective mapping.
 - Difficult to capture long-range semantic dependencies
 - Each token carries less semantic information
 
-### 1.2.3 Implementation
+### 1.2.4 Implementation
+
+**Problem Being Solved:**
+
+Character-level tokenization must map arbitrary text to integer sequences that neural networks can process. The core challenge is maintaining bidirectional mappings (char-to-ID and ID-to-char) while handling special tokens that control model behavior (padding, unknown tokens, sequence boundaries).
+
+**Theoretical Justification:**
+
+The character tokenizer implements a bijective function $\tau: \Sigma \rightarrow \mathbb{N}$ where $\Sigma$ is our alphabet. This mapping must be:
+1. **Injective**: Different characters map to different IDs (no collisions)
+2. **Surjective**: All IDs correspond to valid characters (complete coverage)
+3. **Efficient**: $O(1)$ lookups using hash tables (dictionaries in Python)
+
+Special tokens serve specific purposes in the learning objective:
+- `[PAD]`: Enables batching by making sequences uniform length (attention masks zero these out)
+- `[BOS]`/`[EOS]`: Teach the model sequence boundaries (critical for generation)
+- `[UNK]`: Provides a graceful degradation path for unseen characters
+
+**Relation to Alternatives:**
+
+Unlike word-level or subword tokenizers that require corpus statistics, character tokenizers need only observe the character set. This makes them:
+- **Simpler**: No merge operations or frequency counting
+- **Deterministic**: Same text always produces same tokens (no vocabulary-dependent splits)
+- **Complete**: Zero information loss from the original text
+
+The tradeoff is sequence length: character sequences are typically 4-6x longer than subword sequences, increasing quadratic attention costs.
+
+**Key Insight:**
+
+The implementation uses dictionary-based lookups rather than a fixed character table (like ASCII codes) to maintain flexibility: we can add special tokens, control ID assignment order, and easily serialize/deserialize the vocabulary. The special tokens are initialized first to guarantee they occupy the lowest IDs (0-3), which can be useful for certain model architectures that reserve ID ranges.
 
 ```python
 import torch
@@ -226,7 +272,24 @@ Tokenization maps each word to its index in $V$:
 
 $$\tau(w_i) = j \quad \text{where} \quad w_i = V[j]$$
 
-### 1.3.2 Advantages and Disadvantages
+### 1.3.2 Computational Complexity
+
+**Training Complexity:**
+$$O(N + V \log V)$$
+
+where $N$ is the corpus size and $V$ is the vocabulary size. The $V \log V$ term comes from sorting words by frequency to select the most common ones.
+
+**Encoding Complexity:**
+$$O(n)$$
+
+where $n$ is the text length. Each word lookup in a hash table is $O(1)$ on average.
+
+**Space Complexity:**
+$$O(V)$$
+
+where $V$ is the vocabulary size (typically 50K-500K words).
+
+### 1.3.3 Advantages and Disadvantages
 
 **Advantages:**
 - Tokens carry semantic meaning
@@ -239,7 +302,50 @@ $$\tau(w_i) = j \quad \text{where} \quad w_i = V[j]$$
 - Doesn't handle morphological variations well
 - Language-dependent (challenges with Chinese, Japanese, etc.)
 
-### 1.3.3 Implementation
+### 1.3.4 Implementation
+
+**Problem Being Solved:**
+
+Word-level tokenization faces a fundamental challenge: natural language contains millions of distinct words (including proper nouns, technical terms, inflections), but we must restrict vocabulary size for computational feasibility. This creates the **vocabulary selection problem**: which words to keep?
+
+**Theoretical Justification:**
+
+The solution is based on **Zipf's Law**, which states that word frequency follows a power-law distribution:
+
+$$f(r) \propto \frac{1}{r^\alpha}$$
+
+where $f(r)$ is the frequency of the word ranked $r$-th, and $\alpha \approx 1$ for natural language.
+
+This means:
+- The top 10,000 words cover ~95% of tokens in typical English text
+- The long tail (rare words) accounts for most vocabulary diversity but few actual tokens
+- **Frequency-based truncation** maximizes corpus coverage while minimizing vocabulary size
+
+For words outside the vocabulary, we use the `[UNK]` token. The expected number of UNK tokens is:
+
+$$E[\text{UNK}] = N \times P(w \notin V) \approx N \times (1 - \text{coverage})$$
+
+With vocab size 50K, we typically get 95-98% coverage, meaning 2-5% of running tokens are UNK.
+
+**Relation to Alternatives:**
+
+Compared to character and subword methods:
+- **vs Character**: Word tokenizers capture semantic units directly but fail on unseen words
+- **vs Subword**: Words are linguistically natural but create larger vocabularies and can't decompose rare words
+
+The regex-based splitting (`\w+|[^\w\s]`) is a simplified approach. Production systems use:
+- **NLTK/spaCy**: Linguistically-informed tokenization with language-specific rules
+- **Moses tokenizer**: Handles punctuation, contractions, and edge cases
+- **Language-specific rules**: Different rules for agglutinative languages, CJK scripts, etc.
+
+**Key Insight:**
+
+The frequency-based vocabulary selection is a **greedy approximation** to the optimal vocabulary that maximizes corpus coverage. The true optimum would consider:
+1. Word co-occurrence patterns (phrases like "New York" vs individual words)
+2. Morphological relationships (keeping "run", "running", "runner" vs just "run")
+3. Task-specific importance (domain terms may be rare but critical)
+
+However, simple frequency-based selection works well in practice due to Zipf's Law, making it the standard baseline approach.
 
 ```python
 import re
@@ -439,7 +545,70 @@ $$V_k = V_0 \cup \{m_1, m_2, ..., m_k\}$$
 
 where $m_i$ is the $i$-th merge operation.
 
+#### Computational Complexity
+
+**Training Complexity:**
+$$O(N \times M)$$
+
+where $N$ is the corpus size and $M$ is the number of merge operations (typically $M = $ vocab\_size - charset\_size). At each merge step, we need to scan the corpus to count pairs and apply the merge.
+
+More precisely:
+- Counting pairs: $O(N)$ per iteration
+- Finding max pair: $O(P)$ where $P$ is the number of unique pairs
+- Applying merge: $O(N)$ per iteration
+- Total over $M$ iterations: $O(N \times M)$
+
+**Encoding Complexity:**
+$$O(n \times M)$$
+
+where $n$ is the text length and $M$ is the number of merges. For each position in the text, we may need to check multiple merge rules. With efficient implementation using a priority queue or trie, this can be reduced to $O(n \log M)$.
+
+**Space Complexity:**
+$$O(V + M)$$
+
+where $V$ is the vocabulary size and $M$ is the number of merge rules stored.
+
 #### Implementation
+
+**Problem Being Solved:**
+
+BPE must learn which character sequences to merge to balance vocabulary size and sequence length. The core challenge is discovering subword units that are **statistically frequent** enough to warrant inclusion in the vocabulary, while being **compositional** enough to represent rare words.
+
+**Theoretical Justification:**
+
+BPE is a **greedy algorithm** that approximates the optimal vocabulary by iteratively selecting the merge with maximum frequency:
+
+$$m_i = \arg\max_{(a,b) \in V_i \times V_i} \text{count}(ab)$$
+
+This greedy approach is justified by the **principle of compositionality**: common subword units appear across many words, so merging them reduces total sequence length while preserving information.
+
+The algorithm converges because:
+1. Each merge reduces the number of token boundaries by at least 1
+2. The corpus is finite, so eventually no beneficial merges remain
+3. We typically stop after $k$ merges (where $k$ = vocab\_size - charset\_size)
+
+**Why frequency works**: The most frequent pairs are typically:
+- Common morphemes: "-ing", "-tion", "un-"
+- Frequent words: "the", "and", "is"
+- Common substrings: "er", "ed", "ly"
+
+By greedily merging these, we capture both complete common words and reusable subword pieces.
+
+**Relation to Alternatives:**
+
+- **vs WordPiece**: BPE uses raw frequency; WordPiece uses likelihood ratio (mutual information). BPE is simpler and faster; WordPiece is more theoretically principled.
+- **vs Unigram LM**: BPE builds vocabulary bottom-up (characters → subwords); Unigram starts with many subwords and prunes. BPE is more interpretable; Unigram can find better global solutions.
+- **vs Word-level**: BPE decomposes rare words into subwords rather than mapping to UNK, enabling better generalization.
+
+**Key Insights:**
+
+1. **Order matters**: BPE merges are applied sequentially during encoding. The merge order learned during training determines how text is segmented.
+
+2. **Deterministic segmentation**: Given fixed merge rules, BPE produces consistent tokenization (unlike probabilistic methods like Unigram).
+
+3. **Compression vs semantics**: Early merges create common words ("the", "and"); later merges may create non-semantic units ("er", "##ion") that exist purely for compression.
+
+4. **Character initialization**: Starting from characters ensures we can represent any word, avoiding the OOV problem entirely.
 
 ```python
 import re
@@ -710,7 +879,73 @@ $$\text{score}_{\text{WordPiece}}(a, b) = \frac{P(ab)}{P(a)P(b)} = \frac{\text{c
 
 This scores pairs by how much their joint probability exceeds their independent probabilities (mutual information).
 
+#### Computational Complexity
+
+**Training Complexity:**
+$$O(N \times M \times T)$$
+
+where $N$ is the corpus size, $M$ is the number of merge operations, and $T$ is the average number of tokens per word. WordPiece is slightly more expensive than BPE because computing the mutual information score requires counting both pairs and individual tokens.
+
+**Encoding Complexity:**
+$$O(n^2)$$
+
+This is the worst-case complexity for the greedy longest-match-first algorithm, where $n$ is the word length. For each position, we try to match the longest possible subword, which can take $O(n)$ time, and we do this for each of $n$ positions.
+
+In practice, encoding is often faster than worst-case due to:
+- Most matches succeed quickly with common subwords
+- Subword length is typically bounded
+
+**Space Complexity:**
+$$O(V)$$
+
+where $V$ is the vocabulary size.
+
 #### Implementation
+
+**Problem Being Solved:**
+
+WordPiece improves upon BPE by selecting merges that maximize the **likelihood of the training data** rather than just raw frequency. The problem is: how do we choose merges that help the model learn better language representations?
+
+**Theoretical Justification:**
+
+WordPiece uses **pointwise mutual information (PMI)** as its merge criterion:
+
+$$\text{PMI}(a, b) = \log \frac{P(ab)}{P(a)P(b)} = \log \frac{\text{count}(ab)}{\text{count}(a) \cdot \text{count}(b)}$$
+
+This measures how much more likely $a$ and $b$ are to appear together than would be expected if they were independent.
+
+**Why PMI is better than raw frequency:**
+
+Consider two candidate merges:
+- Pair 1: ("e", "r") appears 10,000 times, but "e" appears 50,000 times and "r" appears 40,000 times
+- Pair 2: ("qu", "i") appears 5,000 times, but "qu" appears 5,100 times and "i" appears 40,000 times
+
+Raw frequency favors Pair 1. But PMI reveals:
+- PMI(e, r) = log(10,000 / (50,000 × 40,000)) = very negative (anti-correlated!)
+- PMI(qu, i) = log(5,000 / (5,100 × 40,000)) = less negative (more associated)
+
+"qu" almost always appears with "i" (as in "quick", "quit"), making it a more meaningful unit than the accidental co-occurrence of "e" and "r".
+
+**Mathematical Equivalence:**
+
+The PMI score is equivalent to:
+
+$$\text{score}(a,b) = \frac{P(ab)}{P(a)P(b)}$$
+
+Maximizing this is equivalent to maximizing the log-likelihood of the data under a unigram language model, which is why this produces better language representations.
+
+**Relation to Alternatives:**
+
+- **vs BPE**: WordPiece considers both frequency AND association strength. This creates more linguistically meaningful subwords.
+- **vs Unigram**: WordPiece is still greedy (locally optimal); Unigram optimizes globally using EM algorithm.
+
+**Key Insights:**
+
+1. **Longest-match-first encoding**: Unlike BPE which applies merges in training order, WordPiece greedily matches the longest subword at each position. This is faster but can be suboptimal.
+
+2. **Prefix marking**: The `##` prefix distinguishes word-initial tokens ("play") from continuations ("##ing"), allowing the model to learn position-dependent representations.
+
+3. **BERT's success**: WordPiece was crucial to BERT's performance. The likelihood-based merging creates subwords that align with morphological boundaries, helping BERT learn better word representations.
 
 ```python
 import math
@@ -994,7 +1229,54 @@ where $S(x)$ is the set of all possible segmentations of input $x$, and we choos
 
 $$x^* = \arg\max_{x \in S(x)} P(x)$$
 
-Since we don't implement SentencePiece from scratch here (it's quite complex), we show how to use the library:
+Since we don't implement SentencePiece from scratch here (it's quite complex), we show how to use the library.
+
+**Problem Being Solved:**
+
+Traditional tokenizers (BPE, WordPiece) require **pre-tokenization** - splitting text into words before applying subword segmentation. This assumption breaks for:
+- Languages without clear word boundaries (Chinese, Japanese, Thai)
+- Informal text with inconsistent spacing
+- Code, URLs, and structured data
+- Mixed-language text
+
+SentencePiece solves this by treating input as a **raw character stream** and learning segmentation directly.
+
+**Theoretical Justification:**
+
+SentencePiece's unigram language model maximizes:
+
+$$\mathcal{L} = \sum_{i=1}^{N} \log P(X_i) = \sum_{i=1}^{N} \log \left( \sum_{s \in S(X_i)} P(s) \right)$$
+
+where $S(X_i)$ is the set of all possible segmentations of sentence $X_i$.
+
+The probability of a segmentation is:
+
+$$P(s) = \prod_{j=1}^{|s|} P(t_j)$$
+
+where $t_j$ are the tokens in segmentation $s$.
+
+**Training via EM algorithm:**
+1. E-step: Compute expected counts of each subword under current model
+2. M-step: Update subword probabilities, prune unlikely subwords
+3. Repeat until convergence
+
+**Why this works:**
+- **Language agnostic**: No assumptions about word boundaries
+- **Probabilistic**: Models uncertainty in segmentation (e.g., "New York" could be one or two tokens)
+- **Optimal given model**: EM finds (local) maximum likelihood solution
+
+**Relation to Alternatives:**
+
+- **vs BPE/WordPiece**: SentencePiece needs no pre-tokenization, handles whitespace explicitly with ▁ symbol
+- **Character coverage**: The `character_coverage` parameter (e.g., 0.9995) controls how many unique characters to include, enabling size/coverage tradeoff for different scripts
+
+**Key Insights:**
+
+1. **Whitespace as character**: The ▁ symbol represents space, making "hello" and " hello" distinguishable (important for GPT-style models)
+
+2. **Reversibility**: Because whitespace is encoded, decoding is lossless: decode(encode(text)) == text
+
+3. **Used in production**: T5, ALBERT, XLNet all use SentencePiece because of its language-agnostic properties and clean implementation
 
 ```python
 # Installation: pip install sentencepiece
@@ -1168,7 +1450,30 @@ For a fixed corpus:
 
 ## 1.6 Modern Tokenizers: Practical Usage
 
-In practice, you'll often use existing tokenizer libraries rather than implementing from scratch. Here's how to use the most common ones:
+In practice, you'll often use existing tokenizer libraries rather than implementing from scratch.
+
+**Problem Being Solved:**
+
+Production systems need tokenizers that are:
+1. **Fast**: Implemented in C++/Rust (HuggingFace tokenizers are 10-100x faster than pure Python)
+2. **Battle-tested**: Handle edge cases discovered across thousands of applications
+3. **Compatible**: Work seamlessly with model architectures (GPT-2, BERT, T5)
+4. **Feature-complete**: Support batching, padding, truncation, special tokens, attention masks
+
+**Why Use Pre-trained Tokenizers:**
+
+The tokenizer is **part of the model architecture**. A model trained with GPT-2's tokenizer expects:
+- Specific vocabulary (50,257 tokens)
+- Specific subword splits ("running" → ["run", "ning"])
+- Specific special token IDs
+
+Using a different tokenizer, even with the same algorithm, will produce different token IDs and break the model. This is why we load tokenizers with `from_pretrained()` - we're loading the exact vocabulary the model was trained with.
+
+**Key Insight:**
+
+The tokenizer's learned vocabulary is a **trained component** of the model, not just a preprocessing step. The model's embedding layer has dimensions `[vocab_size, embed_dim]`, and changing the vocabulary invalidates these learned embeddings.
+
+Here's how to use the most common ones:
 
 ```python
 # Using Hugging Face Transformers
@@ -1223,7 +1528,41 @@ print(f"Batch attention_mask:\n{batch_encoded['attention_mask']}")
 
 Used in GPT-2 and later models, Byte-Level BPE operates on bytes rather than characters, ensuring that any text can be encoded without UNK tokens.
 
-**Key insight**: Map all 256 possible byte values to a base vocabulary, then apply BPE on top.
+**Problem Being Solved:**
+
+Character-level BPE faces challenges with:
+- **Unicode complexity**: 149,186 defined characters in Unicode 15.0
+- **Unknown characters**: New emojis, rare scripts, corrupted text
+- **Inconsistent encoding**: Different byte representations (UTF-8, UTF-16, etc.)
+
+**Theoretical Justification:**
+
+Byte-level BPE works on the **byte representation** of UTF-8 encoded text:
+
+1. Any Unicode string can be represented as UTF-8 bytes
+2. UTF-8 uses 1-4 bytes per character
+3. There are exactly 256 possible byte values
+
+This gives us a **complete, fixed base vocabulary** of 256 tokens. The BPE algorithm then merges frequent byte sequences.
+
+**Advantages:**
+- **Universal**: Can represent any byte sequence (including binary data!)
+- **No UNK tokens**: Every possible input has a valid encoding
+- **Consistent**: Same byte sequence always tokenizes identically
+- **Compact base vocabulary**: Only 256 base tokens vs ~150K Unicode characters
+
+**Disadvantage:**
+- Byte sequences for non-ASCII characters can be unintuitive
+- Example: "世" (Chinese) → 3 bytes in UTF-8 → needs multiple tokens if not merged
+
+**Key Insight:**
+
+GPT-2's innovation was combining byte-level encoding with BPE merges. This means:
+- Base vocabulary: 256 bytes
+- After merges: ~50K tokens covering common byte sequences
+- Result: Common words are single tokens, rare words split to bytes, **zero UNK tokens**
+
+This is why GPT-2 can handle any text - emojis, code, mathematics, corrupted input - without failing.
 
 ```python
 # GPT-2 uses byte-level BPE
@@ -1257,6 +1596,42 @@ Tokenization choices affect:
 3. **Generalization**: Subword tokenization improves handling of rare words through compositional understanding.
 
 ### 1.7.3 Handling Special Tokens
+
+**Problem Being Solved:**
+
+Neural networks process fixed-size tensors, but language comes in variable-length sequences. Special tokens solve several critical problems:
+
+1. **Sequence boundaries**: Where does input start/end?
+2. **Batch processing**: How to handle different lengths in one batch?
+3. **Task specification**: How to signal tasks (e.g., "translate this" vs "summarize this")?
+4. **Masking**: How to mark positions for the model to predict?
+
+**Theoretical Justification:**
+
+Special tokens are **learned symbols** with trainable embeddings. The model learns their semantics through training:
+
+- `[PAD]`: The attention mechanism learns to assign zero weight to these positions via attention masks
+- `[BOS]`/`[EOS]`: The model learns these mark distribution boundaries (important for likelihood: $P(\text{sequence}) = P(w_1|[BOS]) \cdot P(w_2|w_1,[BOS]) \cdots P([EOS]|w_n,...,w_1,[BOS])$)
+- `[SEP]`: For tasks like NLI, separates premise from hypothesis
+- `[MASK]`: For BERT's masked language modeling objective
+
+**Mathematical Role:**
+
+For a sequence of length $n$ with padding to length $N$:
+$$\text{attention\_mask} = [1, 1, ..., 1, 0, 0, ..., 0]$$
+$$\text{attention\_weights}_{ij} = \begin{cases} \text{softmax}(\text{score}_{ij}) & \text{if mask}_j = 1 \\ 0 & \text{if mask}_j = 0 \end{cases}$$
+
+This ensures padding doesn't affect the model's computations.
+
+**Key Insight:**
+
+Position IDs must account for padding. For a padded sequence:
+```
+tokens:    [BOS,  10,  20,  30,  EOS, PAD, PAD]
+positions: [  0,   1,   2,   3,    4,   0,   0]
+```
+
+Padding positions get ID 0 (not 5, 6) so positional embeddings don't learn spurious patterns from padding positions.
 
 Special tokens serve various purposes:
 
@@ -1319,7 +1694,379 @@ print(f"Attention Mask:\n{attention_mask}")
 print(f"Position IDs:\n{position_ids}")
 ```
 
+### 1.7.4 Common Tokenization Pitfalls
+
+Understanding common pitfalls in tokenization is critical for debugging model behavior and avoiding subtle bugs in production systems. These issues often manifest as unexpected model performance or generation artifacts.
+
+#### Leading and Trailing Spaces
+
+Different tokenizers handle whitespace differently, which can significantly impact model behavior:
+
+```python
+from transformers import GPT2Tokenizer, BertTokenizer
+
+gpt2_tok = GPT2Tokenizer.from_pretrained('gpt2')
+bert_tok = BertTokenizer.from_pretrained('bert-base-uncased')
+
+text1 = "hello"
+text2 = " hello"  # Leading space
+
+# GPT-2 treats leading space as significant
+print("GPT-2:")
+print(f"'{text1}': {gpt2_tok.tokenize(text1)}")  # ['hello']
+print(f"'{text2}': {gpt2_tok.tokenize(text2)}")  # ['Ġhello'] - different token!
+
+# BERT strips and normalizes spaces
+print("\nBERT:")
+print(f"'{text1}': {bert_tok.tokenize(text1)}")  # ['hello']
+print(f"'{text2}': {bert_tok.tokenize(text2)}")  # ['hello'] - same!
+```
+
+**Why this matters:**
+- GPT-2's byte-level BPE uses `Ġ` (U+0120) to represent spaces
+- The token for " hello" (with space) is different from "hello" (without space)
+- This affects generation: GPT-2 can distinguish between word-initial and mid-sentence positions
+- Prompt engineering must account for this: `"The cat"` vs `" The cat"` may behave differently
+
+**Best practices:**
+- Be consistent with spacing in prompts
+- Understand your model's space handling before fine-tuning
+- When concatenating text, verify tokenization doesn't change unexpectedly
+
+#### Case Sensitivity
+
+Case handling varies across tokenizers and has significant implications:
+
+```python
+from transformers import BertTokenizer, GPT2Tokenizer
+
+bert_cased = BertTokenizer.from_pretrained('bert-base-cased')
+bert_uncased = BertTokenizer.from_pretrained('bert-base-uncased')
+gpt2_tok = GPT2Tokenizer.from_pretrained('gpt2')
+
+text = "Apple makes iPhones."
+
+print("BERT (cased):", bert_cased.tokenize(text))
+# ['Apple', 'makes', 'i', '##Ph', '##ones', '.']
+
+print("BERT (uncased):", bert_uncased.tokenize(text))
+# ['apple', 'makes', 'iphones', '.']  # Lowercased, different segmentation!
+
+print("GPT-2:", gpt2_tok.tokenize(text))
+# ['Apple', 'Ġmakes', 'Ġi', 'Ph', 'ones', '.']  # Case-sensitive
+```
+
+**Implications:**
+- **Vocabulary size**: Uncased models have ~30% smaller vocabularies
+- **Named entities**: "Apple" (company) vs "apple" (fruit) are the same token in uncased models
+- **Rare word handling**: "iPhone" might be in cased vocab but "iphone" gets split in uncased
+- **Performance trade-offs**: Uncased models generally perform better on case-insensitive tasks
+
+**Best practices:**
+- Choose cased models for tasks requiring case distinction (NER, code generation)
+- Use uncased models for case-insensitive tasks (sentiment analysis, QA)
+- Normalize case in preprocessing if using uncased models
+- Be aware that mixed-case rare words may tokenize differently
+
+#### Subword Boundary Ambiguity
+
+Tokenization can create ambiguities that affect model understanding:
+
+```python
+examples = [
+    ("New York", "NewYork"),           # Space matters
+    ("re-training", "retraining"),      # Hyphenation
+    ("email", "e-mail", "e mail"),      # Multiple valid forms
+]
+
+tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
+
+for example in examples:
+    print(f"\nComparing: {example}")
+    for variant in example:
+        tokens = tokenizer.tokenize(variant)
+        print(f"  '{variant}': {tokens}")
+
+# Output shows different tokenizations:
+# 'New York': ['New', 'ĠYork']
+# 'NewYork': ['New', 'York']  # Different! No space token
+#
+# 're-training': ['re', '-', 'training']
+# 'retraining': ['ret', 'raining']  # Completely different!
+```
+
+**Why this matters:**
+- Named entities: "New York" vs "NewYork" have different representations
+- This affects:
+  - Entity recognition and extraction
+  - Coreference resolution (model may not recognize variants as the same entity)
+  - Retrieval and search (embedding similarity affected by tokenization)
+
+**Mathematical implication:**
+
+For embeddings $E$, the representation of "New York" is:
+$$\text{repr}(\text{"New York"}) = f(E[\text{"New"}], E[\text{"ĠYork"}])$$
+
+While "NewYork" gives:
+$$\text{repr}(\text{"NewYork"}) = f(E[\text{"New"}], E[\text{"York"}])$$
+
+These use different tokens (with/without space), leading to different embeddings even though they refer to the same entity.
+
+**Best practices:**
+- Normalize entities during preprocessing (choose one canonical form)
+- For NER tasks, train with diverse entity representations
+- Consider using character-aware or byte-level tokenizers for robustness
+- Test critical entities/terms in your domain with your tokenizer
+
+#### Detokenization Challenges
+
+Reversing tokenization is non-trivial and often lossy:
+
+```python
+import re
+
+class NaiveDetokenizer:
+    """Common mistakes in detokenization."""
+
+    def wrong_detokenize_bpe(self, tokens):
+        """Incorrect: just joins tokens."""
+        # This loses word boundaries!
+        return ''.join(tokens)
+        # "['The', 'Ġquick', 'Ġbrown']" -> "TheĠquickĠbrown" (wrong!)
+
+    def wrong_detokenize_wordpiece(self, tokens, prefix="##"):
+        """Incorrect: only removes prefix."""
+        # This loses spaces between words!
+        return ''.join(tokens).replace(prefix, '')
+        # "['play', '##ing', 'is', 'fun']" -> "playingisfun" (wrong!)
+
+    def correct_detokenize_wordpiece(self, tokens, prefix="##"):
+        """Correct: track word boundaries."""
+        result = []
+        current_word = []
+
+        for token in tokens:
+            if token.startswith(prefix):
+                # Continuation of current word
+                current_word.append(token[len(prefix):])
+            else:
+                # New word starts
+                if current_word:
+                    result.append(''.join(current_word))
+                current_word = [token]
+
+        if current_word:
+            result.append(''.join(current_word))
+
+        return ' '.join(result)
+```
+
+**Common detokenization issues:**
+
+1. **Punctuation spacing**: "Hello , world !" should be "Hello, world!"
+2. **Contractions**: "do n't" should be "don't"
+3. **Quotes**: `" Hello "` should be `"Hello"`
+4. **Special characters**: Unicode normalization, byte-level encoding artifacts
+
+**Best practices:**
+- Use the tokenizer's built-in decode method when available
+- Implement language-specific detokenization rules
+- Test round-trip encoding/decoding on real data
+- Keep track of original text during preprocessing for reference
+
+#### Tokenization Effects on Model Behavior
+
+Tokenization can cause unexpected model failures:
+
+```python
+# Famous GPT-2/GPT-3 example: "SolidGoldMagikarp"
+# This token appeared in training data but was never seen in text context
+# Caused bizarre model behavior when used
+
+# Why? The token was in Reddit usernames but never in actual text
+# Model had no semantic understanding of it
+
+# Another example: Unicode edge cases
+text_with_rare_unicode = "Hello \u200b world"  # Zero-width space
+
+# Different tokenizers handle this differently
+# May silently drop it, split incorrectly, or create rare tokens
+```
+
+**Pitfall categories:**
+
+1. **Rare tokens with poor embeddings**:
+   - Tokens that appear in training but in limited contexts
+   - Solution: Monitor token frequency distribution, filter very rare tokens
+
+2. **Subword confusability**:
+   ```python
+   # "resume" vs "résumé" may tokenize completely differently
+   text1 = "resume"   # Tokens: ['res', 'ume']
+   text2 = "résumé"   # Tokens: ['r', 'é', 's', 'um', 'é']
+   # Model may not recognize these as related!
+   ```
+
+3. **Tokenization instability**:
+   - Small text changes causing large tokenization changes
+   - Example: Adding a space can change downstream token boundaries
+
+**Mitigation strategies:**
+- Audit tokenization on domain-specific vocabulary
+- Monitor rare token usage in production
+- Use byte-level tokenizers for robustness
+- Test edge cases (Unicode, special characters, mixed languages)
+
+#### Cross-lingual Tokenization Issues
+
+Different languages have vastly different tokenization efficiency:
+
+```python
+from transformers import AutoTokenizer
+
+tokenizer = AutoTokenizer.from_pretrained('gpt2')
+
+# Compare tokenization efficiency across languages
+examples = {
+    'English': "The quick brown fox jumps over the lazy dog.",
+    'Chinese': "快速的棕色狐狸跳过了懒狗。",  # Same meaning
+    'Arabic': "الثعلب البني السريع يقفز فوق الكلب الكسول.",  # Same meaning
+    'Korean': "빠른 갈색 여우가 게으른 개를 뛰어넘습니다.",  # Same meaning
+}
+
+for lang, text in examples.items():
+    tokens = tokenizer.tokenize(text)
+    print(f"{lang:10} | {len(tokens):3} tokens | {len(text):3} chars | "
+          f"Ratio: {len(tokens)/len(text):.2f}")
+
+# Output (approximate):
+# English    |  10 tokens |  44 chars | Ratio: 0.23
+# Chinese    |  25 tokens |  15 chars | Ratio: 1.67  # 7x worse!
+# Arabic     |  35 tokens |  42 chars | Ratio: 0.83  # 3.6x worse
+# Korean     |  30 tokens |  22 chars | Ratio: 1.36  # 5.9x worse
+```
+
+**Why this happens:**
+- GPT-2 was trained primarily on English text
+- English subwords are well-represented in vocabulary
+- Non-Latin scripts often fall back to character or byte-level encoding
+- This creates **tokenization bias** in multilingual applications
+
+**Implications:**
+$$\text{Compute cost} \propto \text{sequence length}^2$$
+
+For the same semantic content:
+- Chinese text uses ~7x more tokens than English
+- Attention cost is ~49x higher ($7^2$)
+- Context window fills ~7x faster
+
+**Solutions:**
+- Use multilingual tokenizers (e.g., mBERT, XLM-R, mT5)
+- Train language-specific or multilingual models
+- For SentencePiece: set character\_coverage appropriately
+  - English: 0.9995 (nearly all chars)
+  - Chinese/Japanese: 0.9995 (many characters)
+  - Mixed multilingual: 0.9999 (maximize coverage)
+
+#### Empty String and Edge Cases
+
+Edge cases that can cause silent failures:
+
+```python
+def test_edge_cases(tokenizer):
+    """Test cases that often reveal bugs."""
+
+    edge_cases = [
+        "",                          # Empty string
+        " ",                         # Only whitespace
+        "   ",                       # Multiple spaces
+        "\n\n\n",                    # Only newlines
+        "\t\t\t",                    # Only tabs
+        "🤖" * 100,                  # Long emoji sequence
+        "a" * 10000,                 # Very long word
+        "\x00\x01\x02",              # Control characters
+        "hello" + "\u200b" * 50 + "world",  # Zero-width characters
+    ]
+
+    for text in edge_cases:
+        try:
+            tokens = tokenizer.encode(text)
+            decoded = tokenizer.decode(tokens)
+            if decoded != text.strip():  # Most tokenizers strip spaces
+                print(f"Round-trip failed for: {repr(text)}")
+        except Exception as e:
+            print(f"Error on {repr(text)}: {e}")
+```
+
+**Common issues:**
+- Empty strings may cause index errors
+- Very long sequences exceed max\_length silently
+- Control characters may be stripped without warning
+- Combining characters may separate from base characters
+
+**Best practices:**
+```python
+def robust_tokenize(text, tokenizer, max_length=512):
+    """Tokenization with proper error handling."""
+
+    # Handle edge cases
+    if not text or not text.strip():
+        # Return appropriate empty encoding
+        return [tokenizer.bos_token_id, tokenizer.eos_token_id]
+
+    # Normalize whitespace
+    text = ' '.join(text.split())
+
+    # Encode with truncation
+    tokens = tokenizer.encode(
+        text,
+        max_length=max_length,
+        truncation=True,
+        add_special_tokens=True
+    )
+
+    # Verify tokenization
+    if len(tokens) == 0:
+        raise ValueError(f"Tokenization produced empty sequence for: {text[:100]}")
+
+    return tokens
+```
+
 ## 1.8 Building a Complete Tokenizer Pipeline
+
+**Problem Being Solved:**
+
+A production tokenizer needs to unify all the concepts we've covered:
+- Multiple tokenization algorithms (char, word, BPE)
+- Batch processing with padding and truncation
+- Special token handling
+- Attention mask generation
+- Serialization/deserialization (saving/loading)
+- Clean API compatible with PyTorch and modern frameworks
+
+**Theoretical Justification:**
+
+This implementation follows the **HuggingFace tokenizers API design**, which has become the de facto standard because:
+
+1. **Composability**: Separates encoding, padding, truncation into independent operations
+2. **Consistency**: Same API across all tokenization algorithms
+3. **Efficiency**: Returns dictionaries with all necessary tensors (input_ids, attention_mask)
+4. **Flexibility**: Handles single text or batches transparently
+
+**Key Design Decisions:**
+
+1. **Return dictionaries**: Models expect `{input_ids: ..., attention_mask: ...}`, not just token IDs
+2. **Polymorphic input**: Accept both `str` and `List[str]` to handle single/batch seamlessly
+3. **JSON serialization**: Vocabulary must be serializable for deployment
+4. **Configurable**: All hyperparameters stored in config for reproducibility
+
+**Why This Matters:**
+
+In production ML systems, the tokenizer is deployed alongside the model. It must:
+- Produce identical output on different machines/platforms
+- Handle edge cases gracefully (empty strings, very long inputs)
+- Provide features for batching (critical for training efficiency)
+- Be serializable (save/load from disk)
 
 Let's build a production-ready tokenizer with all features:
 

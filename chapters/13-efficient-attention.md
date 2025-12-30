@@ -12,11 +12,14 @@ Understanding these techniques is crucial for ML interviews, as production LLMs 
    - [BigBird](#bigbird)
    - [Longformer](#longformer)
 4. [Sliding Window Attention](#sliding-window-attention)
-5. [Multi-Query Attention (MQA)](#multi-query-attention-mqa)
-6. [Grouped-Query Attention (GQA)](#grouped-query-attention-gqa)
-7. [Multi-head Latent Attention (MLA)](#multi-head-latent-attention-mla)
-8. [Comparison and Usage Guidance](#comparison-and-usage-guidance)
-9. [Summary](#summary)
+5. [PagedAttention (vLLM)](#pagedattention-vllm)
+6. [Multi-Query Attention (MQA)](#multi-query-attention-mqa)
+7. [Grouped-Query Attention (GQA)](#grouped-query-attention-gqa)
+8. [Multi-head Latent Attention (MLA)](#multi-head-latent-attention-mla)
+9. [Comparison and Usage Guidance](#comparison-and-usage-guidance)
+   - [Combining Techniques](#combining-techniques)
+   - [KV Cache Quantization](#kv-cache-quantization)
+10. [Summary](#summary)
 
 ---
 
@@ -90,6 +93,19 @@ def analyze_attention_complexity():
 
 **The solutions in this chapter address one or both of these bottlenecks.**
 
+#### Why This Complexity Analysis Matters
+
+Before diving into solutions, it's crucial to understand the practical impact of quadratic complexity. The function below demonstrates how quickly attention becomes infeasible:
+
+**Problem**: At 128K tokens, standard attention requires ~140 teraFLOPs per forward pass - multiple GPU-seconds even on A100s. This makes training on long contexts prohibitively expensive.
+
+**Theoretical justification**: The $O(n^2)$ term dominates all other operations in transformers once $n > d$. For typical models where $d \approx 4096$, any sequence longer than 4K tokens means attention is the primary bottleneck.
+
+**Key insight**: Doubling context length quadruples compute. This superlinear scaling means we must either:
+1. Reduce the sequence length (chunking, summarization)
+2. Change the attention mechanism itself (this chapter's solutions)
+3. Accept impractical training costs
+
 ---
 
 ## Linear Attention (Kernel Approximations)
@@ -123,8 +139,12 @@ class LinearAttention(nn.Module):
 
     Complexity: O(n * d^2) instead of O(n^2 * d)
 
-    Key limitation: No causal masking support (for autoregressive models)
-    without modifications. Best for encoder-style models.
+    Key limitation: The causal implementation below uses a sequential loop,
+    which negates the linear complexity benefit during training. For true
+    O(n) causal linear attention, parallel prefix sum (associative scan)
+    algorithms can be used. See the note below on parallel implementations.
+
+    Best for encoder-style models or when using specialized causal kernels.
 
     Reference: Katharopoulos et al., "Transformers are RNNs: Fast
     Autoregressive Transformers with Linear Attention" (ICML 2020)
@@ -245,6 +265,23 @@ def compare_linear_vs_standard():
 
 ### Linear Attention Variants
 
+#### Random Fourier Features: Better Kernel Approximation
+
+**Problem with simple feature maps**: The `elu(x) + 1` feature map is fast but provides a poor approximation to the softmax kernel, especially for large attention scores. This leads to quality degradation.
+
+**Theoretical justification**: Random Fourier Features (RFF) provide a provably better approximation to the Gaussian/softmax kernel through Bochner's theorem:
+
+Any shift-invariant kernel $k(x-y)$ can be expressed as:
+$$k(x-y) = \mathbb{E}_{\omega}[\phi_{\omega}(x)^* \phi_{\omega}(y)]$$
+
+where $\phi_{\omega}(x) = e^{i\omega^T x}$ and $\omega$ is drawn from the Fourier transform of $k$.
+
+For the exponential kernel $\exp(x^T y)$, we can use trigonometric features with random projections.
+
+**Key insight**: By using more feature dimensions (typically $m = 256$ or $512$), RFF achieves near-exact softmax approximation while maintaining linear complexity. The trade-off is increased memory for the feature dimension, but this is still far better than quadratic.
+
+**When to use**: Use RFF when quality matters and you can afford extra feature dimensions. Use simple `elu(x)+1` for maximum speed when approximate attention is acceptable.
+
 ```python
 class RandomFourierFeatures(nn.Module):
     """
@@ -285,9 +322,94 @@ class RandomFourierFeatures(nn.Module):
         return torch.cat([torch.cos(proj), torch.sin(proj)], dim=-1) / (self.n_features ** 0.5)
 ```
 
+### Efficient Causal Linear Attention
+
+The causal implementation above uses a sequential loop, which prevents parallelization and negates the $O(n)$ complexity benefit during training. For efficient causal linear attention, we can use **parallel prefix sum** algorithms.
+
+```python
+def parallel_prefix_sum_explanation():
+    """
+    Parallel prefix sum for efficient causal linear attention.
+
+    The key insight: Causal linear attention can be formulated as a
+    recurrence relation that satisfies the associativity property,
+    allowing parallel prefix sum computation.
+
+    Recurrence form:
+        s_i = s_{i-1} + φ(k_i) ⊗ v_i
+        z_i = z_{i-1} + φ(k_i)
+        o_i = φ(q_i)^T s_i / (φ(q_i)^T z_i)
+
+    where ⊗ is outer product.
+
+    Because addition and outer product are associative, we can compute
+    all s_i and z_i in parallel using a parallel scan (prefix sum).
+
+    Complexity: O(n * d^2) but fully parallel - O(log n) depth!
+
+    Implementation note: This requires specialized CUDA kernels
+    (e.g., using associative scan primitives). PyTorch doesn't have
+    native support, but libraries like JAX provide jax.lax.associative_scan.
+
+    Reference: "Linear Transformers are Secretly Fast Weight Programmers"
+    (Schlag et al., 2021) https://arxiv.org/abs/2102.11174
+    """
+
+    # Conceptual example (not actual parallel implementation)
+    # Real implementation would use specialized GPU kernels
+    import torch
+
+    def associative_combine(state_a, state_b):
+        """
+        Combine two states in the prefix sum.
+
+        state = (kv_accumulator, k_accumulator)
+        """
+        kv_a, k_a = state_a
+        kv_b, k_b = state_b
+
+        # Combine: state_{i+j} = state_i + state_j
+        return (kv_a + kv_b, k_a + k_b)
+
+    # Example for small sequence (real version uses parallel scan)
+    seq_len, d = 8, 64
+    k_features = torch.randn(seq_len, d)  # φ(k)
+    v = torch.randn(seq_len, d)
+
+    # Sequential baseline
+    states = []
+    kv_state = torch.zeros(d, d)
+    k_state = torch.zeros(d)
+
+    for i in range(seq_len):
+        kv_state = kv_state + torch.outer(k_features[i], v[i])
+        k_state = k_state + k_features[i]
+        states.append((kv_state.clone(), k_state.clone()))
+
+    print(f"Computed {seq_len} states sequentially")
+    print("For parallel: use associative scan with combine operator above")
+    print("Parallel complexity: O(log n) steps vs O(n) sequential")
+    print("\nLibraries with parallel scan:")
+    print("  - JAX: jax.lax.associative_scan")
+    print("  - Custom CUDA: implement using shared memory reduction")
+    print("  - PyTorch compile: torch.compile may optimize in future")
+
+# Practical note for interviews
+print("""
+Key Takeaway for Causal Linear Attention:
+
+1. Naive loop: O(n) but sequential - no training speedup
+2. Parallel prefix sum: O(n) work, O(log n) depth - achieves true speedup
+3. Production: Requires custom kernels, not in standard PyTorch
+4. Alternative: Use RNN formulation for autoregressive generation
+   (sequential by nature anyway)
+""")
+```
+
 **Key Papers:**
 - [Transformers are RNNs: Fast Autoregressive Transformers with Linear Attention](https://arxiv.org/abs/2006.16236) (Katharopoulos et al., 2020)
 - [Rethinking Attention with Performers](https://arxiv.org/abs/2009.14794) (Choromanski et al., 2021)
+- [Linear Transformers are Secretly Fast Weight Programmers](https://arxiv.org/abs/2102.11174) (Schlag et al., 2021)
 
 ---
 
@@ -751,6 +873,339 @@ class RollingBufferCache:
 
 ---
 
+## PagedAttention (vLLM)
+
+PagedAttention doesn't change the attention computation itself, but revolutionizes how KV cache is managed in memory. It's crucial for efficient LLM serving systems.
+
+### The KV Cache Fragmentation Problem
+
+#### Why Traditional KV Caching Fails at Scale
+
+**Problem**: Traditional serving systems allocate a contiguous memory block for each request's KV cache, sized for the maximum possible sequence length. This leads to severe memory waste because:
+
+1. **Variable length requests**: Real requests have highly variable lengths (100 tokens to 2K tokens), but we must allocate for the maximum (e.g., 2048 tokens)
+2. **Cannot batch efficiently**: Can't batch a 100-token request with a 1000-token request without wasting memory
+3. **Memory-bound throughput**: The wasted memory prevents serving more requests, reducing GPU utilization
+
+**Theoretical context**: This is analogous to the classic memory fragmentation problem in operating systems - but worse, because we're fragmenting GPU VRAM (a scarce resource) rather than abundant CPU RAM.
+
+**Why existing solutions don't work**:
+- **Dynamic allocation**: Can't easily resize GPU tensors without expensive copies
+- **Separate buffers**: Creates even more fragmentation
+- **Padding**: Wastes computation in addition to memory
+
+**Quantifying the waste**: In production workloads, traditional caching wastes 60-80% of allocated KV cache memory. On a 40GB A100, this means only ~10GB effectively used!
+
+The code below demonstrates how quickly this waste accumulates:
+
+```python
+def illustrate_kv_cache_fragmentation():
+    """
+    Traditional KV cache allocation suffers from fragmentation.
+
+    Problem: Each request allocates a contiguous memory block for its
+    entire KV cache. This leads to:
+    1. Memory fragmentation (wasted space)
+    2. Cannot batch requests with different lengths efficiently
+    3. Memory bound by max_length, not actual length
+    """
+
+    # Traditional approach
+    class TraditionalKVCache:
+        def __init__(self, max_seq_len, n_layers, n_heads, head_dim, max_batch):
+            # Preallocate for worst case
+            self.max_seq_len = max_seq_len
+            self.cache = torch.zeros(
+                max_batch, n_layers, 2, n_heads, max_seq_len, head_dim
+            )
+
+        def get_memory_usage(self, batch_size, actual_lengths):
+            """Calculate memory waste."""
+            total_capacity = batch_size * self.max_seq_len
+            actual_used = sum(actual_lengths)
+            waste = total_capacity - actual_used
+            waste_pct = (waste / total_capacity) * 100
+            return waste_pct
+
+    # Example: LLaMA-13B serving
+    n_layers, n_heads, head_dim = 40, 40, 128
+    max_seq_len = 2048
+    max_batch = 8
+
+    cache = TraditionalKVCache(max_seq_len, n_layers, n_heads, head_dim, max_batch)
+
+    # Real request lengths vary widely
+    actual_lengths = [128, 512, 256, 1024, 64, 2048, 300, 450]
+
+    waste_pct = cache.get_memory_usage(len(actual_lengths), actual_lengths)
+
+    print("Traditional KV Cache Problems:")
+    print("-" * 60)
+    print(f"Max sequence length:     {max_seq_len}")
+    print(f"Batch size:              {len(actual_lengths)}")
+    print(f"Actual lengths:          {actual_lengths}")
+    print(f"Total capacity:          {max_seq_len * len(actual_lengths):,} tokens")
+    print(f"Actually used:           {sum(actual_lengths):,} tokens")
+    print(f"Wasted memory:           {waste_pct:.1f}%")
+    print("\nThis waste prevents batching more requests!")
+```
+
+### PagedAttention Solution
+
+PagedAttention borrows ideas from virtual memory in operating systems:
+
+1. **Block-based allocation**: Divide KV cache into fixed-size blocks (pages)
+2. **Non-contiguous storage**: Request's KV cache doesn't need contiguous memory
+3. **On-demand allocation**: Allocate blocks as needed, not upfront
+
+#### How PagedAttention Transforms the Problem
+
+**The key insight**: Just like virtual memory in OS, we can decouple the logical sequence of KV vectors from their physical storage location. Each sequence maintains a **block table** (like a page table) that maps logical positions to physical blocks.
+
+**Why this works for attention**: Attention computation is:
+$$\text{Attention}(Q, K, V) = \text{softmax}(QK^T)V$$
+
+The key observation: we can gather K and V from non-contiguous blocks because matrix multiplication doesn't require contiguous memory - we're doing random access anyway!
+
+**Theoretical advantages**:
+1. **Near-zero internal fragmentation**: Only waste memory within the last block of each sequence (average $\frac{\text{block\_size}}{2}$ tokens)
+2. **Perfect external fragmentation**: All free blocks can be used by any request
+3. **Dynamic batching**: Can batch any mix of sequence lengths without waste
+
+**Implementation complexity**: Requires custom CUDA kernels to efficiently gather K/V from scattered blocks. The naive PyTorch implementation below shows the concept but is slow - production uses optimized kernels.
+
+**Production impact**: vLLM reports 2-4x higher throughput than traditional serving systems on real workloads, purely from better memory utilization enabling larger batch sizes.
+
+```python
+class PagedAttention(nn.Module):
+    """
+    PagedAttention with block-based KV cache management.
+
+    Key innovation: KV cache is divided into fixed-size blocks.
+    Each sequence's KV cache is a list of block pointers (like virtual memory).
+
+    Benefits:
+    - Near-zero memory waste (internal fragmentation only within last block)
+    - Efficient batching of variable-length sequences
+    - Easy memory sharing for parallel sampling (beam search, etc.)
+
+    Used by: vLLM serving system (widely adopted in production)
+
+    Reference: Kwon et al., "Efficient Memory Management for Large Language
+    Model Serving with PagedAttention" (SOSP 2023)
+    https://arxiv.org/abs/2309.06180
+
+    See also: [Hardware and Optimization](31-hardware-quantization-optimization.md)
+    for integration with quantization and other optimizations.
+    """
+
+    def __init__(
+        self,
+        dim: int,
+        n_heads: int = 8,
+        block_size: int = 16,  # Typical: 16-64 tokens per block
+    ):
+        super().__init__()
+        self.n_heads = n_heads
+        self.head_dim = dim // n_heads
+        self.block_size = block_size
+
+        self.qkv = nn.Linear(dim, 3 * dim, bias=False)
+        self.out = nn.Linear(dim, dim, bias=False)
+        self.scale = self.head_dim ** -0.5
+
+    def forward(
+        self,
+        x: torch.Tensor,
+        block_tables: torch.Tensor,
+        k_cache: torch.Tensor,
+        v_cache: torch.Tensor,
+        context_lens: torch.Tensor,
+    ) -> torch.Tensor:
+        """
+        PagedAttention forward pass.
+
+        Args:
+            x: [batch, seq_len, dim] - Query tokens
+            block_tables: [batch, max_num_blocks] - Block pointers for each sequence
+            k_cache: [num_blocks, block_size, n_heads, head_dim] - All K blocks
+            v_cache: [num_blocks, block_size, n_heads, head_dim] - All V blocks
+            context_lens: [batch] - Actual context length for each sequence
+
+        Returns:
+            output: [batch, seq_len, dim]
+        """
+        batch, seq_len, _ = x.shape
+
+        # Project to Q, K, V
+        qkv = self.qkv(x).reshape(batch, seq_len, 3, self.n_heads, self.head_dim)
+        q, k_new, v_new = qkv.permute(2, 0, 3, 1, 4)  # [batch, n_heads, seq, head_dim]
+
+        # Gather K, V from blocks (simplified - real implementation uses custom CUDA)
+        outputs = []
+        for i in range(batch):
+            # Get blocks for this sequence
+            num_blocks = (context_lens[i] + self.block_size - 1) // self.block_size
+            seq_blocks = block_tables[i, :num_blocks]
+
+            # Gather K, V from these blocks
+            k_seq = k_cache[seq_blocks].reshape(-1, self.n_heads, self.head_dim)
+            v_seq = v_cache[seq_blocks].reshape(-1, self.n_heads, self.head_dim)
+
+            # Truncate to actual length
+            k_seq = k_seq[:context_lens[i]]
+            v_seq = v_seq[:context_lens[i]]
+
+            # Concatenate with new K, V
+            k_full = torch.cat([k_seq, k_new[i]], dim=0)
+            v_full = torch.cat([v_seq, v_new[i]], dim=0)
+
+            # Standard attention for this sequence
+            scores = torch.matmul(q[i], k_full.transpose(-2, -1)) * self.scale
+            attn = torch.softmax(scores, dim=-1)
+            out = torch.matmul(attn, v_full)
+
+            outputs.append(out)
+
+        # Stack and reshape
+        out = torch.stack(outputs)  # [batch, n_heads, seq_len, head_dim]
+        out = out.transpose(1, 2).contiguous().view(batch, seq_len, -1)
+
+        return self.out(out)
+
+
+class BlockAllocator:
+    """
+    Block allocator for PagedAttention KV cache.
+
+    Manages a pool of fixed-size blocks, allocating and freeing them
+    as requests come and go.
+    """
+
+    def __init__(
+        self,
+        num_blocks: int,
+        block_size: int,
+        n_heads: int,
+        head_dim: int,
+        device: str = 'cuda'
+    ):
+        self.num_blocks = num_blocks
+        self.block_size = block_size
+        self.free_blocks = list(range(num_blocks))
+
+        # Preallocate all blocks
+        self.k_cache = torch.zeros(
+            num_blocks, block_size, n_heads, head_dim,
+            device=device, dtype=torch.float16
+        )
+        self.v_cache = torch.zeros(
+            num_blocks, block_size, n_heads, head_dim,
+            device=device, dtype=torch.float16
+        )
+
+    def allocate(self, num_blocks_needed: int) -> list[int]:
+        """
+        Allocate blocks for a new sequence.
+
+        Returns:
+            List of block IDs
+        """
+        if len(self.free_blocks) < num_blocks_needed:
+            raise MemoryError(f"Out of KV cache blocks")
+
+        allocated = self.free_blocks[:num_blocks_needed]
+        self.free_blocks = self.free_blocks[num_blocks_needed:]
+        return allocated
+
+    def free(self, block_ids: list[int]):
+        """Free blocks when sequence is done."""
+        self.free_blocks.extend(block_ids)
+
+    def get_utilization(self) -> float:
+        """Get cache utilization percentage."""
+        used = self.num_blocks - len(self.free_blocks)
+        return (used / self.num_blocks) * 100
+
+
+def compare_traditional_vs_paged():
+    """
+    Compare memory efficiency: traditional vs paged.
+    """
+    # Configuration
+    n_layers, n_heads, head_dim = 32, 32, 128
+    max_seq_len = 2048
+    block_size = 16
+    dtype_bytes = 2  # FP16
+
+    # Sample batch with varying lengths
+    requests = [
+        ("req1", 128),
+        ("req2", 512),
+        ("req3", 256),
+        ("req4", 1024),
+        ("req5", 64),
+        ("req6", 2048),
+        ("req7", 300),
+        ("req8", 450),
+    ]
+
+    # Traditional: each request needs max_seq_len
+    traditional_memory = (
+        len(requests) * n_layers * 2 * n_heads * max_seq_len * head_dim * dtype_bytes
+    ) / 1e9
+
+    # Paged: only allocate blocks needed
+    total_blocks_needed = 0
+    for name, length in requests:
+        blocks = (length + block_size - 1) // block_size
+        total_blocks_needed += blocks
+
+    paged_memory = (
+        total_blocks_needed * n_layers * 2 * n_heads * block_size * head_dim * dtype_bytes
+    ) / 1e9
+
+    # Actual tokens used
+    actual_tokens = sum(length for _, length in requests)
+
+    print("Traditional vs PagedAttention Memory Comparison")
+    print("=" * 70)
+    print(f"{'Method':<20} {'Memory (GB)':<15} {'Tokens Used':<15} {'Waste':<10}")
+    print("-" * 70)
+
+    traditional_waste = ((len(requests) * max_seq_len - actual_tokens) /
+                        (len(requests) * max_seq_len)) * 100
+    paged_waste = ((total_blocks_needed * block_size - actual_tokens) /
+                   (total_blocks_needed * block_size)) * 100
+
+    print(f"{'Traditional':<20} {traditional_memory:<15.2f} "
+          f"{actual_tokens:<15,} {traditional_waste:<10.1f}%")
+    print(f"{'PagedAttention':<20} {paged_memory:<15.2f} "
+          f"{actual_tokens:<15,} {paged_waste:<10.1f}%")
+
+    print(f"\nMemory savings: {traditional_memory / paged_memory:.2f}x")
+    print(f"This allows {traditional_memory / paged_memory:.1f}x more requests in same memory!")
+```
+
+### Key Advantages of PagedAttention
+
+1. **Memory efficiency**: ~3-4x improvement in real workloads
+2. **Flexible batching**: Easily batch requests of different lengths
+3. **Memory sharing**: Efficient parallel sampling (multiple beams share prefix)
+4. **Preemption**: Can pause long requests to handle short ones
+
+### Production Impact
+
+vLLM (which implements PagedAttention) has become the standard for LLM serving because:
+- 2-4x higher throughput than traditional serving systems
+- Better GPU utilization
+- Supports continuous batching (add/remove requests dynamically)
+
+**Key Paper:**
+- [Efficient Memory Management for Large Language Model Serving with PagedAttention](https://arxiv.org/abs/2309.06180) (Kwon et al., 2023)
+
+---
+
 ## Multi-Query Attention (MQA)
 
 MQA reduces KV cache size by sharing key and value heads across all query heads.
@@ -1012,6 +1467,23 @@ class GroupedQueryAttention(nn.Module):
         new_kv = (k[:, ::self.n_rep], v[:, ::self.n_rep])
         return out, new_kv
 
+
+#### Converting Existing Models: The Uptraining Technique
+
+**Problem**: You've trained a large MHA model but want GQA's inference efficiency. Retraining from scratch wastes compute and may not reach the same quality.
+
+**Solution**: The GQA paper demonstrates a clever **uptraining** technique that converts MHA checkpoints to GQA with minimal additional training.
+
+**Why this works**:
+- **Information preservation**: Multiple heads within a group often learn similar features (redundancy in MHA)
+- **Smooth initialization**: Averaging heads provides a sensible starting point, not random initialization
+- **Fast recovery**: The model only needs to fine-tune, not learn from scratch
+
+**Theoretical justification**: MHA has redundancy by design - empirical studies show that randomly dropping up to 50% of attention heads causes minimal degradation. GQA's grouping exploits this redundancy systematically.
+
+**Practical impact**: This enables retrofitting existing models (like converting LLaMA 1 MHA to LLaMA 2 GQA) without full retraining. Typically requires only ~5% of original training compute to recover within 1% of original quality.
+
+**Key tradeoff**: Uptraining quality is slightly worse than training GQA from scratch, but the cost savings (95% less compute) make it attractive for model updates.
 
 def uptraining_mha_to_gqa():
     """
@@ -1387,19 +1859,290 @@ print(f"70B, 128K context:  {selector.select_for_inference('medium', 1, 131072)}
 print(f"600B, 100K context: {selector.select_for_inference('large', 1, 100000)}")
 ```
 
+### Combining Techniques
+
+Modern production systems often combine multiple efficiency techniques. The key insight: **these methods are largely orthogonal**.
+
+```python
+def combining_techniques_example():
+    """
+    Real-world models combine multiple attention optimizations.
+
+    Key insight: Different techniques address different bottlenecks:
+    - Flash Attention: Memory hierarchy optimization (speeds up training)
+    - GQA/MQA: Reduces KV cache size (speeds up inference)
+    - Sliding Window: Reduces computational complexity
+    - PagedAttention: Optimizes memory management (serving efficiency)
+    """
+
+    combinations = [
+        {
+            "model": "LLaMA 3 70B",
+            "techniques": ["Flash Attention 2", "GQA (8 groups)"],
+            "training_speedup": "2.5x",
+            "inference_cache_reduction": "8x",
+            "notes": "Flash for training, GQA for inference"
+        },
+        {
+            "model": "Mistral 7B",
+            "techniques": ["Flash Attention 2", "GQA (8 groups)", "Sliding Window (4096)"],
+            "training_speedup": "3x",
+            "inference_cache_reduction": "Fixed size cache",
+            "notes": "All three techniques stack multiplicatively"
+        },
+        {
+            "model": "Qwen 2.5 72B",
+            "techniques": ["Flash Attention 2", "GQA (8 groups)", "Sliding Window (32K)"],
+            "training_speedup": "2.5x",
+            "inference_cache_reduction": "8x + window limit",
+            "notes": "Large window for long context tasks"
+        },
+        {
+            "model": "DeepSeek V3",
+            "techniques": ["Flash Attention 2", "MLA", "Sparse MoE"],
+            "training_speedup": "2x",
+            "inference_cache_reduction": "20x",
+            "notes": "MLA enables extreme context (128K)"
+        },
+    ]
+
+    print("Combined Attention Optimizations in Production Models")
+    print("=" * 80)
+
+    for combo in combinations:
+        print(f"\n{combo['model']}:")
+        print(f"  Techniques:      {', '.join(combo['techniques'])}")
+        print(f"  Training:        {combo['training_speedup']} speedup")
+        print(f"  Inference cache: {combo['inference_cache_reduction']} reduction")
+        print(f"  Notes:           {combo['notes']}")
+
+    print("\n" + "=" * 80)
+    print("\nKey Takeaway: Combining techniques is standard practice!")
+    print("  - Flash Attention 2 natively supports GQA")
+    print("  - Sliding window works with any KV cache reduction method")
+    print("  - PagedAttention is orthogonal to all attention variants")
+
+
+# Flash Attention 2 specifically optimized for GQA
+class FlashAttentionGQANote:
+    """
+    Flash Attention 2 has native GQA support.
+
+    Flash Attention 2 kernels are optimized for:
+    - Variable sequence lengths (no padding needed)
+    - GQA (efficiently handles different number of Q vs KV heads)
+    - Causal and bidirectional attention
+    - Sliding window attention
+
+    This means you get Flash's speed + GQA's memory savings with zero overhead!
+
+    Example from LLaMA 3 70B:
+    - 64 query heads, 8 KV heads (GQA with 8 groups)
+    - Flash Attention 2 handles this natively
+    - Result: 2-3x training speedup + 8x inference cache reduction
+
+    Reference: Flash Attention 2 (Dao, 2023)
+    https://arxiv.org/abs/2307.08691
+    """
+    pass
+
+
+def flash_attention_with_sliding_window():
+    """
+    Flash Attention 2 also supports sliding window attention natively.
+
+    This is used in models like Mistral and Qwen.
+    """
+    print("""
+Flash Attention 2 + Sliding Window:
+
+The Flash Attention 2 CUDA kernel accepts a window_size parameter.
+When set, it:
+1. Only computes attention within the sliding window
+2. Still uses the tiling/recomputation strategy for memory efficiency
+3. Combines O(n*w) complexity with O(1) memory overhead
+
+Example (Mistral-style):
+    flash_attn_func(
+        q, k, v,
+        causal=True,
+        window_size=(4095, 0),  # Left window, right window
+    )
+
+Result: Get both benefits simultaneously!
+- Sliding window: O(n*w) instead of O(n^2)
+- Flash: 2-3x speedup from memory hierarchy optimization
+
+This is why Mistral 7B is so efficient despite long context support.
+    """)
+```
+
+### KV Cache Quantization
+
+Another orthogonal optimization: quantize the KV cache to lower precision.
+
+```python
+class QuantizedKVCache:
+    """
+    Quantize KV cache to INT8 or FP8 for further memory reduction.
+
+    Standard: FP16 KV cache (2 bytes per element)
+    INT8: 1 byte per element (2x reduction)
+    FP8: 1 byte per element with better dynamic range
+
+    Trade-off:
+    + 2x memory reduction (stacks with GQA/MLA!)
+    + Higher throughput (more memory bandwidth)
+    - Small quality degradation (~0.5% on most tasks)
+    - Requires careful calibration
+
+    Can be combined with:
+    - GQA: 8x from GQA × 2x from INT8 = 16x total!
+    - MLA: 20x from MLA × 2x from INT8 = 40x total!
+    - PagedAttention: Works transparently with paged blocks
+
+    Used in production serving systems for extreme efficiency.
+
+    See [Hardware and Optimization](31-hardware-quantization-optimization.md)
+    for detailed quantization techniques.
+
+    Reference: "KIVI: A Tuning-Free Asymmetric 2bit Quantization for KV Cache"
+    (Liu et al., 2023) and various serving system implementations.
+    """
+
+    def __init__(
+        self,
+        n_layers: int,
+        n_heads: int,
+        head_dim: int,
+        max_seq_len: int,
+        device: str = 'cuda'
+    ):
+        # Store KV cache in INT8
+        self.k_cache = torch.zeros(
+            n_layers, n_heads, max_seq_len, head_dim,
+            device=device, dtype=torch.int8
+        )
+        self.v_cache = torch.zeros(
+            n_layers, n_heads, max_seq_len, head_dim,
+            device=device, dtype=torch.int8
+        )
+
+        # Store quantization scales (per-head or per-token)
+        self.k_scales = torch.ones(
+            n_layers, n_heads, max_seq_len,
+            device=device, dtype=torch.float16
+        )
+        self.v_scales = torch.ones(
+            n_layers, n_heads, max_seq_len,
+            device=device, dtype=torch.float16
+        )
+
+    def quantize(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        """
+        Quantize FP16 tensor to INT8.
+
+        Args:
+            x: [batch, heads, seq, dim] in FP16
+
+        Returns:
+            x_int8: Quantized tensor
+            scales: Scaling factors for dequantization
+        """
+        # Per-token scaling (better quality than per-tensor)
+        scales = x.abs().amax(dim=-1, keepdim=True) / 127.0
+        x_int8 = (x / (scales + 1e-5)).round().clamp(-128, 127).to(torch.int8)
+
+        return x_int8, scales.squeeze(-1)
+
+    def dequantize(
+        self,
+        x_int8: torch.Tensor,
+        scales: torch.Tensor
+    ) -> torch.Tensor:
+        """
+        Dequantize INT8 back to FP16 for computation.
+
+        Args:
+            x_int8: [batch, heads, seq, dim] in INT8
+            scales: [batch, heads, seq] scaling factors
+
+        Returns:
+            x_fp16: Dequantized tensor
+        """
+        return x_int8.to(torch.float16) * scales.unsqueeze(-1)
+
+
+def kv_cache_quantization_analysis():
+    """
+    Analyze memory savings from KV cache quantization.
+    """
+    # LLaMA 3 70B configuration
+    n_layers = 80
+    n_heads_q = 64
+    n_kv_heads = 8  # GQA
+    head_dim = 128
+    seq_len = 100_000  # 100K context
+
+    def calc_memory(dtype_bytes):
+        return (2 * n_layers * n_kv_heads * head_dim * seq_len * dtype_bytes) / 1e9
+
+    fp16_memory = calc_memory(2)
+    int8_memory = calc_memory(1)
+    # Note: Need to add scale memory (typically negligible)
+    scale_memory = (2 * n_layers * n_kv_heads * seq_len * 2) / 1e9  # FP16 scales
+
+    total_int8 = int8_memory + scale_memory
+
+    print("KV Cache Quantization Analysis (LLaMA 3 70B, 100K context)")
+    print("=" * 70)
+    print(f"FP16 (baseline):           {fp16_memory:>8.2f} GB")
+    print(f"INT8 (cache):              {int8_memory:>8.2f} GB")
+    print(f"INT8 (scales):             {scale_memory:>8.2f} GB")
+    print(f"INT8 (total):              {total_int8:>8.2f} GB")
+    print(f"\nMemory reduction:          {fp16_memory / total_int8:.2f}x")
+
+    # Combined with GQA
+    n_heads_mha = 64  # If we used MHA instead
+    mha_fp16 = (2 * n_layers * n_heads_mha * head_dim * seq_len * 2) / 1e9
+
+    print(f"\nCombining techniques (vs MHA FP16 baseline):")
+    print(f"MHA FP16:                  {mha_fp16:>8.2f} GB  (1.0x)")
+    print(f"GQA FP16:                  {fp16_memory:>8.2f} GB  ({mha_fp16/fp16_memory:.1f}x)")
+    print(f"GQA INT8:                  {total_int8:>8.2f} GB  ({mha_fp16/total_int8:.1f}x)")
+    print(f"\nGQA + INT8 = {mha_fp16/total_int8:.1f}x total reduction!")
+```
+
+**Note on Quality Impact:**
+
+Empirical results show:
+- **INT8 KV cache**: ~0.5-1% quality degradation on most benchmarks
+- **FP8 KV cache**: ~0.2-0.5% degradation (better than INT8)
+- **INT4 KV cache**: 1-3% degradation (more aggressive, still viable)
+
+Quality impact is task-dependent. For production serving:
+- High-stakes applications (medical, legal): Use FP16 or FP8
+- General chat/completion: INT8 is safe
+- Extreme throughput needs: INT4 can be acceptable
+
 ### Production Model Usage
 
 | Model | Attention Variant | Rationale |
 |-------|------------------|-----------|
 | **GPT-3** | Standard MHA | 2K context, sufficient |
 | **LLaMA 1** | Standard MHA | Baseline implementation |
-| **LLaMA 2 (34B+)** | GQA | Inference efficiency |
-| **LLaMA 3** | GQA (all sizes) | Standard for all models |
-| **Mistral 7B** | GQA + Sliding Window | Long context efficiency |
-| **Mixtral 8x7B** | GQA + Sliding Window | Same as Mistral |
-| **Qwen 2.5/3** | GQA | Balance quality/efficiency |
-| **DeepSeek V2/V3** | MLA | Extreme long context (128K+) |
-| **Gemma 2** | GQA + Interleaved local/global | Hybrid approach |
+| **LLaMA 2 (34B+)** | GQA + Flash 2 | Inference efficiency |
+| **LLaMA 3** | GQA + Flash 2 (all sizes) | Standard for all models |
+| **Mistral 7B** | GQA + Sliding Window + Flash 2 | Long context efficiency |
+| **Mixtral 8x7B** | GQA + Sliding Window + Flash 2 | Same as Mistral |
+| **Qwen 2.5/3** | GQA + Sliding Window + Flash 2 | Balance quality/efficiency |
+| **DeepSeek V2/V3** | MLA + Flash 2 | Extreme long context (128K+) |
+| **Gemma 2** | GQA + Interleaved local/global + Flash 2 | Hybrid approach |
+
+**Serving Systems** (orthogonal to model choice):
+- **vLLM**: PagedAttention + optional INT8 KV cache
+- **TensorRT-LLM**: Flash Attention + INT8/FP8 KV cache
+- **Text Generation Inference**: Flash Attention + PagedAttention
 
 See [Architecture Comparison](29-model-architectures.md) for detailed model specifications.
 
@@ -1482,26 +2225,33 @@ See [Architecture Comparison](29-model-architectures.md) for detailed model spec
 ### Linear Attention
 1. [Transformers are RNNs: Fast Autoregressive Transformers with Linear Attention](https://arxiv.org/abs/2006.16236) (Katharopoulos et al., 2020)
 2. [Rethinking Attention with Performers](https://arxiv.org/abs/2009.14794) (Choromanski et al., 2021)
+3. [Linear Transformers are Secretly Fast Weight Programmers](https://arxiv.org/abs/2102.11174) (Schlag et al., 2021)
 
 ### Sparse Attention
-3. [Big Bird: Transformers for Longer Sequences](https://arxiv.org/abs/2007.14062) (Zaheer et al., 2020)
-4. [Longformer: The Long-Document Transformer](https://arxiv.org/abs/2004.05150) (Beltagy et al., 2020)
-5. [Generating Long Sequences with Sparse Transformers](https://arxiv.org/abs/1904.10509) (Child et al., 2019)
+4. [Big Bird: Transformers for Longer Sequences](https://arxiv.org/abs/2007.14062) (Zaheer et al., 2020)
+5. [Longformer: The Long-Document Transformer](https://arxiv.org/abs/2004.05150) (Beltagy et al., 2020)
+6. [Generating Long Sequences with Sparse Transformers](https://arxiv.org/abs/1904.10509) (Child et al., 2019)
 
 ### Sliding Window
-6. [Mistral 7B](https://arxiv.org/abs/2310.06825) (Jiang et al., 2023)
+7. [Mistral 7B](https://arxiv.org/abs/2310.06825) (Jiang et al., 2023)
+
+### PagedAttention
+8. [Efficient Memory Management for Large Language Model Serving with PagedAttention](https://arxiv.org/abs/2309.06180) (Kwon et al., 2023)
 
 ### MQA/GQA
-7. [Fast Transformer Decoding: One Write-Head is All You Need](https://arxiv.org/abs/1911.02150) (Shazeer, 2019)
-8. [GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints](https://arxiv.org/abs/2305.13245) (Ainslie et al., 2023)
+9. [Fast Transformer Decoding: One Write-Head is All You Need](https://arxiv.org/abs/1911.02150) (Shazeer, 2019)
+10. [GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints](https://arxiv.org/abs/2305.13245) (Ainslie et al., 2023)
 
 ### MLA
-9. [DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model](https://arxiv.org/abs/2405.04434) (DeepSeek-AI, 2024)
-10. [DeepSeek-V3 Technical Report](https://arxiv.org/abs/2412.19437) (DeepSeek-AI, 2024)
+11. [DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model](https://arxiv.org/abs/2405.04434) (DeepSeek-AI, 2024)
+12. [DeepSeek-V3 Technical Report](https://arxiv.org/abs/2412.19437) (DeepSeek-AI, 2024)
+
+### Flash Attention
+13. [FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning](https://arxiv.org/abs/2307.08691) (Dao, 2023)
 
 ### Comprehensive Surveys
-11. [Efficient Transformers: A Survey](https://arxiv.org/abs/2009.06732) (Tay et al., 2020)
-12. [A Survey on Long-Context Large Language Models](https://arxiv.org/abs/2402.02283) (2024)
+14. [Efficient Transformers: A Survey](https://arxiv.org/abs/2009.06732) (Tay et al., 2020)
+15. [A Survey on Long-Context Large Language Models](https://arxiv.org/abs/2402.02283) (2024)
 
 ---
 

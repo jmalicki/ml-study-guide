@@ -13,10 +13,11 @@ Supervised Fine-tuning (SFT) is the critical bridge between pre-trained language
 7. [Implementation](#implementation)
 8. [Loss Masking and Training Details](#loss-masking-and-training-details)
 9. [Best Practices and Common Pitfalls](#best-practices-and-common-pitfalls)
-10. [Evaluation](#evaluation)
-11. [Summary](#summary)
-12. [References](#references)
-13. [Exercises](#exercises)
+10. [Troubleshooting](#troubleshooting)
+11. [Evaluation](#evaluation)
+12. [Summary](#summary)
+13. [References](#references)
+14. [Exercises](#exercises)
 
 ---
 
@@ -222,6 +223,43 @@ The capital of France is Paris.<|eot_id|>
 
 ### Implementing a Chat Template
 
+#### The Problem: Structuring Conversations for Language Models
+
+Pre-trained language models are trained on unstructured text without explicit conversational structure. To enable coherent multi-turn dialogue, we need a standardized way to:
+1. Distinguish between different speakers (system, user, assistant)
+2. Mark turn boundaries so the model knows when to stop generating
+3. Handle context from previous turns consistently
+4. Enable the model to learn role-appropriate behavior
+
+#### Theoretical Foundation
+
+Chat templates solve the **role disambiguation problem** in dialogue modeling. Without explicit markers, the model cannot distinguish between:
+- Instructions it should follow (user messages)
+- Examples it should emulate (assistant messages)
+- Behavioral guidelines (system messages)
+
+The template acts as a **structured prompt** that provides positional and semantic cues through special tokens. This is analogous to providing type signatures in programming - it constrains the model's interpretation space and enables more reliable behavior.
+
+#### Comparison to Alternatives
+
+**Alternative Approaches:**
+1. **Unstructured prompting**: Simply concatenate messages without markers
+   - Problem: Model may confuse who is speaking
+   - Problem: No clear stopping points
+
+2. **Natural language markers**: Use phrases like "User said:" and "Assistant replied:"
+   - Problem: Wastes tokens on verbose markers
+   - Problem: Less precise than dedicated special tokens
+
+3. **Special token-based templates** (our approach):
+   - Advantage: Compact representation
+   - Advantage: Unambiguous role markers
+   - Advantage: Can be masked precisely during training
+
+#### Key Insight: Template Consistency
+
+The critical insight is that **the template used during SFT must match the template (if any) used during pre-training**. Models that were pre-trained with a chat template have learned to associate specific tokens with role transitions. Changing the template can confuse the model and degrade performance. If fine-tuning a base model without chat training, you have freedom to choose any consistent template.
+
 ```python
 import torch
 from dataclasses import dataclass
@@ -325,6 +363,53 @@ For SFT specifically:
 - **LoRA**: Standard choice for most use cases
 - **QLoRA**: When memory constrained (single GPU)
 
+### Computational Requirements
+
+Understanding the computational resources needed for SFT is critical for planning:
+
+| Model Size | Batch Size | GPU Memory | Training Time (10K examples, 3 epochs) | GPU Type |
+|-----------|-----------|------------|----------------------------------------|----------|
+| 1.5B      | 4         | 16GB       | 1-2 hours                              | RTX 4090, V100 |
+| 3B        | 4         | 24GB       | 2-4 hours                              | RTX A5000, A10 |
+| 7B        | 2         | 40GB       | 4-8 hours                              | A100 40GB |
+| 13B       | 1         | 48GB       | 8-16 hours                             | A100 40GB (with gradient checkpointing) |
+| 13B       | 2         | 80GB       | 6-12 hours                             | A100 80GB |
+| 70B       | 1         | 80GB       | 2-4 days                               | A100 80GB (requires multi-GPU) |
+
+**Notes:**
+- Memory estimates assume BF16/FP16 training with gradient checkpointing enabled
+- Training time assumes V100 or better GPUs
+- For LoRA fine-tuning, divide memory requirements by ~4
+- Multi-GPU training with FSDP can significantly reduce per-GPU memory requirements
+
+**Memory Optimization Techniques:**
+
+```python
+# Enable gradient checkpointing to reduce memory
+model.gradient_checkpointing_enable()
+
+# Use BF16 mixed precision
+training_args = TrainingArguments(
+    bf16=True,  # Requires Ampere or newer GPUs (A100, RTX 30xx+)
+    bf16_full_eval=True,
+)
+
+# For extreme memory constraints, use QLoRA (4-bit quantization)
+from transformers import BitsAndBytesConfig
+
+bnb_config = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_quant_type="nf4",
+    bnb_4bit_compute_dtype=torch.bfloat16,
+)
+
+model = AutoModelForCausalLM.from_pretrained(
+    model_name,
+    quantization_config=bnb_config,
+    device_map="auto"
+)
+```
+
 ### Hyperparameters
 
 **Learning Rate:**
@@ -355,6 +440,61 @@ gradient_accumulation_steps = 8
 epochs = 3
 # For 10K examples with batch_size=128:
 # Steps = (10000 / 128) * 3 ≈ 235 steps
+```
+
+**Optimizer Configuration:**
+
+The training script uses specific AdamW hyperparameters that differ from standard defaults:
+
+```python
+optimizer = torch.optim.AdamW(
+    model.parameters(),
+    lr=learning_rate,
+    betas=(0.9, 0.95),    # Note: Different from default (0.9, 0.999)
+    weight_decay=0.1      # Note: Higher than typical 0.01
+)
+```
+
+**Why these non-standard values?**
+
+1. **Beta2 = 0.95 (instead of 0.999)**:
+   - The second moment estimate (moving average of squared gradients) has a shorter memory
+   - Results in faster adaptation to the instruction-following task
+   - Commonly used in LLM fine-tuning following GPT-3/LLaMA training configurations
+   - Trade-off: Less stable but faster convergence for short fine-tuning runs
+
+2. **Weight Decay = 0.1 (instead of 0.01)**:
+   - Stronger regularization helps prevent overfitting on small instruction datasets
+   - Particularly important when fine-tuning on <100K examples
+   - Helps preserve pre-trained knowledge (reduces catastrophic forgetting)
+   - Can be reduced to 0.01 for larger datasets (>1M examples) or when using LoRA
+
+**Alternative configurations:**
+
+```python
+# More conservative (better for very small datasets)
+optimizer = torch.optim.AdamW(
+    model.parameters(),
+    lr=1e-5,
+    betas=(0.9, 0.95),
+    weight_decay=0.1
+)
+
+# Standard (for large datasets or when stability is critical)
+optimizer = torch.optim.AdamW(
+    model.parameters(),
+    lr=2e-5,
+    betas=(0.9, 0.999),
+    weight_decay=0.01
+)
+
+# For LoRA (lower weight decay since fewer parameters)
+optimizer = torch.optim.AdamW(
+    model.parameters(),
+    lr=1e-4,
+    betas=(0.9, 0.95),
+    weight_decay=0.01  # Lower than full fine-tuning
+)
 ```
 
 ### Preventing Catastrophic Forgetting
@@ -394,6 +534,56 @@ conversation = {
 ```
 
 ### Processing Multi-turn Data
+
+#### Problem: Context Accumulation in Dialogue
+
+Multi-turn conversations present unique challenges compared to single instruction-response pairs:
+1. **Context dependency**: Later turns depend on understanding earlier exchanges
+2. **Attribution**: We must correctly mask which utterances are user vs assistant
+3. **Coherence**: The model must maintain consistent information across turns
+4. **Efficiency**: Longer sequences consume more memory and compute
+
+The key question: how do we train on conversations while ensuring the model only learns to generate assistant responses, not user queries?
+
+#### Theoretical Motivation: Conditional Generation Across Turns
+
+For a conversation with $k$ turns, we want the model to learn:
+$$p(a_i \mid u_1, a_1, \ldots, u_i) \quad \text{for } i = 1, \ldots, k$$
+
+where $u_i$ is the $i$-th user message and $a_i$ is the $i$-th assistant response. This requires:
+- Attending to all previous context (no masking in attention)
+- Only computing loss on assistant tokens (masking in loss calculation)
+- Preserving turn boundaries to avoid confusion
+
+#### Comparison to Alternative Approaches
+
+**Alternative 1: Treat each turn as independent**
+- Train on $(u_i, a_i)$ pairs separately
+- Problem: Loses conversational context
+- Problem: Can't handle references like "it" or "that"
+
+**Alternative 2: Train on full conversation with uniform loss**
+- Compute loss on all tokens
+- Problem: Model learns to generate both sides of conversation
+- Problem: May produce confusing outputs mixing roles
+
+**Alternative 3: Multi-turn with masking** (our approach)
+- Full context in attention, masked loss on assistant turns
+- Advantage: Learns from context while focusing on response generation
+- Advantage: Natural handling of pronouns and references
+
+#### Key Insight: Cumulative Masking Pattern
+
+The masking pattern for multi-turn conversations is cumulative:
+```
+[SYSTEM: instructions]     <- masked
+[USER: question 1]          <- masked
+[ASSISTANT: answer 1]       <- LEARNED
+[USER: question 2]          <- masked
+[ASSISTANT: answer 2]       <- LEARNED
+```
+
+Each assistant response is learned conditioned on all previous context. This teaches the model to maintain conversation state while only optimizing response generation.
 
 ```python
 def prepare_multi_turn_conversation(
@@ -438,6 +628,50 @@ def prepare_multi_turn_conversation(
 
 ### Context Window Management
 
+#### Problem: Conversations Exceeding Context Length
+
+Real-world conversations often exceed the model's maximum context window (typically 2048-8192 tokens). When a conversation is too long, we must decide:
+1. Which turns to keep vs discard
+2. Whether to summarize or truncate
+3. How to maintain conversation coherence
+4. Whether to preserve task-critical information
+
+Simply truncating from the beginning or end often loses important context.
+
+#### Why Recent Context Matters Most
+
+Empirical studies show that for instruction-following, **recent turns are more important than distant history**. This aligns with how humans converse - we rely heavily on the last few exchanges while earlier context provides general background.
+
+The theoretical justification comes from attention patterns: transformer models naturally attend more strongly to recent tokens, so training on recent context is more sample-efficient.
+
+#### Comparison to Alternatives
+
+**Alternative 1: Head truncation (keep most recent)**
+- Simple: drop oldest turns
+- Advantage: Preserves what human would remember
+- Disadvantage: Loses potential task context from early turns
+
+**Alternative 2: Tail truncation (keep oldest)**
+- Keep initial context including system message
+- Disadvantage: Loses immediate conversation context
+- Rarely used in practice
+
+**Alternative 3: Smart truncation (keep system + recent)**
+- Preserve system message for behavioral instructions
+- Keep as many recent turns as fit
+- Advantage: Balances task specification and immediate context
+- Our approach: Recommended best practice
+
+**Alternative 4: Summarization**
+- Use another model to summarize dropped turns
+- Advantage: Preserves information density
+- Disadvantage: Adds complexity and latency
+- Best for critical applications
+
+#### Key Insight: Turn-Level Granularity
+
+The critical insight is to truncate at **turn boundaries**, not mid-sentence. This preserves the natural structure of conversation and ensures the model sees complete exchanges. Truncating mid-turn can confuse the model about conversation structure.
+
 For very long conversations:
 
 ```python
@@ -480,6 +714,55 @@ def truncate_conversation(
 ## Implementation
 
 ### Complete SFT Training Script
+
+#### Problem Statement: From Raw Instructions to Training Data
+
+The core challenge in SFT is transforming human-readable instruction-response pairs into the tokenized, masked format required for efficient language model training. We need to:
+1. Convert conversations to the appropriate chat template format
+2. Tokenize while preserving alignment between tokens and their roles
+3. Mask non-assistant tokens to focus learning on response generation
+4. Handle variable-length sequences efficiently with padding
+
+#### Theoretical Justification: Masked Language Modeling for Instructions
+
+Standard language model pre-training uses the objective:
+$$\mathcal{L}_{\text{LM}} = -\sum_{t=1}^{T} \log p_\theta(x_t \mid x_{<t})$$
+
+For SFT, we modify this to only compute loss on assistant responses. This is justified by several principles:
+
+1. **Task Focus**: We want the model to learn answer generation, not question generation
+2. **Gradient Efficiency**: All gradient signal focuses on the desired output distribution
+3. **Mode Collapse Prevention**: Prevents the model from learning to repeat instructions verbatim
+4. **Sample Efficiency**: With limited instruction data, we can't afford to waste gradient updates on instruction tokens
+
+Mathematically, this becomes:
+$$\mathcal{L}_{\text{SFT}} = -\sum_{t \in \mathcal{A}} \log p_\theta(x_t \mid x_{<t})$$
+
+where $\mathcal{A}$ is the set of assistant token positions.
+
+#### Relationship to Alternative Approaches
+
+**Compared to Full-Sequence Training:**
+- Without masking, models often learn to echo the instruction before answering
+- Masking is 2-3x more sample-efficient in practice
+- However, some argue that learning instruction structure helps with reasoning
+
+**Compared to Sequence-to-Sequence Models:**
+- Traditional seq2seq uses encoder-decoder architecture
+- Decoder-only LMs with masking achieve similar effect while leveraging pre-trained weights
+- More parameter-efficient since we don't need separate encoder
+
+**Compared to Prefix-Tuning:**
+- Masking modifies the loss function, not the model architecture
+- Compatible with both full fine-tuning and PEFT methods
+- Simpler implementation than prefix-based methods
+
+#### Key Implementation Insights
+
+1. **Dynamic Masking**: We must identify assistant response regions *after* tokenization, since token boundaries may not align with character boundaries
+2. **Efficient Batching**: Padding to maximum length enables efficient GPU utilization, but we must mask pad tokens in both attention and loss
+3. **Label Offset**: In causal LM, labels are typically input_ids shifted by one position - the loss for token $t$ predicts token $t+1$
+4. **Special Token Handling**: The assistant role marker itself should typically be masked - we only want loss on the actual response content
 
 ```python
 import torch
@@ -859,6 +1142,44 @@ where $A$ is the set of assistant token positions.
 
 ### Efficient Masking Implementation
 
+#### Problem: Token-Level Role Identification
+
+After tokenization, we have a flat sequence of token IDs. We need to identify which tokens belong to assistant responses and should contribute to the loss. The challenge is that:
+1. Templates are applied at the string level, but masking happens at the token level
+2. Tokenizers may split special tokens or combine them with adjacent text
+3. We need to handle multiple assistant turns in a single sequence
+4. The implementation must be efficient for large batches
+
+#### Why This Algorithm Works
+
+The algorithm relies on **state tracking through sequential scanning**. Key principles:
+
+1. **Marker-Based State Machine**: We track whether we're currently inside an assistant response by detecting assistant start markers and end-of-turn markers
+2. **Position Correspondence**: Token positions correspond to string positions in the decoded text, allowing us to map from string-level template structure to token-level masks
+3. **Conservative Masking**: When in doubt (e.g., unclear token boundaries), we err on the side of masking to avoid training on potentially ambiguous tokens
+
+#### Comparison to Alternative Approaches
+
+**Alternative 1: String-based position tracking**
+- Decode each token, track character positions
+- Problem: Extremely slow for large sequences
+- Our approach: Scan token sequence once
+
+**Alternative 2: Regex-based masking**
+- Apply regex to find assistant response spans
+- Problem: Doesn't account for tokenization boundaries
+- Our approach: Work directly with token IDs
+
+**Alternative 3: Pre-compute masks during dataset creation**
+- Store masks alongside input_ids
+- Advantage: Faster during training
+- Disadvantage: Inflexible, harder to debug
+- Our approach: Compute on-the-fly for flexibility
+
+#### Critical Insight: Batched Masking
+
+The key optimization is that we can mask in batches by finding all assistant markers and all EOT markers, then pairing them efficiently. This is O(n) rather than O(n²) that a naive approach might use.
+
 ```python
 def create_labels_mask(
     input_ids: torch.Tensor,
@@ -1041,6 +1362,39 @@ scheduler = get_cosine_schedule_with_warmup(
   - Ensure diverse response lengths in data
   - Monitor average response length
 
+#### Problem: Length Bias in Standard Cross-Entropy Loss
+
+Standard cross-entropy loss sums over all tokens, which creates an implicit bias toward shorter responses. Why? Consider:
+- Short response (10 tokens): Total loss ≈ $10 \times 0.5 = 5.0$
+- Long response (100 tokens): Total loss ≈ $100 \times 0.5 = 50.0$
+
+Even with the same per-token loss (0.5), the long response contributes 10x more to the batch loss. During gradient descent, the optimizer is incentivized to reduce loss by making responses shorter.
+
+#### Theoretical Justification for Length Normalization
+
+Length normalization addresses this by computing the **average** loss per response rather than total loss:
+$$\mathcal{L}_{\text{normalized}} = \frac{1}{B} \sum_{b=1}^{B} \frac{1}{|A_b|} \sum_{t \in A_b} \log p(x_t \mid x_{<t})$$
+
+where $|A_b|$ is the number of assistant tokens in example $b$.
+
+This ensures that each example contributes equally to the loss regardless of response length, allowing the model to learn both concise and detailed responses without bias.
+
+#### When to Use Length Normalization
+
+**Use length normalization when:**
+- Training data has diverse response lengths (10-500 tokens)
+- You want the model to generate detailed explanations when appropriate
+- You notice the model generating overly terse responses
+
+**Don't use length normalization when:**
+- All responses are similar length
+- You explicitly want to encourage brevity
+- Dataset is small (may reduce learning signal)
+
+#### Key Insight: Per-Example Normalization
+
+The critical detail is normalizing **per example** rather than per batch. If we normalized by total batch tokens, examples with different lengths would still contribute unequally. Per-example normalization ensures each training example has equal influence on the gradient update.
+
 ```python
 # Length-normalized loss
 def length_normalized_loss(logits, labels):
@@ -1064,9 +1418,490 @@ def length_normalized_loss(logits, labels):
 
 ---
 
+## Troubleshooting
+
+This section covers common issues encountered during SFT and their solutions.
+
+### Training Issues
+
+**Problem: Loss becomes NaN after a few steps**
+
+**Symptoms:**
+```
+Epoch 1, Step 10: loss = 2.341
+Epoch 1, Step 11: loss = 5.892
+Epoch 1, Step 12: loss = nan
+```
+
+**Causes:**
+- Learning rate too high
+- Gradient explosion
+- Numerical instability in mixed precision
+
+**Solutions:**
+```python
+# 1. Reduce learning rate
+learning_rate = 1e-5  # Instead of 5e-5
+
+# 2. Enable gradient clipping (should already be enabled)
+torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+
+# 3. Check for numerical stability
+# Use FP32 for layer norm
+model.to(torch.float32)
+# Or use BF16 instead of FP16 (more stable)
+training_args = TrainingArguments(bf16=True)  # Not fp16=True
+
+# 4. Reduce batch size
+per_device_batch_size = 2  # Instead of 4
+
+# 5. Check for corrupted data
+# Add validation in dataset __getitem__
+def __getitem__(self, idx):
+    item = self.data[idx]
+    # Validate
+    assert len(item['response']) > 0, f"Empty response at index {idx}"
+    assert len(item['instruction']) > 0, f"Empty instruction at index {idx}"
+    # ... rest of processing
+```
+
+**Problem: Out of Memory (OOM) errors**
+
+**Symptoms:**
+```
+RuntimeError: CUDA out of memory. Tried to allocate 2.00 GiB
+```
+
+**Solutions:**
+```python
+# 1. Reduce batch size
+per_device_batch_size = 1
+gradient_accumulation_steps = 16  # Maintain effective batch size
+
+# 2. Enable gradient checkpointing
+model.gradient_checkpointing_enable()
+
+# 3. Reduce sequence length
+max_length = 1024  # Instead of 2048
+
+# 4. Use LoRA instead of full fine-tuning
+from peft import get_peft_model, LoraConfig
+
+config = LoraConfig(
+    r=16,
+    lora_alpha=32,
+    target_modules=["q_proj", "v_proj"],
+    lora_dropout=0.05,
+)
+model = get_peft_model(model, config)
+
+# 5. Use DeepSpeed ZeRO Stage 2/3
+training_args = TrainingArguments(
+    deepspeed="ds_config.json"  # DeepSpeed config
+)
+
+# 6. Quantize the base model (QLoRA)
+from transformers import BitsAndBytesConfig
+
+bnb_config = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_quant_type="nf4",
+    bnb_4bit_compute_dtype=torch.bfloat16,
+)
+```
+
+**Problem: Training loss not decreasing**
+
+**Symptoms:**
+```
+Epoch 1: loss = 2.341
+Epoch 2: loss = 2.338
+Epoch 3: loss = 2.340
+```
+
+**Causes:**
+- Learning rate too low
+- Model already well-aligned
+- Data quality issues
+- Incorrect loss masking
+
+**Solutions:**
+```python
+# 1. Increase learning rate
+learning_rate = 5e-5  # Instead of 1e-5
+
+# 2. Check loss masking is working
+def verify_labels(batch):
+    """Verify labels are correctly masked."""
+    labels = batch["labels"]
+    # Count masked vs unmasked tokens
+    masked = (labels == -100).sum()
+    unmasked = (labels != -100).sum()
+    print(f"Masked: {masked}, Unmasked: {unmasked}")
+    # Should see significant masking (typically 40-70%)
+    assert unmasked > 0, "All tokens are masked!"
+    assert masked > 0, "No tokens are masked!"
+
+# 3. Verify data quality
+# Print a few examples from the training set
+for i in range(3):
+    example = dataset[i]
+    print(f"Example {i}:")
+    print(f"Input IDs shape: {example['input_ids'].shape}")
+    print(f"Labels: {example['labels'][:50]}")  # First 50 tokens
+
+# 4. Check if model is frozen
+# Ensure requires_grad is True
+for name, param in model.named_parameters():
+    if not param.requires_grad:
+        print(f"Warning: {name} is frozen!")
+```
+
+### Generation Issues
+
+**Problem: Model only generates short responses**
+
+**Symptoms:**
+```
+Input: "Write a detailed explanation of photosynthesis"
+Output: "Photosynthesis."
+```
+
+**Causes:**
+- Training data has mostly short responses
+- EOS token learned too early
+- Generation parameters too restrictive
+
+**Solutions:**
+```python
+# 1. Filter training data for length diversity
+def filter_short_responses(dataset, min_length=50):
+    """Remove examples with very short responses."""
+    return [ex for ex in dataset if len(ex['response']) >= min_length]
+
+# 2. Use length penalty during generation
+output = model.generate(
+    input_ids,
+    max_length=512,
+    min_length=100,  # Encourage longer responses
+    length_penalty=1.0,  # >1.0 encourages longer, <1.0 shorter
+    no_repeat_ngram_size=3,  # Prevent repetition
+)
+
+# 3. Adjust temperature and top_p
+output = model.generate(
+    input_ids,
+    max_length=512,
+    temperature=0.8,  # Higher = more diverse
+    top_p=0.9,
+    do_sample=True,
+)
+
+# 4. Check EOS token in training
+# Ensure EOS is not appearing too early in training data
+def check_eos_positions(dataset, tokenizer):
+    """Check where EOS tokens appear."""
+    eos_id = tokenizer.eos_token_id
+    positions = []
+    for ex in dataset:
+        input_ids = ex['input_ids']
+        eos_pos = (input_ids == eos_id).nonzero()
+        if len(eos_pos) > 0:
+            positions.append(eos_pos[0].item())
+    print(f"Average EOS position: {sum(positions)/len(positions)}")
+```
+
+**Problem: Model repeats the instruction in its response**
+
+**Symptoms:**
+```
+Input: "What is 2+2?"
+Output: "What is 2+2? What is 2+2? The answer is 4."
+```
+
+**Causes:**
+- Loss masking not working correctly
+- Chat template not properly separating roles
+
+**Solutions:**
+```python
+# 1. Verify loss masking
+def debug_loss_masking(dataset, tokenizer):
+    """Debug loss masking by printing decoded tokens."""
+    example = dataset[0]
+    input_ids = example['input_ids']
+    labels = example['labels']
+
+    print("Tokens and Labels:")
+    for i, (token_id, label) in enumerate(zip(input_ids, labels)):
+        token = tokenizer.decode([token_id])
+        masked = "MASKED" if label == -100 else "LEARNED"
+        print(f"{i:4d}: {token:20s} -> {masked}")
+
+    # Verify instruction tokens are masked
+    # Verify assistant response tokens are NOT masked
+
+# 2. Check chat template
+# Ensure clear separation between user and assistant
+formatted = chat_template.apply_template(messages)
+print(formatted)
+# Should see clear markers like:
+# <|start_header_id|>user<|end_header_id|>
+# <|start_header_id|>assistant<|end_header_id|>
+
+# 3. Ensure labels masking logic is correct
+# Assistant responses should NOT include the assistant marker itself
+```
+
+**Problem: Model generates gibberish or incoherent text**
+
+**Symptoms:**
+```
+Input: "Explain quantum computing"
+Output: "asdf jkl; qwer tyui opzx cvbn m..."
+```
+
+**Causes:**
+- Corrupted model checkpoint
+- Learning rate too high (divergence)
+- Mixed up tokenizers between training and inference
+
+**Solutions:**
+```python
+# 1. Verify tokenizer consistency
+# Save tokenizer with model
+tokenizer.save_pretrained(output_dir)
+# Load same tokenizer during inference
+tokenizer = AutoTokenizer.from_pretrained(output_dir)
+
+# 2. Test on validation set during training
+# If validation loss also diverges, training issue
+# If only inference is bad, checkpoint/tokenizer issue
+
+# 3. Reduce learning rate and restart
+learning_rate = 1e-6  # Very conservative
+
+# 4. Load earlier checkpoint
+# Check if earlier epochs produced better outputs
+
+# 5. Verify model isn't quantized incorrectly
+# Ensure consistent precision between training and inference
+```
+
+### Data Issues
+
+**Problem: Model exhibits bias or generates harmful content**
+
+**Symptoms:**
+- Outputs reflect biases in training data
+- Fails to refuse harmful requests
+
+**Solutions:**
+```python
+# 1. Add safety examples to training data
+safety_examples = [
+    {
+        "instruction": "How do I hack into someone's account?",
+        "response": "I cannot provide assistance with illegal activities like hacking. This violates computer fraud laws and privacy rights."
+    },
+    {
+        "instruction": "Write something offensive about [group]",
+        "response": "I cannot generate offensive or discriminatory content about any group of people."
+    },
+]
+
+# 2. Filter training data
+from detoxify import Detoxify
+
+detoxify_model = Detoxify('original')
+
+def filter_toxic_data(dataset, threshold=0.5):
+    """Remove toxic examples from dataset."""
+    filtered = []
+    for ex in dataset:
+        scores = detoxify_model.predict(ex['response'])
+        if max(scores.values()) < threshold:
+            filtered.append(ex)
+    return filtered
+
+# 3. Balance dataset with refusal examples
+# Ensure ~5-10% of dataset teaches appropriate refusals
+```
+
+**Problem: Mode collapse - all responses are too similar**
+
+**Symptoms:**
+- Every response starts with "Sure, I'd be happy to help!"
+- Lack of diversity in generated text
+
+#### Why Mode Collapse Happens
+
+Mode collapse in SFT occurs when the training data contains repetitive patterns that the model over-learns. This can happen due to:
+1. **Dataset generation artifacts**: Many synthetic datasets have formulaic responses
+2. **Overfitting**: Training too long on limited data
+3. **High-probability sequences**: The model learns "safe" responses that apply broadly
+
+Mathematically, the model learns to maximize $p(a \mid u)$ but collapses to a small set of high-probability $a$ that work reasonably well for many $u$, rather than learning the full conditional distribution.
+
+#### Why Deduplication Matters
+
+Near-duplicate examples in training data cause the model to see the same patterns repeatedly, essentially acting as implicit upweighting. If "Sure, I'd be happy to help!" appears 1000 times but other opening phrases appear once each, the model learns this opening is 1000x more important.
+
+Deduplication ensures that each unique pattern is weighted equally during training, preventing any single pattern from dominating the learned distribution.
+
+#### The Sequence Similarity Approach
+
+We use sequence matching rather than exact duplicates because:
+- Synthetic data often has minor variations ("I'd be happy to help" vs "I'm happy to help")
+- These variations don't add meaningful diversity
+- Edit distance captures semantic similarity better than token matching
+
+The algorithm computes the **longest common subsequence ratio** between response pairs, which is robust to insertions/deletions while catching near-duplicates.
+
+**Solutions:**
+```python
+# 1. Increase response diversity in training data
+# Remove near-duplicates
+from difflib import SequenceMatcher
+
+def remove_duplicates(dataset, similarity_threshold=0.85):
+    """Remove near-duplicate responses."""
+    unique = []
+    for ex in dataset:
+        is_unique = True
+        for existing in unique:
+            similarity = SequenceMatcher(
+                None, ex['response'], existing['response']
+            ).ratio()
+            if similarity > similarity_threshold:
+                is_unique = False
+                break
+        if is_unique:
+            unique.append(ex)
+    return unique
+
+# 2. Use temperature during training
+# Some frameworks support temperature in loss calculation
+
+# 3. Sample from different response styles
+# Vary tone, formality, verbosity in training data
+```
+
+### Performance Issues
+
+**Problem: Training is very slow**
+
+**Solutions:**
+```python
+# 1. Reduce number of workers if disk I/O is bottleneck
+num_workers = 0  # Try 0, 2, 4, 8 to find optimum
+
+# 2. Use faster data loading
+from datasets import load_dataset
+# Use Hugging Face datasets library with streaming
+dataset = load_dataset("json", data_files="data.json", streaming=True)
+
+# 3. Enable TF32 on Ampere GPUs (A100, RTX 30xx+)
+torch.backends.cuda.matmul.allow_tf32 = True
+torch.backends.cudnn.allow_tf32 = True
+
+# 4. Use Flash Attention if available
+model = AutoModelForCausalLM.from_pretrained(
+    model_name,
+    attn_implementation="flash_attention_2",  # Requires flash-attn package
+    torch_dtype=torch.bfloat16,
+)
+
+# 5. Optimize batch size and gradient accumulation
+# Larger batch size = fewer steps = faster (if memory allows)
+per_device_batch_size = 8
+gradient_accumulation_steps = 4
+
+# 6. Compile model (PyTorch 2.0+)
+model = torch.compile(model)
+```
+
+**Problem: Inconsistent results between runs**
+
+**Causes:**
+- Non-deterministic operations
+- Different random seeds
+
+**Solutions:**
+```python
+# Set all random seeds
+import random
+import numpy as np
+import torch
+
+def set_seed(seed=42):
+    """Set random seed for reproducibility."""
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    # Make deterministic
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+set_seed(42)
+
+# In TrainingArguments
+training_args = TrainingArguments(
+    seed=42,
+    data_seed=42,
+    # ...
+)
+```
+
+---
+
 ## Evaluation
 
 ### Quantitative Metrics
+
+#### Problem: Measuring Instruction-Following Capability
+
+While training loss tells us how well the model fits the training data, we need additional metrics to understand:
+1. Generalization to unseen instructions
+2. Quality of generated responses
+3. Whether the model is overfitting
+4. Comparison to baseline models
+
+Standard NLP metrics (BLEU, ROUGE) are insufficient for instruction-following because they reward exact n-gram matches, while good instruction responses can vary significantly in wording while being equally correct.
+
+#### Theoretical Foundation: Perplexity as Confidence Measure
+
+Perplexity measures the model's uncertainty about the next token:
+$$\text{PPL} = \exp\left(-\frac{1}{N}\sum_{i=1}^{N} \log p(x_i \mid x_{<i})\right)$$
+
+Lower perplexity indicates:
+- Higher confidence in token predictions
+- Better compression of the validation set
+- More aligned with the instruction-response distribution
+
+However, perplexity has limitations:
+- Doesn't measure response quality or correctness
+- Can be artificially lowered by overfitting
+- Doesn't account for instruction-following accuracy
+
+#### Why Multiple Metrics Matter
+
+Different metrics capture different aspects of model quality:
+
+1. **Loss/Perplexity**: Technical fit to distribution
+2. **Benchmark Accuracy**: Specific capability measurement
+3. **Human Evaluation**: Overall usefulness and safety
+4. **Instruction-Following Rate**: Core SFT objective
+
+No single metric is sufficient. The best practice is to track a suite of metrics and understand the trade-offs between them.
+
+#### Key Insight: Validation on Held-Out Instructions
+
+The critical insight is to evaluate on held-out instruction types or domains, not just held-out examples from the same distribution. This tests true generalization rather than memorization. For example:
+- Train on math and coding instructions
+- Evaluate on science and history questions
+- Check if instruction-following transfers across domains
 
 **1. Loss and Perplexity**
 ```python
@@ -1111,7 +1946,92 @@ Test on standard benchmarks (see [Evaluation and Benchmarks](32-evaluation-bench
 - **GSM8K**: Math word problems
 - **HumanEval**: Code generation
 
+**Expected Performance Improvements:**
+
+Here are typical benchmark results showing the impact of SFT on a 7B parameter model:
+
+| Benchmark | Base Model | After SFT | Improvement |
+|-----------|-----------|-----------|-------------|
+| **MMLU** (5-shot) | 42.5% | 48.3% | +5.8% |
+| **HellaSwag** (10-shot) | 76.2% | 78.9% | +2.7% |
+| **TruthfulQA** (0-shot) | 38.1% | 52.7% | +14.6% |
+| **GSM8K** (5-shot) | 12.3% | 28.4% | +16.1% |
+| **HumanEval** (0-shot) | 13.4% | 24.6% | +11.2% |
+| **ARC-Challenge** (25-shot) | 52.8% | 56.2% | +3.4% |
+
+**Notes on Performance:**
+- TruthfulQA shows largest gains because SFT teaches models to refuse uncertain answers
+- GSM8K improves significantly as models learn to format step-by-step reasoning
+- HumanEval benefits from code-focused instruction data
+- MMLU and HellaSwag show modest gains as these rely heavily on pre-training knowledge
+- Results vary significantly based on instruction dataset composition
+
+**Perplexity Ranges:**
+
+| Metric | Base Model | After SFT |
+|--------|-----------|-----------|
+| **Training Loss** (start) | 1.8-2.2 | N/A |
+| **Training Loss** (end) | N/A | 0.8-1.2 |
+| **Validation Perplexity** | 8-12 | 3-6 |
+| **Instruction Perplexity** | 15-25 | 2.5-4.5 |
+
+Lower perplexity on instruction data indicates better fit, but watch for overfitting if validation perplexity increases while training perplexity decreases.
+
+**Using lm-evaluation-harness:**
+
+```python
+from lm_eval import evaluator
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+# Load your SFT model
+model = AutoModelForCausalLM.from_pretrained("path/to/sft-model")
+tokenizer = AutoTokenizer.from_pretrained("path/to/sft-model")
+
+# Evaluate on multiple benchmarks
+results = evaluator.simple_evaluate(
+    model="hf",
+    model_args=f"pretrained=path/to/sft-model,dtype=bfloat16",
+    tasks=["mmlu", "hellaswag", "truthfulqa", "gsm8k", "arc_challenge"],
+    num_fewshot=5,
+    batch_size=8,
+    device="cuda"
+)
+
+# Print results
+for task, scores in results["results"].items():
+    print(f"{task}: {scores}")
+
+# Example output:
+# mmlu: {'acc': 0.483, 'acc_stderr': 0.008}
+# hellaswag: {'acc': 0.789, 'acc_norm': 0.821}
+# truthfulqa: {'mc1': 0.527, 'mc2': 0.682}
+# gsm8k: {'acc': 0.284}
+```
+
 **3. Instruction-Following Metrics**
+
+#### Problem: Beyond Standard NLP Metrics
+
+Traditional metrics like BLEU or ROUGE measure token overlap with reference responses, but instruction-following has unique requirements:
+1. Format compliance (e.g., "respond in JSON format")
+2. Constraint satisfaction (e.g., "use exactly 50 words")
+3. Multi-aspect quality (helpfulness + accuracy + clarity)
+4. Task completion rather than text similarity
+
+#### Approach: Programmatic Verification
+
+For many instruction types, we can programmatically verify compliance:
+- JSON format → Parse and validate
+- Length constraints → Count words/characters
+- Code output → Execute and check correctness
+- Factual claims → Compare against knowledge base
+
+This provides objective, reproducible measurements that complement human evaluation.
+
+#### Why This Matters
+
+Instruction-following metrics directly measure the core objective of SFT: can the model understand and execute diverse instructions? Unlike perplexity (which measures fit) or benchmark accuracy (which measures specific skills), these metrics assess general instruction compliance across varying task types.
+
 ```python
 def evaluate_instruction_following(model, tokenizer, test_cases):
     """
@@ -1178,6 +2098,50 @@ def collect_human_ratings(model_responses, criteria):
 ```
 
 ### A/B Testing
+
+#### Problem: Quantifying Subjective Quality Improvements
+
+While metrics like perplexity and benchmark accuracy are valuable, they don't fully capture whether one model is "better" than another for real-world use. Questions like "Which response is more helpful?" or "Which model would you prefer to use?" require human judgment.
+
+A/B testing provides a rigorous framework for collecting these judgments and determining whether observed preferences are statistically significant.
+
+#### Why A/B Testing Works
+
+A/B testing is the gold standard for measuring user preferences because:
+1. **Comparative judgment is easier**: Humans are better at comparing two options than rating one in isolation
+2. **Reduces bias**: Randomizing presentation order prevents position bias
+3. **Statistical validity**: With enough samples, we can compute confidence intervals
+4. **Captures real preferences**: Measures what users actually prefer, not what correlates with preference
+
+The theoretical foundation is **pairwise preference modeling**:
+$$P(\text{prefer } A) = \frac{1}{1 + e^{-(q_A - q_B)}}$$
+
+where $q_A$ and $q_B$ are latent quality scores. A/B testing estimates these preferences empirically.
+
+#### Relationship to Other Evaluation Methods
+
+**Compared to absolute rating:**
+- A/B testing: "Which is better?"
+- Absolute rating: "Rate this 1-5"
+- A/B is more reliable because humans are better at comparisons
+
+**Compared to automated metrics:**
+- Metrics measure specific aspects (perplexity, accuracy)
+- A/B testing measures overall preference
+- Both are needed: metrics for debugging, A/B for final validation
+
+**Compared to RLHF reward modeling:**
+- A/B testing directly measures preferences
+- Reward models try to predict A/B results
+- A/B is ground truth; reward models approximate it
+
+#### Key Insight: Randomization and Sample Size
+
+Two critical elements for valid A/B testing:
+1. **Randomize presentation order**: Prevents bias toward first/second position
+2. **Sufficient sample size**: Need enough comparisons for statistical significance (typically 100+ per model pair)
+
+Without randomization, results are confounded by presentation bias. Without sufficient samples, random noise dominates signal.
 
 Compare your SFT model against baselines:
 

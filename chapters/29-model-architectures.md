@@ -57,14 +57,245 @@ The GPT series established the decoder-only autoregressive paradigm that dominat
 
 OpenAI has not released official architectural details for GPT-4. The technical report explicitly states: *"Given both the competitive landscape and the safety implications of large-scale models like GPT-4, this report contains no further details about the architecture."*
 
-**Rumored/Leaked Details** (unconfirmed):
-- **Architecture**: Mixture of Experts (MoE) with ~8 experts
-- **Parameters**: ~1.8 trillion total, ~220B per expert
+This represents a departure from OpenAI's earlier approach (publishing GPT-2 and GPT-3 details) and signals the shift toward treating LLM architecture as proprietary.
+
+**Confirmed Details:**
+- **Multimodal**: Native vision and text processing
+- **Context Length**: 8K tokens (GPT-4), 32K tokens (GPT-4-32K), 128K tokens (GPT-4-Turbo)
+- **Training Cutoff**: September 2021 (GPT-4), April 2023 (GPT-4-Turbo)
+- **Release**: March 2023 (GPT-4), November 2023 (GPT-4-Turbo)
+
+**Rumored/Leaked Details** (unconfirmed but widely circulated):
+- **Architecture**: Sparse Mixture of Experts (MoE)
+- **Experts**: ~8 experts, 2 active per token
+- **Total Parameters**: ~1.8 trillion
+- **Active Parameters**: ~220B per forward pass
 - **Positional Encoding**: Likely RoPE (referenced in technical report bibliography)
 - **Training Data**: ~13 trillion tokens
+- **Training Cost**: Estimated $50-100M
+
+### Inferred Architecture from Behavior
+
+**Evidence for MoE Architecture:**
+
+1. **Inference Speed**: GPT-4 is slower than would be expected for a dense 175B model, but faster than a dense 1.8T model
+   - Consistent with ~220B active parameters (MoE with 8 experts, 2 active)
+
+2. **Capabilities**: Shows strong performance across diverse domains
+   - MoE allows specialization (code expert, math expert, etc.)
+
+3. **Cost Structure**: Pricing suggests higher compute than GPT-3.5 but manageable
+   - Dense 1.8T would be prohibitively expensive
+   - MoE 1.8T with 220B active is economically viable
+
+4. **Context Length Progression**: 8K → 32K → 128K
+   - Suggests architectural improvements or optimizations
+   - 128K likely requires GQA or similar KV cache optimization
+
+**Likely Architectural Choices:**
+
+Based on industry trends and performance characteristics:
+
+**Problem and Motivation:**
+GPT-4's performance characteristics suggest a sophisticated architecture that balances capacity with efficiency. The key challenge is achieving state-of-the-art quality across diverse tasks while maintaining reasonable inference costs. Dense models at the trillion-parameter scale would be prohibitively expensive to serve, while smaller dense models lack the capacity needed for frontier performance. This creates a fundamental trade-off that needs architectural innovation to resolve.
+
+**Theoretical Justification:**
+Mixture of Experts (MoE) architectures solve this trade-off by:
+1. **Conditional Computation**: Each token activates only a subset of parameters, reducing per-token FLOPs
+2. **Specialization**: Different experts can specialize in different domains (code, math, creative writing)
+3. **Scaling Laws**: MoE allows continued scaling of total parameters while keeping active parameters (and thus inference cost) manageable
+
+The routing mechanism learns to assign tokens to appropriate experts based on their content. This is formalized as:
+
+$$y = \sum_{i=1}^{n} G(x)_i \cdot E_i(x)$$
+
+where:
+- $G(x) \in \mathbb{R}^n$ is the gating/routing function (typically top-k selection with softmax)
+- $E_i(x)$ is the output of expert $i$
+- Only top-k experts have non-zero $G(x)_i$ values
+
+**Comparison to Alternatives:**
+- **Dense models**: Higher quality per parameter but linear scaling of compute with parameters
+- **Simple MoE**: Good capacity but can suffer from load imbalance and training instability
+- **Sparse attention patterns**: Reduces memory but doesn't increase model capacity
+- **Advanced MoE (GPT-4 approach)**: Combines capacity scaling with efficient routing and load balancing
+
+**Key Insights:**
+1. **Active vs. Total Parameters**: The compression ratio (total params / active params) determines the efficiency gain. GPT-4's rumored 8:1 ratio (1.8T total / 220B active) provides substantial capacity increase
+2. **Routing Quality**: The router must learn to assign tokens to appropriate experts. Poor routing leads to underutilized experts or routing collapse
+3. **Load Balancing**: Without constraints, all tokens may route to the same few experts. This requires auxiliary losses or architectural constraints
+4. **GQA Necessity**: 128K context with MHA would require prohibitive KV cache memory. GQA provides the necessary memory reduction
+
+```python
+# Hypothetical GPT-4 architecture (speculative)
+class GPT4Block(nn.Module):
+    """
+    Speculative GPT-4 architecture based on rumors and behavior.
+
+    Likely features:
+    - Pre-RMSNorm (or continue with LayerNorm from GPT-3)
+    - GQA for attention (required for 128K context)
+    - MoE for FFN layers (8 experts, 2 active)
+    - RoPE for positional encoding
+    - Possibly SwiGLU activation (though could still be GELU)
+    """
+    def __init__(
+        self,
+        d_model: int = 12288,  # Speculative
+        n_heads: int = 96,      # Speculative
+        n_kv_heads: int = 8,    # GQA required for long context
+        n_experts: int = 8,
+        experts_per_token: int = 2,
+        d_ff: int = 49152       # ~4x model dim
+    ):
+        super().__init__()
+        # Attention (likely GQA)
+        self.ln1 = nn.LayerNorm(d_model)  # Or RMSNorm
+        self.attn = GroupedQueryAttention(d_model, n_heads, n_kv_heads)
+
+        # MoE FFN
+        self.ln2 = nn.LayerNorm(d_model)
+        self.router = nn.Linear(d_model, n_experts, bias=False)
+        self.experts = nn.ModuleList([
+            nn.Sequential(
+                nn.Linear(d_model, d_ff),
+                nn.GELU(),  # Or SwiGLU
+                nn.Linear(d_ff, d_model)
+            )
+            for _ in range(n_experts)
+        ])
+        self.experts_per_token = experts_per_token
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # Attention
+        x = x + self.attn(self.ln1(x))
+
+        # MoE FFN
+        residual = x
+        x = self.ln2(x)
+
+        # Route to experts
+        router_logits = self.router(x)
+        top_k_logits, top_k_indices = torch.topk(
+            router_logits, self.experts_per_token, dim=-1
+        )
+        weights = torch.softmax(top_k_logits, dim=-1)
+
+        # Compute expert outputs (simplified)
+        # In practice, uses sparse operations for efficiency
+        expert_outputs = torch.zeros_like(x)
+        for i, expert in enumerate(self.experts):
+            mask = (top_k_indices == i).any(dim=-1)
+            if mask.any():
+                expert_out = expert(x[mask])
+                # Weight by router probabilities
+                # (implementation detail omitted for brevity)
+                expert_outputs[mask] += expert_out
+
+        return residual + expert_outputs
+```
+
+**Comparison: GPT-4 vs. GPT-3**
+
+| Aspect | GPT-3 | GPT-4 (speculated) |
+|--------|-------|-------------------|
+| Architecture | Dense | MoE (rumored) |
+| Total Params | 175B | ~1.8T |
+| Active Params | 175B | ~220B |
+| Context | 2K-4K | 8K-128K |
+| Attention | MHA | Likely GQA |
+| Position | Learned | Likely RoPE |
+| Multimodal | No | Yes (native) |
+| Training Data | ~300B tokens | ~13T tokens |
+
+**Why OpenAI Doesn't Publish Details:**
+
+1. **Competitive Advantage**: Architecture is a key differentiator
+2. **Safety Concerns**: Harder to replicate = slower proliferation
+3. **Rapid Iteration**: Flexibility to change architecture between versions
+4. **Business Model**: Selling API access, not model weights
+
+**What We Can Infer from API Behavior:**
+
+- **GPT-4 Turbo** (Nov 2023): Significantly faster and cheaper
+  - Suggests architectural optimizations (better KV cache, quantization, etc.)
+  - Or different model variant (fewer active experts? Smaller model?)
+
+- **GPT-4 Vision**: Native multimodal processing
+  - Vision encoder integrated into architecture (not just separate encoder + text)
+  - Likely cross-attention between vision and text modalities
+
+- **Function Calling**: Strong structured output capabilities
+  - May have specialized experts or training for structured generation
+  - Could be post-training feature or architectural support
+
+### GPT-4o (Omni) and Later Variants
+
+**GPT-4o** (May 2024): Unified multimodal model
+- **Modalities**: Text, vision, audio (all native)
+- **Speed**: 2x faster than GPT-4-Turbo
+- **Cost**: 50% cheaper
+
+**Architectural Implications:**
+- Likely uses unified token space for all modalities
+- Single transformer processes all input types
+- Potentially different attention patterns for different modalities
+
+**GPT-4.5 and Beyond:**
+OpenAI continues to release variants (GPT-4.5-Turbo, etc.) without architectural details. Each likely represents:
+- Continued training (more tokens)
+- Architectural tweaks (better routing, attention patterns)
+- Optimization for inference (quantization, distillation)
+
+### The Impact of Closed Architectures
+
+**Pros:**
+- Allows companies to maintain competitive advantage
+- Potentially slows dangerous capability proliferation
+- Enables rapid iteration without community scrutiny
+
+**Cons:**
+- Reduces scientific transparency and reproducibility
+- Makes it harder to understand model capabilities and limitations
+- Concentrates power in companies with resources to train large models
+
+**For Interviews:**
+When discussing GPT-4, acknowledge:
+- What's confirmed (multimodal, context lengths, performance)
+- What's rumored but plausible (MoE with 8 experts)
+- What's unknown (exact architecture, training details)
+- Why companies choose to withhold details
 
 **Key Papers:**
 - [GPT-4 Technical Report](https://arxiv.org/abs/2303.08774) (OpenAI, 2023)
+- [GPT-4V(ision) System Card](https://openai.com/research/gpt-4v-system-card) (OpenAI, 2023)
+
+**Problem and Motivation for GPT-2 Architecture:**
+Before GPT-2, most language models used bidirectional architectures (like BERT) or complex encoder-decoder setups. The challenge was to create a simple, scalable architecture that could be trained on massive amounts of text without task-specific modifications. GPT-2 needed to demonstrate that a pure decoder-only, autoregressive model could perform well across diverse tasks through scale alone.
+
+**Theoretical Justification:**
+The GPT-2 architecture establishes several key principles:
+
+1. **Pre-Layer Normalization**: Moving LayerNorm before the sub-layers (pre-norm) rather than after (post-norm) stabilizes training at scale. The residual stream remains at a consistent scale throughout the network.
+
+2. **Causality**: The causal attention mask ensures each position can only attend to previous positions, making the model suitable for autoregressive generation:
+   $$\text{mask}[i,j] = \begin{cases} 0 & \text{if } j > i \\ 1 & \text{if } j \leq i \end{cases}$$
+
+3. **GELU Activation**: The Gaussian Error Linear Unit provides smoother gradients than ReLU:
+   $$\text{GELU}(x) = x \cdot \Phi(x) = x \cdot \frac{1}{2}\left[1 + \text{erf}\left(\frac{x}{\sqrt{2}}\right)\right]$$
+
+   This approximates $x \cdot P(X \leq x)$ where $X \sim \mathcal{N}(0,1)$, providing a probabilistic interpretation.
+
+**Comparison to Alternatives:**
+- **BERT (bidirectional)**: Better for understanding tasks but can't generate autoregressively
+- **Transformer encoder-decoder**: More complex, requires paired training data
+- **Post-norm transformers**: Training instability at scale, gradient flow issues
+- **ReLU activation**: Dead neurons problem, non-smooth gradients
+
+**Key Insights:**
+1. **Simplicity scales**: The uniform decoder-only architecture can be scaled to arbitrary depths without architectural changes
+2. **Pre-norm stability**: Normalizing inputs to each sub-layer prevents activation explosion in deep networks
+3. **Learned positions**: Absolute positional embeddings are simple but limit extrapolation to longer sequences than seen during training
 
 ```python
 # GPT-2 style architecture (simplified)
@@ -97,7 +328,7 @@ class GPT2Block(nn.Module):
 
 ## Claude (Anthropic)
 
-Anthropic has not published detailed architectural specifications for Claude models. The company focuses its publications on safety research rather than architecture papers.
+Anthropic has not published detailed architectural specifications for Claude models. The company focuses its publications on safety research rather than architecture papers. However, we can infer several architectural choices from public information and API behavior.
 
 **Known Details:**
 - **Architecture**: Transformer-based, decoder-only
@@ -105,23 +336,185 @@ Anthropic has not published detailed architectural specifications for Claude mod
 - **Training**: RLHF + Constitutional AI (RLAIF)
 
 **Model Family (as of 2025):**
-| Model | Release | Notes |
-|-------|---------|-------|
-| Claude 3 Haiku | March 2024 | Fastest, smallest |
-| Claude 3 Sonnet | March 2024 | Balanced |
-| Claude 3 Opus | March 2024 | Most capable |
-| Claude 3.5 Sonnet | June 2024 | Improved Sonnet |
-| Claude Sonnet 4 | May 2025 | Current generation |
-| Claude Opus 4.5 | January 2025 | Current flagship |
+| Model | Release | Context | Notes |
+|-------|---------|---------|-------|
+| Claude 3 Haiku | March 2024 | 200K | Fastest, smallest (~10-20B params estimated) |
+| Claude 3 Sonnet | March 2024 | 200K | Balanced (~60-100B params estimated) |
+| Claude 3 Opus | March 2024 | 200K | Most capable (~175-300B params estimated) |
+| Claude 3.5 Sonnet | June 2024 | 200K | Improved Sonnet, better than Opus on many tasks |
+| Claude Sonnet 4 | May 2025 | 200K-1M | Current generation |
+| Claude Opus 4.5 | January 2025 | 200K-1M | Current flagship |
+
+### Inferred Architecture
+
+While Anthropic hasn't published architectural details, we can make informed inferences:
+
+**Likely Architectural Choices:**
+
+1. **Positional Encoding**: Almost certainly RoPE
+   - 200K+ context requires extrapolation-friendly encoding
+   - RoPE is the standard for modern LLMs
+   - Likely uses base frequency scaling (ABF/YARN) for extended context
+
+2. **Attention**: Probably GQA or a variant
+   - 200K context with MHA would be prohibitively expensive
+   - GQA provides good quality-memory trade-off
+   - May use novel attention patterns for very long contexts
+
+3. **Normalization**: Likely RMSNorm
+   - Standard in modern LLMs (LLaMA, etc.)
+   - Better efficiency than LayerNorm
+
+4. **Activation**: Likely SwiGLU or variant
+   - Modern best practice for quality
+
+5. **Context Length Strategy**: For 1M tokens, likely uses:
+   - Sparse attention patterns (sliding window + global)
+   - Potentially hierarchical attention
+   - Efficient KV cache management (compression or eviction)
+
+**Performance Characteristics (from API behavior):**
+
+- **Haiku**: Very fast (~100-200 tokens/sec)
+  - Suggests efficient architecture (GQA, sliding window)
+  - Smaller model size (10-20B range)
+
+- **Sonnet/Opus**: Slower but higher quality (~30-80 tokens/sec)
+  - Larger models with more computation
+  - Potentially different attention patterns
+
+**Context Window Capabilities:**
+
+The progression from 100K → 200K → 1M tokens suggests:
+- Iterative improvements to positional encoding scaling
+- Better KV cache management techniques
+- Possibly architecture changes (sparse attention, MoE for later versions)
+
+### Training Approach
+
+Claude uses a combination of:
+1. **RLHF** (see [RLHF](20-rlhf.md)): Reinforcement Learning from Human Feedback
+2. **RLAIF** (Constitutional AI): Reinforcement Learning from AI Feedback, where a "trainer" model evaluates responses against constitutional principles
+
+**Problem and Motivation for Constitutional AI:**
+Traditional RLHF requires massive amounts of human feedback, which is expensive, slow, and can introduce inconsistencies. Moreover, ensuring consistent adherence to complex ethical principles across millions of examples is challenging with human labeling alone. Constitutional AI addresses this by using AI systems to provide scalable, consistent feedback based on explicit constitutional principles.
+
+**Theoretical Justification:**
+Constitutional AI is based on two key phases:
+
+1. **Supervised Learning Phase**: The model generates responses, critiques them according to constitutional principles, and revises them. This creates a dataset of (prompt, revised_response) pairs for supervised fine-tuning.
+
+2. **Reinforcement Learning Phase**: Instead of human preferences, an AI evaluator ranks responses based on constitutional principles. This creates preference data for RLHF.
+
+The objective function combines:
+$$\mathcal{L} = \mathcal{L}_{\text{SFT}} + \beta \mathcal{L}_{\text{RL}}$$
+
+where:
+- $\mathcal{L}_{\text{SFT}}$ is the supervised loss on revised responses
+- $\mathcal{L}_{\text{RL}}$ is the RL loss from AI feedback (typically PPO)
+- $\beta$ balances the two objectives
+
+**Comparison to Alternatives:**
+- **Pure RLHF**: Requires extensive human labeling, expensive and slow
+- **Rule-based filtering**: Brittle, can't handle nuanced cases
+- **Supervised fine-tuning only**: Lacks the iterative improvement from preference learning
+- **Constitutional AI**: Scalable, consistent, combines self-critique with preference learning
+
+**Key Insights:**
+1. **Self-Improvement Loop**: The model improves by critiquing its own outputs, creating a virtuous cycle
+2. **Principle Specification**: Explicit constitutional principles are easier to audit and modify than implicit human preferences
+3. **Scalability**: AI feedback is cheaper and faster than human feedback for certain tasks
+4. **Consistency**: AI evaluators can apply principles more consistently than multiple human raters
+5. **Human oversight**: Principles are human-defined, maintaining human control over values
+
+**Constitutional AI Process:**
+
+```python
+# Simplified Constitutional AI training loop (conceptual)
+def constitutional_ai_training(
+    base_model,
+    critique_model,
+    constitutional_principles: list[str],
+    prompts: list[str]
+):
+    """
+    Constitutional AI uses self-critique to improve responses.
+
+    Key innovation: Instead of only human feedback, use AI to
+    critique responses based on constitutional principles.
+
+    Constitutional principles example:
+    - "Choose the response that is most helpful, honest, and harmless"
+    - "Avoid responses that are toxic, racist, or sexist"
+    - "Prioritize responses that respect human autonomy"
+    """
+    for prompt in prompts:
+        # 1. Generate multiple candidate responses
+        responses = [base_model.generate(prompt) for _ in range(4)]
+
+        # 2. Critique each response against principles
+        critiques = []
+        for response in responses:
+            critique_prompt = f"""
+            Principle: {constitutional_principles[0]}
+            Response: {response}
+            Critique: Which constitutional principle does this violate?
+            How could it be improved?
+            """
+            critique = critique_model.generate(critique_prompt)
+            critiques.append(critique)
+
+        # 3. Revise responses based on critiques
+        revised_responses = []
+        for response, critique in zip(responses, critiques):
+            revision_prompt = f"""
+            Original: {response}
+            Critique: {critique}
+            Please revise the response to address the critique.
+            """
+            revised = base_model.generate(revision_prompt)
+            revised_responses.append(revised)
+
+        # 4. Rank responses and train with RL (e.g., PPO)
+        # This creates preference pairs for RLHF
+        # Ranking can be done by humans or by the critique model
+```
+
+**Why Constitutional AI Matters for Architecture:**
+
+The RLAIF approach potentially influences architecture in subtle ways:
+- May require different capacity allocation (more reasoning, less memorization)
+- Potentially benefits from MoE (different experts for different principles)
+- Could influence training stability requirements
+
+### Comparison of Claude Model Tiers
+
+| Aspect | Haiku | Sonnet | Opus |
+|--------|-------|--------|------|
+| **Speed** | Very Fast | Fast | Slower |
+| **Cost** | Lowest | Medium | Highest |
+| **Quality** | Good | Very Good | Best |
+| **Use Case** | High-volume, simple | General purpose | Complex reasoning |
+| **Est. Size** | 10-20B | 60-100B | 175-300B |
+
+**Inferred Trade-offs:**
+- Haiku: Optimized for throughput (smaller model, aggressive KV cache optimization)
+- Sonnet: Balanced (medium size, standard techniques)
+- Opus: Optimized for quality (larger model, potentially more expensive attention)
+
+### What We Don't Know
+
+- Exact parameter counts
+- Attention mechanism details (standard GQA? Custom variant?)
+- MoE usage (if any)
+- Training data size and composition
+- Hardware (custom TPUs? GPUs? What kind?)
+- Specific architectural innovations unique to Claude
 
 **Key Papers:**
 - [Constitutional AI: Harmlessness from AI Feedback](https://arxiv.org/abs/2212.08073) (Bai et al., 2022)
 - [Training a Helpful and Harmless Assistant](https://arxiv.org/abs/2204.05862) (Anthropic, 2022)
-
-**Training Approach:**
-Claude uses a combination of:
-1. **RLHF** (see [RLHF](20-rlhf.md)): Reinforcement Learning from Human Feedback
-2. **RLAIF**: Reinforcement Learning from AI Feedback, where a "trainer" model evaluates responses against constitutional principles
+- [Sleeper Agents: Training Deceptive LLMs that Persist Through Safety Training](https://arxiv.org/abs/2401.05566) (Anthropic, 2024) - discusses robustness
 
 ---
 
@@ -180,10 +573,27 @@ import torch.nn as nn
 class RMSNorm(nn.Module):
     """Root Mean Square Layer Normalization.
 
+    Mathematical definition:
+    RMSNorm(x) = (x / RMS(x)) * γ
+
+    where:
+    RMS(x) = sqrt((1/d) * Σ(x_i^2) + ε)
+
+    In LaTeX notation:
+    $$\text{RMSNorm}(\mathbf{x}) = \frac{\mathbf{x}}{\sqrt{\frac{1}{d}\sum_{i=1}^d x_i^2 + \epsilon}} \odot \boldsymbol{\gamma}$$
+
+    where:
+    - x ∈ R^d is the input vector
+    - γ ∈ R^d is the learned scale parameter
+    - ⊙ denotes element-wise multiplication
+    - ε is a small constant for numerical stability
+
     Compared to LayerNorm, RMSNorm:
     - Removes mean centering (only normalizes by RMS)
     - Saves 5-15% compute per normalization layer
     - Maintains training stability
+    - LayerNorm: x' = (x - μ) / σ * γ + β (requires mean and variance)
+    - RMSNorm: x' = x / RMS(x) * γ (only requires RMS)
 
     See [The Transformer Block](09-transformer-block.md) for detailed explanation.
     """
@@ -202,14 +612,35 @@ class RMSNorm(nn.Module):
 class SwiGLU(nn.Module):
     """SwiGLU activation function.
 
-    SwiGLU(x) = Swish(xW) * (xV)
+    Mathematical definition:
+    SwiGLU(x, W, V, b, c) = Swish(xW + b) ⊙ (xV + c)
+
+    where:
+    Swish(x) = x · σ(x) = x · sigmoid(x)
+
+    In LaTeX notation:
+    $$\text{SwiGLU}(\mathbf{x}, \mathbf{W}, \mathbf{V}, \mathbf{b}, \mathbf{c}) = \text{Swish}(\mathbf{x}\mathbf{W} + \mathbf{b}) \odot (\mathbf{x}\mathbf{V} + \mathbf{c})$$
+
+    $$\text{Swish}(\mathbf{x}) = \mathbf{x} \odot \sigma(\mathbf{x})$$
+
+    Complete FFN architecture:
+    $$\text{FFN}_{\text{SwiGLU}}(\mathbf{x}) = (\text{Swish}(\mathbf{x}\mathbf{W}_1) \odot \mathbf{x}\mathbf{W}_3)\mathbf{W}_2$$
+
+    where:
+    - W₁ ∈ R^(d × h) is the gate projection (typically h = (8/3)d)
+    - W₂ ∈ R^(h × d) is the down projection
+    - W₃ ∈ R^(d × h) is the up projection
+    - ⊙ denotes element-wise multiplication
 
     Benefits over GELU:
     - Gating mechanism learns to selectively process information
     - No dead neuron problem (unlike ReLU)
     - Improved training performance
+    - Empirically shown to improve quality (GLU Variants paper)
 
     Note: Requires 3 linear layers instead of 2 in FFN.
+    Parameter count: 3dh vs. 2dh for standard FFN.
+    For h = (8/3)d: SwiGLU uses 8d² params vs. 8d² for GELU with h = 4d.
 
     See [The Transformer Block](09-transformer-block.md) for detailed explanation.
     """
@@ -221,6 +652,7 @@ class SwiGLU(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # Swish(x) = x * sigmoid(x)
+        # SwiGLU = Swish(xW1) * (xW3) then project down with W2
         return self.w2(nn.functional.silu(self.w1(x)) * self.w3(x))
 ```
 
@@ -234,6 +666,37 @@ Key changes:
 - **Context Length**: Extended to 4096 tokens
 - **Training**: More data (2T tokens) + RLHF
 
+**Problem and Motivation for Grouped Query Attention:**
+Large language models face a critical memory bottleneck during inference: the KV cache. For autoregressive generation, we must cache the key and value tensors for all previous tokens. With Multi-Head Attention (MHA), this cache grows as $O(2 \cdot n_{\text{layers}} \cdot n_{\text{heads}} \cdot d_{\text{head}} \cdot \text{seq\_len})$. For a 70B model with long contexts, this can exceed available GPU memory. Multi-Query Attention (MQA) solves this by using a single KV head, but often degrades quality. GQA provides a middle ground.
+
+**Theoretical Justification:**
+GQA groups query heads to share KV heads, providing a tunable trade-off:
+
+$$\text{GQA}(Q, K, V) = \text{Concat}(\text{head}_1, ..., \text{head}_h)W^O$$
+
+where each head is computed as:
+$$\text{head}_i = \text{Attention}(Q_i, K_{\lfloor i/G \rfloor}, V_{\lfloor i/G \rfloor})$$
+
+Here $G = n_{\text{heads}} / n_{\text{kv\_heads}}$ is the group size. This reduces KV cache by a factor of $G$ while maintaining multiple KV heads for better representation.
+
+The memory reduction is:
+$$\text{Memory}_{\text{GQA}} = \frac{n_{\text{kv\_heads}}}{n_{\text{heads}}} \times \text{Memory}_{\text{MHA}}$$
+
+For LLaMA 2 70B with 64 query heads and 8 KV heads: $\text{reduction} = 8/64 = 8\times$
+
+**Comparison to Alternatives:**
+- **MHA**: Best quality, highest memory cost, $O(n_{\text{heads}})$ KV cache
+- **MQA**: Lowest memory ($1\times$ KV head), but can degrade quality significantly
+- **GQA**: Balanced approach, typically 4-8× memory reduction with minimal quality loss
+- **MLA (DeepSeek)**: Compresses KV into latent space, but adds decompression overhead
+
+**Key Insights:**
+1. **Memory-Quality Trade-off**: GQA finds the sweet spot between MHA's quality and MQA's efficiency
+2. **Group Size Selection**: Typical group sizes are 4-8. Larger groups save more memory but may hurt quality
+3. **Inference Speedup**: Reduced memory bandwidth leads to faster inference, especially for long contexts
+4. **Training Compatibility**: Can convert pre-trained MHA models to GQA via mean-pooling of KV heads
+5. **Scaling Law**: Larger models benefit more from GQA since their KV cache is proportionally larger
+
 ```python
 class GroupedQueryAttention(nn.Module):
     """Grouped Query Attention (GQA).
@@ -243,9 +706,32 @@ class GroupedQueryAttention(nn.Module):
     - MQA: All query heads share one K,V head (n_kv_heads = 1)
     - GQA: Groups of query heads share K,V heads (1 < n_kv_heads < n_heads)
 
+    Mathematical definition:
+    Let G = n_heads / n_kv_heads be the group size.
+
+    For standard MHA:
+    $$\text{head}_i = \text{Attention}(\mathbf{Q}_i, \mathbf{K}_i, \mathbf{V}_i)$$
+
+    For GQA with G query heads per KV head:
+    $$\text{head}_i = \text{Attention}(\mathbf{Q}_i, \mathbf{K}_{\lfloor i/G \rfloor}, \mathbf{V}_{\lfloor i/G \rfloor})$$
+
+    where:
+    - Q_i ∈ R^(s × d_h) for each of n_heads query heads
+    - K_j, V_j ∈ R^(s × d_h) for each of n_kv_heads KV heads
+    - s is sequence length, d_h is head dimension
+
+    KV Cache Reduction Ratio:
+    $$r = \frac{n_{\text{heads}}}{n_{\text{kv\_heads}}}$$
+
+    Memory savings example:
+    - MHA (n_heads = 32): 32 K heads + 32 V heads = 64 heads in cache
+    - GQA (n_kv_heads = 8): 8 K heads + 8 V heads = 16 heads in cache
+    - Reduction: 64/16 = 4x memory savings
+
     Benefits:
     - Reduces KV cache memory by factor of (n_heads / n_kv_heads)
     - Faster inference with minimal quality loss
+    - For LLaMA 2 70B: 32 Q heads, 8 KV heads → 4x KV cache reduction
 
     See [Multi-Head Attention](04-multi-head-attention.md) for detailed explanation.
     """
@@ -376,6 +862,40 @@ Key changes from Qwen 2.5:
 **Key Paper:**
 - [Qwen3 Technical Report](https://arxiv.org/abs/2505.09388) (Qwen Team, 2025)
 
+**Problem and Motivation for QK-Normalization:**
+At very large scales (100B+ parameters, trillion+ token training), attention logits can grow unbounded, leading to numerical instability and training divergence. This is especially problematic with longer contexts and higher learning rates. The attention scores $QK^T$ are not inherently bounded, and as models scale, the variance of these scores increases, potentially causing overflow in softmax or gradient explosion.
+
+**Theoretical Justification:**
+QK-Norm applies normalization to query and key vectors before computing attention scores. This bounds the attention logits and stabilizes training.
+
+Standard attention computes:
+$$\text{scores} = \frac{QK^T}{\sqrt{d_k}}$$
+
+With QK-Norm:
+$$\text{scores} = \frac{\text{Norm}(Q) \cdot \text{Norm}(K)^T}{\sqrt{d_k}}$$
+
+where $\text{Norm}$ is typically RMSNorm applied per-head. This ensures:
+$$\|Q_i\| \approx \|K_j\| \approx \sqrt{d_k}$$
+
+Therefore, the dot products are bounded:
+$$|Q_i \cdot K_j| \leq \|Q_i\| \|K_j\| \approx d_k$$
+
+This prevents attention logits from exploding regardless of the input distribution.
+
+**Comparison to Alternatives:**
+- **No normalization**: Attention logits can grow unbounded, causing instability
+- **Post-softmax normalization**: Too late; softmax can already overflow
+- **Temperature scaling**: Requires careful tuning, not adaptive to input statistics
+- **QK-Norm**: Automatic, bounded attention logits, proven stability at scale
+- **Attention logit capping (Gemma 2)**: Similar effect but less principled
+
+**Key Insights:**
+1. **Scale Stability**: Becomes increasingly important as models grow beyond 100B parameters
+2. **Training Robustness**: Enables higher learning rates and more aggressive optimization
+3. **Minimal Overhead**: RMSNorm is very cheap compared to attention computation
+4. **Orthogonal to Other Techniques**: Can combine with GQA, Flash Attention, etc.
+5. **Initialization Independent**: Makes attention scores less sensitive to weight initialization
+
 ```python
 class QKNorm(nn.Module):
     """QK-Norm: Normalize Q and K before attention.
@@ -413,6 +933,41 @@ Introduced sliding window attention for efficient long-context handling:
 - **Activation**: SiLU (similar to Swish)
 - **Context Length**: 8K (effective attention span ~128K via stacking)
 
+**Problem and Motivation for Sliding Window Attention:**
+Standard attention has $O(n^2)$ memory and compute complexity with sequence length $n$. For long contexts (32K+ tokens), this becomes prohibitive. While techniques like sparse attention exist, they often require custom kernels or sacrifice quality. Sliding window attention provides a simple, effective way to reduce complexity while maintaining strong performance through the depth of the network.
+
+**Theoretical Justification:**
+Sliding window attention restricts each token to attend only to the previous $w$ tokens (the window size):
+
+$$\text{Attention}(Q, K, V)_{ij} = \begin{cases}
+\text{softmax}(QK^T / \sqrt{d_k})_{ij} V & \text{if } i - w < j \leq i \\
+0 & \text{otherwise}
+\end{cases}$$
+
+This reduces memory from $O(n^2)$ to $O(n \cdot w)$, where $w$ is the fixed window size.
+
+**Key insight - Stacked receptive fields**: While each layer has a window of $w$, stacking $L$ layers gives an effective receptive field of:
+$$\text{receptive\_field} = w + (L-1) \times (w-1) \approx L \times w$$
+
+For Mistral 7B with $w = 4096$ and $L = 32$ layers:
+$$\text{effective\_field} \approx 32 \times 4096 = 131,072 \text{ tokens}$$
+
+This means information can flow across the entire long context through the layer stack, even though each individual layer only attends locally.
+
+**Comparison to Alternatives:**
+- **Full attention**: $O(n^2)$ complexity, best quality but doesn't scale
+- **Sparse attention (fixed patterns)**: Reduced complexity but may miss important long-range dependencies
+- **LSH attention**: Approximate, requires special kernels, quality variance
+- **Sliding window**: Simple, predictable, quality maintained through stacking
+- **Longformer (sliding + global)**: Better but more complex implementation
+
+**Key Insights:**
+1. **Linear scaling**: Memory and compute grow linearly with sequence length
+2. **Receptive field stacking**: Deep networks enable long-range dependencies despite local attention
+3. **Implementation simplicity**: Works with standard attention kernels, just requires masking
+4. **Quality preservation**: Empirically maintains quality on long-context tasks
+5. **KV cache efficiency**: Rolling buffer can reuse memory slots
+
 ```python
 def sliding_window_attention_mask(seq_len: int, window_size: int) -> torch.Tensor:
     """Create sliding window attention mask.
@@ -436,6 +991,21 @@ def sliding_window_attention_mask(seq_len: int, window_size: int) -> torch.Tenso
 
 **Rolling Buffer Cache:**
 Instead of storing the full KV cache, Mistral uses a fixed-size rotating buffer:
+
+**Problem and Motivation:**
+Even with sliding window attention, the KV cache still needs to store $w$ tokens per layer. For very long sequences, this accumulates memory. However, since we only need the last $w$ tokens for attention, we can reuse memory slots in a circular buffer, keeping memory bounded regardless of total sequence length.
+
+**Theoretical Justification:**
+A rolling buffer implements a fixed-size FIFO (first-in, first-out) cache:
+- Size: $w \times n_{\text{layers}} \times n_{\text{kv\_heads}} \times d_{\text{head}}$ (constant)
+- New tokens overwrite oldest tokens: $\text{position} = t \mod w$
+- Memory is $O(w)$ instead of $O(n)$ where $n$ can grow arbitrarily
+
+**Key Insights:**
+1. **Constant memory**: Regardless of sequence length, memory stays at $O(w)$
+2. **Cache reuse**: Memory slots are recycled, reducing allocation overhead
+3. **Pointer arithmetic**: Only need to track current position modulo window size
+4. **Prefill optimization**: During initial processing, can batch operations before entering generation loop
 
 ```python
 class RollingKVCache:
@@ -472,6 +1042,42 @@ Sparse Mixture of Experts model:
 - **Active Parameters**: 13B per forward pass
 - **Attention**: GQA + Sliding Window
 - **Context Length**: 32K tokens
+
+**Problem and Motivation for Sparse MoE:**
+Scaling dense models linearly increases both training and inference costs. A 47B dense model would require 47B FLOPs per token during inference. MoE allows scaling model capacity (total parameters) while keeping computation per token constant by activating only a subset of experts. This enables training larger, more capable models with similar compute budgets.
+
+**Theoretical Justification:**
+Sparse MoE replaces dense FFN layers with multiple expert networks and a learned router:
+
+$$\text{MoE}(x) = \sum_{i=1}^{n} G(x)_i \cdot E_i(x)$$
+
+where the gating function $G(x)$ selects top-k experts:
+$$G(x) = \text{TopK}(\text{softmax}(x \cdot W_g), k)$$
+
+For Mixtral with 8 experts and top-2 routing:
+- Total capacity: $8 \times 6.7\text{B} \approx 54\text{B}$ parameters in FFN
+- Active per token: $2 \times 6.7\text{B} \approx 13.4\text{B}$ parameters
+- Compute: Same as a ~13B dense model
+- Capacity: Comparable to a ~47B dense model
+
+The routing weights are normalized:
+$$w_i = \frac{e^{s_i}}{\sum_{j \in \text{TopK}} e^{s_j}}$$
+
+where $s_i$ are the router logits for the selected experts.
+
+**Comparison to Alternatives:**
+- **Dense models**: Simpler but expensive to scale; 47B dense = 47B compute/token
+- **Switch Transformer (top-1 routing)**: Less robust, higher variance in quality
+- **Expert Choice routing**: Experts choose tokens instead of tokens choosing experts
+- **Mixtral (top-2 routing)**: Balanced - redundancy for robustness, efficient scaling
+
+**Key Insights:**
+1. **Capacity-Compute Decoupling**: Can increase model capacity without proportional compute increase
+2. **Top-k Selection**: Using k=2 provides redundancy, improving robustness over k=1
+3. **Expert Specialization**: Experts naturally specialize (e.g., code, math, language) during training
+4. **Load Balancing**: Requires auxiliary losses or constraints to prevent routing collapse
+5. **Training Efficiency**: MoE models train faster per parameter but require careful optimization
+6. **Inference Serving**: More complex than dense models; requires efficient expert routing and batching
 
 ```python
 class MixtralMoELayer(nn.Module):
@@ -557,6 +1163,30 @@ class MultiHeadLatentAttention(nn.Module):
     Key insight: Instead of caching full K,V tensors, compress them
     into a smaller latent space. At inference, decompress on-the-fly.
 
+    Mathematical definition:
+    Standard attention caches K, V ∈ R^(s × n_h × d_h)
+    MLA caches c ∈ R^(s × d_c) where d_c << n_h × d_h
+
+    Compression phase:
+    $$\mathbf{c}_t = \mathbf{W}_c \mathbf{x}_t$$
+
+    Decompression phase:
+    $$\mathbf{K}_t = \mathbf{W}_k \mathbf{c}_t, \quad \mathbf{V}_t = \mathbf{W}_v \mathbf{c}_t$$
+
+    where:
+    - W_c ∈ R^(d × d_c) is compression matrix
+    - W_k, W_v ∈ R^(d_c × n_h·d_h) are decompression matrices
+    - d is model dimension, d_c is latent dimension
+    - n_h is number of heads, d_h is head dimension
+
+    Compression ratio:
+    $$\rho = \frac{2 \cdot n_h \cdot d_h}{d_c}$$
+
+    Example (DeepSeek V3):
+    - Original KV: 2 × 128 heads × 128 dim = 32,768 dims per token
+    - Compressed: 512 dims per token
+    - Compression ratio: 32,768 / 512 = 64x reduction
+
     Memory savings: KV cache reduced by factor of (dim / latent_dim)
 
     Trade-off: Slightly more compute during inference for decompression,
@@ -620,6 +1250,47 @@ class MultiHeadLatentAttention(nn.Module):
 **Auxiliary-Loss-Free Load Balancing:**
 DeepSeek V3 eliminates auxiliary losses for MoE load balancing, using bias terms instead:
 
+**Problem and Motivation:**
+MoE models often suffer from "routing collapse" where all tokens route to a small subset of experts, leaving others unused. Previous solutions used auxiliary losses (e.g., encouraging uniform expert usage), but these:
+1. Hurt final model quality by forcing suboptimal routing
+2. Add hyperparameters that need tuning
+3. Create competing objectives during training
+
+DeepSeek V3 needed a way to encourage load balancing without degrading model quality.
+
+**Theoretical Justification:**
+The key insight is to decouple routing decisions from the training signal:
+
+1. **Routing phase**: Use biased logits to select experts
+   $$\text{routing\_logits} = W_g x + b_{\text{expert}}$$
+
+2. **Weight computation**: Use unbiased logits for the actual output weights
+   $$\text{weights} = \text{softmax}(W_g x)$$
+
+The bias terms $b_{\text{expert}}$ are learned to balance load:
+- If expert $i$ is underutilized, $b_i$ increases, making it more likely to be selected
+- If expert $i$ is overutilized, $b_i$ decreases
+- Bias affects only which experts are chosen (top-k), not their contribution weights
+
+This is formalized as:
+$$\text{selected\_experts} = \text{TopK}(s + b, k)$$
+$$\text{output} = \sum_{i \in \text{selected}} \frac{e^{s_i}}{\sum_{j \in \text{selected}} e^{s_j}} E_i(x)$$
+
+where $s = W_g x$ (unbiased logits) and $b$ are the learned biases.
+
+**Comparison to Alternatives:**
+- **Auxiliary loss (Switch, Mixtral)**: Explicit load balancing term in loss, hurts quality
+- **Expert choice**: Experts pick tokens instead, more complex
+- **No load balancing**: Routing collapse, wasted capacity
+- **Bias-based (DeepSeek V3)**: Implicit balancing without quality degradation
+
+**Key Insights:**
+1. **Separation of concerns**: Routing decision ≠ output computation
+2. **No quality loss**: Training objective remains pure (no auxiliary loss)
+3. **Automatic adaptation**: Biases learn to balance load through gradient descent
+4. **Simplicity**: Fewer hyperparameters than auxiliary loss methods
+5. **Effectiveness**: Achieves better load balance with better downstream quality
+
 ```python
 class DeepSeekRouter(nn.Module):
     """DeepSeek V3 router with auxiliary-loss-free load balancing.
@@ -669,6 +1340,37 @@ Gemma 2 uses interleaved local (sliding window) and global attention:
 - **Context Length**: 8192 tokens
 
 **Key Innovation - Interleaved Attention:**
+
+**Problem and Motivation:**
+Sliding window attention is efficient but may struggle with long-range dependencies that span beyond the window. Full attention maintains all dependencies but is expensive. Using only one approach forces a trade-off between efficiency and capability. Gemma 2 needs to handle 8K contexts efficiently while maintaining long-range reasoning.
+
+**Theoretical Justification:**
+Interleaving local and global attention layers combines their strengths:
+
+- **Local layers** (odd): Sliding window of 4K tokens
+  $$\text{Attention}_{\text{local}}(Q, K, V) \text{ with mask } M_{ij} = \begin{cases} 1 & \text{if } i - 4096 < j \leq i \\ 0 & \text{otherwise} \end{cases}$$
+
+- **Global layers** (even): Full causal attention over 8K tokens
+  $$\text{Attention}_{\text{global}}(Q, K, V) \text{ with mask } M_{ij} = \begin{cases} 1 & \text{if } j \leq i \\ 0 & \text{otherwise} \end{cases}$$
+
+**Analysis of receptive field:**
+- At local layer $l$: Can attend to previous 4K tokens
+- At global layer $l+1$: Can attend to all previous 8K tokens, including information gathered by layer $l$ from its 4K window
+- Result: Every other layer has full context, intermediate layers provide efficient local processing
+
+**Comparison to Alternatives:**
+- **Pure sliding window**: Efficient but limited receptive field per layer
+- **Pure global attention**: Best quality but $O(n^2)$ complexity
+- **Sparse patterns (Longformer style)**: More complex, requires careful pattern design
+- **Interleaved (Gemma 2)**: Simple implementation, balance of efficiency and capability
+
+**Key Insights:**
+1. **Best of both worlds**: Global layers preserve long-range dependencies, local layers provide efficient computation
+2. **Compute savings**: ~50% reduction in attention compute vs. pure global
+3. **Memory savings**: Local layers use less memory for attention computation
+4. **Information flow**: Global layers ensure no information bottleneck
+5. **Simplicity**: Easy to implement, just alternate attention mask patterns
+
 ```python
 class Gemma2Attention(nn.Module):
     """Gemma 2 attention with interleaved local/global attention.
@@ -706,12 +1408,67 @@ class Gemma2Attention(nn.Module):
 **Logit Soft-Capping:**
 Gemma 2 caps attention logits to prevent numerical instability:
 
+**Problem and Motivation:**
+During training at large scale, attention logits can grow very large, especially for strongly attending positions. This causes:
+1. Softmax saturation: $\text{softmax}([1, 100]) \approx [0, 1]$ - gradient vanishes
+2. Numerical overflow: Large values in exponential can cause NaN
+3. Training instability: Extreme attention patterns can lead to divergence
+
+Hard clipping (e.g., `logits = torch.clamp(logits, -cap, cap)`) creates discontinuities in gradients. We need a smooth, differentiable solution.
+
+**Theoretical Justification:**
+Soft-capping uses a smooth, bounded function to limit logit magnitude:
+
+$$\text{soft-cap}(x, c) = c \cdot \tanh(x / c)$$
+
+This has several key properties:
+
+1. **Boundedness**: Output is strictly bounded: $-c < \text{soft-cap}(x, c) < c$
+
+2. **Smoothness**: Infinitely differentiable everywhere (unlike hard clipping)
+
+3. **Gradient behavior**:
+   $$\frac{d}{dx}\text{soft-cap}(x, c) = \text{sech}^2(x/c) = 1 - \tanh^2(x/c)$$
+
+   - For small $|x|$: gradient $\approx 1$ (near-identity, doesn't interfere with learning)
+   - For large $|x|$: gradient $\to 0$ smoothly (prevents further growth)
+
+4. **Linear region**: For $|x| \ll c$, we have $\tanh(x/c) \approx x/c$, so:
+   $$\text{soft-cap}(x, c) \approx c \cdot (x/c) = x$$
+
+**Comparison to Alternatives:**
+- **No capping**: Attention logits can explode, causing training instability
+- **Hard clipping**: Non-differentiable at boundaries, can cause optimization issues
+- **QK-Norm**: Different approach, normalizes Q and K instead of capping logits
+- **Soft-capping**: Smooth, bounded, preserves gradients in reasonable range
+
+**Key Insights:**
+1. **Prevents saturation**: Keeps attention distributions from becoming too peaked
+2. **Maintains gradients**: Unlike hard clipping, gradients flow smoothly
+3. **Minimal interference**: Acts like identity for normal-range values
+4. **Universal applicability**: Used for both attention logits and final output logits in Gemma 2
+5. **Tunable**: Cap value $c$ can be adjusted based on model scale
+
 ```python
 def soft_cap(logits: torch.Tensor, cap: float = 50.0) -> torch.Tensor:
     """Soft-cap logits to prevent extreme values.
 
+    Mathematical definition:
+    $$\text{soft-cap}(x, c) = c \cdot \tanh(x / c)$$
+
+    where:
+    - x is the input logit
+    - c is the cap value (typically 50.0)
+    - tanh ensures output is bounded: -c < output < c
+
+    Properties:
+    - For small |x|: soft-cap(x, c) ≈ x (linear region)
+    - For large |x|: soft-cap(x, c) → ±c (saturates)
+    - Smooth transition (differentiable everywhere)
+
     Used in Gemma 2 for both attention logits and final logits.
     Prevents logits from growing excessively during training.
+    Improves numerical stability without hurting quality.
     """
     return cap * torch.tanh(logits / cap)
 ```
@@ -742,6 +1499,53 @@ Most diffusion language models use bidirectional attention, which breaks KV cach
 3. Use causal attention (unlike other diffusion LMs which use bidirectional)
 4. Iterate to refine predictions
 
+**Problem and Motivation:**
+Autoregressive generation is inherently sequential: you must generate token $t$ before token $t+1$. This prevents parallelization and makes generation slow, especially for long outputs. Diffusion models can generate all tokens in parallel by starting from noise and iteratively refining, but most diffusion LMs use bidirectional attention, making them incompatible with the optimized infrastructure built for autoregressive models (KV caching, Flash Attention with causal masks, etc.).
+
+**Theoretical Justification:**
+WeDLM adapts diffusion to work with causal attention:
+
+**Standard diffusion process:**
+- Forward: Gradually add noise/masks to clean sequence
+  $$q(x_t | x_0) = \text{Mask}(x_0, t)$$
+
+- Reverse: Iteratively denoise to recover clean sequence
+  $$p_\theta(x_{t-1} | x_t) = \text{Model}(x_t, t)$$
+
+**WeDLM innovation - Causal constraint:**
+Instead of bidirectional attention which allows $x_i$ to attend to all positions, WeDLM uses causal masking:
+$$\text{Attention}(Q, K, V)_{ij} = 0 \text{ for } j > i$$
+
+This means:
+- Position $i$ can only use information from positions $\leq i$
+- Compatible with standard causal attention infrastructure
+- Can leverage KV caching during iterative refinement
+- Each denoising step is like a "parallel generation" pass
+
+**Generation process:**
+1. **Initialization**: $x_T = [\text{prompt}, \text{MASK}, \text{MASK}, ..., \text{MASK}]$
+2. **Iterative refinement** for $t = T, T-1, ..., 1$:
+   - Predict denoised sequence: $\hat{x}_0 = f_\theta(x_t, t)$
+   - Sample next step: $x_{t-1} \sim p_\theta(x_{t-1} | x_t)$
+3. **Final output**: $x_0$ (fully denoised)
+
+**Comparison to Alternatives:**
+- **Autoregressive (GPT, LLaMA)**: Sequential, slow, quality standard
+- **Bidirectional diffusion (MDLM)**: Parallel but incompatible with causal infrastructure
+- **Non-autoregressive (BERT-style)**: Requires separate training paradigm
+- **WeDLM (causal diffusion)**: Parallel generation with causal constraints, infrastructure compatible
+
+**Key Insights:**
+1. **Speed-quality trade-off**: Fewer denoising steps = faster but lower quality; more steps = slower but better
+2. **Parallel generation**: All positions updated simultaneously at each step
+3. **Infrastructure reuse**: Can use Flash Attention, KV caching, existing optimizations
+4. **Best for structured tasks**: Excels at code, math where constraints matter
+5. **Iterative refinement**: Can fix errors in later steps unlike autoregressive (once generated, can't change)
+
+**When to use WeDLM vs. autoregressive:**
+- **WeDLM advantages**: Faster for long sequences, can refine globally, better for structured output
+- **Autoregressive advantages**: Simpler, better for open-ended generation, more mature ecosystem
+
 ```python
 class DiffusionLanguageModel(nn.Module):
     """Simplified diffusion language model concept.
@@ -755,42 +1559,80 @@ class DiffusionLanguageModel(nn.Module):
 
     See [Diffusion Model Fundamentals](23-diffusion-fundamentals.md) for diffusion model details.
     """
-    def __init__(self, base_model: nn.Module, n_diffusion_steps: int = 10):
+    def __init__(
+        self,
+        base_model: nn.Module,
+        n_diffusion_steps: int = 10,
+        mask_token_id: int = 0  # Typically 0 or a special mask token
+    ):
         super().__init__()
         self.model = base_model
         self.n_steps = n_diffusion_steps
+        self.mask_token_id = mask_token_id
 
     def forward(self, x: torch.Tensor, t: int) -> torch.Tensor:
         """Predict denoised tokens at diffusion step t.
 
         Args:
-            x: Current noisy/masked sequence
+            x: Current noisy/masked sequence (batch, seq_len)
             t: Current diffusion timestep (n_steps -> 0)
 
         Returns:
-            Predicted clean tokens
+            Predicted token logits (batch, seq_len, vocab_size)
+
+        Simplified implementation concept:
+        1. Embed tokens and add timestep embedding
+        2. Pass through transformer with causal attention
+        3. Project to vocabulary logits
         """
-        # Embed timestep and add to input
-        # Use causal attention (standard transformer)
-        # Predict token logits for all positions
-        pass
+        # In a real implementation:
+        # t_emb = self.time_embedding(t)
+        # x_emb = self.token_embedding(x) + t_emb
+        # logits = self.model(x_emb)
+        # return logits
+        raise NotImplementedError("Simplified example - see WeDLM implementation")
 
     @torch.no_grad()
-    def generate(self, prompt: torch.Tensor, length: int) -> torch.Tensor:
+    def generate(
+        self,
+        prompt: torch.Tensor,
+        length: int,
+        temperature: float = 1.0
+    ) -> torch.Tensor:
         """Generate tokens using iterative denoising.
 
         Unlike AR generation (one token at a time),
         we predict all tokens simultaneously and refine.
+
+        Args:
+            prompt: Initial prompt tokens (1, prompt_len)
+            length: Total sequence length including prompt
+            temperature: Sampling temperature
+
+        Returns:
+            Generated sequence (1, length)
         """
         # Start with masked tokens
-        x = torch.full((1, length), MASK_TOKEN)
+        x = torch.full((1, length), self.mask_token_id, dtype=torch.long)
         x[:, :prompt.shape[1]] = prompt
 
         # Iteratively denoise
         for t in range(self.n_steps, 0, -1):
-            logits = self.forward(x, t)
-            # Sample or take argmax for non-prompt positions
-            predictions = logits[:, prompt.shape[1]:].argmax(dim=-1)
+            logits = self.forward(x, t)  # (1, length, vocab_size)
+
+            # Only update non-prompt positions
+            gen_logits = logits[:, prompt.shape[1]:] / temperature
+
+            # Sample or take argmax
+            if temperature > 0:
+                probs = torch.softmax(gen_logits, dim=-1)
+                predictions = torch.multinomial(
+                    probs.view(-1, probs.size(-1)),
+                    num_samples=1
+                ).view(1, -1)
+            else:
+                predictions = gen_logits.argmax(dim=-1)
+
             x[:, prompt.shape[1]:] = predictions
 
         return x
@@ -1013,19 +1855,378 @@ class DiffusionLanguageModel(nn.Module):
 
 ---
 
+## Memory Calculations and Efficiency Analysis
+
+Understanding memory requirements is crucial for deploying LLMs in production. The primary memory bottleneck during inference is the **KV cache**.
+
+**Problem and Motivation:**
+When deploying LLMs, memory is often the limiting factor, not compute. A model might fit in GPU memory, but running inference with long contexts or large batch sizes can exceed available memory. The KV cache—which stores key and value tensors for all previous tokens during autoregressive generation—grows linearly with sequence length and batch size. Understanding these memory requirements is essential for:
+1. Choosing appropriate hardware (A100 vs H100, memory size)
+2. Determining maximum batch size and context length
+3. Deciding between architectural choices (MHA vs GQA vs MLA)
+4. Planning quantization strategies
+
+**Theoretical Foundation:**
+During autoregressive generation, each new token needs to attend to all previous tokens. To avoid recomputing key and value projections for past tokens, we cache them:
+
+For each layer, we store:
+- **Keys**: $K \in \mathbb{R}^{b \times s \times n_{\text{kv}} \times d_h}$
+- **Values**: $V \in \mathbb{R}^{b \times s \times n_{\text{kv}} \times d_h}$
+
+where:
+- $b$ = batch size
+- $s$ = sequence length (grows during generation)
+- $n_{\text{kv}}$ = number of KV heads (depends on attention mechanism)
+- $d_h$ = head dimension
+
+**Why KV cache matters:**
+Without caching: Computing attention for token $t$ requires processing all previous $t-1$ tokens → $O(t^2)$ total compute
+With caching: Each new token only requires new K,V projections → $O(t)$ total compute, but $O(t)$ memory
+
+### KV Cache Memory Formula
+
+For a single layer, the KV cache memory is:
+
+$$M_{\text{layer}} = 2 \times b \times s \times n_{\text{kv}} \times d_h \times \text{bytes}$$
+
+where:
+- 2 accounts for both K and V tensors
+- $b$ is batch size
+- $s$ is sequence length
+- $n_{\text{kv}}$ is number of KV heads
+- $d_h$ is head dimension
+- bytes is the data type size (2 for fp16/bf16, 4 for fp32, 1 for int8)
+
+For all layers:
+
+$$M_{\text{total}} = 2 \times b \times s \times L \times n_{\text{kv}} \times d_h \times \text{bytes}$$
+
+where $L$ is the number of layers.
+
+### Practical Example: LLaMA 2 70B
+
+Configuration:
+- Layers: $L = 80$
+- Attention heads: $n_{\text{heads}} = 64$
+- KV heads: $n_{\text{kv}} = 8$ (GQA)
+- Head dimension: $d_h = 128$
+- Precision: fp16 (2 bytes)
+
+For sequence length $s = 4096$ and batch size $b = 1$:
+
+$$M_{\text{total}} = 2 \times 1 \times 4096 \times 80 \times 8 \times 128 \times 2$$
+$$M_{\text{total}} = 1,342,177,280 \text{ bytes} = 1.25 \text{ GB}$$
+
+**Comparison with MHA:**
+If using MHA (64 KV heads instead of 8):
+
+$$M_{\text{MHA}} = 2 \times 1 \times 4096 \times 80 \times 64 \times 128 \times 2 = 10 \text{ GB}$$
+
+**Memory savings from GQA: 8x reduction**
+
+### Python Implementation
+
+**Practical Application:**
+The formulas above are essential for capacity planning. Before deploying a model, you need to answer:
+- "Can I serve this model on my hardware?"
+- "What's the maximum context length I can support?"
+- "How many concurrent requests can I batch?"
+
+The following implementation provides a practical tool for answering these questions. It calculates exact memory requirements and helps you understand the impact of architectural choices (MHA vs GQA vs MQA) and configuration parameters.
+
+**Key Design Considerations:**
+1. **Data type flexibility**: fp32 (4 bytes), fp16/bf16 (2 bytes), int8 (1 byte), int4 (0.5 bytes)
+2. **Multi-dimensional analysis**: Returns memory in various units for easy interpretation
+3. **Per-token breakdown**: Helps understand marginal cost of longer contexts
+4. **Comparative analysis**: Enables comparing different architectural choices
+
+```python
+def calculate_kv_cache_memory(
+    n_layers: int,
+    n_kv_heads: int,
+    head_dim: int,
+    seq_len: int,
+    batch_size: int = 1,
+    dtype_bytes: int = 2  # fp16/bf16
+) -> dict:
+    """Calculate KV cache memory requirements.
+
+    Args:
+        n_layers: Number of transformer layers
+        n_kv_heads: Number of KV heads (for GQA/MQA)
+        head_dim: Dimension of each attention head
+        seq_len: Maximum sequence length
+        batch_size: Inference batch size
+        dtype_bytes: Bytes per element (2=fp16, 4=fp32, 1=int8)
+
+    Returns:
+        Dictionary with memory calculations in different units
+    """
+    # KV cache: 2 (K and V) × batch × seq × layers × kv_heads × head_dim × bytes
+    total_bytes = 2 * batch_size * seq_len * n_layers * n_kv_heads * head_dim * dtype_bytes
+
+    return {
+        'bytes': total_bytes,
+        'megabytes': total_bytes / (1024 ** 2),
+        'gigabytes': total_bytes / (1024 ** 3),
+        'per_token_kb': (total_bytes / seq_len) / 1024,
+    }
+
+# Example: LLaMA 2 70B
+llama2_70b = calculate_kv_cache_memory(
+    n_layers=80,
+    n_kv_heads=8,  # GQA
+    head_dim=128,
+    seq_len=4096,
+    batch_size=1,
+    dtype_bytes=2
+)
+print(f"LLaMA 2 70B KV cache: {llama2_70b['gigabytes']:.2f} GB")
+
+# Comparison: Same config with MHA
+llama2_70b_mha = calculate_kv_cache_memory(
+    n_layers=80,
+    n_kv_heads=64,  # MHA
+    head_dim=128,
+    seq_len=4096,
+    batch_size=1,
+    dtype_bytes=2
+)
+print(f"With MHA: {llama2_70b_mha['gigabytes']:.2f} GB")
+print(f"Reduction: {llama2_70b_mha['gigabytes'] / llama2_70b['gigabytes']:.1f}x")
+```
+
+### Memory Comparison Across Models
+
+| Model | Config | Seq Len | KV Cache (fp16) | Notes |
+|-------|--------|---------|-----------------|-------|
+| LLaMA 2 7B (MHA) | L=32, h=32, d=128 | 4K | 2.0 GB | No GQA |
+| LLaMA 2 70B (GQA) | L=80, h=8, d=128 | 4K | 1.25 GB | 8x reduction |
+| LLaMA 3 8B (GQA) | L=32, h=8, d=128 | 8K | 1.0 GB | GQA for all sizes |
+| Mistral 7B (GQA) | L=32, h=8, d=128 | 32K | 4.0 GB | Sliding window |
+| DeepSeek V3 (MLA) | L=61, latent=512 | 128K | ~8 GB | 64x compression |
+
+### Total Model Memory
+
+Total GPU memory = Model weights + KV cache + Activations + Optimizer states (training only)
+
+**Model Weights:**
+$$M_{\text{weights}} = P \times \text{bytes}$$
+
+where $P$ is total parameters.
+
+Example: LLaMA 2 70B in fp16
+- Weights: $70B \times 2 = 140$ GB
+- KV cache (4K context): 1.25 GB
+- Activations (forward pass): ~5-10 GB
+- **Total inference: ~150 GB** (fits on 2x A100 80GB)
+
+**With quantization (int8):**
+- Weights: $70B \times 1 = 70$ GB
+- KV cache: 0.625 GB (if quantized)
+- **Total: ~75 GB** (fits on 1x A100 80GB)
+
+### Context Length Scaling
+
+KV cache grows linearly with sequence length:
+
+```python
+def memory_vs_context_length(
+    n_layers: int,
+    n_kv_heads: int,
+    head_dim: int,
+    max_seq_len: int = 100000
+):
+    """Visualize memory scaling with context length."""
+    import numpy as np
+
+    seq_lengths = [1024, 2048, 4096, 8192, 16384, 32768, 65536, max_seq_len]
+    memories = []
+
+    for seq_len in seq_lengths:
+        mem = calculate_kv_cache_memory(
+            n_layers=n_layers,
+            n_kv_heads=n_kv_heads,
+            head_dim=head_dim,
+            seq_len=seq_len
+        )
+        memories.append(mem['gigabytes'])
+        print(f"{seq_len:>6} tokens: {mem['gigabytes']:>6.2f} GB")
+
+    return seq_lengths, memories
+
+# Example: LLaMA 3 8B with 128K context
+print("LLaMA 3 8B memory scaling:")
+memory_vs_context_length(
+    n_layers=32,
+    n_kv_heads=8,
+    head_dim=128,
+    max_seq_len=128000
+)
+```
+
+Output:
+```
+  1024 tokens:   0.12 GB
+  2048 tokens:   0.25 GB
+  4096 tokens:   0.50 GB
+  8192 tokens:   1.00 GB
+ 16384 tokens:   2.00 GB
+ 32768 tokens:   4.00 GB
+ 65536 tokens:   8.00 GB
+128000 tokens:  15.62 GB
+```
+
+**Key insight:** Long context models require careful memory management. Techniques like:
+- GQA/MLA for KV cache compression
+- Paged attention for efficient memory allocation
+- Quantization (fp16 → int8 → int4)
+- Flash Attention for reduced activation memory
+
+---
+
 ## Exercises
 
-1. **Implement GQA**: Modify the MHA implementation to support arbitrary numbers of KV heads.
+### Basic Understanding
 
-2. **Compare Memory Usage**: Calculate the KV cache memory requirements for MHA, GQA (with 8 KV heads), MQA, and MLA for a 70B parameter model with 80 layers, 64 heads, and 128 head dimension at 100K context length.
+1. **Implement GQA**: Modify the MHA implementation to support arbitrary numbers of KV heads. Ensure it handles the case where `n_heads` is not evenly divisible by `n_kv_heads`.
 
-3. **Sliding Window Trade-offs**: Explain why sliding window attention can still capture long-range dependencies despite the limited window. What is the effective receptive field after N layers?
+2. **RMSNorm vs LayerNorm**: Implement both RMSNorm and LayerNorm. Measure the forward pass time for a tensor of shape `(32, 2048, 4096)`. What's the speedup? Why?
 
-4. **MoE Load Balancing**: Why do MoE models need load balancing? What happens if all tokens are routed to the same expert? Compare auxiliary loss approaches vs. DeepSeek's bias approach.
+3. **SwiGLU Parameter Count**: Calculate the exact number of parameters for a SwiGLU FFN vs. a GELU FFN, both targeting the same FLOPs budget. If `d_model = 4096`, what should `d_ff` be for each to match parameter counts?
 
-5. **Architecture Design**: If you were designing a new LLM today, which architectural choices would you make and why? Consider:
-   - Attention type (MHA/GQA/MLA)
+### Memory Analysis
+
+4. **Compare Memory Usage**: Calculate the KV cache memory requirements for a 70B parameter model with 80 layers, 64 query heads, and 128 head dimension at 100K context length for:
+   - MHA (n_kv_heads = 64)
+   - GQA with 8 KV heads
+   - GQA with 4 KV heads
+   - MQA (n_kv_heads = 1)
+   - MLA with latent_dim = 512
+
+   Which configuration would fit in an 80GB GPU? What's the maximum context length for each?
+
+5. **Quantization Impact**: For the LLaMA 2 70B model, calculate total memory (weights + KV cache) for:
+   - fp16 weights, fp16 KV cache (seq_len = 4K)
+   - int8 weights, fp16 KV cache
+   - int8 weights, int8 KV cache
+   - int4 weights, int8 KV cache
+
+   How does this affect deployment options (A100 80GB, H100 80GB, multi-GPU)?
+
+6. **Context Length Economics**: For a serving system handling 1000 requests/minute with average context of 8K tokens, calculate the total KV cache memory needed for LLaMA 3 8B with:
+   - Batch size = 1 (no batching)
+   - Batch size = 16 (continuous batching)
+   - Batch size = 32
+
+   Assume average generation length of 100 tokens. What's the memory-throughput trade-off?
+
+### Architectural Trade-offs
+
+7. **Sliding Window Receptive Field**: Mistral 7B uses a 4096-token sliding window and has 32 layers.
+   - What is the theoretical receptive field at the final layer?
+   - If you need to model dependencies up to 100K tokens, how many layers would you need?
+   - What are the trade-offs of increasing layers vs. window size?
+
+8. **MoE Load Balancing**:
+   - Why do MoE models need load balancing? What happens if all tokens are routed to the same expert?
+   - Compare auxiliary loss approaches (Mixtral) vs. DeepSeek V3's bias approach. What are the pros/cons?
+   - If you have 8 experts and perfect load balancing, what percentage of experts are active at any time when top_k = 2?
+
+9. **Router Design**: Implement a simple MoE router that:
+   - Takes input `x` of shape `(batch, seq_len, dim)`
+   - Returns top-k expert indices and weights
+   - Includes a load balancing loss
+   - Test it with synthetic data where tokens have different "affinities" to experts
+
+### Advanced Implementation
+
+10. **Interleaved Attention**: Implement Gemma 2's interleaved local/global attention pattern:
+    - Odd layers use sliding window (4K)
+    - Even layers use full attention (8K)
+    - Compare memory and compute vs. pure sliding window
+    - What's the effective receptive field?
+
+11. **MLA Compression**: Implement a simplified Multi-head Latent Attention:
+    - Original: 32 heads × 128 dim = 4096 dims
+    - Compressed: 512 latent dims
+    - Calculate compression ratio and memory savings
+    - Measure the inference-time compute overhead
+
+12. **Effective Receptive Field**: For LLaMA 4's iRoPE architecture with NoPE every 4th layer:
+    - How does removing position encodings affect the receptive field?
+    - Why might this help with long-context modeling?
+    - Implement a toy model (4 layers, 2 with RoPE, 2 with NoPE) and visualize attention patterns
+
+### Architecture Design
+
+13. **Design a Model**: You're designing a new 7B parameter LLM for code generation with these constraints:
+    - Target context: 32K tokens
+    - Deployment: Single A100 40GB
+    - Must support batch size ≥ 4
+    - Optimize for throughput
+
+   Choose:
+   - Attention type (MHA/GQA/MLA) and configuration
    - Positional encoding
-   - Normalization
-   - Dense vs. MoE
-   - Target context length
+   - Normalization (LayerNorm/RMSNorm)
+   - Activation (GELU/SwiGLU)
+   - FFN ratio
+   - Number of layers and hidden dimension
+
+   Justify each choice with memory/compute calculations.
+
+14. **MoE vs. Dense Trade-off**: Compare two architectures for the same compute budget:
+   - Dense: 7B parameters, all active
+   - MoE: 47B parameters (8 experts × 6.5B each), 13B active
+
+   For each, calculate:
+   - Training FLOPs per token
+   - Inference FLOPs per token
+   - Memory requirements (training and inference)
+   - When would you choose each?
+
+15. **Long Context System**: Design a system to handle 1M token context:
+   - Which model architecture? (Consider LLaMA 4's iRoPE, sparse attention, etc.)
+   - Memory optimization strategies
+   - Would you use different attention mechanisms at different layers?
+   - How would you handle the KV cache? (Paging, compression, offloading?)
+   - What's the minimum GPU memory needed?
+
+### Practical Analysis
+
+16. **Benchmark Comparison**: Given the following benchmark results, analyze the architectural impact:
+   ```
+   Model A (MHA, RoPE, GELU): 45 tokens/sec, quality score: 0.75
+   Model B (GQA, RoPE, SwiGLU): 72 tokens/sec, quality score: 0.78
+   Model C (MLA, RoPE, SwiGLU): 95 tokens/sec, quality score: 0.76
+   ```
+   Which architectural choices drive the performance differences? What's the quality-speed trade-off?
+
+17. **Failure Mode Analysis**: For each architecture innovation, describe a failure mode:
+   - GQA with too few KV heads: When does quality degrade?
+   - Sliding window attention: What tasks fail?
+   - MoE with poor routing: What happens?
+   - MLA over-compression: When does it hurt?
+
+18. **Cost Analysis**: Calculate the training cost for:
+   - LLaMA 3 70B (dense): 15T tokens on H100s
+   - DeepSeek V3 (MoE 671B total, 37B active): 15T tokens on H100s
+
+   Assume H100 costs $2/hour, and use FLOPs calculations from the papers. How does MoE affect training economics?
+
+### Research Questions
+
+19. **Future Directions**: Based on the architectural evolution:
+   - What's the next likely innovation in attention mechanisms?
+   - Will we move beyond autoregressive generation? (Consider WeDLM)
+   - How far can context lengths scale with current approaches?
+   - What's the role of MoE in the future?
+
+20. **Hybrid Architecture**: Design a hybrid architecture that combines:
+   - Dense layers (for foundational processing)
+   - MoE layers (for specialization)
+   - Local attention (for efficiency)
+   - Global attention (for long-range dependencies)
+
+   Where would you place each component in a 32-layer model? Why?

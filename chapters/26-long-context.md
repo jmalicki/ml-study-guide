@@ -7,13 +7,15 @@ Extending the context window of Large Language Models is one of the most active 
 1. [Introduction: The Challenge of Long Context](#introduction-the-challenge-of-long-context)
 2. [RoPE Scaling Methods](#rope-scaling-methods)
 3. [Attention Sinks and StreamingLLM](#attention-sinks-and-streamingllm)
-4. [Memory-Augmented Architectures](#memory-augmented-architectures)
-5. [Landmark Attention](#landmark-attention)
-6. [Ring Attention for Distributed Long Context](#ring-attention-for-distributed-long-context)
-7. [Evaluation on Long-Range Tasks](#evaluation-on-long-range-tasks)
-8. [Complete Implementation: Long Context Transformer](#complete-implementation-long-context-transformer)
-9. [Summary and Best Practices](#summary-and-best-practices)
-10. [Exercises](#exercises)
+4. [LongLoRA: Efficient Long-Context Fine-Tuning](#longlora-efficient-long-context-fine-tuning)
+5. [Memory-Augmented Architectures](#memory-augmented-architectures)
+6. [Landmark Attention](#landmark-attention)
+7. [Ring Attention for Distributed Long Context](#ring-attention-for-distributed-long-context)
+8. [Production Considerations for Long Context](#production-considerations-for-long-context)
+9. [Evaluation on Long-Range Tasks](#evaluation-on-long-range-tasks)
+10. [Complete Implementation: Long Context Transformer](#complete-implementation-long-context-transformer)
+11. [Summary and Best Practices](#summary-and-best-practices)
+12. [Exercises](#exercises)
 
 ---
 
@@ -76,6 +78,19 @@ where $s$ is the scaling factor. If trained on 2K context and want 8K, use $s = 
 - Compresses all positions into trained range
 - Changes relative distances between tokens
 - Often requires fine-tuning to recover performance
+
+### Implementing Linear Scaling
+
+**The Problem**: A model trained with RoPE on sequences up to 2048 tokens will fail when processing longer sequences because it encounters rotation angles outside its training distribution. Position 8000 would use a rotation angle the model has never seen.
+
+**The Solution**: Map long positions back into the trained range. If we trained on positions [0, 2047] and want to handle [0, 8191], we linearly compress by factor 4, so position 8000 maps to position 2000.
+
+**Why This Approach?**:
+- **Pros**: Simple to implement, no architecture changes needed, keeps rotation angles within trained distribution
+- **Cons**: Compresses relative distances (tokens 100 positions apart now appear 25 positions apart), which can confuse the model about temporal relationships
+- **Tradeoff vs Extrapolation**: Better to interpolate within known ranges than extrapolate to unknown ones
+
+**Key Insight**: Linear scaling prioritizes staying within the model's learned positional space at the cost of distorting relative distances. This is why fine-tuning often helps—the model needs to relearn what compressed distances mean.
 
 ```python
 import torch
@@ -176,6 +191,21 @@ where $s$ is the target scaling factor.
 - Smoothly extends to longer contexts
 - Often works **without fine-tuning**
 
+### Implementing NTK-Aware Scaling
+
+**The Problem with Linear Scaling**: Compressing positions distorts all relative distances equally. A model trained to recognize that tokens 10 positions apart have certain relationships now sees those tokens as appearing closer, breaking learned patterns.
+
+**The NTK-Aware Insight**: Instead of moving the positions, change the wavelengths of the sinusoidal functions. RoPE uses different frequencies to encode position—low frequencies for long-range patterns, high frequencies for local patterns. By scaling the base frequency, we effectively "stretch" all wavelengths proportionally.
+
+**Theoretical Justification**: This approach is inspired by the Neural Tangent Kernel (NTK) theory, which suggests that scaling the frequency base maintains the model's learned kernel structure better than position scaling. The formula $\text{base}' = \text{base} \cdot s^{d/(d-2)}$ is derived from NTK scaling laws for infinite-width networks.
+
+**Comparison to Alternatives**:
+- **vs Linear Scaling**: Preserves relative position relationships better because we're changing the encoding function, not compressing the space
+- **vs No Scaling**: Allows extrapolation beyond training length with minimal degradation
+- **vs Fine-tuning**: Often works zero-shot, saving compute
+
+**Key Insight**: By modifying the frequency base rather than positions, the model still sees "correct" relative distances—just encoded with longer wavelengths. This is analogous to changing from feet to meters: the relative distances stay the same, just the measurement scale changes.
+
 ```python
 class NTKScalingRoPE(nn.Module):
     """RoPE with NTK-aware scaling.
@@ -226,6 +256,21 @@ $$
 $$
 
 Then use base frequency: $\theta_i' = \theta_i \cdot \alpha(L)$
+
+### Implementing Dynamic NTK Scaling
+
+**The Problem with Static Scaling**: If we always apply NTK scaling (even for short sequences), we're using modified frequencies even when processing sequences within the original training length. This is unnecessary and can hurt performance on standard-length inputs.
+
+**The Solution**: Apply scaling only when needed. For sequences within training length, use original RoPE. For longer sequences, dynamically compute the scaling factor based on actual length.
+
+**Why This Matters**:
+- **Preserves Original Behavior**: No degradation on standard-length sequences
+- **Adaptive Scaling**: Uses minimal scaling needed for current sequence
+- **Best of Both Worlds**: Original RoPE for short contexts, NTK scaling for long ones
+
+**How It Relates to Static NTK**: Static NTK is like always wearing reading glasses, even when you don't need them. Dynamic NTK is like putting on glasses only when reading—you get correction when needed without affecting normal vision.
+
+**Key Insight**: The scaling formula $s^{d/(d-2)}$ increases superlinearly with sequence length, which means we're applying stronger frequency modifications for longer extrapolations. This adaptive behavior matches the intuition that we need more aggressive scaling to handle bigger jumps beyond training length.
 
 ```python
 class DynamicNTKScalingRoPE(nn.Module):
@@ -288,6 +333,25 @@ where:
 - $s$ is the scaling factor
 - Low frequencies (encoding long-range info) are scaled more
 - High frequencies (encoding local info) are scaled less
+
+### Implementing YaRN Scaling
+
+**The Core Problem**: Uniform scaling (NTK) applies the same adjustment to all frequency components, but different frequencies encode different types of information. High frequencies capture local patterns (adjacent token relationships), while low frequencies capture long-range dependencies.
+
+**YaRN's Insight**: When extending context, we primarily need to handle longer-range dependencies—the local patterns remain the same. Therefore, we should scale low frequencies more aggressively (to handle extended long-range patterns) while preserving high frequencies (keeping local patterns intact).
+
+**Theoretical Foundation**: Based on Fourier analysis of attention patterns. The attention mechanism decomposes into different wavelength components. Local attention is dominated by high-frequency components, while cross-sentence attention uses low frequencies. By scaling frequencies non-uniformly, we preserve the model's ability to handle local syntax while extending its long-range semantic capabilities.
+
+**Comparison to Other Methods**:
+- **vs Uniform NTK**: Better preserves local pattern recognition while extending long-range capabilities
+- **vs Linear Scaling**: Doesn't compress relative distances; instead adapts the encoding to handle both scales
+- **vs Position Interpolation**: YaRN adds frequency-aware scaling on top of interpolation
+
+**Additional YaRN Components**:
+1. **Attention Temperature Scaling (mscale)**: Prevents attention entropy collapse at long contexts
+2. **Targeted Fine-tuning**: Short fine-tuning (≈400 steps) on long sequences to adapt
+
+**Key Insight**: Different wavelengths in the RoPE encoding serve different purposes. By treating them differently during scaling, we can extend context without sacrificing the model's understanding of local structure—like upgrading a telescope's long-range capabilities without ruining its ability to focus on nearby objects.
 
 ```python
 class YaRNScalingRoPE(nn.Module):
@@ -385,6 +449,26 @@ $$
 
 This is essentially NTK scaling with a larger base adjustment.
 
+### Implementing ABF Scaling
+
+**The Problem Being Solved**: Models like Qwen need to handle very long contexts (128K+ tokens) from the start, not as an afterthought. Simply applying NTK scaling to an already-trained model has limits—for extreme extensions, we need to bake long-context support into the initial training.
+
+**The ABF Approach**: Instead of retrofitting a short-context model, adjust the base frequency dramatically during initial training. For example, Qwen changes the base from 10,000 to 1,000,000 (a 100x increase), which allows the model to naturally learn positional relationships at much longer ranges.
+
+**Why This Works**:
+- **Training from Scratch**: The model learns to use the modified frequencies from the beginning
+- **Larger Wavelengths**: Higher base frequency means longer wavelengths, which naturally encode longer-range positions
+- **No Extrapolation Needed**: Since the model trains on these frequencies, there's no distribution shift at inference
+
+**Comparison to Other Approaches**:
+- **vs NTK Scaling**: ABF is more aggressive and applied during pre-training, not as a post-hoc fix
+- **vs Position Interpolation**: ABF doesn't compress positions; it trains with frequencies designed for long context
+- **vs YaRN**: Simpler—uniform scaling rather than frequency-dependent, but requires full retraining
+
+**Production Use Case**: Qwen uses this to offer 128K+ context windows as a standard feature, not an extension. This is the "correct" approach if you're training a new model and know you'll need long context.
+
+**Key Insight**: ABF recognizes that retrofitting short-context models for long context is a compromise. If you know you need long context, design for it from the start by adjusting the fundamental frequency basis of your positional encoding. This is like building a highway versus widening a country road—sometimes it's better to design for scale from the beginning.
+
 ```python
 class ABFScalingRoPE(nn.Module):
     """Adjusted Base Frequency (ABF) RoPE scaling.
@@ -419,11 +503,113 @@ class ABFScalingRoPE(nn.Module):
         return emb.cos(), emb.sin()
 ```
 
+### Position Interpolation (PI)
+
+**Position Interpolation** is Meta's approach used in Llama 2 Long, which is subtly different from linear scaling.
+
+**Paper**: [Extending Context Window of Large Language Models via Position Interpolation](https://arxiv.org/abs/2306.15595) (Chen et al., 2023)
+
+**Key difference from linear scaling**:
+- Linear scaling: Divide positions by scale factor directly
+- Position Interpolation: Interpolate into the trained position range using a specific interpolation strategy
+
+The position encoding is modified so that for a new maximum length $L'$, positions are mapped as:
+
+$$
+m' = m \cdot \frac{L}{L'}
+$$
+
+where $L$ is the original training length and $m$ is the current position.
+
+**Fine-tuning strategy**:
+- Continue pre-training on sequences of length $L'$
+- Only 1000 training steps needed (much less than original pre-training)
+- Uses same data distribution as pre-training
+
+### Implementing Position Interpolation
+
+**The Core Problem**: We want to extend context without expensive full retraining. Linear scaling compresses positions, which works but distorts relative distances. Can we do better with minimal training?
+
+**Position Interpolation's Insight**: Instead of extrapolating beyond the training range (which causes distribution shift) or naively compressing (which distorts distances), we interpolate positions into the trained range AND fine-tune briefly to help the model adapt to the slightly compressed space.
+
+**Why This Works**:
+- **Interpolation vs Extrapolation**: The model has seen all the rotation angles before (just now corresponding to different relative positions), so we're not introducing completely novel inputs
+- **Minimal Fine-tuning**: Only 1000 steps needed because we're fine-tuning the attention patterns, not relearning positional encodings from scratch
+- **Continuity**: The interpolation is smooth and continuous, minimizing the adaptation burden
+
+**Theoretical Justification**: The paper shows that attention scores degrade gracefully under interpolation (smooth function of position), whereas extrapolation causes sharp performance cliffs (model encounters unseen rotation angles). Brief fine-tuning allows attention patterns to recalibrate to the compressed position space.
+
+**Comparison to Alternatives**:
+- **vs Linear Scaling**: Same position mapping, but PI adds targeted fine-tuning to recover performance
+- **vs NTK**: PI uses position scaling (simpler), NTK uses frequency scaling (no fine-tuning needed)
+- **vs Full Retraining**: 1000 steps vs millions—drastically cheaper
+
+**Meta's Results**: Successfully extended Llama 2 from 4K to 32K context with only 1000 training steps, maintaining strong performance on both standard and long-context benchmarks.
+
+**Key Insight**: Position Interpolation recognizes that interpolation is inherently safer than extrapolation (staying within learned space), and that brief fine-tuning can bridge the gap between naive scaling and full retraining. It's the minimum viable training approach for context extension.
+
+```python
+class PositionInterpolationRoPE(nn.Module):
+    """Position Interpolation (PI) as used in Llama 2 Long.
+
+    Similar to linear scaling but with careful interpolation
+    into the trained position range.
+
+    Paper: https://arxiv.org/abs/2306.15595
+    """
+    def __init__(
+        self,
+        dim: int,
+        max_position_embeddings: int = 2048,
+        base: float = 10000.0,
+        scaling_factor: float = 1.0,
+        original_max_position_embeddings: int = 2048
+    ):
+        super().__init__()
+        self.dim = dim
+        self.max_position_embeddings = max_position_embeddings
+        self.base = base
+        self.scaling_factor = scaling_factor
+        self.original_max_position_embeddings = original_max_position_embeddings
+
+        # Compute inverse frequencies (same as standard RoPE)
+        inv_freq = 1.0 / (self.base ** (torch.arange(0, self.dim, 2).float() / self.dim))
+        self.register_buffer("inv_freq", inv_freq)
+
+    def forward(self, x: torch.Tensor, seq_len: int) -> tuple[torch.Tensor, torch.Tensor]:
+        """
+        Args:
+            x: Input tensor (for device/dtype)
+            seq_len: Current sequence length
+
+        Returns:
+            cos, sin: Rotary embeddings
+        """
+        # Interpolate positions into original range
+        # If original max was 2048 and new max is 8192 (scale=4):
+        # Position 8000 becomes 8000 * (2048/8192) = 2000
+        positions = torch.arange(seq_len, device=x.device).float()
+        positions = positions * (self.original_max_position_embeddings / self.max_position_embeddings)
+
+        # Compute frequencies
+        freqs = torch.outer(positions, self.inv_freq)
+        emb = torch.cat((freqs, freqs), dim=-1)
+
+        return emb.cos(), emb.sin()
+```
+
+**Results from paper**:
+- Extended Llama 2 7B from 4K to 32K context (8x extension)
+- Only 1000 training steps needed
+- Minimal performance degradation on standard benchmarks
+- Strong performance on long-context tasks (passkey retrieval, long-document QA)
+
 ### Comparison of RoPE Scaling Methods
 
 | Method | Fine-tuning Required? | Strengths | Weaknesses |
 |--------|----------------------|-----------|------------|
 | Linear | Yes | Simple | Distorts relative positions |
+| **Position Interpolation** | Yes (minimal: 1K steps) | Efficient fine-tuning, proven at scale | Still requires some training |
 | NTK | No (often) | Preserves relative positions | May degrade at very long contexts |
 | Dynamic NTK | No | Adaptive to length | Slight overhead |
 | YaRN | Yes (minimal) | Best performance | More complex |
@@ -431,6 +617,7 @@ class ABFScalingRoPE(nn.Module):
 
 **Best practices**:
 - For quick extension without training: **Dynamic NTK**
+- For efficient fine-tuning with proven results: **Position Interpolation**
 - For production deployment: **YaRN** with short fine-tuning
 - For new model training: **ABF** with long context from start
 
@@ -471,6 +658,26 @@ StreamingLLM enables LLMs to handle **infinite-length** sequences by:
 - Keep first $k$ tokens (attention sinks)
 - Keep most recent $N - k$ tokens
 - Discard everything in between
+
+### Implementing StreamingLLM
+
+**The Problem**: Traditional KV cache grows linearly with sequence length. For a streaming application (chatbot, real-time transcription), this becomes unbounded memory usage. Simply truncating old tokens causes catastrophic performance collapse.
+
+**Why Naive Truncation Fails**: Removing the first tokens breaks the attention sink mechanism. Without the sink, softmax has nowhere to dump irrelevant attention mass, causing numerical instability and degraded predictions.
+
+**StreamingLLM's Solution**: Keep the attention sink tokens (typically the first 4) permanently in cache, along with the most recent tokens. This maintains:
+1. **Numerical Stability**: Attention sink always available for softmax normalization
+2. **Recent Context**: Most recent tokens contain immediately relevant information
+3. **Bounded Memory**: Fixed cache size regardless of total sequence length
+
+**Theoretical Justification**: The attention sink phenomenon occurs because causal masks prevent attending to future tokens. When current tokens aren't relevant, attention weights must go somewhere—they accumulate on early tokens. By preserving these sink tokens, we maintain the model's learned attention distribution pattern.
+
+**Comparison to Alternatives**:
+- **vs Full Cache**: Constant memory instead of linear growth; enables infinite streaming
+- **vs Simple Truncation**: Maintains performance by preserving attention sinks
+- **vs Window Attention**: No architecture change needed; works with pretrained models
+
+**Key Insight**: StreamingLLM exploits the empirical observation that models don't actually use all historical tokens semantically—they just need somewhere to put attention mass. By keeping the "attention dump" (first tokens) and recent context, we maintain the statistical structure the model expects while discarding semantically irrelevant middle tokens.
 
 ```python
 class StreamingLLMCache:
@@ -607,6 +814,285 @@ class StreamingLLMCache:
 
 ---
 
+## LongLoRA: Efficient Long-Context Fine-Tuning
+
+**LongLoRA** enables efficient fine-tuning of LLMs for longer contexts by combining shifted sparse attention during training with full attention at inference.
+
+**Paper**: [LongLoRA: Efficient Fine-tuning of Long-Context Large Language Models](https://arxiv.org/abs/2309.12307) (Chen et al., 2023)
+
+### The Key Insight
+
+**Problem**: Fine-tuning on long contexts requires massive memory for:
+1. Full attention computation: $O(n^2)$
+2. KV cache during training
+3. Gradient computation and storage
+
+**LongLoRA's solution**:
+- Use **shift sparse attention** during training (cheaper)
+- Keep full attention at inference (no degradation)
+- Add **LoRA** (Low-Rank Adaptation) for parameter-efficient fine-tuning
+
+### Shifted Sparse Attention
+
+Instead of full attention, divide heads into groups and shift patterns:
+
+$$
+\text{Group 1: Attend to positions } [i, i-2, i-4, \ldots] \\
+\text{Group 2: Attend to positions } [i-1, i-3, i-5, \ldots]
+$$
+
+By shifting different heads, we maintain some cross-position communication while keeping computation sparse.
+
+### Implementing Shifted Sparse Attention
+
+**The Problem**: Fine-tuning on long contexts (32K-100K tokens) with full attention requires:
+- $O(n^2)$ memory for attention scores
+- $O(n^2d)$ computation
+- For 100K tokens: ~40GB just for attention matrix in FP32
+
+This makes long-context fine-tuning impossible on consumer hardware.
+
+**The Shifted Sparse Attention Solution**: During training only, use a sparse attention pattern where different attention heads attend to different strided positions. Head group 1 might attend to positions [i, i-2, i-4, ...], while head group 2 attends to [i-1, i-3, i-5, ...]. This maintains coverage across all positions through different heads.
+
+**Why This Works**:
+- **Preserved Coverage**: Even though each head is sparse, collectively they cover all positions
+- **Reduced Memory**: Instead of $O(n^2)$ per head, we get $O(n \cdot s)$ where $s$ is the stride
+- **Training-Only**: Can switch to full attention at inference (model learns to work with both)
+
+**Theoretical Justification**: Research shows transformers are over-parameterized—not all attention heads need full context all the time. During training, sparse patterns provide enough signal for gradient flow. The key insight is that different heads can specialize in different ranges through the shift pattern.
+
+**Comparison to Other Sparse Attention Methods**:
+- **vs Fixed Window**: Shifting ensures all positions can communicate (albeit through multiple hops)
+- **vs Random Sparse**: Deterministic pattern is reproducible and easier to implement efficiently
+- **vs Dilated Attention**: Similar idea, but LongLoRA adds the shift between head groups for better coverage
+
+**Key Insight**: LongLoRA recognizes that training and inference have different requirements. Training needs gradients to flow (achieved with sparse shifted patterns), while inference needs maximum quality (achieved with full attention). By using different attention patterns in each phase, we get efficient training and high-quality inference.
+
+```python
+class ShiftedSparseAttention(nn.Module):
+    """Shifted Sparse Attention for efficient long-context training.
+
+    During training:
+    - Uses sparse attention with shifted patterns
+    - Different heads attend to different strided positions
+    - Reduces memory from O(n^2) to O(n*s) where s is stride
+
+    During inference:
+    - Can switch to full attention (model trained to handle both)
+
+    Paper: https://arxiv.org/abs/2309.12307
+    """
+    def __init__(
+        self,
+        d_model: int,
+        n_heads: int,
+        group_size: int = 2048,  # Local attention window
+        n_groups: int = 2,  # Number of shift groups
+        training: bool = True
+    ):
+        super().__init__()
+        self.d_model = d_model
+        self.n_heads = n_heads
+        self.head_dim = d_model // n_heads
+        self.group_size = group_size
+        self.n_groups = n_groups
+        self.training = training
+
+        assert n_heads % n_groups == 0, "n_heads must be divisible by n_groups"
+        self.heads_per_group = n_heads // n_groups
+
+        self.q_proj = nn.Linear(d_model, d_model, bias=False)
+        self.k_proj = nn.Linear(d_model, d_model, bias=False)
+        self.v_proj = nn.Linear(d_model, d_model, bias=False)
+        self.o_proj = nn.Linear(d_model, d_model, bias=False)
+
+    def shift_tokens(self, x: torch.Tensor, shift: int) -> torch.Tensor:
+        """Shift tokens for sparse attention pattern.
+
+        Args:
+            x: Input [batch, seq_len, n_heads, head_dim]
+            shift: Number of positions to shift
+
+        Returns:
+            Shifted tensor
+        """
+        if shift == 0:
+            return x
+
+        batch, seq_len, n_heads, head_dim = x.shape
+
+        # Pad and shift
+        padding = torch.zeros(batch, abs(shift), n_heads, head_dim, device=x.device, dtype=x.dtype)
+        if shift > 0:
+            x = torch.cat([padding, x[:, :-shift]], dim=1)
+        else:
+            x = torch.cat([x[:, -shift:], padding], dim=1)
+
+        return x
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Args:
+            x: Input [batch, seq_len, d_model]
+        """
+        batch, seq_len, _ = x.shape
+
+        # Project
+        q = self.q_proj(x).view(batch, seq_len, self.n_heads, self.head_dim)
+        k = self.k_proj(x).view(batch, seq_len, self.n_heads, self.head_dim)
+        v = self.v_proj(x).view(batch, seq_len, self.n_heads, self.head_dim)
+
+        if self.training:
+            # Apply shifted sparse attention during training
+            outputs = []
+
+            for group_idx in range(self.n_groups):
+                # Select heads for this group
+                start_head = group_idx * self.heads_per_group
+                end_head = start_head + self.heads_per_group
+
+                q_group = q[:, :, start_head:end_head, :]
+                k_group = k[:, :, start_head:end_head, :]
+                v_group = v[:, :, start_head:end_head, :]
+
+                # Apply shift for this group
+                # Group 0: shift 0, Group 1: shift group_size//2, etc.
+                shift = (group_idx * self.group_size) // self.n_groups
+                k_group = self.shift_tokens(k_group, shift)
+                v_group = self.shift_tokens(v_group, shift)
+
+                # Transpose for attention
+                q_group = q_group.transpose(1, 2)  # [batch, heads, seq_len, head_dim]
+                k_group = k_group.transpose(1, 2)
+                v_group = v_group.transpose(1, 2)
+
+                # Compute local attention with stride
+                # For efficiency, use strided/sparse attention
+                # Here we'll compute full attention but could optimize
+                scores = torch.matmul(q_group, k_group.transpose(-2, -1)) / math.sqrt(self.head_dim)
+
+                # Apply causal mask
+                mask = torch.triu(torch.ones(seq_len, seq_len, dtype=torch.bool, device=x.device), diagonal=1)
+                scores.masked_fill_(mask, float('-inf'))
+
+                attn = torch.softmax(scores, dim=-1)
+                group_out = torch.matmul(attn, v_group)
+                group_out = group_out.transpose(1, 2)  # [batch, seq_len, heads, head_dim]
+
+                outputs.append(group_out)
+
+            # Concatenate all groups
+            output = torch.cat(outputs, dim=2)
+        else:
+            # Use full attention during inference
+            q = q.transpose(1, 2)
+            k = k.transpose(1, 2)
+            v = v.transpose(1, 2)
+
+            scores = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(self.head_dim)
+            mask = torch.triu(torch.ones(seq_len, seq_len, dtype=torch.bool, device=x.device), diagonal=1)
+            scores.masked_fill_(mask, float('-inf'))
+
+            attn = torch.softmax(scores, dim=-1)
+            output = torch.matmul(attn, v)
+            output = output.transpose(1, 2)
+
+        # Reshape and project
+        output = output.contiguous().view(batch, seq_len, self.d_model)
+        return self.o_proj(output)
+```
+
+### Combining with LoRA
+
+LongLoRA combines shifted sparse attention with LoRA for parameter-efficient fine-tuning:
+
+```python
+class LongLoRAAttention(nn.Module):
+    """LongLoRA: Shifted sparse attention + LoRA for efficient fine-tuning.
+
+    Key benefits:
+    1. Sparse attention reduces training memory
+    2. LoRA reduces trainable parameters
+    3. Can use full attention at inference
+
+    This enables extending context from 4K to 100K with limited compute.
+    """
+    def __init__(
+        self,
+        d_model: int,
+        n_heads: int,
+        lora_rank: int = 8,
+        lora_alpha: int = 16,
+        group_size: int = 2048,
+        n_groups: int = 2
+    ):
+        super().__init__()
+        self.d_model = d_model
+        self.n_heads = n_heads
+
+        # Base attention (frozen during fine-tuning)
+        self.base_attn = ShiftedSparseAttention(d_model, n_heads, group_size, n_groups)
+
+        # LoRA adaptors for Q and V projections
+        self.lora_q_A = nn.Linear(d_model, lora_rank, bias=False)
+        self.lora_q_B = nn.Linear(lora_rank, d_model, bias=False)
+        self.lora_v_A = nn.Linear(d_model, lora_rank, bias=False)
+        self.lora_v_B = nn.Linear(lora_rank, d_model, bias=False)
+
+        # Initialize LoRA weights
+        nn.init.kaiming_uniform_(self.lora_q_A.weight, a=math.sqrt(5))
+        nn.init.zeros_(self.lora_q_B.weight)
+        nn.init.kaiming_uniform_(self.lora_v_A.weight, a=math.sqrt(5))
+        nn.init.zeros_(self.lora_v_B.weight)
+
+        self.scaling = lora_alpha / lora_rank
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # Base attention output
+        base_out = self.base_attn(x)
+
+        # LoRA adaptation
+        # In practice, this would modify Q and V inside the attention
+        # For simplicity, we apply it to the output
+        lora_out = self.lora_q_B(self.lora_q_A(x)) + self.lora_v_B(self.lora_v_A(x))
+        lora_out = lora_out * self.scaling
+
+        return base_out + lora_out
+```
+
+### Training Recipe
+
+**LongLoRA training procedure**:
+
+1. **Start with pretrained model** (e.g., Llama 2 7B with 4K context)
+2. **Add LoRA adaptors** to attention layers (typically Q and V projections)
+3. **Fine-tune with shifted sparse attention**:
+   - Use long sequences (32K-100K tokens)
+   - Batch size 1-2 per GPU (memory limited)
+   - 1000-2000 training steps
+   - Learning rate: 2e-5
+4. **Switch to full attention** at inference
+
+**Memory savings**:
+- Full attention training on 32K: ~80GB per GPU
+- LongLoRA training on 32K: ~24GB per GPU
+- **3.3x reduction** in memory
+
+### Results
+
+From the LongLoRA paper:
+
+| Model | Method | Context | Training Cost | Perplexity |
+|-------|--------|---------|---------------|------------|
+| Llama 2 7B | Full fine-tuning | 32K | 8x A100 (expensive) | 2.72 |
+| Llama 2 7B | LongLoRA | 32K | 1x A100 | 2.76 |
+| Llama 2 7B | Full fine-tuning | 100K | OOM | - |
+| Llama 2 7B | LongLoRA | 100K | 1x A100 | 2.81 |
+
+**Key takeaway**: Can extend to 100K context on a single GPU with minimal performance loss.
+
+---
+
 ## Memory-Augmented Architectures
 
 Instead of fitting everything in context, augment the model with external memory.
@@ -620,6 +1106,32 @@ Split long context into chunks, retrieve relevant ones, feed to model.
 2. Store in vector database
 3. At query time, retrieve top-k relevant chunks
 4. Concatenate with query and feed to LLM
+
+### Implementing Simple RAG
+
+**The Fundamental Problem**: Even with long-context models, there's a limit. Processing a 1M token document is expensive, slow, and may exceed model capacity. Furthermore, most of that context is irrelevant to any given query.
+
+**RAG's Core Insight**: Instead of fitting everything in context, use retrieval to select only relevant information. This shifts the problem from "how do we process everything?" to "how do we find what matters?"
+
+**Why This Approach Works**:
+- **Selective Attention**: Only relevant chunks consume context window
+- **Scalable**: Can "handle" documents far exceeding model capacity
+- **Efficient**: Retrieval is cheaper than full attention over millions of tokens
+- **Flexible**: Can update knowledge base without retraining model
+
+**The Tradeoff**: RAG trades comprehensiveness for efficiency. Full context sees everything (potentially catching subtle cross-document patterns), while RAG sees only retrieved chunks (might miss relevant information not captured by embedding similarity).
+
+**Comparison to Full Long Context**:
+- **vs 100K Context Window**: RAG can handle 10M+ token corpora; long context limited by GPU memory
+- **vs Attention Mechanisms**: RAG is $O(k)$ where $k$ is retrieved chunks; attention is $O(n^2)$ over full context
+- **Complementary Use**: Can combine RAG (for corpus-scale retrieval) with long context (for processing retrieved chunks)
+
+**Practical Considerations**:
+- **Chunking Strategy**: How to split documents affects retrieval quality
+- **Embedding Model**: Better embeddings = better retrieval = better final quality
+- **Chunk Size**: Trade-off between granularity and context
+
+**Key Insight**: RAG recognizes that "long context" doesn't mean "all context." For many applications, intelligent retrieval of relevant subsets is more practical than processing everything. It's the difference between reading an entire library versus using a card catalog to find the right books.
 
 ```python
 class SimpleRAG:
@@ -712,6 +1224,36 @@ $$
 $$
 
 where $\mathcal{M}$ is the external memory of past activations.
+
+### Implementing Memorizing Attention
+
+**The Core Problem**: Standard attention is limited to the current context window. Even with long context (100K tokens), we can't remember everything from a book-length conversation or codebase. Yet we need to occasionally recall distant information.
+
+**Memorizing Transformers' Solution**: Augment standard attention with external memory storing past (key, value) pairs. At each step:
+1. Attend to recent context (standard attention)
+2. Retrieve relevant memories via k-nearest neighbors search
+3. Combine both sources
+
+This creates a two-tier memory system: recent context (fast, full attention) + long-term memory (slower, retrieved as needed).
+
+**Why This Works**:
+- **Unbounded Memory**: External memory can grow indefinitely (stored on disk/distributed)
+- **Selective Retrieval**: Only retrieve what's relevant via kNN, avoiding quadratic cost
+- **Learned Gating**: Model learns when to rely on local context vs distant memories
+
+**Theoretical Foundation**: Inspired by human memory systems—working memory (recent context) + long-term memory (retrieved via associative recall). The kNN retrieval mimics how we recall related past experiences based on similarity to current situation.
+
+**Comparison to Other Approaches**:
+- **vs Full Long Context**: Memorizing Attention can access potentially unlimited history; long context bounded by GPU memory
+- **vs RAG**: RAG retrieves external documents; Memorizing Attention retrieves past activations from this conversation/session
+- **vs StreamingLLM**: StreamingLLM discards middle tokens; Memorizing Attention stores them in external memory
+
+**Implementation Challenges**:
+- **kNN Efficiency**: Need fast approximate nearest neighbor search (FAISS, ScaNN)
+- **Memory Management**: Deciding what to keep, when to evict old memories
+- **Gating**: Learning how much to trust retrieved memories vs local attention
+
+**Key Insight**: Memorizing Transformers recognize that not all context needs to be in the attention window. By separating recent context (always attended) from long-term memory (retrieved on-demand), we can have our cake and eat it too—bounded compute with unbounded memory.
 
 ```python
 class MemorizingAttention(nn.Module):
@@ -853,6 +1395,38 @@ class MemorizingAttention(nn.Module):
 - Full attention over landmarks (cheap since few landmarks)
 - Local attention within each block
 - Cross-attention from tokens to landmarks
+
+### Implementing Landmark Attention
+
+**The Core Problem**: Full attention over long sequences is $O(n^2)$. We need global information flow, but can't afford quadratic computation. Simply using local windows loses global coherence.
+
+**Landmark Attention's Solution**: Create a hierarchical attention structure:
+1. **Compress blocks into landmarks**: Each block (e.g., 50 tokens) gets summarized into one landmark token
+2. **Local attention within blocks**: Tokens attend to neighbors (cheap)
+3. **Global attention via landmarks**: All tokens can attend to all landmarks (cheap since few landmarks)
+4. **Landmark-to-landmark attention**: Landmarks attend to each other (ultra cheap)
+
+**Why This Works**:
+- **Reduced Complexity**: For sequence length $n$ with block size $b$:
+  - Local attention: $O(b^2 \cdot \frac{n}{b}) = O(bn)$
+  - Landmark attention: $O(n \cdot \frac{n}{b}) = O(\frac{n^2}{b})$
+  - Total: $O(\frac{n^2}{b})$ instead of $O(n^2)$
+- **Global Information Flow**: Even though local attention is limited, landmarks propagate global information
+- **Hierarchical Structure**: Mirrors how humans process text—local syntax, global semantics
+
+**Theoretical Justification**: Information theory shows we can compress blocks without losing critical information if we choose the right pooling strategy. Max pooling captures salient features, mean pooling captures average context, learned compression can be optimized end-to-end.
+
+**Comparison to Other Approaches**:
+- **vs Local Windows**: Landmark adds global connectivity; pure windows can't see beyond neighbors
+- **vs Sparse Attention**: Landmark is structured/hierarchical; sparse is typically unstructured
+- **vs Routing/Clustering**: Landmark uses fixed spatial blocks; routing uses learned groupings
+
+**Pooling Strategies**:
+- **Max Pooling**: Captures most salient feature in block (good for keywords)
+- **Mean Pooling**: Captures average semantic (good for general context)
+- **Learned Compression**: Neural network learns optimal summarization
+
+**Key Insight**: Landmark Attention exploits the hierarchical nature of language. Just as paragraphs summarize sentences and chapters summarize paragraphs, landmarks summarize blocks. This multi-scale representation enables both local coherence (within blocks) and global coherence (via landmarks), at a fraction of the computational cost.
 
 ```python
 class LandmarkAttention(nn.Module):
@@ -1014,6 +1588,38 @@ For $N$ devices, each holding sequence chunk of length $\frac{L}{N}$:
 3. Compute attention with new KV block and accumulate
 4. Repeat $N$ times until each device has seen all KV
 
+### Implementing Ring Attention
+
+**The Core Problem**: A single GPU can handle perhaps 100K tokens (with optimizations). What about 1M tokens? 10M? Distributed training typically splits the batch or model, but sequence length remains bounded by single-device memory.
+
+**Naive Sequence Parallelism Fails**: If we split a sequence across GPUs and compute attention naively, each GPU needs the full attention matrix for its queries—requiring all-to-all communication of $O(n^2)$ data. This is prohibitively expensive.
+
+**Ring Attention's Breakthrough**: Instead of gathering all KV pairs at once, process them in blocks via ring communication:
+1. Each GPU holds its chunk of the sequence (Q, K, V)
+2. Compute attention between local Q and local K, V
+3. Pass KV to the next GPU in a ring (like a relay race)
+4. Compute attention between local Q and received K, V, accumulate results
+5. Repeat until all GPUs have seen all KV pairs
+
+**Why This Works**:
+- **Communication**: Only $O(nd)$ instead of $O(n^2)$—we pass KV tensors, not attention matrices
+- **Computation**: Same as full attention (still $O(n^2d)$), but distributed
+- **Memory**: Each GPU stores $1/N$ of the sequence, enabling million-token contexts
+
+**Theoretical Justification**: Attention can be computed blockwise and accumulated using numerically stable online softmax (see Flash Attention). This allows us to process KV blocks incrementally without storing the full attention matrix.
+
+**Comparison to Other Parallelism**:
+- **vs Data Parallel**: Ring Attention parallelizes sequence length, not batch size
+- **vs Tensor Parallel**: Ring Attention doesn't split the model, only the sequence
+- **vs Model Parallel**: Can be combined with model parallelism for even longer contexts
+
+**Technical Challenges**:
+- **Causal Masking**: Need to track which KV blocks are "in the future" for causal attention
+- **Online Normalization**: Must use Flash Attention-style incremental softmax
+- **Communication Overhead**: Ring passes require fast GPU interconnect (NVLink, InfiniBand)
+
+**Key Insight**: Ring Attention recognizes that attention computation can be decomposed spatially (across sequence positions) if we use online algorithms for aggregation. By passing KV blocks in a ring rather than broadcasting everything, we achieve linear communication complexity, unlocking contexts in the millions of tokens—sufficient for entire books, codebases, or genomes.
+
 ```python
 class RingAttention(nn.Module):
     """Ring Attention for distributed long-context computation.
@@ -1132,6 +1738,664 @@ class RingAttention(nn.Module):
 
 ---
 
+## Production Considerations for Long Context
+
+When deploying long-context models in production, several practical challenges emerge beyond algorithmic efficiency.
+
+### Prefill vs Decode: Different Characteristics
+
+Long-context inference has two distinct phases with different performance characteristics:
+
+**Prefill Phase**: Processing the initial context (prompt)
+- Processes all tokens at once: $n$ tokens in parallel
+- Compute-bound for short contexts, memory-bound for long ones
+- Attention matrix: $O(n^2)$ memory if not using Flash Attention
+- Throughput measured in tokens/second
+- **Example**: Processing 100K token document before generation
+
+**Decode Phase**: Generating new tokens one at a time
+- Processes 1 token at a time
+- Compute-bound (small compute per token)
+- Only needs to attend to KV cache (no new KV computation for old tokens)
+- Latency measured in tokens/second
+- **Example**: Generating a 100-token response
+
+```python
+def analyze_inference_phases(
+    model,
+    prompt_tokens: torch.Tensor,  # [batch, prompt_len]
+    max_new_tokens: int = 100
+) -> dict:
+    """Analyze prefill vs decode phase performance.
+
+    Returns timing and memory statistics for each phase.
+    """
+    import time
+    import torch.cuda as cuda
+
+    batch, prompt_len = prompt_tokens.shape
+    stats = {}
+
+    # Prefill phase
+    cuda.synchronize()
+    start_time = time.time()
+    start_mem = cuda.memory_allocated()
+
+    with torch.no_grad():
+        # Process entire prompt at once
+        logits, cache = model(prompt_tokens, use_cache=True)
+
+    cuda.synchronize()
+    prefill_time = time.time() - start_time
+    prefill_mem = cuda.memory_allocated() - start_mem
+
+    stats['prefill'] = {
+        'time': prefill_time,
+        'memory_mb': prefill_mem / 1024**2,
+        'tokens': prompt_len,
+        'throughput': prompt_len / prefill_time  # tokens/sec
+    }
+
+    # Decode phase
+    generated_tokens = []
+    decode_times = []
+
+    next_token = logits[:, -1:].argmax(dim=-1)  # [batch, 1]
+
+    for step in range(max_new_tokens):
+        cuda.synchronize()
+        step_start = time.time()
+
+        with torch.no_grad():
+            # Process only the new token
+            logits, cache = model(next_token, use_cache=True, cache=cache)
+            next_token = logits[:, -1:].argmax(dim=-1)
+
+        cuda.synchronize()
+        decode_times.append(time.time() - step_start)
+        generated_tokens.append(next_token)
+
+    decode_mem = cuda.memory_allocated() - start_mem - prefill_mem
+
+    stats['decode'] = {
+        'time_per_token_mean': sum(decode_times) / len(decode_times),
+        'time_per_token_std': torch.tensor(decode_times).std().item(),
+        'memory_mb': decode_mem / 1024**2,
+        'throughput': 1.0 / (sum(decode_times) / len(decode_times))  # tokens/sec
+    }
+
+    # Key insight: prefill throughput >> decode throughput for long contexts
+    stats['prefill_vs_decode_ratio'] = stats['prefill']['throughput'] / stats['decode']['throughput']
+
+    return stats
+```
+
+**Key insights**:
+- **Prefill is parallelizable**: Can use full GPU for batch processing
+- **Decode is sequential**: Limited parallelism per sequence
+- **Different bottlenecks**: Prefill → memory bandwidth, Decode → compute/latency
+- **Optimization strategies differ**:
+  - Prefill: Use Flash Attention, quantization, sparse attention
+  - Decode: Optimize KV cache access, speculative decoding, batching
+
+### KV Cache Management and Quantization
+
+For 100K+ context, the KV cache becomes the memory bottleneck.
+
+**KV Cache Size**: For a model with $L$ layers, $h$ heads, head dimension $d$, sequence length $n$:
+
+$$
+\text{KV Cache Size} = 2 \times L \times n \times h \times d \times \text{sizeof(dtype)}
+$$
+
+**Example** (Llama 2 70B):
+- Layers: 80
+- Heads: 64 (8 KV heads with GQA)
+- Head dim: 128
+- Sequence: 100,000
+- Precision: FP16 (2 bytes)
+
+$$
+\text{Size} = 2 \times 80 \times 100000 \times 8 \times 128 \times 2 = 32.8 \text{ GB}
+$$
+
+**Just for the cache!** This is per request.
+
+#### KV Cache Quantization
+
+Reduce memory by quantizing the KV cache to lower precision:
+
+### Implementing KV Cache Quantization
+
+**The Problem**: KV cache dominates memory in long-context inference. For a 7B parameter model with 100K context, the cache can consume 30+ GB—more than the model weights themselves. This limits batch size and deployment scale.
+
+**The Quantization Solution**: Store KV cache in reduced precision (INT8 or INT4) instead of FP16/FP32. This provides 2-4x memory reduction with minimal accuracy loss.
+
+**Why This Works**:
+- **Activation Distributions**: KV activations tend to have limited range, making them amenable to quantization
+- **Per-Token Scaling**: By computing scale factors per token/head, we preserve precision where it matters
+- **Inference Only**: Quantization only affects storage and retrieval, not forward pass computation (we dequantize before attention)
+
+**Theoretical Justification**: Research shows attention is robust to small perturbations in K and V. The dot-product attention operation is inherently a "fuzzy" matching process—exact precision isn't critical. Quantization introduces noise, but below a threshold, this noise is in the tolerance range of the attention mechanism.
+
+**Quantization Strategies**:
+- **INT8 (8-bit)**: 2x memory reduction, near-zero accuracy loss
+- **INT4 (4-bit)**: 4x memory reduction, small accuracy degradation
+- **Per-Tensor vs Per-Channel**: Per-channel (per-head) scaling gives better accuracy at slight complexity cost
+- **Dynamic Quantization**: Compute scales on-the-fly vs static quantization (precomputed scales)
+
+**Mixed-Precision Strategy**: Recent research shows we can quantize older tokens more aggressively than recent ones (older tokens matter less), creating a tiered memory system.
+
+**Comparison to Other Memory Optimizations**:
+- **vs FlashAttention**: Flash reduces peak memory during computation; quantization reduces storage memory
+- **vs Sparse Attention**: Sparse reduces compute; quantization reduces memory
+- **Complementary**: Can combine quantization with other techniques
+
+**Key Insight**: KV cache quantization exploits the observation that attention doesn't need full precision—it's computing similarity scores, not exact arithmetic. By trading a small amount of precision for significant memory savings, we can dramatically increase effective context length or batch size.
+
+```python
+class QuantizedKVCache:
+    """KV cache with INT8 or INT4 quantization.
+
+    Reduces memory by 2-4x with minimal accuracy loss.
+
+    Key techniques:
+    - Per-tensor or per-channel quantization
+    - Dynamic quantization (compute scales on the fly)
+    - Mixed precision (quantize older tokens more aggressively)
+    """
+    def __init__(
+        self,
+        n_layers: int,
+        max_seq_len: int,
+        n_heads: int,
+        head_dim: int,
+        quantization: str = "int8",  # or "int4", "fp16"
+        device: str = "cuda"
+    ):
+        self.n_layers = n_layers
+        self.max_seq_len = max_seq_len
+        self.quantization = quantization
+
+        # Determine dtype based on quantization
+        if quantization == "int8":
+            dtype = torch.int8
+            self.n_bits = 8
+        elif quantization == "int4":
+            # PyTorch doesn't have native int4, use uint8 and pack
+            dtype = torch.uint8
+            self.n_bits = 4
+        else:
+            dtype = torch.float16
+            self.n_bits = 16
+
+        # Allocate cache
+        self.k_cache = [
+            torch.zeros(1, max_seq_len, n_heads, head_dim, dtype=dtype, device=device)
+            for _ in range(n_layers)
+        ]
+        self.v_cache = [
+            torch.zeros(1, max_seq_len, n_heads, head_dim, dtype=dtype, device=device)
+            for _ in range(n_layers)
+        ]
+
+        # Quantization scales (for dequantization)
+        if quantization in ["int8", "int4"]:
+            self.k_scales = [
+                torch.ones(1, max_seq_len, n_heads, 1, dtype=torch.float16, device=device)
+                for _ in range(n_layers)
+            ]
+            self.v_scales = [
+                torch.ones(1, max_seq_len, n_heads, 1, dtype=torch.float16, device=device)
+                for _ in range(n_layers)
+            ]
+
+        self.seq_len = 0
+
+    def quantize(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        """Quantize FP16 tensor to INT8.
+
+        Args:
+            x: Float tensor [batch, seq_len, n_heads, head_dim]
+
+        Returns:
+            quantized: INT8 tensor
+            scale: Scale factors for dequantization
+        """
+        if self.quantization == "fp16":
+            return x, None
+
+        # Compute scale: per-token per-head
+        # Scale to use full int8 range [-128, 127]
+        x_max = x.abs().max(dim=-1, keepdim=True)[0]
+        scale = x_max / 127.0
+
+        # Avoid division by zero
+        scale = torch.where(scale > 0, scale, torch.ones_like(scale))
+
+        # Quantize
+        x_quantized = (x / scale).round().clamp(-128, 127).to(torch.int8)
+
+        return x_quantized, scale
+
+    def dequantize(self, x_quantized: torch.Tensor, scale: torch.Tensor) -> torch.Tensor:
+        """Dequantize INT8 back to FP16.
+
+        Args:
+            x_quantized: INT8 tensor
+            scale: Scale factors from quantization
+
+        Returns:
+            FP16 tensor
+        """
+        if self.quantization == "fp16":
+            return x_quantized
+
+        return x_quantized.to(torch.float16) * scale
+
+    def update(
+        self,
+        layer_idx: int,
+        k: torch.Tensor,
+        v: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        """Add new K, V to cache with quantization.
+
+        Args:
+            layer_idx: Layer index
+            k, v: New keys/values [batch, new_seq_len, n_heads, head_dim] in FP16
+
+        Returns:
+            Full K, V for attention (dequantized to FP16)
+        """
+        batch, new_seq_len, n_heads, head_dim = k.shape
+
+        # Quantize new K, V
+        k_quant, k_scale = self.quantize(k)
+        v_quant, v_scale = self.quantize(v)
+
+        # Store in cache
+        self.k_cache[layer_idx][:, self.seq_len:self.seq_len+new_seq_len] = k_quant
+        self.v_cache[layer_idx][:, self.seq_len:self.seq_len+new_seq_len] = v_quant
+
+        if self.quantization in ["int8", "int4"]:
+            self.k_scales[layer_idx][:, self.seq_len:self.seq_len+new_seq_len] = k_scale
+            self.v_scales[layer_idx][:, self.seq_len:self.seq_len+new_seq_len] = v_scale
+
+        # Update sequence length
+        self.seq_len += new_seq_len
+
+        # Retrieve full cache (dequantized)
+        k_full = self.dequantize(
+            self.k_cache[layer_idx][:, :self.seq_len],
+            self.k_scales[layer_idx][:, :self.seq_len] if self.quantization in ["int8", "int4"] else None
+        )
+        v_full = self.dequantize(
+            self.v_cache[layer_idx][:, :self.seq_len],
+            self.v_scales[layer_idx][:, :self.seq_len] if self.quantization in ["int8", "int4"] else None
+        )
+
+        return k_full, v_full
+```
+
+**Memory Savings**:
+- **INT8**: 2x reduction (FP16 → INT8)
+- **INT4**: 4x reduction (FP16 → INT4)
+- **Accuracy**: Minimal degradation (typically <1% perplexity increase)
+
+### Context Collapse Phenomenon
+
+**Surprising finding**: Models often degrade even **within** their trained context length.
+
+**Paper**: [Lost in the Middle: How Language Models Use Long Contexts](https://arxiv.org/abs/2307.03172) (Liu et al., 2023)
+
+**Key observations**:
+1. Models trained on 128K context may start degrading at 32K
+2. Performance varies by position: beginning and end are best, middle is worst
+3. Not all tokens are equally accessible, even if "in context"
+
+### Measuring Context Collapse
+
+**The Problem**: Just because a model supports 100K context doesn't mean it uses all 100K effectively. Models often show degraded performance on information buried in the middle of long contexts.
+
+**Why We Need to Measure This**: Before deploying long-context models, we need to verify they actually retrieve information throughout the context window, not just at the edges. This "needle in a haystack" test is critical for understanding real-world performance.
+
+**The Measurement Approach**:
+1. Create a long document (the "haystack")
+2. Insert a fact to retrieve (the "needle") at various positions
+3. Ask the model to retrieve the fact
+4. Measure accuracy across different lengths and positions
+
+**Why Context Collapse Happens**:
+- **Attention Dilution**: With 100K positions, each position gets less attention weight
+- **Training Distribution**: Models see shorter contexts more during training
+- **Middle Bias**: Attention sink (early tokens) and recency bias (late tokens) starve middle positions
+
+**Practical Implications**:
+- Don't assume long context means uniform access
+- Critical information should be placed at beginning or end
+- Consider retrieval-augmented approaches for guaranteed access
+
+**Key Insight**: This diagnostic reveals the gap between theoretical context window (what the model can process) and effective context window (what the model actually uses). Understanding this gap is crucial for production deployment.
+
+```python
+def measure_context_collapse(
+    model,
+    tokenizer,
+    context_lengths: list[int] = [4096, 8192, 16384, 32768, 65536, 131072],
+    needle_positions: list[float] = [0.1, 0.3, 0.5, 0.7, 0.9]
+) -> dict:
+    """Measure context collapse: performance degradation within training length.
+
+    Tests retrieval accuracy at different context lengths and needle positions.
+
+    Args:
+        model: Long-context LLM
+        tokenizer: Tokenizer
+        context_lengths: Context lengths to test
+        needle_positions: Where to place needle (0.0 = start, 1.0 = end)
+
+    Returns:
+        Dictionary mapping (context_length, position) -> accuracy
+    """
+    results = {}
+
+    for ctx_len in context_lengths:
+        for position in needle_positions:
+            accuracies = []
+
+            for trial in range(10):
+                # Generate haystack
+                haystack = generate_random_text(ctx_len)
+
+                # Insert needle at specified position
+                needle = f"The secret code is {random.randint(10000, 99999)}."
+                insert_pos = int(len(haystack) * position)
+                text = haystack[:insert_pos] + needle + haystack[insert_pos:]
+
+                # Query at the end
+                query = "\n\nWhat is the secret code?"
+                full_text = text + query
+
+                # Generate answer
+                tokens = tokenizer.encode(full_text)
+                output = model.generate(torch.tensor([tokens]), max_new_tokens=20)
+                response = tokenizer.decode(output[0])
+
+                # Check if correct
+                # Extract code from needle for comparison
+                import re
+                needle_code = re.search(r'\d{5}', needle).group()
+                correct = needle_code in response
+
+                accuracies.append(correct)
+
+            results[(ctx_len, position)] = sum(accuracies) / len(accuracies)
+
+    return results
+
+
+def plot_context_collapse(results: dict):
+    """Visualize context collapse heatmap.
+
+    Shows accuracy as function of context length and position.
+    Darker regions indicate lower accuracy (context collapse).
+    """
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    # Extract unique context lengths and positions
+    ctx_lens = sorted(set(k[0] for k in results.keys()))
+    positions = sorted(set(k[1] for k in results.keys()))
+
+    # Create matrix
+    matrix = np.zeros((len(ctx_lens), len(positions)))
+    for i, ctx_len in enumerate(ctx_lens):
+        for j, pos in enumerate(positions):
+            matrix[i, j] = results.get((ctx_len, pos), 0)
+
+    # Plot
+    plt.figure(figsize=(10, 6))
+    plt.imshow(matrix, aspect='auto', cmap='RdYlGn', vmin=0, vmax=1)
+    plt.colorbar(label='Accuracy')
+    plt.xlabel('Needle Position')
+    plt.ylabel('Context Length')
+    plt.xticks(range(len(positions)), [f"{p:.1f}" for p in positions])
+    plt.yticks(range(len(ctx_lens)), [f"{c//1024}K" for c in ctx_lens])
+    plt.title('Context Collapse Analysis: Retrieval Accuracy')
+    plt.tight_layout()
+    plt.savefig('context_collapse.png')
+```
+
+**Common patterns**:
+- **U-shaped performance**: Best at beginning and end, worst in middle
+- **Degradation with length**: Even within training window, longer = harder
+- **Task-dependent**: Retrieval tasks show collapse more than generation
+
+**Mitigation strategies**:
+1. **Prioritize important info**: Put key facts at beginning or end
+2. **Explicit position markers**: Add "Document 1:", "Document 2:" headers
+3. **Retrieval-augmented**: Don't rely solely on in-context retrieval
+4. **Fine-tuning on long-context tasks**: Improve middle-context performance
+
+### Batching Challenges and Cache Management
+
+Batching variable-length sequences with large KV caches is complex.
+
+#### The Problem
+
+**Traditional batching**: Pad all sequences to max length in batch
+- Sequence 1: 1000 tokens → pad to 50,000
+- Sequence 2: 50,000 tokens → no padding
+- **Wasted memory**: 49,000 tokens of padding for sequence 1!
+
+For long contexts, this is prohibitive.
+
+#### Solution: Continuous Batching and Paged Attention
+
+**Continuous Batching** (also called "dynamic batching"):
+- Don't wait for all sequences to finish
+- Add new requests as soon as GPU has capacity
+- Each sequence has its own KV cache, variable length
+
+**Paged Attention** (vLLM):
+- Treat KV cache like virtual memory with pages
+- Allocate cache in blocks (e.g., 128 tokens per block)
+- Non-contiguous memory for each sequence
+
+### Implementing Paged KV Cache
+
+**The Problem with Traditional Batching**: When batching variable-length sequences with KV cache:
+- Must allocate cache for maximum sequence length in batch
+- Short sequences waste memory (e.g., 1K sequence in batch with 50K sequence wastes 49K of cache)
+- Memory fragmentation: gaps between allocations can't be reused
+- Low GPU utilization due to memory constraints
+
+**vLLM's Paged Attention Insight**: Treat KV cache like operating system virtual memory:
+- Allocate in fixed-size blocks (pages), not entire sequences
+- Each sequence has a page table mapping logical positions to physical memory blocks
+- Can allocate non-contiguously (no fragmentation)
+- Can share blocks between sequences (for common prompts)
+
+**Why This Works**:
+- **Eliminates Fragmentation**: All blocks same size, any free block can be used
+- **Flexible Allocation**: Allocate only what each sequence needs
+- **Memory Sharing**: Multiple sequences with identical prompts share blocks (copy-on-write)
+- **Higher Throughput**: Better memory utilization → more concurrent requests
+
+**Theoretical Foundation**: This is virtual memory paging applied to GPU memory. The attention computation accesses KV cache through a page table, allowing the illusion of contiguous memory while physically being scattered.
+
+**Comparison to Alternatives**:
+- **vs Padding**: Paged attention uses only needed memory; padding wastes memory
+- **vs Continuous Batching Alone**: Continuous batching removes iteration-level padding; paged attention removes sequence-level padding
+- **vs Quantization**: Orthogonal—can combine paged attention with quantization for even greater efficiency
+
+**Implementation Challenges**:
+- **Kernel Modifications**: Standard attention kernels assume contiguous memory; need custom kernels with page table lookups
+- **Block Management**: Need allocator for managing free blocks, similar to OS memory management
+- **Sharing Logic**: Detecting and managing shared blocks (copy-on-write) adds complexity
+
+**Production Impact**: vLLM with paged attention achieves 2-4x higher throughput than traditional serving systems on the same hardware by eliminating memory waste.
+
+**Key Insight**: Paged Attention recognizes that KV cache management is fundamentally a memory management problem. By applying decades of OS research on virtual memory to GPU memory management, we can dramatically improve utilization and throughput—treating each sequence's cache like a process's address space.
+
+```python
+class PagedKVCache:
+    """Paged KV cache for efficient variable-length batching.
+
+    Key ideas from vLLM paper:
+    1. Allocate KV cache in fixed-size blocks (pages)
+    2. Each sequence has a page table mapping logical to physical blocks
+    3. Can share blocks between sequences (for prompts)
+    4. Reduces memory fragmentation
+
+    Paper: https://arxiv.org/abs/2309.06180
+    """
+    def __init__(
+        self,
+        n_layers: int,
+        n_heads: int,
+        head_dim: int,
+        block_size: int = 128,  # Tokens per block
+        max_blocks: int = 1000,  # Total memory pool
+        device: str = "cuda"
+    ):
+        self.n_layers = n_layers
+        self.n_heads = n_heads
+        self.head_dim = head_dim
+        self.block_size = block_size
+        self.max_blocks = max_blocks
+
+        # Physical memory pool: all blocks
+        # [n_layers, max_blocks, block_size, n_heads, head_dim]
+        self.k_blocks = [
+            torch.zeros(max_blocks, block_size, n_heads, head_dim, device=device)
+            for _ in range(n_layers)
+        ]
+        self.v_blocks = [
+            torch.zeros(max_blocks, block_size, n_heads, head_dim, device=device)
+            for _ in range(n_layers)
+        ]
+
+        # Free block list
+        self.free_blocks = list(range(max_blocks))
+
+        # Page tables: sequence_id -> list of block indices
+        self.page_tables = {}
+
+    def allocate_sequence(self, sequence_id: int, estimated_length: int):
+        """Allocate blocks for a new sequence.
+
+        Args:
+            sequence_id: Unique sequence identifier
+            estimated_length: Expected sequence length (for pre-allocation)
+        """
+        n_blocks_needed = (estimated_length + self.block_size - 1) // self.block_size
+
+        if len(self.free_blocks) < n_blocks_needed:
+            raise RuntimeError("Out of KV cache memory! Consider eviction or larger pool.")
+
+        # Allocate blocks
+        allocated = []
+        for _ in range(n_blocks_needed):
+            block_idx = self.free_blocks.pop(0)
+            allocated.append(block_idx)
+
+        self.page_tables[sequence_id] = allocated
+
+    def free_sequence(self, sequence_id: int):
+        """Free all blocks for a completed sequence."""
+        if sequence_id in self.page_tables:
+            blocks = self.page_tables[sequence_id]
+            self.free_blocks.extend(blocks)
+            del self.page_tables[sequence_id]
+
+    def write_kv(
+        self,
+        sequence_id: int,
+        layer_idx: int,
+        position: int,
+        k: torch.Tensor,
+        v: torch.Tensor
+    ):
+        """Write K, V at a specific position.
+
+        Args:
+            sequence_id: Which sequence
+            layer_idx: Which layer
+            position: Token position in sequence
+            k, v: Key/Value tensors [n_heads, head_dim]
+        """
+        # Determine which block and offset within block
+        block_num = position // self.block_size
+        block_offset = position % self.block_size
+
+        # Get physical block index
+        page_table = self.page_tables[sequence_id]
+        if block_num >= len(page_table):
+            # Need to allocate more blocks
+            new_block = self.free_blocks.pop(0)
+            page_table.append(new_block)
+
+        physical_block = page_table[block_num]
+
+        # Write to physical memory
+        self.k_blocks[layer_idx][physical_block, block_offset] = k
+        self.v_blocks[layer_idx][physical_block, block_offset] = v
+
+    def read_kv(
+        self,
+        sequence_id: int,
+        layer_idx: int,
+        length: int
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        """Read all K, V for a sequence up to length.
+
+        Args:
+            sequence_id: Which sequence
+            layer_idx: Which layer
+            length: How many tokens to read
+
+        Returns:
+            k, v: [length, n_heads, head_dim]
+        """
+        page_table = self.page_tables[sequence_id]
+        n_blocks = (length + self.block_size - 1) // self.block_size
+
+        k_parts = []
+        v_parts = []
+
+        for block_num in range(n_blocks):
+            physical_block = page_table[block_num]
+
+            # How many tokens to read from this block?
+            if block_num < n_blocks - 1:
+                tokens_in_block = self.block_size
+            else:
+                tokens_in_block = length - block_num * self.block_size
+
+            k_parts.append(self.k_blocks[layer_idx][physical_block, :tokens_in_block])
+            v_parts.append(self.v_blocks[layer_idx][physical_block, :tokens_in_block])
+
+        k = torch.cat(k_parts, dim=0)
+        v = torch.cat(v_parts, dim=0)
+
+        return k, v
+```
+
+**Benefits of Paged Attention**:
+1. **Reduced fragmentation**: Can use nearly all allocated memory
+2. **Flexible batching**: Mix sequences of any length
+3. **Sharing**: Multiple sequences can share prompt blocks (for same prompt)
+4. **Higher throughput**: Better GPU utilization
+
+**Results from vLLM paper**:
+- **2-4x higher throughput** than HuggingFace Transformers
+- **Near-zero memory waste** (vs 30-50% waste with padding)
+- Enables serving 100K context models in production
+
+---
+
 ## Evaluation on Long-Range Tasks
 
 How do we know if long-context techniques actually work?
@@ -1153,6 +2417,26 @@ Question: What is the secret password?
 - Accuracy at different needle positions (beginning, middle, end)
 - Accuracy vs. context length
 - Degradation beyond training length
+
+### Implementing Needle-in-Haystack Evaluation
+
+**Why This Test Matters**: This is the most fundamental test for long-context models. If a model can't retrieve a simple fact from a long document, it can't handle more complex long-context tasks. This test validates that the context window is actually usable, not just theoretically supported.
+
+**What This Reveals**:
+- **Effective Context Length**: Where performance drops off
+- **Position Bias**: Whether middle tokens are accessible
+- **Extrapolation Capability**: Performance beyond training length
+- **Practical Usability**: Whether the model can serve as a "document store"
+
+**How to Interpret Results**:
+- **100% accuracy across all positions**: Model truly supports claimed context length
+- **U-shaped curve (good at edges, poor in middle)**: Attention sink + recency bias issue
+- **Degradation with length**: Context collapse or insufficient scaling
+- **Sharp cliff**: Likely hitting a hard limit (position encoding extrapolation failure)
+
+**Relation to Real Tasks**: While artificial, this correlates strongly with performance on real long-context applications like document QA, code analysis, and multi-document reasoning.
+
+**Key Insight**: Needle-in-haystack is to long-context models what "Hello World" is to programming—a simple sanity check that reveals fundamental capabilities. If a model fails this, don't trust it with complex long-context tasks.
 
 ```python
 def needle_in_haystack_eval(
@@ -1220,7 +2504,34 @@ RULER tests 4 task categories across different lengths:
 
 4. **Length Extrapolation**: Handle lengths beyond training
 
-**Implementation sketch**:
+### Implementing RULER Benchmark
+
+**Why RULER Matters**: Needle-in-haystack is a start, but real applications require more than simple retrieval. RULER provides a comprehensive suite of tests that stress different aspects of long-context understanding.
+
+**The Problem with Single-Task Evaluation**: A model might excel at retrieval but fail at reasoning across distant information. RULER's multi-task approach reveals these capability gaps.
+
+**What Each Task Category Tests**:
+1. **Retrieval**: Basic long-context access (necessary but not sufficient)
+2. **Multi-hop Reasoning**: Can the model connect information scattered across the context?
+3. **Aggregation**: Can the model combine information from the entire context?
+4. **Length Extrapolation**: Does the scaling method actually work beyond training length?
+
+**Why This Benchmark Design**:
+- **Synthetic but Meaningful**: Controlled tasks with clear metrics, yet representative of real-world needs
+- **Scalable**: Can test at any length (unlike human-annotated benchmarks limited to short contexts)
+- **Diagnostic**: Failures point to specific capability gaps (retrieval vs reasoning vs aggregation)
+
+**Comparison to Other Benchmarks**:
+- **vs Needle-in-Haystack**: RULER includes needle tests but adds reasoning and aggregation
+- **vs Real-World Tasks**: More controlled, easier to diagnose, but may not capture all nuances
+- **vs Perplexity**: Perplexity doesn't test retrieval or reasoning; it's a different dimension
+
+**How to Use RULER Results**:
+- **Pre-deployment Validation**: Verify your long-context technique actually works
+- **Technique Comparison**: Compare RoPE scaling methods, attention variants
+- **Length Selection**: Find where performance degrades to choose deployment context length
+
+**Key Insight**: RULER recognizes that "long context" is multifaceted—it's not just about fitting tokens in memory, but about retrieving, reasoning across, and aggregating information from those tokens. A comprehensive benchmark must test all these dimensions to truly validate long-context capability.
 
 ```python
 class RULERBenchmark:
@@ -1368,6 +2679,43 @@ What is the pass key?
 ## Complete Implementation: Long Context Transformer
 
 Let's build a complete transformer with multiple long-context techniques:
+
+### Building a Production-Ready Long Context Transformer
+
+**Why This Implementation Matters**: Throughout this chapter, we've explored individual techniques. Now we combine them into a cohesive system that demonstrates how these pieces fit together in practice.
+
+**Design Philosophy**: This implementation prioritizes:
+1. **Modularity**: Each technique can be toggled on/off
+2. **Production-Ready**: Includes optimizations needed for real deployment
+3. **Educational**: Clear structure showing how components interact
+4. **Flexible**: Can be adapted for different context length requirements
+
+**Techniques Combined**:
+- **YaRN RoPE Scaling**: Handles position encoding for extended contexts
+- **Grouped Query Attention (GQA)**: Reduces KV cache size without sacrificing quality
+- **Sliding Window Attention**: Optional memory efficiency for very long sequences
+- **Flash Attention**: Memory-efficient attention computation
+- **Streaming Support**: For unbounded-length inference
+
+**Why These Specific Combinations**:
+- **RoPE + YaRN**: Best-in-class position encoding extension with minimal fine-tuning
+- **GQA**: Reduces KV cache memory by 4x (with 4 KV heads vs 16 query heads) while maintaining quality
+- **Sliding Window**: Provides fallback for extremely long contexts where even optimized attention struggles
+- **Flash Attention**: Essential for avoiding $O(n^2)$ memory usage during computation
+
+**How This Relates to Production Models**:
+- **Llama 3**: Uses RoPE + GQA
+- **Mistral/Mixtral**: Adds sliding window attention
+- **Qwen**: Uses ABF RoPE scaling
+- **This Implementation**: Combines best practices from all of them
+
+**Key Architectural Decisions**:
+1. **Tied Embeddings**: Share input and output embeddings (saves parameters, often improves quality)
+2. **RMSNorm**: Simpler, faster than LayerNorm; used in modern LLMs
+3. **Optional Caching**: Support both training (no cache) and inference (with cache) modes
+4. **Flexible Generation**: Includes streaming mode for unbounded conversations
+
+**Key Insight**: A production long-context model isn't about applying one technique—it's about intelligently combining complementary techniques. Position encoding extension gets you the context window, GQA makes the cache manageable, Flash Attention makes computation feasible, and sliding windows provide a safety valve for extreme lengths.
 
 ```python
 class LongContextTransformer(nn.Module):
@@ -1702,31 +3050,45 @@ class RMSNorm(nn.Module):
 | Technique | Type | Complexity Reduction | Fine-tuning Required? | Best For |
 |-----------|------|---------------------|----------------------|----------|
 | **Linear RoPE Scaling** | Position | None | Yes | Quick extension |
+| **Position Interpolation** | Position | None | Minimal (1K steps) | Efficient extension with proven results |
 | **NTK Scaling** | Position | None | Often No | Zero-shot extension |
 | **YaRN** | Position | None | Minimal | Production deployment |
 | **StreamingLLM** | Attention | $O(n^2) \to O(w \cdot n)$ | No | Infinite streaming |
+| **LongLoRA** | Training | $O(n^2) \to O(n \cdot s)$ | Yes (efficient) | Memory-efficient fine-tuning to 100K+ |
 | **Sliding Window** | Attention | $O(n^2) \to O(w \cdot n)$ | Architecture change | Efficient long context |
 | **Landmark** | Attention | $O(n^2) \to O(n^2/b)$ | Architecture change | Hierarchical info |
 | **Ring Attention** | Distributed | Same, but distributed | No | Multi-GPU, very long |
 | **RAG** | Architecture | Depends on retrieval | No | External knowledge |
+| **KV Cache Quantization** | Inference | None (memory only) | No | Reduce memory by 2-4x |
+| **Paged Attention** | Inference | None (efficiency only) | No | Variable-length batching |
 
 ### When to Use Each Technique
 
-**Extending existing model**:
-1. Start with **Dynamic NTK** (zero-shot)
-2. If insufficient, try **YaRN** with short fine-tuning
-3. For streaming: add **StreamingLLM**
+**Extending existing model (minimal resources)**:
+1. Start with **Dynamic NTK** (zero-shot, no training)
+2. If insufficient, try **Position Interpolation** (1K steps) or **YaRN** (short fine-tuning)
+3. If memory-constrained, use **LongLoRA** (enables 100K on single GPU)
+4. For streaming: add **StreamingLLM**
 
 **Training new model**:
 1. Use **ABF** or **YaRN** RoPE from start
 2. Consider **sliding window** attention for efficiency
 3. Alternate global and local layers (Gemma-style)
 4. Use **Flash Attention** for memory efficiency (see [Flash Attention](12-flash-attention.md))
+5. If limited compute, use **LongLoRA** during fine-tuning
+
+**Production deployment**:
+1. **Prefill optimization**: Use Flash Attention, sparse attention for long prompts
+2. **Decode optimization**: KV cache quantization (INT8), speculative decoding
+3. **Batching**: Implement Paged Attention for variable-length sequences
+4. **Memory**: Quantize KV cache to INT8 (2x savings) or INT4 (4x savings)
+5. **Monitoring**: Watch for context collapse at different positions/lengths
 
 **Extreme length** (1M+ tokens):
 1. **Ring Attention** for distributed training
 2. **RAG** for inference (don't fit everything in context)
 3. **Landmark attention** for hierarchical processing
+4. **Paged Attention** essential for managing memory
 
 ### Best Practices
 
@@ -1735,6 +3097,11 @@ class RMSNorm(nn.Module):
 3. **Don't assume linear scaling**: Test at target lengths
 4. **Mind the KV cache**: At 100K context, cache can be 100GB+
 5. **Consider task requirements**: Do you really need full attention over all tokens?
+6. **Beware context collapse**: Test performance at different needle positions (start/middle/end)
+7. **Different phases, different optimizations**: Prefill and decode have different bottlenecks
+8. **Production = batching**: Use continuous batching and paged attention for throughput
+9. **Quantization is your friend**: INT8 KV cache has minimal accuracy loss
+10. **Monitor memory fragmentation**: Traditional padding wastes 30-50% memory
 
 ---
 
@@ -1790,6 +3157,41 @@ class RMSNorm(nn.Module):
    - Plot perplexity vs. context length
    - Does it show "context collapse" at any length?
 
+9. **KV Cache Quantization**
+   - Implement INT8 quantization for KV cache
+   - Compare memory usage: FP16 vs INT8 vs INT4
+   - Measure perplexity degradation at each precision
+   - Test on sequences of 4K, 16K, 64K tokens
+   - What's the sweet spot for memory vs accuracy?
+
+10. **Context Collapse Investigation**
+   - Implement the needle-in-haystack test with position variation
+   - Test at context lengths: 8K, 16K, 32K, 64K
+   - Place needle at positions: 10%, 30%, 50%, 70%, 90%
+   - Create a heatmap of accuracy vs (length, position)
+   - Where does the model fail most? Why?
+
+11. **LongLoRA Simulation**
+   - Implement shifted sparse attention
+   - Compare training memory: full attention vs shifted sparse
+   - Measure throughput (tokens/sec) during training
+   - What's the memory reduction factor?
+   - Does inference with full attention recover performance?
+
+12. **Prefill vs Decode Analysis**
+   - Profile a long-context model during generation
+   - Measure prefill time vs decode time for 100K context
+   - Which phase is the bottleneck?
+   - Try different batch sizes: how does it affect each phase?
+   - What optimization would help most?
+
+13. **Paged Attention Implementation**
+   - Implement basic paged KV cache
+   - Compare memory usage vs traditional padding
+   - Test with variable-length sequences (1K, 10K, 50K mixed)
+   - Measure memory fragmentation
+   - How much memory is saved?
+
 ---
 
 ## References
@@ -1798,23 +3200,30 @@ class RMSNorm(nn.Module):
 
 1. **RoPE and Scaling**
    - [RoFormer: Enhanced Transformer with Rotary Position Embedding](https://arxiv.org/abs/2104.09864) (Su et al., 2021)
-   - [YaRN: Efficient Context Window Extension of Large Language Models](https://arxiv.org/abs/2309.00071) (Peng et al., 2023)
    - [Extending Context Window of Large Language Models via Position Interpolation](https://arxiv.org/abs/2306.15595) (Chen et al., 2023)
+   - [YaRN: Efficient Context Window Extension of Large Language Models](https://arxiv.org/abs/2309.00071) (Peng et al., 2023)
 
-2. **Attention Efficiency**
+2. **Efficient Training and Fine-tuning**
+   - [LongLoRA: Efficient Fine-tuning of Long-Context Large Language Models](https://arxiv.org/abs/2309.12307) (Chen et al., 2023)
    - [Efficient Streaming Language Models with Attention Sinks](https://arxiv.org/abs/2309.17453) (Xiao et al., 2023)
+
+3. **Attention Efficiency**
    - [Ring Attention with Blockwise Transformers for Near-Infinite Context](https://arxiv.org/abs/2310.01889) (Liu et al., 2023)
    - [Landmark Attention: Random-Access Infinite Context Length for Transformers](https://arxiv.org/abs/2305.16300) (Mohtashami & Jaggi, 2023)
 
-3. **Memory-Augmented Models**
+4. **Memory-Augmented Models**
    - [Memorizing Transformers](https://arxiv.org/abs/2203.08913) (Wu et al., 2022)
    - [Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks](https://arxiv.org/abs/2005.11401) (Lewis et al., 2020)
 
-4. **Evaluation**
+5. **Evaluation and Context Collapse**
    - [RULER: What's the Real Context Size of Your Long-Context Language Models?](https://arxiv.org/abs/2404.06654) (Hsieh et al., 2024)
    - [Lost in the Middle: How Language Models Use Long Contexts](https://arxiv.org/abs/2307.03172) (Liu et al., 2023)
 
-5. **Production Systems**
+6. **Production and Inference Optimization**
+   - [Efficient Memory Management for Large Language Model Serving with PagedAttention](https://arxiv.org/abs/2309.06180) (Kwon et al., 2023) - vLLM
+   - [FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness](https://arxiv.org/abs/2205.14135) (Dao et al., 2022)
+
+7. **Production Systems**
    - [Gemini 1.5: Unlocking multimodal understanding across millions of tokens of context](https://arxiv.org/abs/2403.05530) (Gemini Team, 2024)
    - [The Llama 3 Herd of Models](https://arxiv.org/abs/2407.21783) (Llama Team, 2024)
 

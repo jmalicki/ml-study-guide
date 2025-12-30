@@ -20,19 +20,25 @@ This chapter covers the practical aspects of training and deploying LLMs efficie
    - [FP8 Training](#fp8-training)
 5. [Memory Optimization](#memory-optimization)
    - [Flash Attention](#flash-attention)
+   - [Gradient Checkpointing](#gradient-checkpointing)
    - [KV Cache Optimization](#kv-cache-optimization)
    - [PagedAttention](#pagedattention)
 6. [Inference Acceleration](#inference-acceleration)
    - [Speculative Decoding](#speculative-decoding)
    - [Continuous Batching](#continuous-batching)
-7. [Optimizers](#optimizers)
+7. [Distributed Training Strategies](#distributed-training-strategies)
+   - [Data Parallelism](#data-parallelism)
+   - [Model Parallelism](#model-parallelism)
+   - [ZeRO Optimizer](#zero-optimizer)
+   - [Fully Sharded Data Parallel (FSDP)](#fully-sharded-data-parallel-fsdp)
+8. [Optimizers](#optimizers)
    - [AdamW](#adamw)
    - [Muon](#muon)
    - [Shampoo and SOAP](#shampoo-and-soap)
-8. [Learning Rate Schedules](#learning-rate-schedules)
+9. [Learning Rate Schedules](#learning-rate-schedules)
    - [Cosine Schedule](#cosine-schedule)
    - [Warmup-Stable-Decay (WSD)](#warmup-stable-decay-wsd)
-9. [Putting It All Together](#putting-it-all-together)
+10. [Putting It All Together](#putting-it-all-together)
 
 ---
 
@@ -54,6 +60,25 @@ NVIDIA dominates the LLM training and inference landscape. Understanding GPU gen
 #### Tensor Cores
 
 Tensor Cores are specialized hardware units for matrix multiply-accumulate operations, essential for transformer training and inference.
+
+**Problem and Motivation:**
+Matrix multiplications dominate LLM computation (attention's QK^T, attention output, feed-forward layers). Standard CUDA cores process one multiply-add per cycle, which is inefficient for the massive matrix operations in transformers. For a 70B parameter model, billions of matrix operations occur per token.
+
+**Theoretical Justification:**
+Tensor Cores implement fused multiply-accumulate (FMA) operations on matrix tiles (e.g., 16×16 elements) in a single clock cycle. This provides:
+- **10-20x throughput** compared to CUDA cores for matrix operations
+- **Mixed precision computation**: FP16/BF16/FP8 input with FP32 accumulation prevents numerical errors
+- **Memory bandwidth optimization**: Tiles fit in on-chip memory, reducing HBM access
+
+**Relation to Alternatives:**
+- CUDA cores: General purpose, flexible, but 10-20x slower for matrix ops
+- TPU Matrix Units: Similar concept but systolic array architecture vs. NVIDIA's approach
+- CPU SIMD: 4-8x parallelism vs. 256x for Tensor Cores
+
+**Key Insights:**
+1. Tensor Cores are automatically utilized when tensors are FP16/BF16/FP8 and dimensions are multiples of 8
+2. The performance gain comes from processing entire matrix tiles atomically rather than element-wise
+3. Mixed precision (FP16 compute, FP32 accumulate) maintains numerical stability while maximizing throughput
 
 ```python
 # Tensor Core operations conceptually
@@ -269,6 +294,25 @@ Quantization reduces model size and speeds up inference by using lower-precision
 
 PTQ quantizes a trained model without retraining. It's fast but may lose accuracy.
 
+**Problem and Motivation:**
+Modern LLMs require hundreds of gigabytes of memory (70B model = ~140GB in FP16). This makes deployment expensive and limits accessibility. Most weight values don't need full FP16 precision - quantization to INT8 or INT4 can reduce memory by 2-4x with minimal accuracy loss.
+
+**Theoretical Justification:**
+Neural network weights often follow a Gaussian-like distribution with most values near zero. Quantization maps continuous floating-point values to discrete integers:
+$$q = \text{round}\left(\frac{x}{\text{scale}}\right), \quad \hat{x} = q \times \text{scale}$$
+
+The quantization error $\epsilon = x - \hat{x}$ is bounded by $\pm \frac{\text{scale}}{2}$. With appropriate scale factors (per-tensor or per-channel), this error is negligible for inference.
+
+**Relation to Alternatives:**
+- **PTQ vs QAT**: PTQ is fast (no retraining) but less accurate; QAT requires full retraining but adapts weights to quantization
+- **Symmetric vs Asymmetric**: Symmetric quantization (zero-point = 0) is faster; asymmetric handles biased distributions better
+- **Per-tensor vs Per-channel**: Per-channel uses different scales for each output channel, reducing error at minimal cost
+
+**Key Insights:**
+1. **Block-wise quantization** (used by GPTQ, AWQ) captures local statistics better than global quantization
+2. **Outlier handling** is critical - a few large values can dominate the scale factor
+3. **Calibration data quality** matters more than quantity - representative samples suffice
+
 ```python
 import torch
 import torch.nn as nn
@@ -369,6 +413,26 @@ class BlockwiseQuantizer:
 ### Quantization-Aware Training (QAT)
 
 QAT simulates quantization during training, allowing the model to adapt to lower precision.
+
+**Problem and Motivation:**
+Post-training quantization can suffer significant accuracy degradation, especially at aggressive quantization levels (INT4 or below). The model was optimized for full precision and may rely on precision that quantization eliminates.
+
+**Theoretical Justification:**
+QAT uses "fake quantization" - applying quantization in forward pass but using straight-through estimators (STE) in backward pass. This allows gradients to flow despite non-differentiable rounding:
+
+$$\text{Forward: } \tilde{x} = \text{dequant}(\text{quant}(x)) \quad \text{Backward: } \frac{\partial L}{\partial x} \approx \frac{\partial L}{\partial \tilde{x}}$$
+
+The model learns to represent information within quantization constraints. Weights shift to values that minimize quantization error, and the model becomes robust to precision loss.
+
+**Relation to Alternatives:**
+- **QAT vs PTQ**: QAT achieves better accuracy (especially <8-bit) but requires full training cycle
+- **Full QAT vs Partial QAT**: Full QAT quantizes all layers; partial quantizes only weights (activations stay FP16)
+- **Static vs Dynamic**: Static uses fixed scales; dynamic computes scales at runtime (more accurate, slower)
+
+**Key Insights:**
+1. **Straight-through estimator** is crucial - gradients "pass through" the non-differentiable quantization
+2. **Learned scales** (vs. fixed) allow the model to optimize quantization ranges
+3. **Batch normalization** helps by normalizing activations to quantization-friendly ranges
 
 ```python
 class FakeQuantize(torch.autograd.Function):
@@ -1086,9 +1150,362 @@ def use_flash_attention():
 - [FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning](https://arxiv.org/abs/2307.08691) (Dao, 2023)
 - [FlashAttention-3: Fast and Accurate Attention with Asynchrony and Low-precision](https://arxiv.org/abs/2407.08608) (Shah et al., 2024)
 
+### Gradient Checkpointing
+
+Gradient checkpointing (also called activation checkpointing) is a fundamental memory optimization technique that trades computation for memory during training.
+
+```python
+import torch
+import torch.nn as nn
+from torch.utils.checkpoint import checkpoint
+
+class GradientCheckpointingAnalysis:
+    """
+    Gradient checkpointing memory analysis.
+
+    Problem: During training, we must store all intermediate activations
+    for the backward pass. For a transformer with N layers:
+    - Memory for activations: O(N) per layer = O(N²) total
+    - For 70B models, activations can exceed 100 GB
+
+    Solution: Don't store all activations. Instead:
+    - Store activations only at checkpoints (e.g., every k layers)
+    - During backward, recompute missing activations from checkpoints
+
+    Memory-Compute Trade-off:
+    - Memory: O(N) → O(√N) with optimal checkpointing
+    - Compute: 1 forward pass → ~1.3-1.5 forward passes (30-50% overhead)
+
+    Key insight: Recomputation is fast (compute-bound) while storing
+    activations is slow (memory-bound). This trade-off is favorable.
+    """
+
+    @staticmethod
+    def memory_analysis(
+        n_layers: int,
+        batch_size: int,
+        seq_len: int,
+        hidden_size: int,
+        n_checkpoints: int = None
+    ) -> dict:
+        """
+        Analyze memory usage with and without gradient checkpointing.
+
+        Args:
+            n_layers: Number of transformer layers
+            batch_size: Batch size
+            seq_len: Sequence length
+            hidden_size: Hidden dimension
+            n_checkpoints: Number of checkpoint segments (default: √n_layers)
+
+        Returns:
+            Memory statistics in GB
+        """
+        # Bytes per activation tensor (assuming FP16)
+        bytes_per_activation = batch_size * seq_len * hidden_size * 2
+
+        # Without checkpointing: store all layer activations
+        memory_no_checkpoint = n_layers * bytes_per_activation / 1e9
+
+        # With checkpointing: store only checkpoint boundaries
+        if n_checkpoints is None:
+            n_checkpoints = int(n_layers ** 0.5)  # Optimal: √N
+
+        memory_with_checkpoint = n_checkpoints * bytes_per_activation / 1e9
+
+        return {
+            'no_checkpoint_gb': memory_no_checkpoint,
+            'with_checkpoint_gb': memory_with_checkpoint,
+            'memory_reduction': memory_no_checkpoint / memory_with_checkpoint,
+            'n_checkpoints': n_checkpoints,
+            'recompute_overhead': n_layers / n_checkpoints - 1
+        }
+
+
+class CheckpointedTransformerBlock(nn.Module):
+    """
+    Transformer block with gradient checkpointing.
+
+    PyTorch provides torch.utils.checkpoint.checkpoint which wraps
+    a function to enable gradient checkpointing automatically.
+    """
+
+    def __init__(self, hidden_size: int, n_heads: int):
+        super().__init__()
+        self.attention = nn.MultiheadAttention(hidden_size, n_heads)
+        self.norm1 = nn.LayerNorm(hidden_size)
+        self.mlp = nn.Sequential(
+            nn.Linear(hidden_size, 4 * hidden_size),
+            nn.GELU(),
+            nn.Linear(4 * hidden_size, hidden_size)
+        )
+        self.norm2 = nn.LayerNorm(hidden_size)
+
+    def forward_impl(self, x: torch.Tensor) -> torch.Tensor:
+        """Actual forward computation (will be checkpointed)."""
+        # Self-attention with residual
+        attn_out, _ = self.attention(x, x, x)
+        x = self.norm1(x + attn_out)
+
+        # MLP with residual
+        mlp_out = self.mlp(x)
+        x = self.norm2(x + mlp_out)
+
+        return x
+
+    def forward(self, x: torch.Tensor, use_checkpoint: bool = True) -> torch.Tensor:
+        """
+        Forward pass with optional gradient checkpointing.
+
+        When use_checkpoint=True, PyTorch will:
+        1. Run forward normally
+        2. NOT store intermediate activations
+        3. During backward, recompute forward to get activations
+        """
+        if use_checkpoint and self.training:
+            # Use gradient checkpointing
+            # Note: checkpoint requires tensors as input, not modules
+            return checkpoint(self.forward_impl, x, use_reentrant=False)
+        else:
+            return self.forward_impl(x)
+
+
+class SelectiveCheckpointing:
+    """
+    Advanced: Selective gradient checkpointing strategies.
+
+    Different layers have different memory/compute trade-offs:
+    - Attention: High memory, moderate compute → checkpoint
+    - MLP: Moderate memory, high compute → maybe skip
+    - Small layers (norm, residual): Low memory → skip
+
+    Strategy 1: Checkpoint every k layers
+    - Simple, predictable overhead
+    - k = √N for optimal memory reduction
+
+    Strategy 2: Checkpoint only attention
+    - Attention often dominates memory
+    - Lower recomputation overhead
+
+    Strategy 3: Adaptive checkpointing
+    - Profile memory usage per layer
+    - Checkpoint high-memory layers
+    """
+
+    @staticmethod
+    def checkpoint_every_k_layers(
+        layers: nn.ModuleList,
+        x: torch.Tensor,
+        k: int = 4
+    ) -> torch.Tensor:
+        """
+        Run through layers, checkpointing every k layers.
+
+        Example: 32 layers, k=4 → 8 checkpoints
+        Memory: O(32) → O(8)
+        """
+        for i, layer in enumerate(layers):
+            if i % k == 0:
+                # Checkpoint this segment
+                x = checkpoint(layer, x, use_reentrant=False)
+            else:
+                x = layer(x)
+        return x
+
+    @staticmethod
+    def checkpoint_attention_only(block: nn.Module, x: torch.Tensor) -> torch.Tensor:
+        """
+        Checkpoint only the attention computation.
+
+        Attention has O(N²) memory for the attention matrix.
+        MLP has O(N) memory for activations.
+        """
+        # Checkpoint attention (high memory)
+        def attention_fn(x):
+            attn_out, _ = block.attention(x, x, x)
+            return block.norm1(x + attn_out)
+
+        x = checkpoint(attention_fn, x, use_reentrant=False)
+
+        # No checkpoint for MLP (lower memory, higher compute)
+        x = block.norm2(x + block.mlp(x))
+
+        return x
+
+
+def gradient_checkpointing_example():
+    """
+    Complete example: Training with gradient checkpointing.
+
+    Practical guidelines:
+    1. Enable for large models where memory is constrained
+    2. Checkpoint every √N layers for optimal memory/compute trade-off
+    3. Consider checkpointing only attention for lower overhead
+    4. Disable during inference (no backward pass needed)
+    5. Use use_reentrant=False for better compatibility with autograd
+    """
+    import torch
+    import torch.nn as nn
+    from torch.utils.checkpoint import checkpoint_sequential
+
+    # Build model
+    n_layers = 32
+    hidden_size = 4096
+
+    layers = nn.ModuleList([
+        CheckpointedTransformerBlock(hidden_size, n_heads=32)
+        for _ in range(n_layers)
+    ])
+
+    # Dummy input
+    x = torch.randn(8, 2048, hidden_size, device='cuda', requires_grad=True)
+
+    # Method 1: Manual checkpointing per layer
+    for layer in layers:
+        x = layer(x, use_checkpoint=True)
+
+    # Method 2: checkpoint_sequential (checkpoints segments)
+    # Divides layers into segments and checkpoints each
+    n_segments = 8  # √32 ≈ 5.6, round up to 8
+    x = checkpoint_sequential(layers, n_segments, x, use_reentrant=False)
+
+    # Memory saved: ~4x reduction (32 layers → 8 checkpoints)
+    # Compute overhead: ~30% more time
+
+    return x
+
+
+class MemoryProfiler:
+    """
+    Profile memory usage with and without checkpointing.
+
+    Example usage:
+    >>> profiler = MemoryProfiler()
+    >>> profiler.compare_checkpointing(model, input_data)
+    """
+
+    @staticmethod
+    def get_memory_usage() -> float:
+        """Get current GPU memory usage in GB."""
+        return torch.cuda.memory_allocated() / 1e9
+
+    @staticmethod
+    def compare_checkpointing(
+        model: nn.Module,
+        input_data: torch.Tensor,
+        n_steps: int = 10
+    ) -> dict:
+        """
+        Compare memory usage with and without checkpointing.
+
+        Returns:
+            Dictionary with memory stats and timing
+        """
+        import time
+
+        results = {}
+
+        # Test 1: Without checkpointing
+        torch.cuda.reset_peak_memory_stats()
+        start = time.time()
+
+        for _ in range(n_steps):
+            output = model(input_data, use_checkpoint=False)
+            loss = output.sum()
+            loss.backward()
+            model.zero_grad()
+
+        results['no_checkpoint'] = {
+            'time': time.time() - start,
+            'peak_memory_gb': torch.cuda.max_memory_allocated() / 1e9
+        }
+
+        # Test 2: With checkpointing
+        torch.cuda.reset_peak_memory_stats()
+        start = time.time()
+
+        for _ in range(n_steps):
+            output = model(input_data, use_checkpoint=True)
+            loss = output.sum()
+            loss.backward()
+            model.zero_grad()
+
+        results['with_checkpoint'] = {
+            'time': time.time() - start,
+            'peak_memory_gb': torch.cuda.max_memory_allocated() / 1e9
+        }
+
+        # Compute ratios
+        results['memory_reduction'] = (
+            results['no_checkpoint']['peak_memory_gb'] /
+            results['with_checkpoint']['peak_memory_gb']
+        )
+        results['time_overhead'] = (
+            results['with_checkpoint']['time'] /
+            results['no_checkpoint']['time'] - 1
+        ) * 100
+
+        return results
+```
+
+**When to Use Gradient Checkpointing:**
+
+| Scenario | Recommendation |
+|----------|----------------|
+| **Large models (>13B)** | Always use (memory-bound) |
+| **Long sequences (>4K)** | Strongly recommended |
+| **Small batch size** | Less beneficial (already memory-efficient) |
+| **Inference only** | Never (no backward pass) |
+| **Limited GPU memory** | Essential for fitting model |
+| **Abundant memory** | Optional (trades speed for memory) |
+
+**Optimal Checkpointing Strategy:**
+
+For a model with $N$ layers and $M$ memory units:
+
+$$
+\text{Optimal checkpoints} = \sqrt{N}
+$$
+
+$$
+\text{Memory savings} = \frac{N}{\sqrt{N}} = \sqrt{N}
+$$
+
+$$
+\text{Recomputation overhead} \approx \sqrt{N} - 1 \text{ forward passes}
+$$
+
+**Key Papers:**
+- [Training Deep Nets with Sublinear Memory Cost](https://arxiv.org/abs/1604.06174) (Chen et al., 2016)
+- [Gradient Checkpointing for Transformers](https://github.com/cybertronai/gradient-checkpointing) (Implementation guide)
+
 ### KV Cache Optimization
 
 The KV cache stores key and value tensors from previous tokens during autoregressive generation.
+
+**Problem and Motivation:**
+During autoregressive generation, each new token attends to all previous tokens. Without caching, we'd recompute K and V projections for all previous tokens at each step - O(N²) memory and compute. For a 70B model with 100K context, KV cache can exceed 260GB, often dominating memory usage over model weights.
+
+**Theoretical Justification:**
+The key observation is that K and V projections are deterministic given the input tokens:
+$$K_i = W_K x_i, \quad V_i = W_V x_i$$
+
+Once computed, they never change. We cache them and only compute K,V for the new token:
+$$\text{Attention}(Q_{\text{new}}, [K_1, \ldots, K_n, K_{\text{new}}], [V_1, \ldots, V_n, V_{\text{new}}])$$
+
+This reduces computation from O(N²) to O(N) per token, but requires storing all historical K,V.
+
+**Relation to Alternatives:**
+- **No cache**: O(N²) time, O(1) memory - impractical for long contexts
+- **Full cache**: O(N) time, O(N) memory - standard approach
+- **Quantized cache**: O(N) time, O(N/2 to N/4) memory - FP8/INT8 quantization
+- **PagedAttention**: O(N) time, O(N) memory but better utilization through paging
+
+**Key Insights:**
+1. **KV cache size scales with sequence length**, not batch size - long contexts are memory-critical
+2. **Grouped Query Attention (GQA)** reduces KV heads, directly reducing cache size (e.g., 8x reduction)
+3. **Multi-Query Attention (MQA)** uses single KV head - maximum cache reduction but may hurt quality
+4. **FP8 quantization** of KV cache provides ~2x memory reduction with <1% quality loss
 
 ```python
 class KVCacheAnalysis:
@@ -1160,6 +1577,29 @@ class KVCacheQuantization:
 ### PagedAttention
 
 PagedAttention manages KV cache memory like virtual memory pages.
+
+**Problem and Motivation:**
+Traditional KV cache allocation pre-allocates contiguous memory for maximum sequence length, leading to massive waste (often 60-80% unused). Different sequences have different lengths, causing fragmentation. Batch serving requires individual allocations per sequence, further reducing GPU utilization.
+
+**Theoretical Justification:**
+PagedAttention applies virtual memory concepts from operating systems to KV cache management. The key idea:
+1. Divide KV cache into fixed-size blocks (e.g., 16 tokens)
+2. Allocate blocks on-demand as sequences grow
+3. Use a block table to map logical positions to physical blocks
+
+This provides O(1) block access while eliminating internal fragmentation. Memory utilization approaches 100% vs. ~40% with traditional allocation.
+
+**Relation to Alternatives:**
+- **Contiguous allocation**: Simple but 60-80% memory waste
+- **Dynamic reallocation**: Avoids waste but requires expensive memory copies
+- **PagedAttention**: Near-zero waste, no copying, enables sharing (for beam search, multi-turn chat)
+- **FlashAttention**: Orthogonal - reduces memory for attention computation, not KV cache storage
+
+**Key Insights:**
+1. **Block tables** enable non-contiguous memory access with minimal overhead
+2. **Copy-on-write** allows prefix sharing across sequences (crucial for chat applications)
+3. **Memory sharing** enables efficient beam search and parallel sampling
+4. **vLLM** achieves 23x higher throughput than baseline through PagedAttention + continuous batching
 
 ```python
 class PagedAttentionConcept:
@@ -1243,6 +1683,33 @@ class PagedAttentionConcept:
 ### Speculative Decoding
 
 Speculative decoding uses a smaller "draft" model to predict multiple tokens, then verifies them with the target model in parallel.
+
+**Problem and Motivation:**
+Autoregressive generation is inherently sequential - each token depends on previous tokens, preventing parallelization. For large models, this results in low GPU utilization (<20%) because memory bandwidth dominates over compute. We spend most time loading model weights for each token, with computation taking minimal time.
+
+**Theoretical Justification:**
+Speculative decoding exploits two observations:
+1. **Small models are fast** (10-50x faster than large models)
+2. **Verification is parallelizable** - checking K tokens takes the same time as generating 1 token
+
+The algorithm:
+1. Draft model generates k tokens autoregressively: $x_1, \ldots, x_k$ (fast)
+2. Target model verifies all k in one forward pass (parallel)
+3. Accept tokens where $p_{\text{target}}(x_i|x_{<i}) \geq p_{\text{draft}}(x_i|x_{<i})$
+
+Expected speedup: $\mathbb{E}[\text{tokens}] = 1 + \alpha + \alpha^2 + \ldots + \alpha^k$ where $\alpha$ is acceptance rate.
+
+**Relation to Alternatives:**
+- **Standard decoding**: Memory-bound, sequential, predictable latency
+- **Speculative decoding**: Compute-bound, variable latency (but faster average)
+- **Parallel sampling**: Generates multiple sequences independently (different use case)
+- **Early exit**: Uses same model with adaptive depth (simpler but less effective)
+
+**Key Insights:**
+1. **No quality degradation** - mathematically equivalent to standard sampling when done correctly
+2. **Acceptance rate critical** - draft model must be reasonably aligned (typically 60-90%)
+3. **Model size ratio** - draft should be 10-50x smaller; too small = low acceptance, too large = not fast enough
+4. **Typical speedup**: 2-4x for well-matched draft/target models
 
 ```python
 class SpeculativeDecoder:
@@ -1361,6 +1828,29 @@ class SelfSpeculativeDecoding:
 
 ### Continuous Batching
 
+**Problem and Motivation:**
+Traditional static batching processes a fixed batch of sequences together. All sequences must complete before new ones can start. Since sequences have variable lengths (some finish in 10 tokens, others in 1000), this causes idle GPUs - we wait for the longest sequence while shorter ones sit completed.
+
+**Theoretical Justification:**
+Continuous batching (also called iteration-level batching or dynamic batching) operates at the token level rather than sequence level:
+- After generating each token, check which sequences are complete
+- Remove completed sequences from the batch immediately
+- Add new sequences from the waiting queue to fill available slots
+
+This maximizes GPU utilization by ensuring the batch is always full. If batch size is B and sequences complete uniformly, we process B sequences concurrently instead of sequentially.
+
+**Relation to Alternatives:**
+- **Static batching**: Process batch → wait for all to finish → process next batch (low utilization)
+- **Continuous batching**: Add/remove sequences every iteration (high utilization)
+- **Batching without KV cache management**: Would fragment memory and fail
+- **PagedAttention + Continuous batching**: Synergistic - paging enables efficient add/remove
+
+**Key Insights:**
+1. **Throughput improvement**: vLLM shows 23x higher throughput vs. static batching baselines
+2. **Latency trade-off**: Individual requests may have slightly higher latency, but overall system throughput is much higher
+3. **Requires efficient memory management**: PagedAttention makes this practical by avoiding memory fragmentation
+4. **Queue management**: Priority queues and preemption enable quality-of-service guarantees
+
 ```python
 class ContinuousBatching:
     """
@@ -1407,6 +1897,672 @@ class ContinuousBatching:
         if self.active_sequences:
             self._forward_step()
 ```
+
+---
+
+## Distributed Training Strategies
+
+Training large language models requires multiple GPUs or TPUs. Understanding distributed training strategies is essential for efficient LLM training.
+
+### Data Parallelism
+
+Data parallelism replicates the model across devices and splits data across them.
+
+```python
+import torch
+import torch.nn as nn
+import torch.distributed as dist
+from torch.nn.parallel import DistributedDataParallel as DDP
+
+class DataParallelismExplained:
+    """
+    Data Parallelism (DP) vs Distributed Data Parallelism (DDP).
+
+    Data Parallelism (nn.DataParallel):
+    - Single-process, multi-GPU
+    - Master GPU broadcasts model to workers
+    - Workers compute forward/backward on their data splits
+    - Master GPU aggregates gradients and updates
+    - Bottleneck: Master GPU communication overhead
+
+    Distributed Data Parallelism (nn.parallel.DistributedDataParallel):
+    - Multi-process (one process per GPU)
+    - All-reduce gradient synchronization
+    - More efficient communication (ring all-reduce)
+    - Better scaling to many GPUs
+
+    Memory per GPU:
+    - Model parameters: Full model on each GPU
+    - Gradients: Full gradients (synchronized)
+    - Optimizer states: Full optimizer state
+    - Activations: 1/N of batch (N = num GPUs)
+
+    Example: 70B model, 8 GPUs
+    - Parameters: 70B × 2 bytes = 140 GB per GPU
+    - Gradients: 140 GB per GPU
+    - Optimizer (AdamW): 2× params = 280 GB per GPU
+    - Total: ~560 GB per GPU (doesn't fit in 80GB!)
+    → Need model parallelism or ZeRO
+    """
+
+    @staticmethod
+    def setup_ddp():
+        """
+        Setup Distributed Data Parallel training.
+
+        Usage:
+        # Launch with: torchrun --nproc_per_node=8 train.py
+        """
+        # Initialize process group
+        dist.init_process_group(backend='nccl')  # NCCL for NVIDIA GPUs
+
+        # Get local rank
+        local_rank = int(os.environ['LOCAL_RANK'])
+        device = torch.device(f'cuda:{local_rank}')
+
+        # Create model and move to device
+        model = MyModel().to(device)
+
+        # Wrap with DDP
+        model = DDP(model, device_ids=[local_rank])
+
+        return model, device
+
+    @staticmethod
+    def all_reduce_gradients(gradients: list[torch.Tensor]):
+        """
+        Conceptual all-reduce operation.
+
+        All-reduce sums gradients across all GPUs and broadcasts result.
+        PyTorch DDP does this automatically during backward().
+
+        Ring All-Reduce algorithm:
+        - N GPUs arranged in a ring
+        - Each GPU sends to next, receives from previous
+        - N-1 steps to reduce, N-1 steps to broadcast
+        - Bandwidth optimal: each GPU sends/receives same amount
+
+        Communication cost: 2(N-1)/N × data_size ≈ 2 × data_size
+        """
+        for grad in gradients:
+            dist.all_reduce(grad, op=dist.ReduceOp.SUM)
+            grad /= dist.get_world_size()
+
+
+def ddp_training_example():
+    """
+    Complete DDP training example.
+
+    Key points:
+    1. Use torchrun to launch (replaces torch.distributed.launch)
+    2. One process per GPU
+    3. Use DistributedSampler for data loading
+    4. Model automatically syncs gradients during backward()
+    """
+    import os
+    import torch.multiprocessing as mp
+    from torch.utils.data import DataLoader, DistributedSampler
+
+    # Initialize distributed training
+    dist.init_process_group(backend='nccl')
+    local_rank = int(os.environ['LOCAL_RANK'])
+    torch.cuda.set_device(local_rank)
+
+    # Create model
+    model = MyLLM().cuda()
+    model = DDP(model)
+
+    # Create dataset with distributed sampler
+    dataset = MyDataset()
+    sampler = DistributedSampler(dataset)
+    dataloader = DataLoader(dataset, sampler=sampler, batch_size=32)
+
+    optimizer = torch.optim.AdamW(model.parameters())
+
+    for epoch in range(num_epochs):
+        # Set epoch for shuffling
+        sampler.set_epoch(epoch)
+
+        for batch in dataloader:
+            batch = batch.cuda()
+
+            # Forward and backward (gradients auto-synced)
+            loss = model(batch)
+            loss.backward()
+
+            optimizer.step()
+            optimizer.zero_grad()
+```
+
+### Model Parallelism
+
+Model parallelism splits the model across devices when it doesn't fit on a single device.
+
+```python
+class ModelParallelismTypes:
+    """
+    Three types of model parallelism for LLMs:
+
+    1. Pipeline Parallelism:
+       - Split layers across GPUs
+       - GPU 0: layers 0-7, GPU 1: layers 8-15, etc.
+       - Sequential execution with pipelining
+       - Micro-batching to hide pipeline bubbles
+
+    2. Tensor Parallelism:
+       - Split individual tensors (matrices) across GPUs
+       - Each GPU computes part of matrix multiply
+       - All-reduce to combine results
+       - Used for very large layers
+
+    3. Sequence Parallelism:
+       - Split sequence dimension across GPUs
+       - Used with tensor parallelism
+       - Reduces activation memory
+
+    Typically combined: Tensor + Pipeline + Data parallelism
+    Example: GPT-3 used tensor=8, pipeline=16, data=32 (4096 GPUs total)
+    """
+    pass
+
+
+class PipelineParallelism:
+    """
+    Pipeline parallelism with micro-batching.
+
+    Key concept: GPipe algorithm
+    1. Divide model into stages (sequential layer groups)
+    2. Divide batch into micro-batches
+    3. Pipeline micro-batches through stages
+    4. Accumulate gradients from all micro-batches
+    5. Update once per batch
+
+    Memory savings: Only need activations for one stage
+    Pipeline bubble: Some GPUs idle during warmup/cooldown
+
+    Bubble overhead = (num_stages - 1) / num_microbatches
+    Example: 4 stages, 16 microbatches → 18.75% bubble
+    """
+
+    def __init__(self, model_stages: list[nn.Module], num_microbatches: int = 8):
+        self.stages = model_stages
+        self.num_stages = len(model_stages)
+        self.num_microbatches = num_microbatches
+
+    def forward_backward(self, batch: torch.Tensor) -> torch.Tensor:
+        """
+        Pipeline parallel forward and backward pass.
+
+        Visualization (4 stages, 4 microbatches):
+        Time →
+        GPU 0: F0 F1 F2 F3 B0 B1 B2 B3
+        GPU 1:    F0 F1 F2 F3 B0 B1 B2 B3
+        GPU 2:       F0 F1 F2 F3 B0 B1 B2 B3
+        GPU 3:          F0 F1 F2 F3 B0 B1 B2 B3
+
+        F = forward, B = backward, numbers = microbatch index
+        """
+        # Split batch into micro-batches
+        microbatches = torch.chunk(batch, self.num_microbatches)
+
+        # Forward pass: pipeline micro-batches
+        activations = []
+        for mb in microbatches:
+            x = mb
+            for stage in self.stages:
+                x = stage(x)
+            activations.append(x)
+
+        # Backward pass: reverse pipeline
+        # (Actual implementation uses communication between GPUs)
+        return activations
+
+
+class TensorParallelism:
+    """
+    Tensor parallelism: Split matrices across GPUs.
+
+    Key idea: Parallelize matrix multiplication
+    Y = XW where W is split column-wise across N GPUs
+
+    Column parallel:
+    W = [W_0 | W_1 | ... | W_N]
+    Each GPU computes: Y_i = X @ W_i
+    Concatenate outputs: Y = [Y_0 | Y_1 | ... | Y_N]
+
+    Row parallel:
+    W = [W_0; W_1; ...; W_N] (stacked rows)
+    Each GPU computes: Y_i = X @ W_i
+    All-reduce to sum: Y = sum(Y_i)
+
+    Megatron-LM pattern for transformer:
+    - QKV projection: column parallel
+    - Attention output: row parallel
+    - MLP first layer: column parallel
+    - MLP second layer: row parallel
+
+    Communication: 2 all-reduces per layer (forward + backward)
+    """
+
+    @staticmethod
+    def column_parallel_linear(
+        x: torch.Tensor,
+        weight: torch.Tensor,
+        world_size: int
+    ) -> torch.Tensor:
+        """
+        Column-parallel linear layer.
+
+        weight: [hidden_size, ffn_size]
+        Split ffn_size across GPUs
+        """
+        rank = dist.get_rank()
+
+        # Split weight columns
+        weight_split = torch.chunk(weight, world_size, dim=1)[rank]
+
+        # Each GPU computes its portion
+        output_partial = torch.matmul(x, weight_split)
+
+        # No communication needed (outputs concatenated logically)
+        return output_partial
+
+    @staticmethod
+    def row_parallel_linear(
+        x: torch.Tensor,
+        weight: torch.Tensor,
+        world_size: int
+    ) -> torch.Tensor:
+        """
+        Row-parallel linear layer.
+
+        weight: [ffn_size, hidden_size]
+        Split ffn_size (rows) across GPUs
+        """
+        rank = dist.get_rank()
+
+        # Split weight rows
+        weight_split = torch.chunk(weight, world_size, dim=0)[rank]
+
+        # Each GPU computes its portion
+        output_partial = torch.matmul(x, weight_split)
+
+        # All-reduce to sum partial results
+        dist.all_reduce(output_partial, op=dist.ReduceOp.SUM)
+
+        return output_partial
+
+
+class MegatronLMParallelism:
+    """
+    Megatron-LM: Combined tensor + pipeline + data parallelism.
+
+    Configuration example (GPT-3 scale):
+    - Tensor parallel: 8 GPUs (split within layer)
+    - Pipeline parallel: 16 stages (split across layers)
+    - Data parallel: 32 replicas
+    - Total: 8 × 16 × 32 = 4096 GPUs
+
+    Key optimizations:
+    1. Sequence parallelism: Split activations in sequence dim
+    2. Selective activation recomputation: Checkpoint some layers
+    3. Interleaved pipeline scheduling: Better GPU utilization
+
+    Reference: "Megatron-LM: Training Multi-Billion Parameter Language
+    Models Using Model Parallelism" (Shoeybi et al., 2019)
+    """
+    pass
+```
+
+### ZeRO Optimizer
+
+ZeRO (Zero Redundancy Optimizer) partitions optimizer states, gradients, and parameters across GPUs.
+
+**Problem and Motivation:**
+Standard data parallelism replicates the entire model, gradients, and optimizer states on each GPU. For a 70B model with AdamW, this requires ~560GB per GPU (140GB params + 140GB grads + 280GB optimizer states). This is highly redundant - 8 GPUs store identical copies, using 4.5TB total when only 560GB is unique.
+
+**Theoretical Justification:**
+ZeRO eliminates redundancy by partitioning instead of replicating. The key insight: each GPU only needs the full model state during its local computation. We can partition memory and gather on-demand via communication:
+
+**Stage 1**: Partition optimizer states → 4x memory reduction (for AdamW)
+- Each GPU stores 1/N of optimizer states
+- Before optimizer step, gather relevant states
+
+**Stage 2**: Partition gradients + optimizer → 8x reduction
+- Each GPU only stores gradients for its parameter partition
+- Reduce-scatter during backward instead of all-reduce
+
+**Stage 3**: Partition everything → Linear scaling (Nx reduction for N GPUs)
+- Each GPU stores 1/N of parameters, gradients, and optimizer states
+- Gather parameters for forward, scatter results after backward
+
+Memory per GPU: $\frac{M_{\text{total}}}{N} + M_{\text{activations}}$ where $M_{\text{total}}$ is total model memory.
+
+**Relation to Alternatives:**
+- **Data Parallelism (DDP)**: Simple but doesn't reduce memory per GPU
+- **Model Parallelism**: Reduces memory but has pipeline bubbles and communication overhead
+- **ZeRO Stage 1-3**: Progressive memory reduction with increasing communication
+- **FSDP**: PyTorch's native implementation of ZeRO-3 with similar performance
+
+**Key Insights:**
+1. **Communication overhead** is acceptable - modern interconnects (NVLink, InfiniBand) have sufficient bandwidth
+2. **Stage selection**: Use Stage 3 for models that don't fit; Stage 2 if they fit (lower communication)
+3. **Activation checkpointing synergy**: Combine with ZeRO for maximum memory efficiency
+4. **ZeRO-Offload**: Can offload to CPU memory for even larger models (at speed cost)
+
+```python
+class ZeROOptimizer:
+    """
+    ZeRO: Zero Redundancy Optimizer.
+
+    Problem with data parallelism:
+    - Each GPU stores full model, gradients, and optimizer states
+    - For 70B model with AdamW: ~560 GB per GPU
+    - Highly redundant across GPUs
+
+    ZeRO solution: Partition and communicate on-demand
+
+    ZeRO Stage 1: Partition optimizer states
+    - Memory: Optimizer / N
+    - Communication: Same as standard DP
+    - Savings: 4x for AdamW
+
+    ZeRO Stage 2: Partition optimizer states + gradients
+    - Memory: (Optimizer + Gradients) / N
+    - Communication: Slightly more than DP
+    - Savings: 8x for AdamW
+
+    ZeRO Stage 3: Partition optimizer states + gradients + parameters
+    - Memory: (Optimizer + Gradients + Parameters) / N
+    - Communication: More than Stage 2 (gather params for forward)
+    - Savings: Up to 64x (depends on model)
+    - Enables training 100B+ models on consumer GPUs
+
+    Example: 70B model, 8× A100 80GB
+    - Standard DP: 560 GB per GPU (OOM!)
+    - ZeRO Stage 1: 280 GB per GPU (OOM!)
+    - ZeRO Stage 2: 140 GB per GPU (OOM!)
+    - ZeRO Stage 3: 70 GB per GPU (fits!)
+
+    Reference: "ZeRO: Memory Optimizations Toward Training Trillion
+    Parameter Models" (Rajbhandari et al., 2020)
+    """
+
+    def __init__(self, params, lr: float = 1e-4):
+        """
+        Conceptual ZeRO Stage 3 optimizer.
+
+        In practice, use DeepSpeed or PyTorch FSDP.
+        """
+        self.params = list(params)
+        self.lr = lr
+        self.world_size = dist.get_world_size()
+        self.rank = dist.get_rank()
+
+        # Partition parameters
+        self.param_partition = self._partition_parameters()
+
+        # Each GPU only stores optimizer state for its partition
+        self.optimizer_states = self._init_optimizer_states()
+
+    def _partition_parameters(self) -> list[torch.Tensor]:
+        """
+        Partition parameters across GPUs.
+
+        GPU 0: params[0::N]
+        GPU 1: params[1::N]
+        etc.
+        """
+        my_params = [p for i, p in enumerate(self.params)
+                     if i % self.world_size == self.rank]
+        return my_params
+
+    def step(self):
+        """
+        ZeRO Stage 3 optimizer step.
+
+        1. Each GPU updates its parameter partition
+        2. Broadcast updated parameters to all GPUs (for next forward)
+        """
+        # Update my partition
+        for param in self.param_partition:
+            if param.grad is not None:
+                # Update using optimizer state (Adam, etc.)
+                param.data -= self.lr * param.grad
+
+        # Broadcast my updated params to all GPUs
+        for i, param in enumerate(self.params):
+            owner_rank = i % self.world_size
+            dist.broadcast(param.data, src=owner_rank)
+
+
+class ZeROConfiguration:
+    """
+    Choosing the right ZeRO stage.
+
+    Stage 1: Use when
+    - Model fits in GPU memory but optimizer states don't
+    - Minimal communication overhead acceptable
+    - 4x memory reduction sufficient
+
+    Stage 2: Use when
+    - Model + gradients fit but optimizer states don't
+    - Can tolerate gradient communication overhead
+    - 8x memory reduction needed
+
+    Stage 3: Use when
+    - Even model parameters don't fit
+    - Training very large models (>13B on consumer GPUs)
+    - Can tolerate parameter communication overhead
+    - Need maximum memory efficiency
+
+    DeepSpeed ZeRO-Offload:
+    - Offload optimizer states to CPU
+    - Train even larger models
+    - Slower but enables 100B+ on single GPU
+
+    DeepSpeed ZeRO-Infinity:
+    - Offload everything (params, grads, optimizer) to NVMe
+    - Train trillion-parameter models
+    - Much slower but unprecedented scale
+    """
+
+    # Memory breakdown for 70B model (FP16/BF16)
+    MEMORY_70B = {
+        'parameters': 140,      # GB
+        'gradients': 140,       # GB
+        'optimizer': 280,       # GB (AdamW: 2× params for m, v)
+        'activations': 60,      # GB (depends on batch/sequence)
+        'total': 620            # GB
+    }
+
+    @staticmethod
+    def get_memory_per_gpu(num_gpus: int, stage: int) -> dict:
+        """Calculate memory per GPU for different ZeRO stages."""
+        params = ZeROConfiguration.MEMORY_70B['parameters']
+        grads = ZeROConfiguration.MEMORY_70B['gradients']
+        opt = ZeROConfiguration.MEMORY_70B['optimizer']
+        acts = ZeROConfiguration.MEMORY_70B['activations'] / num_gpus
+
+        if stage == 0:  # Standard DDP
+            return {
+                'parameters': params,
+                'gradients': grads,
+                'optimizer': opt,
+                'activations': acts,
+                'total': params + grads + opt + acts
+            }
+        elif stage == 1:
+            return {
+                'parameters': params,
+                'gradients': grads,
+                'optimizer': opt / num_gpus,
+                'activations': acts,
+                'total': params + grads + opt / num_gpus + acts
+            }
+        elif stage == 2:
+            return {
+                'parameters': params,
+                'gradients': grads / num_gpus,
+                'optimizer': opt / num_gpus,
+                'activations': acts,
+                'total': params + (grads + opt) / num_gpus + acts
+            }
+        elif stage == 3:
+            return {
+                'parameters': params / num_gpus,
+                'gradients': grads / num_gpus,
+                'optimizer': opt / num_gpus,
+                'activations': acts,
+                'total': (params + grads + opt) / num_gpus + acts
+            }
+```
+
+### Fully Sharded Data Parallel (FSDP)
+
+FSDP is PyTorch's native implementation of ZeRO, integrated directly into PyTorch.
+
+```python
+from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
+from torch.distributed.fsdp import MixedPrecision, ShardingStrategy
+from torch.distributed.fsdp.wrap import transformer_auto_wrap_policy
+
+class FSDPExplained:
+    """
+    FSDP: PyTorch's native ZeRO implementation.
+
+    Key features:
+    - Integrated into PyTorch (no external dependencies)
+    - Similar to DeepSpeed ZeRO Stage 3
+    - Automatic mixed precision support
+    - Flexible sharding strategies
+    - CPU offloading support
+
+    Sharding strategies:
+    - FULL_SHARD: ZeRO Stage 3 (shard params, grads, optimizer)
+    - SHARD_GRAD_OP: ZeRO Stage 2 (shard grads, optimizer)
+    - NO_SHARD: Standard DDP (no sharding)
+    - HYBRID_SHARD: Shard within node, replicate across nodes
+
+    Auto-wrapping:
+    - Automatically wrap transformer layers
+    - Fine-grained control over communication
+    - Better memory/communication trade-off
+    """
+
+    @staticmethod
+    def setup_fsdp(model: nn.Module) -> FSDP:
+        """
+        Setup FSDP with best practices for LLMs.
+
+        Key settings:
+        1. ShardingStrategy.FULL_SHARD: Maximum memory savings
+        2. Mixed precision: BF16 for compute, FP32 for params
+        3. Auto-wrap: Wrap each transformer layer
+        4. CPU offload: Optional for very large models
+        """
+        from functools import partial
+
+        # Mixed precision policy
+        mp_policy = MixedPrecision(
+            param_dtype=torch.bfloat16,
+            reduce_dtype=torch.bfloat16,
+            buffer_dtype=torch.bfloat16,
+        )
+
+        # Auto-wrap policy for transformers
+        # Wraps each TransformerBlock separately
+        auto_wrap_policy = partial(
+            transformer_auto_wrap_policy,
+            transformer_layer_cls={TransformerBlock}  # Your layer class
+        )
+
+        model = FSDP(
+            model,
+            sharding_strategy=ShardingStrategy.FULL_SHARD,
+            mixed_precision=mp_policy,
+            auto_wrap_policy=auto_wrap_policy,
+            device_id=torch.cuda.current_device(),
+            # cpu_offload=CPUOffload(offload_params=True),  # Optional
+        )
+
+        return model
+
+
+def fsdp_training_example():
+    """
+    Complete FSDP training example.
+
+    Advantages over DeepSpeed:
+    - Native PyTorch (no external dependencies)
+    - Simpler API
+    - Better integration with PyTorch features
+
+    Advantages of DeepSpeed:
+    - More mature
+    - More optimization options
+    - Better support for very large models (>100B)
+    - ZeRO-Offload and ZeRO-Infinity
+    """
+    import torch
+    from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
+
+    # Initialize distributed
+    dist.init_process_group(backend='nccl')
+
+    # Create model
+    model = MyLLM()
+
+    # Wrap with FSDP
+    model = FSDPExplained.setup_fsdp(model)
+
+    optimizer = torch.optim.AdamW(model.parameters())
+
+    for batch in dataloader:
+        batch = batch.cuda()
+
+        # Forward
+        loss = model(batch)
+
+        # Backward (FSDP handles sharding automatically)
+        loss.backward()
+
+        # Optimizer step
+        optimizer.step()
+        optimizer.zero_grad()
+
+
+class DistributedTrainingComparison:
+    """
+    Comparison of distributed training approaches.
+
+    | Approach | Memory | Communication | Complexity | Best For |
+    |----------|--------|---------------|------------|----------|
+    | DDP | High | Low | Low | Models that fit in GPU |
+    | Pipeline | Medium | Low | Medium | Very deep models |
+    | Tensor | Low | High | High | Very wide layers |
+    | ZeRO-1 | Medium | Low | Low | Optimizer memory bound |
+    | ZeRO-2 | Medium | Medium | Low | Gradient memory bound |
+    | ZeRO-3/FSDP | Low | High | Medium | Very large models |
+    | Megatron | Low | High | High | Maximum efficiency |
+
+    Recommendations:
+    - <7B models: DDP (simple, efficient)
+    - 7B-30B: FSDP/ZeRO-2 (good balance)
+    - 30B-100B: FSDP/ZeRO-3 (memory critical)
+    - >100B: Megatron or ZeRO-3 + offload
+    - Research/prototyping: FSDP (easier)
+    - Production: Megatron (more control)
+    """
+    pass
+```
+
+**Key Resources:**
+- [PyTorch FSDP Tutorial](https://pytorch.org/tutorials/intermediate/FSDP_tutorial.html)
+- [DeepSpeed ZeRO Documentation](https://www.deepspeed.ai/tutorials/zero/)
+- [Megatron-LM GitHub](https://github.com/NVIDIA/Megatron-LM)
+
+**Cross-reference:** For more on distributed training patterns and frameworks, see [Chapter 16: Distributed Training](16-distributed-training.md) (if available).
 
 ---
 
@@ -1481,6 +2637,31 @@ class AdamW:
 ### Muon
 
 Muon is a newer optimizer showing ~2x efficiency improvement over AdamW for hidden layers.
+
+**Problem and Motivation:**
+AdamW uses per-parameter adaptive learning rates, which is effective but computationally expensive. For weight matrices in neural networks, this ignores the geometric structure - treating each element independently when the matrix as a whole has intrinsic properties. This leads to suboptimal convergence and requires storing both first and second moment estimates.
+
+**Theoretical Justification:**
+Muon leverages the observation that optimal updates for weight matrices lie on the Stiefel manifold (matrices with orthonormal columns). Instead of adaptive per-parameter scaling, it finds the closest orthogonal matrix to the gradient:
+
+$$G_{\text{orth}} = \arg\min_{Q: Q^T Q = I} \|G - Q\|_F$$
+
+This is computed efficiently via Newton-Schulz iteration:
+$$X_{k+1} = X_k \frac{3I - X_k^T X_k}{2}$$
+
+The orthogonalized gradient provides better conditioning and faster convergence. Theoretically, this relates to natural gradient descent on the manifold of orthogonal matrices.
+
+**Relation to Alternatives:**
+- **SGD with momentum**: First-order only, no adaptation
+- **Adam/AdamW**: Per-parameter adaptation, high memory (2x params for moments)
+- **Muon**: Matrix-level adaptation, low memory (1x params for momentum), 2x faster convergence
+- **Shampoo**: Full second-order, even better but much more expensive
+
+**Key Insights:**
+1. **Orthogonalization as preconditioner**: Finding nearest orthogonal matrix provides optimal conditioning
+2. **Memory efficient**: Only stores momentum (vs. Adam's momentum + variance)
+3. **Limited applicability**: Works for 2D weight matrices only - use AdamW for embeddings, biases, norms
+4. **Complementary use**: Combine Muon (hidden layers) + AdamW (other parameters) for best results
 
 ```python
 class Muon:
@@ -1573,6 +2754,31 @@ class Muon:
 ### Shampoo and SOAP
 
 Shampoo uses full-matrix preconditioning for faster convergence.
+
+**Problem and Motivation:**
+First-order optimizers (SGD, Adam) use only gradient information, ignoring curvature of the loss landscape. This leads to slow convergence in ill-conditioned problems (common in deep learning). Second-order methods (Newton's method) are impractical due to memory (O(N²) for N parameters) and computation (O(N³) for matrix inversion).
+
+**Theoretical Justification:**
+Shampoo approximates the inverse Hessian using Kronecker factorization. For a weight matrix $W \in \mathbb{R}^{m \times n}$ with gradient $G$:
+
+1. Maintain statistics: $L = \mathbb{E}[GG^T]$ (left preconditioner), $R = \mathbb{E}[G^TG]$ (right preconditioner)
+2. Update: $W \leftarrow W - \eta \cdot L^{-1/4} G R^{-1/4}$
+
+This approximates Newton's method: $W \leftarrow W - \eta \cdot H^{-1} g$ where $H \approx L \otimes R$ (Kronecker product).
+
+Computing $L^{-1/4}$ requires eigendecomposition (O(m³)), expensive but done infrequently (every 100 steps).
+
+**Relation to Alternatives:**
+- **Adam**: Diagonal preconditioning (per-parameter), O(N) memory, fast but ignores correlations
+- **BFGS/L-BFGS**: Full approximation, O(N²) memory, impractical for LLMs
+- **Shampoo**: Kronecker factored, O(m² + n²) memory, captures row/column correlations
+- **SOAP**: Shampoo + Adam in eigenbasis, more stable and faster
+
+**Key Insights:**
+1. **Kronecker factorization** reduces O(N²) Hessian to O(m² + n²) statistics while capturing important correlations
+2. **Matrix fourth root** ($L^{-1/4}$) provides better conditioning than square root while being more stable
+3. **Infrequent updates** (every 100 steps) amortize the O(m³) eigendecomposition cost
+4. **AlgoPerf benchmark**: 28% faster wall-clock time than Adam, despite higher per-step cost
 
 ```python
 class ShampooSimplified:
@@ -1762,6 +2968,40 @@ def plot_cosine_schedule():
 ### Warmup-Stable-Decay (WSD)
 
 WSD is gaining popularity for its flexibility and strong performance.
+
+**Problem and Motivation:**
+Cosine schedules require knowing the total training duration in advance. If you want to train longer, the learning rate is already decayed to near-zero, making additional training ineffective. This inflexibility prevents adaptive training decisions (e.g., "model isn't converged, let's continue"). Additionally, checkpoints from the middle of training have poor learning rates for continuation.
+
+**Theoretical Justification:**
+WSD separates training into three distinct phases with different learning dynamics:
+
+1. **Warmup** (0-2k steps): Linear increase prevents initial instability from large gradients
+   - Large learning rates + random init = divergence
+   - Gradual increase allows weights to stabilize
+
+2. **Stable** (90% of training): Constant maximum learning rate enables exploration
+   - Model continues learning at full speed
+   - Most actual learning happens here
+   - Can checkpoint and continue indefinitely
+
+3. **Decay** (final 10%): Controlled reduction fine-tunes solution
+   - Allows convergence to sharper minima
+   - Reduces learning rate noise in final stages
+   - Can use sqrt/linear/cosine decay profiles
+
+Empirically, WSD achieves lower final loss than cosine with equal compute, suggesting the constant-LR phase enables better exploration.
+
+**Relation to Alternatives:**
+- **Cosine schedule**: Fixed duration, smooth decay, widely used (GPT-3, LLaMA)
+- **WSD**: Flexible duration, distinct phases, better continuation (MiniCPM, newer models)
+- **Constant LR**: No decay, continues forever but doesn't fully converge
+- **Step decay**: Abrupt changes can cause instability
+
+**Key Insights:**
+1. **Checkpoint flexibility**: Can resume from any point in stable phase without loss penalty
+2. **Decay ratio**: 10% decay phase is optimal - more wastes training, less hurts final quality
+3. **Decay profile**: Sqrt decay (1 - √t) works slightly better than linear for LLMs
+4. **Training extensions**: Easy to extend training by increasing stable phase length
 
 ```python
 class WSDSchedule:
@@ -1991,15 +3231,22 @@ def full_training_loop():
 
 3. **Memory Optimization**
    - Flash Attention: Essential for long contexts
+   - Gradient checkpointing: O(N) → O(√N) memory with ~30% overhead
    - PagedAttention: Key for inference throughput
    - KV cache quantization: ~2x memory reduction
 
-4. **Optimizers**
+4. **Distributed Training**
+   - DDP: Models that fit on one GPU
+   - FSDP/ZeRO-3: Essential for large models (>13B)
+   - Megatron: Tensor + pipeline parallelism for maximum scale
+   - Know trade-offs: memory vs communication vs complexity
+
+5. **Optimizers**
    - AdamW: Default, well-understood
    - Muon: 2x efficiency for hidden layers
    - Shampoo/SOAP: Better but expensive
 
-5. **Learning Rate Schedules**
+6. **Learning Rate Schedules**
    - Cosine: Standard, requires knowing total steps
    - WSD: Flexible, slightly better results
 
@@ -2012,6 +3259,9 @@ def full_training_loop():
 | CPU inference | GGUF Q4_K_M |
 | Long context | Flash Attention 3 (Hopper) |
 | KV cache | FP8 quantization, PagedAttention |
+| Gradient checkpointing | Every √N layers for large models |
+| Distributed (7-30B) | FSDP Stage 2 or 3 |
+| Distributed (>30B) | FSDP Stage 3 or Megatron |
 | Optimizer | AdamW (β1=0.9, β2=0.95, wd=0.1) |
 | LR schedule | WSD (10% decay) or Cosine |
 
@@ -2058,16 +3308,163 @@ def full_training_loop():
 24. [MiniCPM (WSD Schedule)](https://arxiv.org/abs/2404.06395) (Hu et al., 2024)
 25. [Understanding Warmup-Stable-Decay](https://arxiv.org/abs/2410.05192) (2024)
 
+### Gradient Checkpointing
+26. [Training Deep Nets with Sublinear Memory Cost](https://arxiv.org/abs/1604.06174) (Chen et al., 2016)
+27. [Memory-Efficient Backpropagation Through Time](https://arxiv.org/abs/1606.03401) (Gruslys et al., 2016)
+
+### Distributed Training
+28. [PyTorch FSDP: Experiences on Scaling Fully Sharded Data Parallel](https://arxiv.org/abs/2304.11277) (Zhao et al., 2023)
+29. [ZeRO: Memory Optimizations Toward Training Trillion Parameter Models](https://arxiv.org/abs/1910.02054) (Rajbhandari et al., 2020)
+30. [Megatron-LM: Training Multi-Billion Parameter Language Models Using Model Parallelism](https://arxiv.org/abs/1909.08053) (Shoeybi et al., 2019)
+31. [GPipe: Easy Scaling with Micro-Batch Pipeline Parallelism](https://arxiv.org/abs/1811.06965) (Huang et al., 2019)
+32. [DeepSpeed: System Optimizations Enable Training Deep Learning Models with Over 100 Billion Parameters](https://www.microsoft.com/en-us/research/blog/deepspeed-extreme-scale-model-training-for-everyone/)
+
 ---
 
 ## Exercises
 
-1. **Memory Calculation**: Calculate the memory requirements for training a 7B parameter LLM with batch size 4, sequence length 4096, using BF16. Include model parameters, optimizer states, activations, and gradients.
+### Basic Exercises
+
+1. **Memory Calculation**: Calculate the memory requirements for training a 7B parameter LLM with batch size 4, sequence length 4096, using BF16. Include:
+   - Model parameters
+   - Gradients
+   - Optimizer states (AdamW)
+   - Activations (estimate for transformer)
+   - KV cache (for inference)
+
+   How does this change with gradient checkpointing enabled (every 4 layers)?
 
 2. **Quantization Comparison**: Implement a simple 4-bit quantization function and compare the output quality (cosine similarity) with the original FP16 weights for a small matrix.
+   ```python
+   # Implement symmetric 4-bit quantization
+   # Compare with block-wise quantization (block size = 32)
+   # Measure reconstruction error (MSE and cosine similarity)
+   ```
 
-3. **Flash Attention**: Explain why Flash Attention's memory complexity is O(N) instead of O(N²). What are the key data structures that enable this?
+3. **Flash Attention Complexity**: Explain why Flash Attention's memory complexity is O(N) instead of O(N²). What are the key data structures that enable this? Draw a diagram showing memory access patterns for standard attention vs Flash Attention.
 
-4. **Optimizer Selection**: You're training a 70B model. Would you use AdamW, Muon, or a combination? Justify your choice considering memory constraints and convergence speed.
+4. **Data Type Selection**: For each scenario below, choose the best data type (FP32, BF16, FP16, FP8, INT8) and justify:
+   - Training a 70B model from scratch
+   - Fine-tuning a 7B model for chat
+   - Deploying a 13B model for API serving
+   - Running a 7B model on CPU
+   - Running a 70B model on H100 for inference
 
-5. **Learning Rate Schedule Design**: Design a learning rate schedule for a training run where you're uncertain about the total compute budget. What schedule would you choose and why?
+5. **Optimizer Selection**: You're training a 70B model with limited GPU memory. Would you use AdamW, Muon, or a combination? Consider:
+   - Memory constraints
+   - Convergence speed
+   - Implementation complexity
+   - Which layers get which optimizer?
+
+### Intermediate Exercises
+
+6. **Learning Rate Schedule Design**: Design a learning rate schedule for a training run where you're uncertain about the total compute budget. Compare:
+   - Cosine schedule with initial estimate
+   - WSD schedule with 10% decay
+   - What happens if you need to extend training by 20%?
+
+7. **Gradient Checkpointing Trade-offs**: For a 32-layer transformer:
+   - Calculate optimal number of checkpoints
+   - Estimate memory savings vs recomputation overhead
+   - Compare: checkpoint every layer, every 4 layers, every √N layers
+   - When would you checkpoint only attention layers?
+
+8. **Distributed Training Strategy**: You have 64 H100 GPUs to train a 175B parameter model. Design a distributed training strategy:
+   - How many ways to split data/tensor/pipeline parallelism?
+   - What are the communication costs?
+   - Would you use FSDP or Megatron-LM? Why?
+   - Estimate tokens/second throughput
+
+9. **KV Cache Memory Analysis**: Calculate KV cache memory for:
+   - Model: LLaMA 70B (80 layers, 64 heads, 128 head dim, GQA with 8 KV heads)
+   - Sequence length: 128K tokens
+   - Batch size: 16
+   - Data type: FP16, then FP8
+   - Will it fit in a single H100 (80GB)? What about batch size 1?
+
+10. **ZeRO Stage Selection**: For a 30B parameter model on 8× A100 (40GB):
+    - Calculate memory per GPU for ZeRO Stage 0, 1, 2, 3
+    - Which stage is minimum to fit the model?
+    - What batch size can you use with each stage?
+    - What's the communication overhead for each?
+
+### Advanced Exercises
+
+11. **Quantization Strategy Design**: Design a quantization strategy for deploying a 70B model:
+    - Target: 24GB GPU for inference
+    - Constraint: <5% quality degradation on MMLU
+    - Options: AWQ, GPTQ, GGUF, FP8
+    - Would you use different quantization for different layers?
+    - How would you handle outliers?
+
+12. **Pipeline Parallelism Bubble Analysis**: For pipeline parallelism with 4 stages and microbatches:
+    - Calculate bubble overhead for 4, 8, 16, 32 microbatches
+    - Plot efficiency vs number of microbatches
+    - What's the minimum microbatches to achieve >95% efficiency?
+    - How does this change with 8 stages?
+
+13. **Mixed Precision Training**: Implement a training loop with:
+    - BF16 for forward/backward
+    - FP32 for parameter updates
+    - Gradient clipping in FP32
+    - Loss scaling (if using FP16 instead of BF16)
+    - When would you see numerical issues?
+
+14. **Speculative Decoding Analysis**: For speculative decoding with draft model size 1/10 of target:
+    - Draft model: 7B, 100 tokens/sec
+    - Target model: 70B, 15 tokens/sec
+    - Assume 70% acceptance rate
+    - Calculate effective tokens/second
+    - How does this change with 50% or 90% acceptance?
+    - What if draft model is 1/20 of target size?
+
+15. **Full System Design**: Design a complete training and inference system for a 30B model:
+    - **Training**: Hardware, parallelism strategy, optimizer, schedule
+    - **Inference**: Quantization, KV cache optimization, batching strategy
+    - **Deployment**: Latency target <100ms, throughput >1000 tokens/sec
+    - Calculate costs (GPU hours for training, inference cost per token)
+    - What are the bottlenecks? How would you optimize further?
+
+### Implementation Exercises
+
+16. **Implement Block-wise Quantization**: Write a PyTorch implementation of block-wise 4-bit quantization:
+    - Support different block sizes
+    - Implement dequantization for inference
+    - Compare accuracy vs block size
+    - Measure speedup on matrix multiplication
+
+17. **Implement Gradient Checkpointing**: Modify a simple transformer to support:
+    - Manual checkpointing every k layers
+    - Selective checkpointing (attention only)
+    - Measure memory savings and time overhead
+    - Compare with PyTorch's built-in checkpointing
+
+18. **Implement PagedAttention**: Create a simplified PagedAttention implementation:
+    - Block-based KV cache allocation
+    - Support for variable sequence lengths
+    - Prefix sharing with copy-on-write
+    - Compare memory usage vs contiguous allocation
+
+19. **Implement WSD Schedule**: Write a complete learning rate scheduler:
+    - Warmup, stable, and decay phases
+    - Support for continuing from checkpoints
+    - Plot schedule for different configurations
+    - Compare with PyTorch's CosineAnnealingLR
+
+20. **Profile Mixed Precision Training**: Profile a training run with:
+    - FP32, BF16, and FP16 mixed precision
+    - Measure: throughput, memory usage, time per step
+    - Identify memory/compute bottlenecks
+    - Use PyTorch profiler to generate traces
+
+### Discussion Questions
+
+21. **Hardware Evolution**: How will upcoming hardware changes (e.g., GB200, TPU v8) affect LLM training strategies? What new optimizations become possible with FP4 or higher memory bandwidth?
+
+22. **Quantization Trade-offs**: When is post-training quantization insufficient and you need quantization-aware training? Give specific examples where each approach succeeds or fails.
+
+23. **Distributed Training at Scale**: GPT-3 used 4096 GPUs with specific parallelism configuration. How would you scale to 10,000 GPUs? What new challenges arise?
+
+24. **Inference Optimization Priorities**: Rank these optimizations by impact for serving a 70B model: Flash Attention, KV cache quantization, speculative decoding, continuous batching, tensor parallelism. Justify your ranking.
+
+25. **Future of Training**: Predict how LLM training will evolve in the next 2 years. Which optimizations will become standard? What new techniques might emerge?

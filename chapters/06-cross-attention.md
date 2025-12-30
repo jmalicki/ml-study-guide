@@ -179,7 +179,28 @@ Attention might show:
 
 ### Basic Cross-Attention
 
-Let's implement cross-attention from scratch:
+Now that we understand the mathematical foundations, let's implement cross-attention from scratch to solidify these concepts.
+
+**Problem and Motivation:**
+The fundamental challenge in cross-attention is efficiently computing how each position in a target sequence should selectively gather information from a source sequence. Unlike self-attention where all positions come from the same sequence, cross-attention must handle potentially different sequence lengths and different semantic spaces (e.g., French vs English, or images vs text).
+
+**Theoretical Justification:**
+The scaled dot-product attention mechanism provides an elegant solution:
+1. **Queries from target** allow each target position to "ask" what it needs
+2. **Keys from source** let source positions advertise what they contain
+3. **Dot product similarity** measures semantic relevance between queries and keys
+4. **Softmax normalization** creates a proper probability distribution, ensuring stable gradients
+5. **Scaling by $\sqrt{d_k}$** prevents saturation of the softmax when dimensions are large
+
+**Relationship to Alternatives:**
+- **Additive attention** (Bahdanau): Uses a learned feedforward network to score Q-K pairs, but is less parallelizable
+- **Concatenative approaches**: Simply concatenating sequences loses the explicit alignment structure
+- **Fixed alignments**: Hard-coded position mapping can't learn complex patterns like reordering in translation
+
+**Key Implementation Insights:**
+1. **Separate projections for Q vs K,V**: The target and source may have learned different embedding spaces
+2. **Output projection**: Maps attention results back to model dimension for residual connections
+3. **Attention weight preservation**: Returning weights enables visualization and analysis of learned alignments
 
 ```python
 import torch
@@ -308,7 +329,38 @@ if __name__ == "__main__":
 
 ### Multi-Head Cross-Attention
 
-Now let's implement multi-head cross-attention:
+Building on single-head cross-attention, we now extend to the multi-head variant that powers modern Transformers.
+
+**Problem Being Solved:**
+Single-head attention is limited to learning one type of relationship between sequences. In translation, for example, we need to capture:
+- Word-level alignments ("Le" → "The")
+- Phrase-level dependencies ("Le chat" → "The cat")
+- Long-range syntactic relationships (subject-verb agreement across clauses)
+- Semantic associations (idiomatic expressions)
+
+A single attention head cannot simultaneously capture all these patterns.
+
+**Theoretical Justification:**
+Multi-head attention addresses this through **representational diversity**:
+$$\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \ldots, \text{head}_h)W_O$$
+
+Each head operates in a different learned subspace ($d_k = d_{model}/h$), allowing it to specialize:
+- Different heads learn different types of relationships
+- Subspace projections enable diverse matching criteria
+- Concatenation combines multiple perspectives
+- Final projection $W_O$ integrates information across heads
+
+**Relationship to Alternatives:**
+- **Single large head**: Cannot capture multiple relationship types simultaneously
+- **Ensemble of models**: Multi-head is parameter-efficient (shares embeddings)
+- **Hierarchical attention**: Multi-head is simpler and more parallelizable
+- **Mixture of Experts**: Multi-head is a lightweight form of specialization
+
+**Key Insights That Make It Work:**
+1. **Dimension splitting**: $d_k = d_{model}/h$ keeps total parameters constant while increasing expressiveness
+2. **Independent projections per head**: Each head learns its own query/key/value transformations
+3. **Head specialization**: Empirically, different heads learn different patterns (positional, semantic, syntactic)
+4. **Output projection**: Crucial for combining information across heads in a learned way
 
 ```python
 class MultiHeadCrossAttention(nn.Module):
@@ -449,6 +501,27 @@ if __name__ == "__main__":
 
 ### Visualization of Cross-Attention
 
+Understanding what the model has learned requires visualizing attention patterns, which reveal the alignment structure between sequences.
+
+**Problem and Importance:**
+Cross-attention learns soft alignments between sequences, but these are high-dimensional probability distributions that are hard to interpret directly. For debugging, analysis, and building intuition, we need visual representations that show:
+- Which source positions each target position attends to
+- Whether attention patterns make linguistic/semantic sense
+- How different heads specialize in different patterns
+
+**Theoretical Foundation:**
+The attention weight matrix $A \in \mathbb{R}^{n \times m}$ forms a **soft alignment** where:
+- Each row $A_{i,:}$ is a probability distribution over source positions for target position $i$
+- High values $A_{i,j}$ indicate strong alignment between target $i$ and source $j$
+- In translation, we expect roughly diagonal patterns for monotonic alignment
+- Deviations reveal reordering, phrase mappings, and complex dependencies
+
+**Why Visualization Matters:**
+1. **Interpretability**: Attention weights often correspond to linguistically meaningful alignments
+2. **Debugging**: Unusual patterns can reveal model issues (e.g., attending to padding)
+3. **Research**: Analyzing attention has led to insights about model behavior and new architectures
+4. **Trust**: Visualizations help users understand model reasoning
+
 Let's create a function to visualize cross-attention patterns:
 
 ```python
@@ -579,6 +652,46 @@ Encoder                  Decoder
 
 ### Decoder Layer with Cross-Attention
 
+The decoder layer is where cross-attention becomes essential for sequence-to-sequence modeling, combining three complementary mechanisms.
+
+**Problem Being Solved:**
+A decoder must simultaneously:
+1. **Understand what it has generated so far** (via self-attention over previously generated tokens)
+2. **Access source information** (via cross-attention to encoder outputs)
+3. **Transform representations** (via feedforward networks)
+
+These three functions are fundamentally different and require different architectural components.
+
+**Theoretical Justification:**
+The three-sublayer architecture has clear roles:
+
+1. **Masked Self-Attention**:
+   - Allows decoder to build contextual representations of the target sequence
+   - Causal masking ensures autoregressive generation (no peeking at future tokens)
+   - Captures target-side dependencies (e.g., pronoun resolution in generated text)
+
+2. **Cross-Attention**:
+   - Bridges source and target sequences
+   - Each target position queries the entire source to extract relevant information
+   - Learns soft alignments (e.g., which French words to attend to when generating each English word)
+
+3. **Feed-Forward Network**:
+   - Provides position-wise transformation capacity
+   - Increases model expressiveness beyond linear attention operations
+   - Empirically crucial for strong performance
+
+**Relationship to Alternatives:**
+- **Encoder-only (BERT)**: No cross-attention, all information comes from self-attention
+- **Decoder-only (GPT)**: Concatenates source into input, uses only self-attention
+- **Encoder-decoder (T5, BART)**: Explicit cross-attention as shown here
+- **RNN seq2seq**: Uses fixed-size context vector instead of attention at every step
+
+**Key Architectural Insights:**
+1. **Residual connections**: Enable gradient flow through deep networks
+2. **Layer normalization**: Stabilizes training and allows deeper models
+3. **Order matters**: Self-attention before cross-attention allows decoder to prepare queries based on target context
+4. **Pre-LN vs Post-LN**: Modern models use Pre-LN (normalize before sublayer) for better training stability
+
 Here's a complete decoder layer implementation:
 
 ```python
@@ -693,7 +806,179 @@ if __name__ == "__main__":
     print("✓ Decoder layer with cross-attention working correctly")
 ```
 
+### Pre-LN vs Post-LN: Layer Normalization Placement
+
+The decoder layer above uses **Pre-LN** (Pre-Layer Normalization), where normalization is applied **before** each sub-layer. This is an important architectural choice that affects training stability and performance.
+
+**Post-LN (Original Transformer)**:
+```python
+# Post-LN: Normalize AFTER residual connection
+x = x + sublayer(x)
+x = LayerNorm(x)
+```
+
+**Pre-LN (Modern Transformers)**:
+```python
+# Pre-LN: Normalize BEFORE sublayer
+x = x + sublayer(LayerNorm(x))
+```
+
+**Visual Comparison**:
+
+```
+Post-LN (Original):                Pre-LN (Modern):
+    ┌─────────┐                       ┌─────────┐
+    │  Input  │                       │  Input  │
+    └────┬────┘                       └────┬────┘
+         │                                 │
+    ┌────┴────┐                       ┌────┴────┐
+    │ ┌───┐   │                       │    ┌────┴────┐
+    │ │   │   │                       │    │LayerNorm│
+    │ │Sub│   │                       │    └────┬────┘
+    │ │Lyr│   │                       │    ┌────┴────┐
+    │ └─┬─┘   │                       │    │ SubLyr  │
+    │   │  +  │                       │    └────┬────┘
+    └───┴──┬──┘                       │         │  +  │
+           │                          └─────────┴──┬──┘
+    ┌──────┴──────┐                              │
+    │  LayerNorm  │                              │
+    └──────┬──────┘                       ┌──────┴──────┐
+           │                              │   Output    │
+    ┌──────┴──────┐                       └─────────────┘
+    │   Output    │
+    └─────────────┘
+```
+
+**Key Differences**:
+
+| Aspect | Post-LN | Pre-LN |
+|--------|---------|--------|
+| **Original paper** | Vaswani et al. (2017) | Recent implementations |
+| **Training stability** | Requires learning rate warmup | More stable, less warmup needed |
+| **Gradient flow** | Can have gradient issues in deep models | Better gradient flow |
+| **Performance** | Comparable when well-tuned | Often better, especially for deep models |
+| **Initialization** | Sensitive to initialization | More robust |
+| **Adoption** | BERT, GPT-2 (early) | GPT-3, T5, modern LLMs |
+
+**Why Pre-LN is Better**:
+
+1. **Improved Gradient Flow**:
+   - Post-LN has gradients that flow through both the residual and the main path
+   - Pre-LN has a cleaner gradient highway through residual connections
+
+2. **Training Stability**:
+   ```python
+   # Post-LN can have exploding activations in deep networks
+   # because residual path is unnormalized
+
+   # Pre-LN ensures sublayer input is always normalized
+   # preventing activation explosion
+   ```
+
+3. **Less Need for Warmup**:
+   - Post-LN often requires careful learning rate warmup
+   - Pre-LN can train with simpler learning rate schedules
+
+**Implementation Comparison**:
+
+```python
+class DecoderLayerPostLN(nn.Module):
+    """Post-LN decoder layer (original Transformer)."""
+    def forward(self, x, encoder_output, self_attn_mask, cross_attn_mask):
+        # Self-attention + residual + norm
+        self_attn_out, _ = self.self_attn(x, x, self_attn_mask)
+        x = self.norm1(x + self.dropout(self_attn_out))
+
+        # Cross-attention + residual + norm
+        cross_attn_out, _ = self.cross_attn(x, encoder_output, cross_attn_mask)
+        x = self.norm2(x + self.dropout(cross_attn_out))
+
+        # FFN + residual + norm
+        ffn_out = self.ffn(x)
+        x = self.norm3(x + ffn_out)
+
+        return x
+
+
+class DecoderLayerPreLN(nn.Module):
+    """Pre-LN decoder layer (modern implementation)."""
+    def forward(self, x, encoder_output, self_attn_mask, cross_attn_mask):
+        # Norm → self-attention → residual
+        self_attn_out, _ = self.self_attn(
+            self.norm1(x), self.norm1(x), self_attn_mask
+        )
+        x = x + self.dropout(self_attn_out)
+
+        # Norm → cross-attention → residual
+        cross_attn_out, _ = self.cross_attn(
+            self.norm2(x), encoder_output, cross_attn_mask
+        )
+        x = x + self.dropout(cross_attn_out)
+
+        # Norm → FFN → residual
+        ffn_out = self.ffn(self.norm3(x))
+        x = x + ffn_out
+
+        return x
+```
+
+**Important Note**: With Pre-LN, you typically need a final layer normalization at the end of the encoder/decoder stack:
+
+```python
+class TransformerWithPreLN(nn.Module):
+    def __init__(self, ...):
+        self.layers = nn.ModuleList([DecoderLayerPreLN(...) for _ in range(n_layers)])
+        self.final_norm = nn.LayerNorm(d_model)  # Important!
+
+    def forward(self, x, ...):
+        for layer in self.layers:
+            x = layer(x, ...)
+        x = self.final_norm(x)  # Final normalization for Pre-LN
+        return x
+```
+
+**When to Use Each**:
+- **Use Pre-LN**: For most modern applications, especially deep models (>12 layers)
+- **Use Post-LN**: For compatibility with original Transformer or when using pretrained Post-LN models
+
+**Interview Tip**: Being able to explain the difference between Pre-LN and Post-LN demonstrates deep understanding of Transformer architecture evolution.
+
 ### Sequence-to-Sequence Example: Machine Translation
+
+Now we'll build a complete sequence-to-sequence model to demonstrate how all the pieces fit together for a real task.
+
+**Problem and Application:**
+Machine translation exemplifies the core challenge that motivated cross-attention: mapping between two sequences with different lengths, orderings, and vocabularies. Unlike simpler tasks, translation requires:
+- Understanding source language syntax and semantics
+- Maintaining alignment between languages with different word orders (e.g., English SVO vs Japanese SOV)
+- Handling idiomatic expressions and phrasal mappings
+- Generating fluent target text while staying faithful to source meaning
+
+**Theoretical Design Principles:**
+The encoder-decoder architecture with cross-attention solves this through:
+
+1. **Encoder**: Builds contextualized representations of source tokens
+   - Each source token sees full bidirectional context
+   - Results in source representations $\mathbf{h}_{\text{enc}} \in \mathbb{R}^{m \times d}$
+
+2. **Decoder**: Generates target autoregressively while attending to source
+   - Self-attention builds target context (causal)
+   - Cross-attention retrieves relevant source information
+   - Output projection predicts next token
+
+3. **Positional Encodings**: Inject sequence order information (Transformers have no inherent notion of position)
+
+**Why This Architecture Works:**
+- **Soft alignment**: Cross-attention learns which source tokens are relevant for each target token
+- **Variable-length mapping**: Attention weights adapt to different sequence length ratios
+- **Parallelization**: Unlike RNNs, encoder is fully parallel; decoder parallelizes during training
+- **Long-range dependencies**: Attention directly connects any source-target pair
+
+**Relationship to Alternatives:**
+- **RNN seq2seq**: Fixed-size bottleneck, struggles with long sequences
+- **RNN + attention**: Better but sequential processing is slow
+- **Transformer**: Fully parallelizable, direct connections, state-of-the-art
+- **Decoder-only**: Possible but less parameter-efficient for translation
 
 Let's build a minimal translation model:
 
@@ -875,7 +1160,7 @@ if __name__ == "__main__":
     print(f"Target shape: {tgt.shape}")      # (2, 10)
     print(f"Logits shape: {logits.shape}")   # (2, 10, 8000)
 
-    # Compute loss (teacher forcing)
+    # Compute loss (teacher forcing - see explanation below)
     # In practice, tgt would be shifted right by 1 position
     loss_fn = nn.CrossEntropyLoss()
     loss = loss_fn(
@@ -886,6 +1171,103 @@ if __name__ == "__main__":
     print("✓ Seq2Seq model with cross-attention working correctly")
 ```
 
+### Teacher Forcing
+
+In the example above, we use a technique called **teacher forcing** during training. This is crucial for understanding how sequence-to-sequence models are trained.
+
+**What is Teacher Forcing?**
+
+Teacher forcing is a training strategy where we feed the ground truth tokens as input to the decoder, rather than the model's own predictions from previous steps.
+
+**Without Teacher Forcing (Autoregressive)**:
+```
+Step 1: Input: <START>           → Predict: "The"
+Step 2: Input: <START> "The"     → Predict: "cat"  (using predicted "The")
+Step 3: Input: <START> "The" "cat" → Predict: "sat" (using predicted "The" and "cat")
+```
+
+**With Teacher Forcing**:
+```
+Step 1: Input: <START>            → Predict: "The"
+Step 2: Input: <START> "The"      → Predict: "cat"  (using ground truth "The")
+Step 3: Input: <START> "The" "cat" → Predict: "sat" (using ground truth "The" and "cat")
+```
+
+**Implementation Details**:
+
+```python
+def prepare_teacher_forcing_data(target_sequence):
+    """
+    Prepare target sequences for teacher forcing.
+
+    Args:
+        target_sequence: Ground truth tokens [w1, w2, w3, ..., wN]
+
+    Returns:
+        decoder_input: [<START>, w1, w2, ..., w(N-1)]
+        decoder_target: [w1, w2, w3, ..., wN, <END>]
+    """
+    # Decoder input: ground truth shifted right by 1 (prepend <START>)
+    decoder_input = torch.cat([
+        torch.tensor([[START_TOKEN]]),
+        target_sequence[:, :-1]
+    ], dim=1)
+
+    # Decoder target: ground truth (append <END>)
+    decoder_target = torch.cat([
+        target_sequence,
+        torch.tensor([[END_TOKEN]])
+    ], dim=1)
+
+    return decoder_input, decoder_target
+
+# During training:
+# decoder_input:  [<START>, "The", "cat", "sat"]
+# decoder_target: ["The", "cat", "sat", "on", <END>]
+# Model predicts decoder_target given decoder_input
+```
+
+**Advantages of Teacher Forcing**:
+- **Faster convergence**: Model learns from correct inputs, not its own errors
+- **Stable training**: Avoids compounding errors from incorrect predictions
+- **Efficient**: All positions can be computed in parallel during training
+
+**Disadvantages**:
+- **Exposure bias**: Creates a train-test mismatch
+  - Training: Always sees correct previous tokens
+  - Inference: Must use its own (possibly incorrect) predictions
+- **Distribution mismatch**: Model never learns to recover from its own mistakes
+
+**Alternatives and Solutions**:
+
+1. **Scheduled Sampling** (Bengio et al., 2015):
+   ```python
+   def scheduled_sampling(step, total_steps, mode='linear'):
+       """Gradually decrease teacher forcing probability."""
+       if mode == 'linear':
+           # Start with 100% teacher forcing, linearly decrease
+           return 1.0 - (step / total_steps)
+       elif mode == 'exponential':
+           return 0.99 ** step
+
+   # During training:
+   use_teacher_forcing = random.random() < scheduled_sampling(step, total_steps)
+   if use_teacher_forcing:
+       decoder_input = ground_truth_tokens
+   else:
+       decoder_input = model_predictions
+   ```
+
+2. **Professor Forcing** (Lamb et al., 2016):
+   - Use adversarial training to match behavior with/without teacher forcing
+
+3. **Inference-time Techniques**:
+   - Beam search: Keep multiple hypotheses to reduce error propagation
+   - Nucleus sampling: Sample from high-probability tokens to maintain diversity
+
+**In Practice**:
+Most modern seq2seq models use teacher forcing during training, and rely on techniques like beam search or sampling during inference to mitigate exposure bias.
+
 ---
 
 ## Multimodal Cross-Attention
@@ -893,6 +1275,42 @@ if __name__ == "__main__":
 Cross-attention is essential for multimodal models that combine different modalities (vision + language, audio + text, etc.). For more details, see [Multimodality](27-multimodality.md).
 
 ### Vision-Language Cross-Attention
+
+Multimodal AI systems require bridging fundamentally different modalities—images and text—which is where cross-attention becomes essential.
+
+**Problem and Motivation:**
+Vision and language are learned in different representation spaces:
+- **Vision**: Continuous, spatial, hierarchical features from CNNs or Vision Transformers
+- **Language**: Discrete tokens embedded in semantic space
+- **Challenge**: How can a language model "look at" relevant parts of an image when generating text?
+
+Traditional approaches concatenated visual features as special tokens, but this:
+- Doesn't scale to high-resolution images (too many tokens)
+- Forces vision and text into the same embedding space prematurely
+- Lacks explicit attention to image regions based on text context
+
+**Theoretical Justification for Cross-Modal Attention:**
+Cross-attention solves this by creating a **learned bridge** between modalities:
+
+$$\text{CrossAttn}(\text{Text}, \text{Vision}) = \text{softmax}\left(\frac{Q_{\text{text}}K_{\text{vision}}^T}{\sqrt{d_k}}\right)V_{\text{vision}}$$
+
+Key properties:
+1. **Queries from text**: Each text token asks "what visual information do I need?"
+2. **Keys/Values from vision**: Image patches provide visual features to be retrieved
+3. **Soft spatial attention**: Model learns which image regions matter for each word
+4. **Dimension bridging**: Projection layers handle different embedding dimensions
+
+**Relationship to Alternatives:**
+- **Concatenation**: Treats vision as more text tokens, less flexible
+- **Feature fusion**: Early fusion loses modality-specific structure
+- **Dual encoders (CLIP)**: Contrastive learning, good for retrieval but not generation
+- **Cross-attention**: Explicit, interpretable, flexible for generation tasks
+
+**Key Insights:**
+1. **Separate projections**: Text and vision may have different native dimensions
+2. **Spatial attention emerges**: Model learns to attend to relevant image regions
+3. **Task-dependent patterns**: Captioning vs VQA show different attention patterns
+4. **Interpretability**: Attention weights reveal what the model "looks at"
 
 In vision-language models like LLaVA, BLIP-2, and Flamingo, cross-attention allows the language model to attend to visual features:
 
@@ -1014,6 +1432,43 @@ if __name__ == "__main__":
 
 ### Perceiver Architecture
 
+The Perceiver introduces a radical rethinking of how to handle large, multimodal inputs using cross-attention as a computational bottleneck.
+
+**Problem Being Solved:**
+Traditional Transformers face a fundamental scalability problem:
+- Self-attention has $O(n^2)$ complexity in sequence length $n$
+- For images: $224 \times 224 = 50{,}176$ pixels → $2.5$ billion attention operations
+- For audio: 1 second at 16kHz = $16{,}000$ samples → $256$ million operations
+- For video: Astronomical complexity
+
+This makes Transformers impractical for raw high-dimensional inputs.
+
+**Theoretical Justification:**
+The Perceiver uses cross-attention to create an **information bottleneck**:
+
+1. **Learned latent queries**: Small set of $m$ learnable vectors (e.g., $m=512$)
+2. **Cross-attention to input**: Latents attend to large input of size $n$ (e.g., $n=50{,}000$)
+3. **Complexity reduction**: $O(m \times n)$ instead of $O(n^2)$
+4. **Information compression**: Latents extract task-relevant information from massive input
+
+Mathematical formulation:
+$$\text{Latents} = \text{CrossAttn}(\underbrace{Q_{\text{latent}}}_{\text{m queries}}, \underbrace{K_{\text{input}}, V_{\text{input}}}_{\text{n keys/values}})$$
+
+**Why This Works:**
+1. **Task-relevant compression**: Learned latents adaptively compress input to what matters
+2. **Modality-agnostic**: Works for images, audio, video, point clouds—anything
+3. **Scalable**: Linear in input size, not quadratic
+4. **Iterative refinement**: Can apply multiple rounds of cross-attention + self-attention
+
+**Relationship to Alternatives:**
+- **CNNs**: Hard-wired local structure, not flexible for all modalities
+- **Standard Transformers**: $O(n^2)$, prohibitive for large inputs
+- **Downsampling + Transformer**: Loses information, not learnable
+- **Perceiver**: Learnable compression via cross-attention, modality-agnostic
+
+**Key Architectural Insight:**
+Cross-attention is **asymmetric**—complexity depends on the smaller dimension (queries). By making queries the bottleneck, Perceiver achieves scalability while the attention mechanism learns what to extract from the massive input.
+
 The Perceiver (Jaegle et al., 2021) uses cross-attention in a unique way: a small set of learned "latent queries" attend to a large input:
 
 ```python
@@ -1125,6 +1580,43 @@ if __name__ == "__main__":
 For encoder-decoder models with similar source and target lengths, cross-attention is comparable to self-attention in cost.
 
 ### 2. KV Caching in Cross-Attention
+
+Autoregressive generation involves generating one token at a time, leading to massive redundant computation that KV caching eliminates.
+
+**Problem and Inefficiency:**
+During autoregressive decoding (e.g., translation, image captioning):
+- At each step, we generate one new target token
+- Cross-attention recomputes $K$ and $V$ projections from **the same** encoder output
+- For a 100-token generation with 10,000-token source: $100 \times 10{,}000 = 1{,}000{,}000$ redundant K,V computations
+
+**Theoretical Justification:**
+The key observation: In cross-attention, K and V come from the **encoder output, which doesn't change** during decoding.
+
+For step $t$:
+$$\text{output}_t = \text{Attention}(\underbrace{Q_t}_{\text{new query}}, \underbrace{K_{\text{enc}}}_{\text{constant}}, \underbrace{V_{\text{enc}}}_{\text{constant}})$$
+
+We can precompute once:
+- $K_{\text{cached}} = W_K \cdot \text{EncoderOutput}$
+- $V_{\text{cached}} = W_V \cdot \text{EncoderOutput}$
+
+Then at each step, only compute new query: $Q_t = W_Q \cdot \text{DecoderState}_t$
+
+**Why This Works:**
+1. **Encoder is constant**: Encoder processes source once, outputs never change
+2. **Only queries vary**: Each new decoder state produces a new query
+3. **Complexity reduction**: From $O(T \times m \times d)$ to $O(m \times d) + O(T \times d)$ where $T$ is generation length
+4. **Exact equivalence**: Cached version produces identical results
+
+**Relationship to Self-Attention KV Caching:**
+- **Self-attention**: Cache grows with each generated token (past key-values)
+- **Cross-attention**: Cache is fixed size (encoder outputs)
+- **Cross-attention caching**: Simpler, no cache management needed
+
+**Practical Impact:**
+For a 1000-token target with 5000-token source:
+- Without caching: $1000 \times 5000 \times 2 = 10{,}000{,}000$ encoder projections
+- With caching: $5000 \times 2 = 10{,}000$ encoder projections
+- **Speedup: 1000x for encoder-related computation**
 
 During autoregressive decoding, encoder outputs don't change, so we can cache cross-attention keys and values:
 
@@ -1298,6 +1790,51 @@ if __name__ == "__main__":
 
 ### 4. Grouped-Query Cross-Attention
 
+As models scale to billions of parameters and longer sequences, even KV caching becomes a memory bottleneck. Grouped-Query Attention provides a solution.
+
+**Problem Being Solved:**
+In standard multi-head attention with $h$ heads:
+- Each head has its own K and V projections
+- KV cache size: $\text{batch} \times h \times \text{seq\_len} \times d_k$
+- For long source sequences (e.g., documents with 10,000 tokens), this consumes gigabytes of GPU memory
+- Example: 8 heads, 10K tokens, $d_k=64$, fp16 → $8 \times 10000 \times 64 \times 2 \times 2 = 20$ MB per batch item
+
+At inference batch sizes and long contexts, this is prohibitive.
+
+**Theoretical Justification:**
+GQA makes a key observation: **Do we really need $h$ independent K,V heads?**
+
+Instead, use $n_{kv} < h$ key-value heads, each shared by $h / n_{kv}$ query heads:
+$$\text{GQA}: \quad \text{heads}_q = h, \quad \text{heads}_{k,v} = n_{kv}, \quad n_{kv} \ll h$$
+
+Properties:
+- **Parameter reduction**: Fewer K,V projection matrices
+- **Memory savings**: KV cache reduced by factor of $h / n_{kv}$
+- **Representational capacity**: Queries still have full $h$ heads for diverse representations
+- **Minimal quality loss**: Empirically, $n_{kv} = 1$ or $2$ performs nearly as well as full multi-head
+
+**Why This Works:**
+1. **Keys/Values**: Provide the "database" of information to retrieve from
+   - Don't need as much diversity as queries
+   - Shared K,V heads still capture essential source information
+
+2. **Queries**: Determine "what" to retrieve
+   - Need diversity to represent different retrieval patterns
+   - Many queries can share the same K,V space
+
+3. **Asymmetric roles**: Q and K,V have different functions, so asymmetric head counts make sense
+
+**Relationship to Alternatives:**
+- **Multi-Head Attention (MHA)**: $h$ heads for Q, K, V — most expressive but memory-intensive
+- **Multi-Query Attention (MQA)**: 1 head for K, V, $h$ for Q — maximum memory savings but quality loss
+- **Grouped-Query Attention (GQA)**: $n_{kv}$ heads for K, V, $h$ for Q — sweet spot of quality and efficiency
+
+**Practical Impact for Cross-Attention:**
+With long source sequences (documents, images, videos):
+- Standard (8 heads): 20 MB KV cache per sample
+- GQA (2 KV heads): 5 MB KV cache per sample
+- **4x memory reduction**, enables larger batches or longer sequences
+
 Modern models use Grouped-Query Attention (GQA) for efficiency (see [Multi-Head Attention](04-multi-head-attention.md)). This can also be applied to cross-attention:
 
 ```python
@@ -1402,11 +1939,304 @@ if __name__ == "__main__":
     print("✓ GQA cross-attention reduces KV cache significantly")
 ```
 
+### 5. Flash Cross-Attention
+
+Flash Attention (see Chapter 8) can be applied to cross-attention for significant memory and speed improvements, especially when dealing with long source sequences.
+
+**Standard Cross-Attention Memory Problem**:
+
+For standard cross-attention with target length $n$ and source length $m$:
+- Must materialize attention matrix: $O(n \times m)$ memory
+- For long source sequences (e.g., $m = 10{,}000$), this becomes prohibitive
+
+**Flash Attention Solution**:
+
+Flash Attention uses **tiling** and **recomputation** to avoid materializing the full attention matrix:
+
+```python
+import torch.nn.functional as F
+
+def flash_cross_attention_example(
+    target: torch.Tensor,
+    source: torch.Tensor,
+    d_model: int = 512,
+    n_heads: int = 8
+):
+    """
+    Example using PyTorch's built-in Flash Attention for cross-attention.
+
+    PyTorch 2.0+ includes scaled_dot_product_attention (SDPA) which uses
+    Flash Attention under the hood when available.
+
+    Args:
+        target: Target sequence (batch, n, d_model)
+        source: Source sequence (batch, m, d_model)
+    """
+    batch_size = target.size(0)
+    n = target.size(1)
+    m = source.size(1)
+    d_k = d_model // n_heads
+
+    # Create Q, K, V projections (simplified - in practice, use nn.Linear)
+    Q = target.unsqueeze(1).expand(-1, n_heads, -1, -1)  # (batch, n_heads, n, d_k)
+    K = source.unsqueeze(1).expand(-1, n_heads, -1, -1)  # (batch, n_heads, m, d_k)
+    V = source.unsqueeze(1).expand(-1, n_heads, -1, -1)  # (batch, n_heads, m, d_k)
+
+    # Use PyTorch's efficient SDPA (uses Flash Attention if available)
+    # This is memory-efficient for large m
+    output = F.scaled_dot_product_attention(
+        Q, K, V,
+        attn_mask=None,
+        dropout_p=0.0,
+        is_causal=False,  # Cross-attention is typically NOT causal
+        scale=None  # Will use 1/sqrt(d_k) by default
+    )
+
+    return output
+
+
+# Example usage
+if __name__ == "__main__":
+    batch_size = 2
+    target_len = 100
+    source_len = 10000  # Very long source sequence!
+    d_model = 512
+
+    target = torch.randn(batch_size, target_len, d_model)
+    source = torch.randn(batch_size, source_len, d_model)
+
+    # This would use Flash Attention internally if available
+    output = flash_cross_attention_example(target, source, d_model)
+
+    print(f"Target length: {target_len}")
+    print(f"Source length: {source_len}")
+    print(f"Attention matrix size if materialized: {target_len * source_len:,} elements")
+    print(f"Output shape: {output.shape}")
+    print("✓ Flash cross-attention avoids materializing huge attention matrix")
+```
+
+**Flash Cross-Attention Implementation**:
+
+Now let's implement cross-attention using Flash Attention for production-grade efficiency.
+
+**Implementation Strategy:**
+Modern PyTorch (2.0+) provides `F.scaled_dot_product_attention` which automatically uses Flash Attention when available. This gives us:
+1. **Drop-in replacement**: Same API as standard attention
+2. **Automatic optimization**: Uses Flash Attention on supported hardware
+3. **Fallback support**: Gracefully degrades on older GPUs
+4. **Production-ready**: Battle-tested in PyTorch ecosystem
+
+**Key Implementation Details:**
+- Set `is_causal=False` for cross-attention (unlike decoder self-attention)
+- Dropout is applied within the fused kernel for efficiency
+- Masking is handled efficiently without materializing full attention matrix
+- Returns same results as standard attention (numerically equivalent)
+
+```python
+class FlashCrossAttention(nn.Module):
+    """
+    Cross-attention using Flash Attention for memory efficiency.
+
+    This is especially beneficial when source sequences are very long
+    (e.g., long documents, many image patches, audio frames).
+    """
+    def __init__(
+        self,
+        d_model: int,
+        n_heads: int = 8,
+        dropout: float = 0.1
+    ):
+        super().__init__()
+        assert d_model % n_heads == 0
+
+        self.d_model = d_model
+        self.n_heads = n_heads
+        self.d_k = d_model // n_heads
+
+        self.w_q = nn.Linear(d_model, d_model, bias=False)
+        self.w_k = nn.Linear(d_model, d_model, bias=False)
+        self.w_v = nn.Linear(d_model, d_model, bias=False)
+        self.w_o = nn.Linear(d_model, d_model, bias=False)
+
+        self.dropout = dropout
+
+    def forward(
+        self,
+        target: torch.Tensor,
+        source: torch.Tensor,
+        mask: torch.Tensor = None
+    ) -> torch.Tensor:
+        """
+        Args:
+            target: Target sequence (batch, n, d_model)
+            source: Source sequence (batch, m, d_model)
+            mask: Optional attention mask (batch, n, m) or (n, m)
+
+        Returns:
+            Output (batch, n, d_model)
+        """
+        batch_size = target.size(0)
+        n = target.size(1)
+        m = source.size(1)
+
+        # Project to Q, K, V
+        Q = self.w_q(target)  # (batch, n, d_model)
+        K = self.w_k(source)  # (batch, m, d_model)
+        V = self.w_v(source)  # (batch, m, d_model)
+
+        # Reshape for multi-head attention
+        Q = Q.view(batch_size, n, self.n_heads, self.d_k).transpose(1, 2)
+        K = K.view(batch_size, m, self.n_heads, self.d_k).transpose(1, 2)
+        V = V.view(batch_size, m, self.n_heads, self.d_k).transpose(1, 2)
+
+        # Use Flash Attention via scaled_dot_product_attention
+        # This is memory-efficient and faster than manual implementation
+        output = F.scaled_dot_product_attention(
+            Q, K, V,
+            attn_mask=mask,
+            dropout_p=self.dropout if self.training else 0.0,
+            is_causal=False  # Cross-attention is not causal
+        )
+        # Output: (batch, n_heads, n, d_k)
+
+        # Combine heads
+        output = output.transpose(1, 2).contiguous()
+        output = output.view(batch_size, n, self.d_model)
+
+        # Final projection
+        output = self.w_o(output)
+
+        return output
+
+
+# Memory comparison
+if __name__ == "__main__":
+    import sys
+
+    batch_size = 4
+    target_len = 1000
+    source_len = 50000  # Very long source (e.g., long document, video frames)
+    d_model = 512
+    n_heads = 8
+
+    target = torch.randn(batch_size, target_len, d_model)
+    source = torch.randn(batch_size, source_len, d_model)
+
+    # Standard attention memory usage (hypothetical)
+    standard_attn_memory = (
+        batch_size * n_heads * target_len * source_len * 4  # 4 bytes per float32
+    ) / (1024**3)  # Convert to GB
+
+    print("Memory Comparison:")
+    print(f"Standard attention matrix: {standard_attn_memory:.2f} GB")
+    print(f"Flash attention: ~constant memory (uses tiling)")
+    print(f"Memory reduction: ~{standard_attn_memory / 0.01:.0f}x")
+
+    # Flash cross-attention
+    flash_cross_attn = FlashCrossAttention(d_model, n_heads)
+    output = flash_cross_attn(target, source)
+
+    print(f"\nOutput shape: {output.shape}")
+    print("✓ Flash cross-attention working efficiently")
+```
+
+**Key Benefits for Cross-Attention**:
+
+1. **Memory Savings**:
+   - Standard: $O(batch \times heads \times n \times m)$ memory
+   - Flash: $O(batch \times heads \times n \times d_k)$ memory
+   - For $m = 50{,}000$, $n = 1{,}000$: Saves ~50GB of memory
+
+2. **Speed Improvements**:
+   - Fewer memory transfers between HBM and SRAM
+   - Better GPU utilization
+   - Typical speedup: 2-4x for long sequences
+
+3. **Exact Results**:
+   - Flash Attention is mathematically equivalent to standard attention
+   - No approximation - same outputs, just more efficient
+
+**When to Use Flash Cross-Attention**:
+
+- **Long source sequences**: Documents (>1000 tokens), images (>1000 patches), audio/video
+- **Limited GPU memory**: When standard attention would OOM
+- **Inference optimization**: Faster decoding for production systems
+- **Multimodal models**: Vision-language models with many image patches
+
+**Limitations**:
+
+1. **Hardware Requirements**:
+   - Requires modern GPUs (Ampere/Ada architecture or newer)
+   - PyTorch 2.0+ or specific Flash Attention library
+
+2. **Custom Masks**:
+   - Some complex masking patterns may not be supported
+   - Standard causal/padding masks work fine
+
+**Integration with KV Caching**:
+
+Flash Attention can be combined with KV caching for cross-attention:
+
+```python
+# Cache encoder K, V once
+encoder_k = flash_cross_attn.w_k(encoder_output)
+encoder_v = flash_cross_attn.w_v(encoder_output)
+
+# During autoregressive decoding, reuse cached K, V
+for step in range(max_gen_len):
+    decoder_q = flash_cross_attn.w_q(decoder_state)
+
+    # Use Flash Attention with cached K, V
+    output = F.scaled_dot_product_attention(
+        decoder_q, encoder_k, encoder_v,
+        is_causal=False
+    )
+```
+
+**Further Reading**: See Chapter 8 (Flash Attention) for detailed implementation and algorithmic details.
+
 ---
 
 ## Advanced Topics
 
 ### 1. Bidirectional Cross-Attention (Prefix LM)
+
+Prefix Language Models represent a hybrid approach that combines the benefits of bidirectional and causal attention.
+
+**Problem and Motivation:**
+Standard architectures force a binary choice:
+- **Encoder-decoder** (e.g., T5): Bidirectional encoder, causal decoder, but two separate stacks
+- **Decoder-only** (e.g., GPT): Single stack but purely causal, can't leverage bidirectional context
+
+For tasks like summarization or question answering, we want:
+- **Bidirectional understanding** of the input (document, context)
+- **Causal generation** of the output (summary, answer)
+- **Unified architecture** (single model, shared parameters)
+
+**Theoretical Justification:**
+Prefix LMs create a **hybrid attention mask**:
+$$A_{ij} = \begin{cases}
+1 & \text{if } i, j < L_{\text{prefix}} \text{ (bidirectional on prefix)} \\
+1 & \text{if } i \geq L_{\text{prefix}} \text{ and } j \leq i \text{ (causal on generation)} \\
+0 & \text{otherwise}
+\end{cases}$$
+
+Properties:
+1. **Prefix tokens** (input): Full bidirectional attention among themselves
+2. **Generation tokens**: Can attend to all prefix + causally to previous generation
+3. **Single stack**: Unified model, no encoder-decoder separation
+4. **Flexible boundary**: Prefix length varies per example
+
+**Relationship to Alternatives:**
+- **Encoder-Decoder**: More parameters (two stacks), but cleaner separation
+- **Decoder-only**: Simpler but less effective for bidirectional understanding
+- **Prefix LM**: Middle ground, used in T5 and UL2
+
+**Why This Works:**
+1. **Best of both worlds**: Bidirectional understanding + autoregressive generation
+2. **Parameter efficiency**: Single Transformer stack
+3. **Flexible**: Same model for different tasks by varying prefix length
+4. **Training**: Can use both span corruption (like BERT) and autoregressive objectives
 
 Some models use bidirectional cross-attention for prefix positions while remaining causal for generation:
 
@@ -1457,6 +2287,49 @@ if __name__ == "__main__":
 ```
 
 ### 2. Cross-Attention with Relative Position Bias
+
+Positional information is crucial for attention mechanisms, and relative position bias provides a learned, flexible approach for cross-attention.
+
+**Problem Being Solved:**
+Standard positional encodings (sinusoidal, learned absolute) have limitations in cross-attention:
+- **Absolute positions**: Less meaningful when sequences have different lengths/meanings
+- **No position interaction**: Source position 5 and target position 10 have no inherent relationship
+- **Extrapolation**: Struggles with sequences longer than seen during training
+- **Fixed representations**: Cannot adapt to task-specific positional patterns
+
+In translation, for example, the relative offset between aligned words varies based on language pair syntax.
+
+**Theoretical Justification:**
+Relative position bias (popularized by T5) adds a learned bias term to attention scores:
+$$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}} + B_{\text{rel}}\right)V$$
+
+where $B_{\text{rel}}[i,j]$ depends on the relative position $j - i$, not absolute positions.
+
+Key properties:
+1. **Relative positioning**: Bias depends on $(j - i)$, the offset between positions
+2. **Shared across positions**: Same bias for all position pairs with same offset
+3. **Bucketed distances**: Groups similar distances to reduce parameters
+4. **Per-head biases**: Each attention head can learn different positional patterns
+
+**Why Bucketing Works:**
+Instead of learning separate biases for all possible offsets (unbounded), we bucket:
+- **Small distances** (±8): Exact buckets (precise local attention)
+- **Medium distances** (±128): Logarithmic buckets (coarser granularity)
+- **Large distances** (>128): Single bucket (mostly just "far away")
+
+This reduces parameters from $O(\text{max\_distance}^2)$ to $O(\log(\text{max\_distance}))$.
+
+**Relationship to Alternatives:**
+- **Sinusoidal PE**: Fixed, not learned, added to embeddings not attention
+- **Learned absolute PE**: Position-specific but doesn't capture relative relationships
+- **RoPE**: Rotary embeddings, excellent for decoder but more complex for cross-attention
+- **T5 relative bias**: Simple, effective, used in many modern models
+
+**Key Advantages for Cross-Attention:**
+1. **Variable-length sequences**: Works naturally when source and target have different lengths
+2. **Extrapolation**: Generalizes better to longer sequences than training data
+3. **Alignment bias**: Can learn that certain relative offsets are more likely (e.g., diagonal alignment in translation)
+4. **Head specialization**: Different heads can learn different positional sensitivities
 
 For very long sequences, adding relative position information to cross-attention can help:
 
@@ -1569,19 +2442,260 @@ class CrossAttentionWithRelativeBias(nn.Module):
         return output
 ```
 
-### 3. Cross-Attention Variants in Modern Models
+### 3. Cross-Attention in Decoder-Only Models
+
+Modern large language models (LLMs) are primarily decoder-only architectures (GPT-3, LLaMA, Claude), which traditionally don't use cross-attention. However, **multimodal decoder-only models** are bringing cross-attention back for incorporating non-textual modalities.
+
+**Why Decoder-Only Models Avoided Cross-Attention**:
+
+Traditional decoder-only LLMs (GPT-3, GPT-4 text-only) concatenate all inputs:
+```
+Input: [System prompt | User message | Assistant response]
+       └─────────────────────────────────────────────────┘
+                All processed with self-attention
+```
+
+**Modern Multimodal Decoder-Only Models with Cross-Attention**:
+
+The rise of multimodal LLMs has brought cross-attention back to decoder-only architectures in a new form.
+
+**Problem and Motivation:**
+How do we add vision (or audio, video) to powerful pretrained text-only LLMs like GPT or LLaMA?
+
+Challenges:
+1. **Pretrained text models**: Billions spent training text-only decoders—can't start from scratch
+2. **Different modalities**: Vision is continuous/spatial, text is discrete/sequential
+3. **Parameter efficiency**: Want to add multimodality without retraining entire LLM
+4. **Unified interface**: Same model should handle text-only and multimodal inputs
+
+**Architectural Solution:**
+Insert cross-attention layers into decoder-only models:
+- **Self-attention**: Handles text (pretrained, frozen or fine-tuned)
+- **Cross-attention**: Bridges to vision/audio (newly added, trainable)
+- **Gating**: Controls how much visual information influences text generation
+
+**Theoretical Justification:**
+This design separates concerns:
+1. **Text generation**: Handled by pretrained self-attention layers
+2. **Visual grounding**: New cross-attention layers learn to retrieve visual features
+3. **Gating mechanism**: Allows model to ignore vision when not needed (e.g., text-only queries)
+
+Mathematical formulation with gating (Flamingo-style):
+$$x \leftarrow x + \tanh(\alpha) \cdot \text{CrossAttn}(x, \text{vision\_features})$$
+
+where $\alpha$ is a learned gate, initialized to 0 (so initially vision has no effect).
+
+**Why This Works:**
+1. **Minimal disruption**: Most weights frozen, only cross-attention trained
+2. **Fast adaptation**: Can add vision in hours/days vs months for full training
+3. **Backwards compatibility**: Remove visual inputs → original text model
+4. **Flexible insertion**: Can interleave cross-attention at strategic layers
+
+**Relationship to Alternatives:**
+- **Concatenation**: Treat vision as text tokens, but wastes text model capacity on vision
+- **Encoder-decoder**: Need to retrain entire model, loses pretrained LLM
+- **Dual encoders**: Good for retrieval, not generation
+- **Cross-attention insertion**: Minimal retraining, preserves pretrained LLM
+
+**Design Patterns:**
+1. **Interleaved** (Flamingo): Every $N$ layers, add cross-attention
+2. **Front-loaded** (LLaVA): Cross-attention in early layers only
+3. **Gated**: Learnable gates control visual influence
+
+When adding vision or audio to decoder-only LLMs, cross-attention becomes valuable:
+
+```python
+class MultimodalDecoderOnlyLayer(nn.Module):
+    """
+    Decoder-only layer with optional cross-attention for multimodal inputs.
+
+    Used in models like GPT-4V, LLaVA, Flamingo for vision-language tasks.
+
+    Architecture:
+    1. Causal self-attention (standard LLM)
+    2. Cross-attention to visual features (optional, gated)
+    3. Feed-forward network
+    """
+    def __init__(
+        self,
+        d_model: int = 512,
+        n_heads: int = 8,
+        d_ff: int = 2048,
+        dropout: float = 0.1,
+        use_cross_attention: bool = True
+    ):
+        super().__init__()
+
+        # Standard causal self-attention
+        self.self_attn = MultiHeadCrossAttention(d_model, n_heads, dropout)
+        self.norm1 = nn.LayerNorm(d_model)
+
+        # Optional cross-attention for multimodal inputs
+        self.use_cross_attention = use_cross_attention
+        if use_cross_attention:
+            self.cross_attn = MultiHeadCrossAttention(d_model, n_heads, dropout)
+            self.norm2 = nn.LayerNorm(d_model)
+
+            # Gating mechanism to control cross-attention influence
+            # (used in Flamingo and similar models)
+            self.gate = nn.Parameter(torch.zeros(1))
+
+        # Feed-forward network
+        self.ffn = nn.Sequential(
+            nn.Linear(d_model, d_ff),
+            nn.GELU(),
+            nn.Dropout(dropout),
+            nn.Linear(d_ff, d_model),
+            nn.Dropout(dropout)
+        )
+        self.norm3 = nn.LayerNorm(d_model)
+
+        self.dropout = nn.Dropout(dropout)
+
+    def forward(
+        self,
+        x: torch.Tensor,
+        visual_features: torch.Tensor = None,
+        causal_mask: torch.Tensor = None
+    ) -> torch.Tensor:
+        """
+        Args:
+            x: Text token embeddings (batch, seq_len, d_model)
+            visual_features: Visual embeddings (batch, n_patches, d_model)
+            causal_mask: Causal mask for self-attention
+
+        Returns:
+            Updated text embeddings (batch, seq_len, d_model)
+        """
+        # 1. Causal self-attention (standard decoder)
+        self_attn_out, _ = self.self_attn(
+            self.norm1(x), self.norm1(x), causal_mask
+        )
+        x = x + self.dropout(self_attn_out)
+
+        # 2. Cross-attention to visual features (if provided)
+        if self.use_cross_attention and visual_features is not None:
+            cross_attn_out, _ = self.cross_attn(
+                self.norm2(x),  # Query: text
+                visual_features,  # Key/Value: vision
+                mask=None
+            )
+            # Gated addition (Flamingo-style)
+            x = x + torch.tanh(self.gate) * self.dropout(cross_attn_out)
+
+        # 3. Feed-forward network
+        ffn_out = self.ffn(self.norm3(x))
+        x = x + ffn_out
+
+        return x
+
+
+# Example: Multimodal LLM with cross-attention
+if __name__ == "__main__":
+    batch_size = 2
+    seq_len = 50       # Text tokens
+    n_patches = 256    # Image patches (e.g., 16x16 from ViT)
+    d_model = 512
+
+    # Text embeddings (from tokenizer + embedding layer)
+    text_embeddings = torch.randn(batch_size, seq_len, d_model)
+
+    # Visual features (from vision encoder like CLIP ViT)
+    visual_features = torch.randn(batch_size, n_patches, d_model)
+
+    # Create causal mask for text
+    causal_mask = torch.triu(
+        torch.ones(seq_len, seq_len, dtype=torch.bool),
+        diagonal=1
+    )
+    causal_mask = ~causal_mask  # True = attend
+    causal_mask = causal_mask.unsqueeze(0).unsqueeze(0)
+
+    # Multimodal decoder layer
+    layer = MultimodalDecoderOnlyLayer(
+        d_model=d_model,
+        n_heads=8,
+        use_cross_attention=True
+    )
+
+    # Forward pass with vision
+    output = layer(text_embeddings, visual_features, causal_mask)
+
+    print(f"Text embeddings shape: {text_embeddings.shape}")
+    print(f"Visual features shape: {visual_features.shape}")
+    print(f"Output shape: {output.shape}")
+    print("✓ Multimodal decoder-only layer with cross-attention working")
+```
+
+**Design Patterns for Decoder-Only + Cross-Attention**:
+
+1. **Interleaved Cross-Attention (Flamingo)**:
+   - Insert cross-attention layers every N self-attention layers
+   - Use gating to control visual influence
+   - Freeze LLM weights, train only cross-attention
+
+   ```python
+   class FlamingoStyleDecoder(nn.Module):
+       def __init__(self, n_layers=12, cross_attn_frequency=4):
+           self.layers = nn.ModuleList()
+           for i in range(n_layers):
+               use_cross_attn = (i % cross_attn_frequency == 0)
+               self.layers.append(
+                   MultimodalDecoderOnlyLayer(use_cross_attention=use_cross_attn)
+               )
+   ```
+
+2. **Prefix Cross-Attention (LLaVA)**:
+   - Visual features processed into "visual tokens"
+   - Cross-attention in early layers only
+   - Later layers use only self-attention
+
+3. **Adapter-Based Cross-Attention**:
+   - Add lightweight cross-attention adapters to frozen LLM
+   - Minimizes parameters while adding multimodal capability
+
+**Comparison: Encoder-Decoder vs Decoder-Only + Cross-Attention**:
+
+| Aspect | Encoder-Decoder (T5, BART) | Decoder-Only + Cross-Attn (GPT-4V, LLaVA) |
+|--------|---------------------------|-------------------------------------------|
+| **Base Architecture** | Separate encoder/decoder | Single decoder stack |
+| **Cross-Attention** | Every decoder layer | Selective layers (interleaved) |
+| **Training** | Train from scratch | Often adapt pretrained LLM |
+| **Flexibility** | Best for seq2seq | Best for chat + multimodal |
+| **Parameters** | Both stacks needed | Reuse LLM weights |
+| **Use Cases** | Translation, summarization | Multimodal chat, VQA |
+
+**Why Decoder-Only + Cross-Attention for Multimodal?**
+
+1. **Leverage Pretrained LLMs**: Start with powerful text-only LLMs (GPT, LLaMA)
+2. **Parameter Efficiency**: Only train cross-attention layers, freeze LLM
+3. **Flexible Modality Integration**: Easy to add/remove modalities
+4. **Unified Architecture**: Same model for text-only and multimodal tasks
+
+**Example Applications**:
+
+- **GPT-4V**: Text generation with optional image inputs via cross-attention
+- **LLaVA**: Visual instruction tuning with cross-attention to CLIP features
+- **Flamingo**: Few-shot learning with interleaved image-text inputs
+- **BLIP-2**: Q-Former uses cross-attention to bridge vision and language
+
+**Interview Insight**: Understanding how decoder-only models incorporate cross-attention for multimodality is crucial for modern LLM interviews, as this is the dominant paradigm for multimodal AI assistants.
+
+### 4. Cross-Attention Variants in Modern Models
 
 Different models use cross-attention differently:
 
 | Model | Cross-Attention Usage |
 |-------|----------------------|
 | **BERT** | No cross-attention (encoder-only) |
-| **GPT** | No cross-attention (decoder-only) |
+| **GPT-3/4 (text)** | No cross-attention (decoder-only) |
+| **GPT-4V** | Decoder-only with cross-attention to vision |
 | **T5** | Standard encoder-decoder cross-attention |
 | **BART** | Standard encoder-decoder cross-attention |
 | **CLIP** | Cross-modal contrastive (not traditional cross-attention) |
-| **LLaVA** | Cross-attention from language to vision features |
-| **Flamingo** | Interleaved cross-attention to vision features |
+| **LLaVA** | Decoder-only with cross-attention to CLIP features |
+| **Flamingo** | Interleaved gated cross-attention to vision features |
+| **BLIP-2** | Q-Former with cross-attention between vision and text |
 | **Perceiver** | Latent queries attend to large inputs |
 | **Prefix LM** | Bidirectional on prefix, causal on generation |
 
@@ -1696,6 +2810,24 @@ Different models use cross-attention differently:
 
 11. **Li et al. (2022)**. [BLIP: Bootstrapping Language-Image Pre-training](https://arxiv.org/abs/2201.12086)
     - Vision-language model with cross-attention
+
+12. **Bengio et al. (2015)**. [Scheduled Sampling for Sequence Prediction with Recurrent Neural Networks](https://arxiv.org/abs/1506.03099)
+    - Addresses exposure bias in teacher forcing with scheduled sampling
+
+13. **Lamb et al. (2016)**. [Professor Forcing: A New Algorithm for Training Recurrent Networks](https://arxiv.org/abs/1610.09038)
+    - Alternative to teacher forcing using adversarial training
+
+14. **Xiong et al. (2020)**. [On Layer Normalization in the Transformer Architecture](https://arxiv.org/abs/2002.04745)
+    - Detailed analysis of Pre-LN vs Post-LN in Transformers
+
+15. **Dao et al. (2022)**. [FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness](https://arxiv.org/abs/2205.14135)
+    - Flash Attention algorithm applicable to both self-attention and cross-attention
+
+16. **Dao (2023)**. [FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning](https://arxiv.org/abs/2307.08691)
+    - Improved Flash Attention with better performance
+
+17. **Li et al. (2022)**. [BLIP-2: Bootstrapping Language-Image Pre-training with Frozen Image Encoders and Large Language Models](https://arxiv.org/abs/2301.12597)
+    - Q-Former architecture using cross-attention to bridge vision and language
 
 ### Additional Resources
 

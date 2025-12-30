@@ -78,6 +78,30 @@ where:
 - $\alpha$ balances hard (true labels) vs soft (teacher) targets
 - $T^2$ scaling compensates for gradient magnitude at high temperature
 
+**Why $T^2$ Scaling?**
+
+The $T^2$ factor is crucial for maintaining proper gradient magnitudes:
+
+1. **Gradient Scaling**: When we compute $\frac{\partial \mathcal{L}_{\text{KL}}}{\partial z_i}$ (gradient with respect to logits), the derivative of the softmax function scales as $\frac{1}{T}$
+
+2. **KL Divergence Scaling**: The KL divergence itself contains two softmax operations, so its gradients scale as $\frac{1}{T^2}$:
+   $$\frac{\partial \mathcal{L}_{\text{KL}}}{\partial z_i} \propto \frac{1}{T^2} \left( p_s^T - p_t^T \right)$$
+
+3. **Compensation**: Without the $T^2$ factor, as we increase temperature to soften the distributions, the gradient magnitude would vanish. Multiplying by $T^2$ restores the gradient magnitude to a reasonable scale.
+
+4. **Intuition**: Higher temperature spreads probability mass more evenly, making differences harder to detect. The $T^2$ scaling amplifies the loss to compensate for this smoothing effect.
+
+Typical temperature values: $T \in [2, 5]$ for most tasks, though this is a hyperparameter to tune.
+
+**Implementation Considerations:**
+
+The following implementation addresses several key challenges:
+- **Numerical Stability**: Uses separate `log_softmax` and `softmax` to avoid numerical overflow
+- **Gradient Flow**: The `temperature ** 2` scaling ensures gradients remain meaningful at high temperatures
+- **Flexibility**: The `alpha` parameter allows balancing between learning from ground truth (hard labels) and teacher predictions (soft labels)
+
+This dual-loss approach is superior to using hard labels alone because the teacher's probability distribution contains rich information about the relationships between classes (e.g., which wrong answers are "less wrong"), which helps the student learn faster and generalize better.
+
 ```python
 import torch
 import torch.nn as nn
@@ -199,6 +223,17 @@ def distill_language_model(
 
 Beyond output distributions, we can match intermediate layer representations.
 
+**The Problem**: Output-only distillation transfers knowledge about final predictions but ignores the rich internal representations learned by the teacher. This is especially limiting when the student has fewer layers or different architecture than the teacher.
+
+**Theoretical Justification**: Layer-wise distillation is based on the hypothesis that intermediate representations capture important semantic features. By matching these representations, the student learns not just what to predict, but *how* the teacher processes information hierarchically. This is particularly effective for deep networks where early layers learn low-level features and later layers learn high-level concepts.
+
+**Relation to Alternatives**:
+- **vs. Output-only distillation**: More expensive but transfers richer knowledge; especially beneficial when student has significantly fewer layers
+- **vs. Attention-based distillation**: Complementary approaches; attention distillation focuses on what the model "looks at" while feature distillation focuses on what it "computes"
+- **vs. Relation-based distillation**: Feature distillation matches absolute representations; relation-based methods match pairwise similarities (more invariant but potentially loses magnitude information)
+
+**Key Insight**: The layer mapping function $f(l)$ is critical. For a 12-layer student and 24-layer teacher, uniform spacing (student layer $i$ → teacher layer $2i$) works well, ensuring the student learns both low-level and high-level features from appropriate teacher layers.
+
 **Feature Distillation Loss:**
 
 $$
@@ -288,6 +323,20 @@ def create_layer_mapping(student_layers: int, teacher_layers: int):
 
 For autoregressive LMs, we can distill at the sequence level by having the teacher generate training data.
 
+**The Problem**: For generative models, we care more about the quality of generated sequences than per-token probabilities. Token-level distillation may not capture the teacher's generation strategy, sampling behavior, or multi-step reasoning capabilities.
+
+**Theoretical Justification**: Sequence-level distillation operates on the model's actual output distribution, not just individual token predictions. By training on teacher-generated sequences, the student implicitly learns:
+- The teacher's sampling strategy and output style
+- Multi-step reasoning patterns (if present)
+- Task-specific generation behaviors that emerge from RLHF or instruction tuning
+
+**Relation to Alternatives**:
+- **vs. Token-level distillation**: Simpler but may miss generation dynamics; sequence-level captures actual model behavior
+- **vs. Imitation learning**: Closely related; sequence distillation is essentially behavior cloning for language models
+- **vs. RLHF**: Much cheaper (no reward model needed), but can only match teacher quality, not exceed it
+
+**Key Insight**: This is how models like Alpaca, Vicuna, and many open-source instruction-tuned models are created. The teacher's generations become training data, transferring not just knowledge but also the style, safety, and instruction-following capabilities learned through RLHF.
+
 **Sequence Distillation Process:**
 1. Teacher generates responses to prompts
 2. Student learns to reproduce teacher's generations
@@ -376,6 +425,363 @@ def sequence_level_distillation(
 - **Orca**: Uses detailed explanations from GPT-4 (not just outputs)
 - **Phi-3**: Trained on high-quality synthetic data generated by larger models
 
+### Distilling from RLHF/DPO Models
+
+When distilling from models trained with RLHF (Reinforcement Learning from Human Feedback) or DPO (Direct Preference Optimization), we can preserve both the knowledge and the preference alignment of the teacher.
+
+**Challenge**: RLHF-trained models have learned not just to predict tokens, but to generate outputs that align with human preferences. Standard distillation may not preserve this alignment.
+
+**Solution**: Preference-aware distillation that leverages preference data alongside standard distillation.
+
+**Preference-Aware Distillation Loss:**
+
+$$
+\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{distill}} + \beta \cdot \mathcal{L}_{\text{pref}}
+$$
+
+where:
+- $\mathcal{L}_{\text{distill}}$ is the standard KL distillation loss
+- $\mathcal{L}_{\text{pref}}$ is a preference learning objective (DPO or ranking loss)
+- $\beta$ balances knowledge transfer vs preference alignment
+
+**DPO-style Preference Loss:**
+
+$$
+\mathcal{L}_{\text{DPO}}(p_s, \mathcal{D}_{\text{pref}}) = -\mathbb{E}_{(x, y_w, y_l) \sim \mathcal{D}} \left[ \log \sigma\left( \beta \log \frac{p_s(y_w|x)}{p_{\text{ref}}(y_w|x)} - \beta \log \frac{p_s(y_l|x)}{p_{\text{ref}}(y_l|x)} \right) \right]
+$$
+
+where:
+- $y_w$ is the preferred (winning) response
+- $y_l$ is the less preferred (losing) response
+- $p_{\text{ref}}$ is a reference model (often the pre-distillation student)
+- $\beta$ is the DPO temperature parameter
+
+```python
+import torch
+import torch.nn.functional as F
+
+class RLHFDistillationLoss(torch.nn.Module):
+    """
+    Distillation loss for RLHF/DPO-trained teachers.
+
+    Combines standard KL distillation with preference learning
+    to preserve both knowledge and alignment.
+    """
+    def __init__(
+        self,
+        alpha: float = 0.5,  # Hard vs soft labels
+        beta: float = 0.3,   # Distillation vs preference
+        gamma: float = 0.1,  # DPO temperature
+        temperature: float = 2.0,
+    ):
+        super().__init__()
+        self.alpha = alpha
+        self.beta = beta
+        self.gamma = gamma
+        self.temperature = temperature
+
+    def forward(
+        self,
+        student_logits: torch.Tensor,
+        teacher_logits: torch.Tensor,
+        labels: torch.Tensor,
+        student_model=None,
+        reference_model=None,
+        preference_batch=None,
+    ):
+        """
+        Args:
+            student_logits: Student predictions [batch, seq, vocab]
+            teacher_logits: Teacher predictions [batch, seq, vocab]
+            labels: Ground truth labels [batch, seq]
+            student_model: Student model (for preference loss)
+            reference_model: Reference model (for DPO)
+            preference_batch: Optional dict with 'prompt', 'chosen', 'rejected'
+        """
+        # Standard distillation loss
+        hard_loss = F.cross_entropy(
+            student_logits.view(-1, student_logits.size(-1)),
+            labels.view(-1),
+            ignore_index=-100
+        )
+
+        student_probs = F.log_softmax(student_logits / self.temperature, dim=-1)
+        teacher_probs = F.softmax(teacher_logits / self.temperature, dim=-1)
+
+        soft_loss = F.kl_div(
+            student_probs,
+            teacher_probs,
+            reduction='batchmean',
+            log_target=False
+        ) * (self.temperature ** 2)
+
+        distill_loss = self.alpha * hard_loss + (1 - self.alpha) * soft_loss
+
+        # Add preference loss if preference data provided
+        if preference_batch is not None and student_model is not None:
+            pref_loss = self.compute_dpo_loss(
+                student_model,
+                reference_model,
+                preference_batch
+            )
+            total_loss = (1 - self.beta) * distill_loss + self.beta * pref_loss
+            return total_loss
+
+        return distill_loss
+
+    def compute_dpo_loss(self, student_model, reference_model, batch):
+        """
+        Compute DPO preference loss.
+
+        Args:
+            student_model: Student being trained
+            reference_model: Reference model (usually pretrained student)
+            batch: Dict with 'prompt_ids', 'chosen_ids', 'rejected_ids'
+        """
+        prompt_ids = batch['prompt_ids']
+        chosen_ids = batch['chosen_ids']
+        rejected_ids = batch['rejected_ids']
+
+        # Get log probabilities for chosen and rejected responses
+        # Student model
+        with torch.enable_grad():
+            chosen_logits = student_model(
+                torch.cat([prompt_ids, chosen_ids], dim=1)
+            ).logits
+            rejected_logits = student_model(
+                torch.cat([prompt_ids, rejected_ids], dim=1)
+            ).logits
+
+            # Get log probs for the response tokens only
+            chosen_logprobs = self.get_sequence_logprob(
+                chosen_logits[:, prompt_ids.size(1):, :],
+                chosen_ids
+            )
+            rejected_logprobs = self.get_sequence_logprob(
+                rejected_logits[:, prompt_ids.size(1):, :],
+                rejected_ids
+            )
+
+        # Reference model (no grad)
+        with torch.no_grad():
+            ref_chosen_logits = reference_model(
+                torch.cat([prompt_ids, chosen_ids], dim=1)
+            ).logits
+            ref_rejected_logits = reference_model(
+                torch.cat([prompt_ids, rejected_ids], dim=1)
+            ).logits
+
+            ref_chosen_logprobs = self.get_sequence_logprob(
+                ref_chosen_logits[:, prompt_ids.size(1):, :],
+                chosen_ids
+            )
+            ref_rejected_logprobs = self.get_sequence_logprob(
+                ref_rejected_logits[:, prompt_ids.size(1):, :],
+                rejected_ids
+            )
+
+        # DPO loss
+        pi_logratios = chosen_logprobs - rejected_logprobs
+        ref_logratios = ref_chosen_logprobs - ref_rejected_logprobs
+
+        losses = -F.logsigmoid(self.gamma * (pi_logratios - ref_logratios))
+        return losses.mean()
+
+    def get_sequence_logprob(self, logits, labels):
+        """Compute log probability of a sequence."""
+        logprobs = F.log_softmax(logits, dim=-1)
+        # Gather log probs for actual tokens
+        logprobs = torch.gather(
+            logprobs,
+            dim=-1,
+            index=labels.unsqueeze(-1)
+        ).squeeze(-1)
+        # Sum over sequence (could also mean)
+        return logprobs.sum(dim=-1)
+
+
+def distill_from_rlhf_model(
+    teacher_model,  # RLHF-trained teacher
+    student_model,
+    reference_model,  # Untrained student (for DPO reference)
+    distillation_loader,  # Standard training data
+    preference_loader,   # Preference pairs (chosen/rejected)
+    num_epochs: int = 3,
+    lr: float = 5e-5,
+    device: str = 'cuda'
+):
+    """
+    Distill from an RLHF-trained teacher while preserving alignment.
+
+    This approach:
+    1. Uses standard distillation on general data
+    2. Adds preference learning on preference pairs
+    3. Maintains both capability and safety alignment
+
+    Args:
+        teacher_model: RLHF/DPO-trained teacher
+        student_model: Student to train
+        reference_model: Reference for DPO (frozen copy of initial student)
+        distillation_loader: Regular (prompt, completion) pairs
+        preference_loader: (prompt, chosen, rejected) triplets
+        num_epochs: Training epochs
+        lr: Learning rate
+    """
+    teacher_model.eval()
+    teacher_model.to(device)
+    student_model.train()
+    student_model.to(device)
+    reference_model.eval()
+    reference_model.to(device)
+
+    optimizer = torch.optim.AdamW(student_model.parameters(), lr=lr)
+    criterion = RLHFDistillationLoss(
+        alpha=0.5,     # Balance hard/soft targets
+        beta=0.3,      # Weight for preference loss
+        gamma=0.1,     # DPO temperature
+        temperature=2.0
+    )
+
+    for epoch in range(num_epochs):
+        # Alternate between distillation and preference batches
+        distill_iter = iter(distillation_loader)
+        pref_iter = iter(preference_loader)
+
+        for batch_idx in range(min(len(distillation_loader), len(preference_loader))):
+            # Standard distillation batch
+            try:
+                distill_batch = next(distill_iter)
+                input_ids = distill_batch['input_ids'].to(device)
+                labels = distill_batch['labels'].to(device)
+
+                with torch.no_grad():
+                    teacher_logits = teacher_model(input_ids).logits
+
+                student_logits = student_model(input_ids).logits
+
+                distill_loss = criterion(
+                    student_logits,
+                    teacher_logits,
+                    labels
+                )
+
+                optimizer.zero_grad()
+                distill_loss.backward()
+                torch.nn.utils.clip_grad_norm_(student_model.parameters(), 1.0)
+                optimizer.step()
+            except StopIteration:
+                pass
+
+            # Preference batch
+            try:
+                pref_batch = next(pref_iter)
+                pref_batch = {k: v.to(device) for k, v in pref_batch.items()}
+
+                # Use a dummy batch for the standard loss components
+                # (we only care about preference loss here)
+                dummy_input = pref_batch['prompt_ids']
+                dummy_labels = pref_batch['chosen_ids'][:, :1]  # Minimal labels
+
+                with torch.no_grad():
+                    teacher_logits = teacher_model(dummy_input).logits
+
+                student_logits = student_model(dummy_input).logits
+
+                pref_loss = criterion(
+                    student_logits[:, :dummy_labels.size(1), :],
+                    teacher_logits[:, :dummy_labels.size(1), :],
+                    dummy_labels,
+                    student_model=student_model,
+                    reference_model=reference_model,
+                    preference_batch=pref_batch
+                )
+
+                optimizer.zero_grad()
+                pref_loss.backward()
+                torch.nn.utils.clip_grad_norm_(student_model.parameters(), 1.0)
+                optimizer.step()
+            except StopIteration:
+                pass
+
+            if batch_idx % 100 == 0:
+                print(f"Epoch {epoch}, Batch {batch_idx}")
+
+        print(f"Epoch {epoch} completed")
+
+    return student_model
+
+
+# Simplified approach: On-Policy Distillation
+def on_policy_distillation(
+    teacher_model,
+    student_model,
+    prompts: list[str],
+    tokenizer,
+    num_epochs: int = 3,
+    device: str = 'cuda'
+):
+    """
+    Simpler approach: Distill using teacher's on-policy generations.
+
+    Instead of using preference pairs, generate teacher responses
+    and train student to match them. This implicitly transfers
+    the teacher's alignment.
+
+    This is how models like Llama-2-Chat-7B can be distilled
+    from Llama-2-Chat-70B.
+    """
+    teacher_model.eval()
+    student_model.train()
+
+    optimizer = torch.optim.AdamW(student_model.parameters(), lr=5e-5)
+
+    for epoch in range(num_epochs):
+        for prompt in prompts:
+            # Generate response with teacher
+            inputs = tokenizer(prompt, return_tensors='pt').to(device)
+
+            with torch.no_grad():
+                # Use teacher's sampling (includes RLHF preferences)
+                teacher_outputs = teacher_model.generate(
+                    **inputs,
+                    max_new_tokens=256,
+                    do_sample=True,
+                    temperature=0.7,
+                    top_p=0.9,
+                )
+
+                # Get teacher logits for this sequence
+                teacher_logits = teacher_model(teacher_outputs).logits
+
+            # Train student to match
+            student_logits = student_model(teacher_outputs).logits
+
+            # Standard distillation loss
+            loss = F.mse_loss(
+                student_logits[:, :-1, :],
+                teacher_logits[:, :-1, :].detach()
+            )
+
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+    return student_model
+```
+
+**When to Use Each Approach:**
+
+| Approach | Best For | Pros | Cons |
+|----------|----------|------|------|
+| **Standard Distillation** | General capability transfer | Simple, efficient | May lose alignment |
+| **Preference-Aware Distillation** | Preserving safety/alignment | Maintains preferences | Requires preference data |
+| **On-Policy Distillation** | RLHF models without preference data | No extra data needed | Implicit preference transfer |
+
+**Real-World Examples:**
+- **Llama-2-Chat 7B/13B**: Distilled from Llama-2-Chat 70B with on-policy approach
+- **Zephyr**: Distilled from larger DPO-trained models with preference data
+- **OpenAssistant**: Community effort using preference-aware distillation
+
 ---
 
 ## Model Merging Techniques
@@ -385,6 +791,20 @@ Model merging combines multiple fine-tuned models into a single model without ad
 ### Linear Weight Averaging
 
 The simplest merging method: average the weights element-wise.
+
+**The Problem**: You have multiple models fine-tuned for different tasks from the same base model, and you want a single model that can handle all tasks without switching between models or using mixture-of-experts architectures.
+
+**Theoretical Justification**: Linear mode connectivity research has shown that models fine-tuned from the same initialization often lie in the same loss basin. Within this basin, linear paths between models typically maintain low loss, meaning averaged weights produce a functional model. This is particularly true when:
+- Models start from the same pretrained checkpoint
+- Fine-tuning uses small learning rates (stays near initialization)
+- Tasks are somewhat related (not adversarial)
+
+**Relation to Alternatives**:
+- **vs. Multi-task training**: Merging requires no joint training data or retraining; much cheaper
+- **vs. Mixture of Experts**: Simpler, no routing mechanism needed, but loses task specialization
+- **vs. Task arithmetic**: Linear averaging doesn't use the base model explicitly; task arithmetic subtracts the base first
+
+**Key Insight**: Simple averaging works surprisingly well for similar tasks but suffers from parameter interference when task-specific updates conflict. This limitation motivated more sophisticated methods like TIES and DARE.
 
 **Simple Averaging:**
 
@@ -474,6 +894,22 @@ def merge_fine_tuned_models_example():
 
 Task arithmetic treats fine-tuning as a vector in weight space.
 
+**The Problem**: Linear averaging mixes everything together, making it hard to control the contribution of each task or to remove unwanted capabilities. We need a more principled way to combine task-specific knowledge while maintaining control over each task's influence.
+
+**Theoretical Justification**: Task arithmetic is based on the observation that fine-tuning creates a "task vector" in parameter space: $\tau = \theta_{\text{finetuned}} - \theta_{\text{base}}$. This vector represents the knowledge added for that specific task. Key theoretical properties:
+- **Linearity**: Task vectors can be added, subtracted, and scaled
+- **Compositionality**: Multiple task vectors can be combined to create multi-task models
+- **Reversibility**: Negative task vectors can remove capabilities (useful for safety)
+
+The effectiveness relies on the smoothness of the loss landscape and the fact that different tasks often require orthogonal or complementary changes to the parameters.
+
+**Relation to Alternatives**:
+- **vs. Linear averaging**: Task arithmetic uses the base model as an anchor point; more principled and controllable
+- **vs. Multi-task learning**: No need for joint training; can combine tasks post-hoc
+- **vs. Continual learning**: Simpler and doesn't suffer from catastrophic forgetting (all tasks available simultaneously)
+
+**Key Insight**: The lambda ($\lambda$) scaling factors provide fine-grained control. Use $\lambda > 1$ to amplify a task, $0 < \lambda < 1$ to include it conservatively, and $\lambda < 0$ to subtract capabilities (e.g., removing biases or harmful behaviors).
+
 **Task Vector:**
 
 $$
@@ -555,6 +991,23 @@ def remove_task_example():
 ### TIES-Merging
 
 TIES (TrIm, Elect Sign & Merge) addresses parameter interference in model merging.
+
+**The Problem**: When merging task vectors, different tasks may push the same parameter in opposite directions (positive vs negative changes). Simple averaging cancels out these conflicting updates, leading to degraded performance on all tasks. This "parameter interference" is the main failure mode of naive merging.
+
+**Theoretical Justification**: TIES-Merging solves interference through three principled steps:
+
+1. **Trimming**: Most parameters change little during fine-tuning. Removing small changes reduces noise and focuses on important task-specific updates. This is similar to magnitude pruning but applied to task vectors.
+
+2. **Sign Election**: For parameters where tasks disagree on direction, use majority voting to determine the dominant direction. This is based on the assumption that if most tasks agree on a direction, it's likely beneficial.
+
+3. **Disjoint Merging**: Only average parameters that agree with the elected sign. This prevents conflicting updates from canceling each other out, preserving task-specific knowledge.
+
+**Relation to Alternatives**:
+- **vs. Task arithmetic**: TIES explicitly handles conflicts; task arithmetic blindly combines all updates
+- **vs. Fisher merging**: TIES uses simple magnitude/sign, Fisher uses second-order information (more expensive)
+- **vs. RegMean**: TIES is parameter-wise; RegMean focuses on reducing variance in activations
+
+**Key Insight**: The trim threshold creates a sparsity-accuracy tradeoff. Keeping the top 80% (threshold=0.2) works well in practice, removing noise while retaining important updates. The sign election step is crucial: it transforms a destructive averaging process into a constructive one.
 
 **TIES Algorithm:**
 1. **Trim**: Remove small task vector values (below threshold)
@@ -661,6 +1114,22 @@ def ties_merge(
 ### DARE
 
 DARE (Drop And REscale) randomly drops parameters from task vectors before merging.
+
+**The Problem**: Fine-tuned models contain many redundant parameters. Most parameters contribute little to task-specific performance, creating noise during merging. We need a way to sparsify task vectors while maintaining their overall magnitude and effect.
+
+**Theoretical Justification**: DARE is based on the lottery ticket hypothesis and dropout intuition:
+- **Sparsity**: Most fine-tuning updates are redundant; a small subset of parameters captures most task-specific knowledge
+- **Random selection**: Unlike magnitude-based selection, random dropout provides an unbiased sample of the parameter distribution
+- **Rescaling**: The $1/(1-p)$ factor maintains expectation: $\mathbb{E}[\tilde{\tau}] = \tau$, ensuring the merged model's magnitude matches what uniform merging would produce
+
+Surprisingly, dropping 90-95% of parameters often maintains performance, suggesting extreme redundancy in fine-tuned models.
+
+**Relation to Alternatives**:
+- **vs. TIES trimming**: DARE uses random dropout, TIES uses magnitude-based; DARE is more aggressive and unbiased
+- **vs. Pruning**: DARE operates on task vectors (deltas), not absolute weights; complementary techniques
+- **vs. Magnitude-based selection**: Random selection avoids bias toward large-magnitude updates
+
+**Key Insight**: The "drop and rescale" operation is essentially dropout applied to merging. The rescaling is critical: without it, the merged model would be too close to the base. With rescaling, each kept parameter is amplified to compensate for dropped ones, maintaining the effective magnitude of the task vector. The method works because fine-tuning is highly redundant—many parameters move together, so sampling a subset captures the overall direction.
 
 **DARE Algorithm:**
 1. Compute task vectors: $\tau_i = \theta_i - \theta_{\text{base}}$
@@ -803,6 +1272,25 @@ def ties_dare_merge(
 
 SLERP (Spherical Linear intERPolation) merges models along the surface of a hypersphere.
 
+**The Problem**: Linear interpolation in parameter space may not respect the geometry of the loss landscape. When merging models or creating intermediate checkpoints, we want smooth transitions that maintain model quality throughout the interpolation path, not just at the endpoints.
+
+**Theoretical Justification**: SLERP operates in spherical geometry rather than Euclidean:
+- **Constant angular velocity**: SLERP maintains constant rate of rotation, while linear interpolation has variable speed
+- **Geodesic path**: On a sphere, SLERP follows the shortest path (great circle), preserving distances better than linear interpolation
+- **Magnitude preservation**: SLERP can independently control direction and magnitude, useful when models differ in scale
+
+This is particularly important when:
+- Models represent different stages of training (early vs late checkpoints)
+- The loss landscape is curved (which it typically is for neural networks)
+- You want smooth interpolation for ensemble methods or model transitions
+
+**Relation to Alternatives**:
+- **vs. Linear interpolation**: SLERP respects spherical geometry; linear is faster but less principled for curved spaces
+- **vs. Bezier curves**: SLERP is deterministic and parameter-free; Bezier requires control points
+- **vs. Mode connectivity methods**: SLERP is simpler but may not find the optimal low-loss path
+
+**Key Insight**: SLERP originated in computer graphics for smooth camera rotations and is applicable to neural network merging because both involve high-dimensional spaces where maintaining geometric properties matters. The method is especially effective when the two models are "different directions" from the origin (e.g., differently initialized or at different training stages), rather than small perturbations of each other.
+
 Unlike linear interpolation, SLERP maintains constant angular velocity, which can preserve more model properties.
 
 **SLERP Formula:**
@@ -940,6 +1428,20 @@ where:
 
 ### Merging LoRA into Base Model
 
+**The Problem**: LoRA adapters are efficient for training but add inference overhead (extra matrix multiplications). For deployment, we want to merge the adapter back into the base model to eliminate this overhead while keeping the adapted behavior.
+
+**Theoretical Justification**: LoRA decomposes weight updates as $\Delta W = BA$ where $B \in \mathbb{R}^{d \times r}$ and $A \in \mathbb{R}^{r \times k}$ are low-rank matrices. The merge operation is simply:
+$$W' = W + \alpha \cdot BA$$
+
+This is exact—there's no approximation error because matrix addition and multiplication are closed operations. The merged model behaves identically to the base+adapter model but with no runtime overhead.
+
+**Relation to Alternatives**:
+- **vs. Keeping adapters separate**: Merging eliminates inference overhead but loses modularity (can't swap adapters)
+- **vs. Full fine-tuning**: LoRA merging gets same inference speed but training was more memory-efficient
+- **vs. Quantized adapters**: Merging before quantization may give better quality than quantizing adapters separately
+
+**Key Insight**: The merge is a one-time linear algebra operation. After merging, the model has the same parameter count as the base model (no increase), but incorporates all the knowledge from LoRA fine-tuning. The scaling factor $\alpha$ (typically set during LoRA training) controls the magnitude of the adaptation.
+
 ```python
 def merge_lora_into_base(
     base_model: torch.nn.Module,
@@ -1005,6 +1507,24 @@ def merge_peft_lora_example():
 ### Combining Multiple LoRAs
 
 Multiple LoRA adapters can be combined before merging into the base model.
+
+**The Problem**: You have multiple LoRA adapters trained for different tasks and want a single merged model. Naively averaging the LoRA matrices may not preserve the magnitude of the combined updates.
+
+**Theoretical Justification**: Two approaches exist:
+
+1. **Matrix averaging**: Average $A$ and $B$ matrices separately: $B_{\text{avg}} = \sum w_i B_i$, $A_{\text{avg}} = \sum w_i A_i$
+   - Fast but approximate: $(B_1 + B_2)(A_1 + A_2) \neq B_1A_1 + B_2A_2$ due to cross terms
+
+2. **Product merging**: Compute products first: $\Delta W = \sum w_i (B_i A_i)$
+   - Exact but requires full-rank intermediate result
+   - Recommended when accuracy matters
+
+**Relation to Alternatives**:
+- **vs. Sequential LoRA**: Combining is parallel composition; sequential would train LoRA-on-LoRA
+- **vs. Higher-rank LoRA**: Combining low-rank adapters can exceed the rank of individual adapters
+- **vs. Multi-LoRA inference**: Merging removes runtime overhead of multiple adapters
+
+**Key Insight**: Product merging is theoretically correct but may produce a full-rank update (losing LoRA's compression). Matrix averaging keeps low-rank structure but introduces approximation error. For similar tasks, approximation error is small; for diverse tasks, use product merging.
 
 ```python
 def combine_loras(
@@ -1120,6 +1640,20 @@ Pruning removes weights from a model to reduce size and computational cost.
 
 Remove weights with smallest absolute values.
 
+**The Problem**: Neural networks are overparameterized—many weights contribute little to the output. We want to remove these weights to reduce model size and computational cost while maintaining accuracy.
+
+**Theoretical Justification**: Magnitude pruning is based on a simple heuristic: small weights have small impact on outputs. Taylor expansion of the loss change when removing a weight:
+$$\Delta \mathcal{L} \approx \left|\frac{\partial \mathcal{L}}{\partial w}\right| \cdot |w|$$
+
+For trained networks with small gradients, $|w|$ dominates, making magnitude a reasonable proxy for importance.
+
+**Relation to Alternatives**:
+- **vs. Gradient-based pruning**: Magnitude is simpler and doesn't require backprop; gradient-based is more accurate
+- **vs. Second-order methods** (SparseGPT): Magnitude ignores parameter interactions; second-order uses Hessian
+- **vs. Structured pruning**: Magnitude is unstructured (arbitrary sparsity pattern); structured removes entire units
+
+**Key Insight**: Magnitude pruning works best when applied globally (across all layers) rather than per-layer. Different layers have different scales, so a global threshold prevents over-pruning small-magnitude but important layers. The method is simple and effective for moderate sparsity (30-60%) but deteriorates at high sparsity where parameter interactions matter.
+
 ```python
 def magnitude_prune(
     model: torch.nn.Module,
@@ -1180,6 +1714,25 @@ def global_magnitude_prune(
 ### Structured Pruning
 
 Remove entire neurons, channels, or attention heads.
+
+**The Problem**: Unstructured pruning creates irregular sparsity patterns that don't map well to hardware. Modern GPUs/TPUs are optimized for dense operations, so scattered zero weights don't improve speed. We need to remove entire structural units (neurons, heads, channels) to actually accelerate inference.
+
+**Theoretical Justification**: Structured pruning trades compression for hardware efficiency:
+- **Hardware compatibility**: Removing entire rows/columns creates smaller dense matrices that run faster on GPUs
+- **Granularity**: Neuron-level or head-level removal is coarse-grained, so each removal must be carefully chosen
+- **Importance metrics**: Head importance can be measured by gradient magnitude, attention entropy, or layer output variance
+
+For transformers, attention head pruning is particularly effective because:
+- Heads are independent within a layer
+- Many heads are redundant (learn similar attention patterns)
+- Removing a head requires only removing corresponding slices from Q, K, V, and output projections
+
+**Relation to Alternatives**:
+- **vs. Unstructured pruning**: Structured gives actual speedup; unstructured gives better compression but needs sparse kernels
+- **vs. Layer dropping**: Removing entire layers is more aggressive; head pruning is fine-grained within layers
+- **vs. Knowledge distillation**: Complementary; can prune then distill, or distill then prune
+
+**Key Insight**: Not all attention heads are equally important. Empirical studies show that 20-40% of heads can often be removed with minimal accuracy loss. The challenge is identifying which heads to prune—gradient-based importance scores work well, measuring how much each head's parameters contribute to the loss on representative data.
 
 ```python
 def prune_attention_heads(
@@ -1278,6 +1831,22 @@ def compute_head_importance(
 ### SparseGPT
 
 SparseGPT enables one-shot pruning of large language models with minimal accuracy loss.
+
+**The Problem**: Pruning large language models (billions of parameters) is expensive if it requires iterative training. Standard magnitude pruning degrades quality significantly at high sparsity (60%+). We need a method that can prune very large models in one shot while maintaining quality.
+
+**Theoretical Justification**: SparseGPT is based on Optimal Brain Surgeon (OBS), which uses second-order information:
+- **Hessian approximation**: The Hessian $H = \frac{\partial^2 \mathcal{L}}{\partial W^2}$ captures parameter interactions
+- **Importance score**: Weight importance is $w^2 / H_{ii}^{-1}$ (combines magnitude with curvature)
+- **Weight update**: When pruning weight $w_i$, update remaining weights to compensate: $\Delta w_j = -w_i H_{ij}^{-1} / H_{ii}^{-1}$
+
+The key insight: pruning a weight creates an error; we can compensate by adjusting correlated weights. The Hessian tells us which weights are correlated and how to adjust them.
+
+**Relation to Alternatives**:
+- **vs. Magnitude pruning**: SparseGPT accounts for parameter interactions; magnitude doesn't
+- **vs. Iterative magnitude pruning**: SparseGPT is one-shot; iterative requires multiple training runs
+- **vs. Wanda**: SparseGPT uses Hessian (expensive but accurate); Wanda uses activations (cheaper)
+
+**Key Insight**: The Hessian is computed from activations: $H \approx X^T X$ where $X$ is the layer input. This is the Gauss-Newton approximation, which is positive semi-definite and computationally tractable. By processing layer-by-layer and using calibration data, SparseGPT can prune even 175B parameter models to 60% sparsity with <1% perplexity increase.
 
 **Key Ideas:**
 - Prune weights layer-by-layer
@@ -1392,6 +1961,25 @@ class SparseGPTPruner:
 ### Wanda
 
 Wanda (Pruning by Weights And activations) is a simpler alternative to SparseGPT.
+
+**The Problem**: SparseGPT requires computing and inverting Hessians, which is expensive for very large models. We need a simpler metric that approximates importance without second-order computation.
+
+**Theoretical Justification**: Wanda combines two intuitions:
+1. **Weight magnitude**: Large weights have large impact (standard magnitude pruning)
+2. **Input magnitude**: Weights connected to frequently-activated features are more important
+
+The score $S_{i,j} = |W_{i,j}| \cdot \|X_j\|_2$ captures both:
+- If $W_{i,j}$ is large, it directly impacts the output
+- If $X_j$ is large (frequently activated), $W_{i,j}$ contributes more to the output variance
+
+This is a first-order approximation to SparseGPT's Hessian-based importance. The activation norm $\|X_j\|_2$ approximates the diagonal of the Hessian ($H_{jj} \approx \sum X_j^2$), making Wanda much cheaper to compute.
+
+**Relation to Alternatives**:
+- **vs. Magnitude pruning**: Wanda adds activation information; more accurate with similar simplicity
+- **vs. SparseGPT**: Simpler (no Hessian inversion) but less accurate at very high sparsity
+- **vs. Movement pruning**: Wanda is data-driven (uses activations); movement uses gradients during training
+
+**Key Insight**: The method is embarrassingly simple yet highly effective. By collecting activation statistics during a single forward pass on calibration data, Wanda identifies weights that are both large and connected to active pathways. This gives 90-95% of SparseGPT's quality with 10x less computation. The calibration data should be representative but doesn't need to be large (128-512 samples suffice).
 
 **Wanda Criterion:**
 
@@ -1770,6 +2358,340 @@ def create_medical_expert_model():
 
     return final_model
 ```
+
+---
+
+## Choosing the Right Technique
+
+When faced with model compression or combination tasks, selecting the right approach is crucial. Here's a decision guide to help you choose.
+
+### Decision Guide: Technique Selection
+
+```
+START
+  |
+  v
+Do you have multiple models to combine?
+  |
+  ├─ YES ─> Are they fine-tuned from the same base?
+  |         |
+  |         ├─ YES ─> Do you need to preserve all capabilities?
+  |         |         |
+  |         |         ├─ YES ─> Use TIES-Merging or DARE
+  |         |         |         (Handles interference well)
+  |         |         |
+  |         |         └─ NO ─> Use Task Arithmetic
+  |         |                   (Can remove capabilities with negative λ)
+  |         |
+  |         └─ NO ─> Are they from different training stages?
+  |                   |
+  |                   ├─ YES ─> Use SLERP
+  |                   |         (Smooth interpolation)
+  |                   |
+  |                   └─ NO ─> Cannot merge directly
+  |                             Consider distillation instead
+  |
+  └─ NO ─> Need to compress a single model?
+            |
+            ├─ YES ─> Do you have a larger teacher model?
+            |         |
+            |         ├─ YES ─> Is it RLHF/DPO-trained?
+            |         |         |
+            |         |         ├─ YES ─> Use Preference-Aware Distillation
+            |         |         |         (Preserves alignment)
+            |         |         |
+            |         |         └─ NO ─> Use Standard Distillation
+            |         |                   (Efficient knowledge transfer)
+            |         |
+            |         └─ NO ─> Use Pruning
+            |                   (SparseGPT or Wanda)
+            |
+            └─ NO ─> Optimize existing model structure
+                      (See Chapter 31: Quantization)
+```
+
+### Detailed Comparison Table
+
+| Goal | Technique | Accuracy Retention | Efficiency Gain | Complexity | Training Required |
+|------|-----------|-------------------|-----------------|------------|------------------|
+| **Combine Skills** | Linear Merge | 70-85% | None | Low | No |
+| | Task Arithmetic | 75-90% | None | Medium | No |
+| | TIES-Merging | 85-95% | None | Medium | No |
+| | DARE | 85-95% | None | Medium | No |
+| | TIES+DARE | 90-97% | None | High | No |
+| **Compress Model** | Standard Distillation | 92-97% | 2-10x faster | Medium | Yes |
+| | Layer-wise Distillation | 94-98% | 2-10x faster | High | Yes |
+| | Sequence Distillation | 90-95% | 2-10x faster | Medium | Yes |
+| | RLHF Distillation | 92-96% | 2-10x faster | High | Yes |
+| **Reduce Parameters** | Magnitude Pruning | 80-95% | 1.5-3x faster | Low | Optional |
+| | SparseGPT | 90-97% | 1.5-3x faster | High | No |
+| | Wanda | 88-95% | 1.5-3x faster | Medium | No |
+| | Head Pruning | 85-92% | 1.2-2x faster | Medium | Optional |
+| **Combine LoRAs** | LoRA Averaging | 80-90% | None | Low | No |
+| | LoRA Product Merge | 85-95% | None | Medium | No |
+
+### Use Case Recommendations
+
+#### Production Deployment (Mobile/Edge)
+**Best Approach**: Multi-stage pipeline
+1. Distill large model → medium model (70B → 7B)
+2. Fine-tune medium model on target tasks
+3. Prune with Wanda or SparseGPT (50-70% sparsity)
+4. Quantize (see Chapter 31)
+
+**Example**: Deploy GPT-4 level capability on mobile
+```
+GPT-4 (unknown params)
+  ↓ Distillation
+7B model (95% capability)
+  ↓ Task-specific fine-tuning
+7B specialized (98% on task)
+  ↓ Wanda pruning (60%)
+2.8B sparse (95% on task)
+  ↓ 4-bit quantization
+700MB model file
+```
+
+#### Multi-Task Learning
+**Best Approach**: Specialize-then-merge
+1. Fine-tune base model on each task separately
+2. Merge specialists with TIES-DARE
+3. Optional: Distill merged model for efficiency
+
+**Example**: Create generalist assistant
+```
+Base model
+  ├─ Fine-tune on Math → Math expert
+  ├─ Fine-tune on Code → Code expert
+  └─ Fine-tune on Writing → Writing expert
+       ↓ TIES-DARE merge (λ=[0.33, 0.33, 0.34])
+Generalist model (85-95% on all tasks)
+  ↓ Optional distillation
+Efficient generalist (90% of merged quality, 3x faster)
+```
+
+#### Research/Safety
+**Best Approach**: Task arithmetic with ablation
+1. Identify capability to remove
+2. Use negative task arithmetic
+3. Validate extensively
+4. Iterate on lambda values
+
+**Example**: Remove harmful capabilities
+```
+Base model
+  + Fine-tune on harmful data → Harmful model
+  ↓ Task arithmetic with λ=-0.3
+Safer model (reduced harmful outputs)
+  ↓ Validation on safety benchmarks
+  ↓ Adjust λ if needed
+Final safe model
+```
+
+#### Domain Adaptation
+**Best Approach**: LoRA specialization + merging
+1. Train LoRA adapters for each domain aspect
+2. Merge LoRA products
+3. Fine-tune merged model if needed
+
+**Example**: Medical domain expert
+```
+Base clinical model
+  ├─ LoRA for diagnostics (rank 8)
+  ├─ LoRA for procedures (rank 8)
+  └─ LoRA for medical coding (rank 8)
+       ↓ LoRA product merge
+Medical expert (combines all knowledge)
+  ↓ Optional full fine-tuning
+  ↓ Optional distillation for deployment
+Efficient medical assistant
+```
+
+### Hyperparameter Guidelines
+
+#### Distillation
+- **Temperature (T)**: Start with 2-3, tune in range [1, 5]
+  - Lower (1-2): Sharper distributions, harder task
+  - Higher (3-5): Softer distributions, easier transfer
+- **Alpha (α)**: Start with 0.5, tune in range [0.3, 0.7]
+  - Lower: More weight on soft targets (teacher knowledge)
+  - Higher: More weight on hard targets (ground truth)
+- **Learning rate**: 5e-5 to 1e-4 (typically lower than from-scratch training)
+
+#### Merging
+- **TIES trim threshold**: 0.1-0.3 (20 = keep top 80%)
+  - Lower: Keep more parameters, less aggressive
+  - Higher: More aggressive trimming, may lose capability
+- **DARE drop rate**: 0.8-0.95 (drop 80-95% of task vector)
+  - Surprisingly, 0.9-0.95 often works best
+  - Lower is more conservative
+- **Task arithmetic lambda**: 0.3-1.5
+  - 0.3-0.7: Conservative merging
+  - 0.8-1.2: Standard merging
+  - 1.3-1.5: Aggressive merging (may amplify)
+  - Negative: Remove capabilities
+
+#### Pruning
+- **Sparsity level**: Start conservative, increase gradually
+  - 30-50%: Minimal accuracy loss
+  - 50-70%: Moderate loss, good efficiency
+  - 70-90%: Significant loss, maximum efficiency
+  - 90%+: Experimental, often breaks model
+- **Calibration data size**: 128-1024 samples
+  - More diverse is better than more quantity
+
+### Common Pitfalls and Solutions
+
+| Pitfall | Symptom | Solution |
+|---------|---------|----------|
+| **Merged model forgets tasks** | Poor multi-task performance | Use TIES/DARE instead of linear merge |
+| **Distilled model loses alignment** | Unsafe outputs | Use preference-aware distillation |
+| **Pruned model degrades rapidly** | Accuracy drops at low sparsity | Use Wanda or SparseGPT, not magnitude |
+| **Merged model has mode collapse** | Outputs are generic/repetitive | Try SLERP instead of linear |
+| **Distillation doesn't transfer** | Student accuracy much lower | Increase temperature, add layer-wise loss |
+| **LoRA merge ineffective** | Merged model worse than individuals | Use product merge, not averaging |
+| **High variance in merged outputs** | Inconsistent quality | Reduce lambda values, increase TIES trim |
+
+### Evaluation Metrics
+
+When choosing and validating techniques, measure:
+
+1. **Task Performance**: Accuracy on each individual task
+2. **Multi-task Interference**: Performance drop when combining tasks
+3. **Efficiency**: Inference time, memory usage
+4. **Calibration**: Confidence alignment with accuracy
+5. **Robustness**: Performance on out-of-distribution data
+6. **Safety**: Harmful output rate (for RLHF models)
+
+**Recommended Evaluation Code:**
+
+```python
+def evaluate_compression_technique(
+    original_model,
+    compressed_model,
+    test_loaders: dict,  # {task_name: dataloader}
+    device: str = 'cuda'
+):
+    """
+    Comprehensive evaluation of compression techniques.
+
+    Returns:
+        dict with metrics for comparison
+    """
+    import time
+
+    results = {
+        'task_performance': {},
+        'efficiency': {},
+        'model_size': {}
+    }
+
+    # Task performance
+    for task_name, loader in test_loaders.items():
+        orig_acc = evaluate_accuracy(original_model, loader, device)
+        comp_acc = evaluate_accuracy(compressed_model, loader, device)
+
+        results['task_performance'][task_name] = {
+            'original': orig_acc,
+            'compressed': comp_acc,
+            'retention': comp_acc / orig_acc
+        }
+
+    # Inference efficiency
+    sample_batch = next(iter(test_loaders[list(test_loaders.keys())[0]]))
+    sample_input = sample_batch['input_ids'].to(device)
+
+    # Warmup
+    for _ in range(10):
+        with torch.no_grad():
+            _ = compressed_model(sample_input)
+
+    # Time original
+    start = time.time()
+    for _ in range(100):
+        with torch.no_grad():
+            _ = original_model(sample_input)
+    orig_time = (time.time() - start) / 100
+
+    # Time compressed
+    start = time.time()
+    for _ in range(100):
+        with torch.no_grad():
+            _ = compressed_model(sample_input)
+    comp_time = (time.time() - start) / 100
+
+    results['efficiency'] = {
+        'original_time': orig_time,
+        'compressed_time': comp_time,
+        'speedup': orig_time / comp_time
+    }
+
+    # Model size
+    import os
+    original_model.save_pretrained('/tmp/orig_model')
+    compressed_model.save_pretrained('/tmp/comp_model')
+
+    orig_size = sum(
+        os.path.getsize(f'/tmp/orig_model/{f}')
+        for f in os.listdir('/tmp/orig_model')
+    )
+    comp_size = sum(
+        os.path.getsize(f'/tmp/comp_model/{f}')
+        for f in os.listdir('/tmp/comp_model')
+    )
+
+    results['model_size'] = {
+        'original_mb': orig_size / 1024 / 1024,
+        'compressed_mb': comp_size / 1024 / 1024,
+        'compression_ratio': orig_size / comp_size
+    }
+
+    return results
+
+
+def evaluate_accuracy(model, loader, device):
+    """Simple accuracy evaluation."""
+    model.eval()
+    correct = 0
+    total = 0
+
+    with torch.no_grad():
+        for batch in loader:
+            inputs = batch['input_ids'].to(device)
+            labels = batch['labels'].to(device)
+
+            outputs = model(inputs)
+            predictions = outputs.logits.argmax(dim=-1)
+
+            correct += (predictions == labels).sum().item()
+            total += labels.numel()
+
+    return correct / total if total > 0 else 0
+```
+
+### When NOT to Use These Techniques
+
+Sometimes, these techniques aren't the right choice:
+
+1. **Don't merge** if:
+   - Models are from completely different architectures
+   - Models are trained on conflicting objectives
+   - You need guaranteed performance on each task (use LoRA adapters instead)
+
+2. **Don't distill** if:
+   - You need interpretability (distilled models are often less interpretable)
+   - The task requires the full model capacity (some tasks don't compress well)
+   - You don't have a good teacher model
+
+3. **Don't prune** if:
+   - You can't afford any accuracy loss
+   - Your model is already small and efficient
+   - You don't have calibration data
+
+4. **Don't use task arithmetic** if:
+   - Tasks are unrelated or conflicting
+   - Models weren't trained from the same initialization
+   - You need precise control over task performance
 
 ---
 

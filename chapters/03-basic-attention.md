@@ -9,12 +9,13 @@ The attention mechanism is the fundamental building block of modern transformer 
 3. [Dot-Product Attention](#dot-product-attention)
 4. [Scaled Dot-Product Attention](#scaled-dot-product-attention)
 5. [Attention Weights and Visualization](#attention-weights-and-visualization)
-6. [Implementing Attention in PyTorch](#implementing-attention-in-pytorch)
-7. [Computational Complexity](#computational-complexity)
-8. [Common Pitfalls and Best Practices](#common-pitfalls-and-best-practices)
-9. [Summary](#summary)
-10. [References](#references)
-11. [Exercises](#exercises)
+6. [Masking: Padding and Beyond](#masking-padding-and-beyond)
+7. [Implementing Attention in PyTorch](#implementing-attention-in-pytorch)
+8. [Computational Complexity](#computational-complexity)
+9. [Common Pitfalls and Best Practices](#common-pitfalls-and-best-practices)
+10. [Summary](#summary)
+11. [References](#references)
+12. [Exercises](#exercises)
 
 ---
 
@@ -174,6 +175,23 @@ Vectors pointing in the same direction (small $\theta$) have high dot product.
 
 ### PyTorch Implementation
 
+**Why This Implementation Matters**: While we've covered the theory, a working implementation reveals critical practical considerations: handling batches efficiently, managing optional masks, and maintaining numerical stability. This implementation forms the foundation for all transformer-based models.
+
+**Theoretical Basis**: This code directly implements the mathematical formulation from above. The key design decision is using matrix operations instead of explicit loops, which:
+1. Leverages GPU parallelism (critical for performance)
+2. Makes the code more readable and closer to the mathematical notation
+3. Allows automatic differentiation to work efficiently
+
+**Relation to Alternatives**:
+- **Additive attention** (Bahdanau et al., 2014) uses a small feedforward network to compute scores, requiring learnable parameters. Dot-product attention requires no extra parameters and is faster.
+- **Multiplicative attention** with a learned weight matrix $W$ computes $\mathbf{q}^T W \mathbf{k}$. Plain dot-product is simpler and works just as well in practice.
+- **Cosine similarity** normalizes vectors first. Dot-product implicitly captures both similarity and magnitude.
+
+**Key Insights**:
+1. **Broadcasting**: The mask operations use PyTorch's broadcasting, allowing a single mask to apply across batches
+2. **Masked fill with -inf**: Setting masked positions to negative infinity ensures they become ~0 after softmax, effectively removing them from the weighted sum
+3. **Return attention weights**: Returning weights enables visualization and analysis, helping us understand what the model learns
+
 ```python
 import torch
 import torch.nn.functional as F
@@ -204,7 +222,7 @@ def dot_product_attention(
     if mask is not None:
         # Set masked positions to large negative value
         # so they become ~0 after softmax
-        scores = scores.masked_fill(mask == 0, -1e9)
+        scores = scores.masked_fill(mask == 0, float('-inf'))
 
     # Step 3: Normalize to probabilities
     # Shape: [batch, n_queries, n_keys]
@@ -282,6 +300,16 @@ $$
 
 ### Empirical Comparison
 
+**Problem Being Solved**: The scaling factor's importance isn't immediately obvious from theory alone. This empirical demonstration shows the dramatic difference in attention distributions with and without scaling, making the abstract variance argument concrete.
+
+**Theoretical Justification**: As $d_k$ grows, unscaled dot products have standard deviation $\sqrt{d_k}$, pushing them into the "tails" of the softmax where the gradient is near zero. This experiment directly measures the resulting attention concentration (saturation).
+
+**Relation to Alternatives**:
+- **Learnable temperature**: Some models make temperature a learned parameter. This adds flexibility but requires careful initialization.
+- **Fixed normalization**: Alternatives like L2 normalization of queries/keys can also control magnitude, but scaling is simpler and equally effective.
+
+**Key Insight**: The maximum attention weight is the critical metric. When it approaches 1.0 (as with large $d_k$ unscaled), the model essentially performs hard selection rather than soft weighting, limiting its ability to combine information from multiple positions.
+
 ```python
 import torch
 import matplotlib.pyplot as plt
@@ -348,7 +376,100 @@ d_k=1024: Unscaled max=0.9998, Scaled max=0.2387
 
 Notice how unscaled attention becomes increasingly "sharp" (one weight close to 1) as $d_k$ grows, while scaled attention remains balanced.
 
+### Attention Temperature (Optional)
+
+While $\sqrt{d_k}$ is the standard scaling factor, attention can be controlled more generally with a **temperature parameter** $T$:
+
+$$
+\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{T}\right)V
+$$
+
+The temperature controls the "sharpness" of the attention distribution:
+
+- **$T < 1$**: "Sharper" attention (more peaked distribution)
+  - Model focuses more strongly on highest-scoring positions
+  - Useful for controllable generation (greedy behavior)
+
+- **$T > 1$**: "Softer" attention (more uniform distribution)
+  - Model distributes attention more evenly
+  - Useful for exploration or sampling diverse outputs
+
+- **$T = \sqrt{d_k}$**: Standard scaled attention (recommended default)
+  - Balances sharpness with stable gradients
+
+**Note**: Temperature is primarily used in controllable text generation and sampling strategies, not in standard transformer training. During training, $T = \sqrt{d_k}$ is the conventional choice.
+
+```python
+def attention_with_temperature(
+    Q: torch.Tensor,
+    K: torch.Tensor,
+    V: torch.Tensor,
+    temperature: float = 1.0,
+    mask: torch.Tensor = None
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """
+    Attention with configurable temperature.
+
+    Args:
+        Q, K, V: Query, key, value matrices
+        temperature: Temperature parameter (default: 1.0)
+        mask: Optional attention mask
+
+    Returns:
+        output, attention_weights
+    """
+    d_k = Q.size(-1)
+
+    # Score with temperature (note: standard scaling would use sqrt(d_k))
+    scores = torch.matmul(Q, K.transpose(-2, -1)) / temperature
+
+    if mask is not None:
+        scores = scores.masked_fill(mask == 0, float('-inf'))
+
+    attention_weights = F.softmax(scores, dim=-1)
+    output = torch.matmul(attention_weights, V)
+
+    return output, attention_weights
+
+
+# Demonstration
+def demonstrate_temperature():
+    """Show effect of different temperatures on attention distribution."""
+    torch.manual_seed(42)
+    Q = torch.randn(1, 1, 64)  # Single query
+    K = torch.randn(1, 5, 64)  # 5 keys
+    V = torch.randn(1, 5, 64)
+
+    temperatures = [0.5, 1.0, 2.0]
+
+    print("Attention weights for different temperatures:")
+    for T in temperatures:
+        _, weights = attention_with_temperature(Q, K, V, temperature=T)
+        print(f"T={T}: {weights[0, 0].detach().numpy()}")
+
+    # Expected output shows increasing uniformity as T increases:
+    # T=0.5: [0.03, 0.01, 0.91, 0.04, 0.01]  # Sharp
+    # T=1.0: [0.10, 0.08, 0.52, 0.18, 0.12]  # Balanced
+    # T=2.0: [0.17, 0.15, 0.30, 0.21, 0.17]  # Soft
+```
+
 ### PyTorch Implementation
+
+**Why This Implementation Is Critical**: This is the exact attention mechanism used in the original Transformer paper and virtually all modern LLMs (GPT, BERT, LLaMA, etc.). Understanding this implementation means understanding the core computational primitive of modern AI.
+
+**Theoretical Foundation**: The implementation adds two crucial elements to basic dot-product attention:
+1. **Scaling by $\sqrt{d_k}$**: Maintains stable gradient flow as discussed above
+2. **Dropout on attention weights**: Provides regularization by randomly zeroing out some attention connections during training, preventing overfitting to specific attention patterns
+
+**Comparison to Alternatives**:
+- **Pre-norm vs post-norm**: This shows the core attention; layer normalization placement varies (we'll see this in full transformer layers)
+- **Flash Attention**: Computes the exact same result but with better memory access patterns (Chapter 12)
+- **Relative positional bias**: Some variants (like T5) add learned biases to attention scores before softmax
+
+**Key Implementation Insights**:
+1. **Dropout on weights, not output**: Applying dropout to attention weights (not the final output) is more effective because it forces the model to not rely on single attention connections
+2. **Training mode matters**: We only apply dropout during training (`if dropout_p > 0.0`), not inference
+3. **Modularity**: Returning both output and weights separates computation from visualization/analysis
 
 ```python
 import torch
@@ -386,7 +507,7 @@ def scaled_dot_product_attention(
 
     # Apply mask (if provided)
     if mask is not None:
-        scores = scores.masked_fill(mask == 0, -1e9)
+        scores = scores.masked_fill(mask == 0, float('-inf'))
 
     # Compute attention weights (normalize)
     attention_weights = F.softmax(scores, dim=-1)
@@ -461,6 +582,20 @@ Attention weights provide valuable insights into what the model is "looking at."
 - Interpreting model decisions
 
 ### Extracting and Visualizing Attention
+
+**Why Visualization Matters**: Attention weights are one of the few directly interpretable components of neural networks. Unlike hidden activations, they have a clear semantic meaning: "how much does position A attend to position B?" This makes them invaluable for debugging, building intuition, and (with caveats) explaining model behavior.
+
+**Theoretical Justification**: Since attention weights are probabilities (sum to 1, all non-negative), they can be visualized as heatmaps where intensity directly represents the strength of the relationship between positions. This probabilistic interpretation is what makes the visualization meaningful.
+
+**Relation to Other Visualization Techniques**:
+- **Gradient-based methods** (like saliency maps) show what input changes affect outputs but are noisy and hard to interpret
+- **Activation maximization** shows what inputs activate neurons but doesn't explain token relationships
+- **Attention visualization** directly shows learned relationships between positions without requiring additional computation
+
+**Key Insights**:
+1. **Detaching from computation graph**: We use `.detach()` to avoid keeping gradients in memory - visualization is analysis, not training
+2. **Multiple granularities**: Can visualize single examples (detailed patterns) or aggregate across many examples (general trends)
+3. **Interpretability caveat**: High attention doesn't always mean causal importance (see Jain & Wallace, 2019), but it's still useful for understanding patterns
 
 ```python
 import torch
@@ -620,11 +755,187 @@ That said, attention weights are useful for:
 
 ---
 
+## Masking: Padding and Beyond
+
+Attention masks serve multiple purposes beyond just handling variable-length sequences.
+
+### Padding Masks
+
+The masks we've seen so far are **padding masks**: they prevent the model from attending to padding tokens in variable-length batches.
+
+**Problem Being Solved**: In real applications, sequences in a batch have different lengths (e.g., sentences of varying word counts). GPUs require rectangular tensors, so we pad shorter sequences. Without masking, the model would attend to meaningless padding tokens, degrading performance and wasting computation.
+
+**Theoretical Justification**: Padding tokens carry no semantic information. If attention weights include padding positions, the model:
+1. Dilutes meaningful attention by distributing weight to padding
+2. Learns spurious patterns based on padding position rather than content
+3. Produces different outputs for the same content with different padding
+
+Masking ensures the model behaves as if padding doesn't exist.
+
+**Comparison to Alternatives**:
+- **No padding** (process sequences individually): Eliminates batching, massively reducing GPU utilization
+- **Packed sequences**: More complex data structure; harder to implement and debug
+- **Masking**: Simple, efficient, and standard across all modern implementations
+
+**Key Insight**: We set masked positions to `-inf` before softmax. After softmax, $e^{-\infty} = 0$, so these positions contribute zero to the weighted sum. This is mathematically elegant and numerically stable.
+
+```python
+def create_padding_mask(seq_len: torch.Tensor, max_len: int) -> torch.Tensor:
+    """
+    Create padding mask for batch of sequences.
+
+    Args:
+        seq_len: [batch] actual length of each sequence
+        max_len: Maximum sequence length
+
+    Returns:
+        mask: [batch, max_len, max_len] where 1 = valid, 0 = padding
+    """
+    batch_size = seq_len.size(0)
+
+    # Create mask: [batch, max_len]
+    mask = torch.arange(max_len, device=seq_len.device)[None, :] < seq_len[:, None]
+
+    # Expand for attention: [batch, max_len, max_len]
+    # Each query position can attend to all valid key positions
+    mask = mask[:, None, :].expand(batch_size, max_len, max_len)
+
+    return mask
+
+
+# Example
+seq_lengths = torch.tensor([3, 5, 2])  # Batch of 3 sequences
+max_len = 5
+padding_mask = create_padding_mask(seq_lengths, max_len)
+
+print("Padding mask for sequence of length 3:")
+print(padding_mask[0])
+# Output:
+# [[1, 1, 1, 0, 0],  # Query 0 can attend to keys 0,1,2 (not 3,4)
+#  [1, 1, 1, 0, 0],  # Query 1 can attend to keys 0,1,2
+#  [1, 1, 1, 0, 0],  # Query 2 can attend to keys 0,1,2
+#  [1, 1, 1, 0, 0],  # (padding positions, but shown for completeness)
+#  [1, 1, 1, 0, 0]]
+```
+
+### Causal Masking (Preview)
+
+Beyond padding, masking is also used for **causal (autoregressive) attention**, where each position can only attend to itself and previous positions, never future positions.
+
+**Problem Being Solved**: In autoregressive language modeling (predicting the next token), we need to prevent the model from "cheating" by looking at future tokens during training. Without causal masking, the model could trivially copy the next token from the input.
+
+**Theoretical Justification**: During training, we have the full sequence available, but at inference time, we generate one token at a time. Causal masking ensures:
+1. **Training-inference consistency**: The model sees the same information during training as it will at inference
+2. **Proper conditional probabilities**: We model $P(x_t | x_1, ..., x_{t-1})$, not $P(x_t | x_1, ..., x_n)$
+3. **Efficient parallel training**: We can train on all positions simultaneously while maintaining the autoregressive property
+
+**Comparison to Architectures**:
+- **Bidirectional (BERT-style)**: No causal mask, used for understanding tasks where full context is available
+- **Causal (GPT-style)**: Causal mask, used for generation tasks
+- **Prefix-LM**: Bidirectional on prefix (e.g., prompt), causal on suffix (generation)
+
+**Key Insight**: The lower triangular structure means position $i$ can attend to positions $0$ through $i$ but not $i+1$ through $n$. This creates a "flow" of information from left to right, matching the temporal ordering of language.
+
+```python
+def create_causal_mask(seq_len: int) -> torch.Tensor:
+    """
+    Create causal mask for autoregressive attention.
+
+    Args:
+        seq_len: Sequence length
+
+    Returns:
+        mask: [seq_len, seq_len] lower triangular matrix
+              1 = can attend, 0 = cannot attend (future)
+    """
+    # Lower triangular matrix (including diagonal)
+    mask = torch.tril(torch.ones(seq_len, seq_len))
+    return mask
+
+
+# Example
+causal_mask = create_causal_mask(5)
+print("Causal mask (each position cannot see the future):")
+print(causal_mask)
+# Output:
+# [[1, 0, 0, 0, 0],  # Position 0 can only attend to itself
+#  [1, 1, 0, 0, 0],  # Position 1 can attend to 0, 1
+#  [1, 1, 1, 0, 0],  # Position 2 can attend to 0, 1, 2
+#  [1, 1, 1, 1, 0],  # Position 3 can attend to 0, 1, 2, 3
+#  [1, 1, 1, 1, 1]]  # Position 4 can attend to all previous
+```
+
+**Why causal masking?** In language modeling and decoder-only architectures (like GPT), we want to predict the next token based only on previous context. Allowing attention to future tokens would be "cheating" - the model would see the answer during training.
+
+**Key differences:**
+- **Bidirectional attention** (no causal mask): Used in encoders like BERT for understanding tasks
+- **Causal attention** (with causal mask): Used in decoders like GPT for generation tasks
+
+This is covered in depth in [Chapter 5: Bidirectional vs Causal Attention](05-bidirectional-causal-attention.md).
+
+```python
+def attention_with_causal_mask_example():
+    """Demonstrate causal attention in action."""
+    seq_len = 5
+    d_k = 64
+
+    Q = torch.randn(1, seq_len, d_k)
+    K = torch.randn(1, seq_len, d_k)
+    V = torch.randn(1, seq_len, d_k)
+
+    # Create causal mask
+    causal_mask = create_causal_mask(seq_len)[None, :, :]  # Add batch dim
+
+    # Apply attention with causal mask
+    output, attn_weights = scaled_dot_product_attention(Q, K, V, mask=causal_mask)
+
+    print("Causal attention weights (note the triangular pattern):")
+    print(attn_weights[0])
+    # Each row sums to 1, but only attending to current and past positions
+    # Future positions (upper triangle) have ~0 weight
+
+    # Verify no attention to future
+    for i in range(seq_len):
+        future_attention = attn_weights[0, i, i+1:].sum()
+        print(f"Position {i} attention to future: {future_attention:.6f}")
+        # Should be ~0 for all positions
+```
+
+**Combining Masks**: In practice, you may need both padding and causal masks. These can be combined with element-wise AND:
+
+```python
+def combine_masks(padding_mask: torch.Tensor, causal_mask: torch.Tensor) -> torch.Tensor:
+    """Combine padding and causal masks."""
+    # Both masks must be 1 (valid AND not future)
+    return padding_mask & causal_mask
+```
+
+---
+
 ## Implementing Attention in PyTorch
 
 ### Complete Attention Layer
 
 Here's a complete, production-ready attention layer:
+
+**Problem Being Solved**: In practice, we rarely use attention with raw embeddings directly as Q, K, V. Instead, we need learned **projections** that transform the input into query, key, and value spaces. This allows the model to learn what to search for (queries), what to match against (keys), and what to retrieve (values).
+
+**Theoretical Justification**: Learned linear projections serve several purposes:
+1. **Representation learning**: The model learns task-specific transformations of the input for different roles (Q vs K vs V)
+2. **Dimension control**: Can project to lower dimensions (e.g., $d_{model} = 512 \to d_k = 64$) to save computation
+3. **Expressiveness**: Without projections, the model can only attend based on raw embedding similarity; with projections, it learns what aspects to compare
+4. **Multi-head preparation**: These projections enable multi-head attention (next chapter) by creating different subspaces
+
+**Relation to Alternatives**:
+- **No projections**: Would mean Q = K = V = input. This is theoretically possible but severely limits what patterns the attention can learn
+- **Non-linear projections**: Could use MLPs instead of linear layers, but this adds complexity without much benefit in practice
+- **Shared projections**: Could share weights between Q/K/V, but separate projections are more expressive
+
+**Key Design Decisions**:
+1. **Separate W_q, W_k, W_v**: Different projections for different roles is critical for expressiveness
+2. **Output projection W_o**: Maps back to d_model, enabling residual connections and stacking
+3. **Xavier initialization**: Keeps activation magnitudes stable across layers
+4. **No bias terms**: Standard in transformers; biases don't significantly help and add parameters
 
 ```python
 import torch
@@ -788,6 +1099,18 @@ if __name__ == "__main__":
 
 Attention typically operates on embeddings from [Chapter 2: Embeddings](02-embeddings.md):
 
+**Why This Connection Matters**: This example bridges two fundamental chapters, showing how discrete tokens (Chapter 1-2) flow through continuous attention mechanisms (Chapter 3). This is the beginning of the transformer pipeline: tokens → embeddings → attention → representations.
+
+**Theoretical Flow**:
+1. **Tokens to embeddings**: Maps discrete token IDs to continuous vectors that capture semantic meaning
+2. **Positional information**: Adds position encodings so attention knows about order (critical since attention itself is permutation-equivariant)
+3. **Attention mixing**: Allows each position to gather information from all others based on learned relevance
+4. **Contextualized representations**: Output combines the token's own embedding with information from the entire sequence
+
+**Architectural Perspective**: This is essentially a single transformer encoder layer minus the feedforward network and layer normalization. It shows the core computation: embedding + position + self-attention.
+
+**Key Insight**: Without positional embeddings, attention would be purely content-based (permutation-equivariant). Adding positions makes it sensitive to order, which is essential for language where "dog bites man" ≠ "man bites dog."
+
 ```python
 import torch
 import torch.nn as nn
@@ -910,6 +1233,23 @@ The $n^2$ term dominates for long sequences, making standard attention expensive
 For long sequences (e.g., $n = 10000$), the $O(n^2)$ memory can be prohibitive.
 
 ### Complexity Analysis
+
+**Why Empirical Measurement Matters**: While theoretical complexity tells us attention is $O(n^2 d)$, empirical measurement reveals:
+1. **Practical constants**: Big-O notation hides constant factors that can be significant
+2. **Hardware effects**: GPU memory bandwidth, cache behavior, and parallelism affect real-world performance
+3. **Scaling behavior**: Confirms theory matches practice and helps predict performance at larger scales
+
+**Theoretical Prediction**: For sequence length $n$:
+- Time should scale as $n^2$ (quadratic)
+- Memory for attention matrix should scale as $n^2$
+- The quadratic scaling means doubling sequence length quadruples compute time
+
+**Why This Matters for LLMs**:
+- GPT-3 uses 2048 context: ~4 MB per attention head per example
+- 100K context (long-context models): ~40 GB per head - barely fits on largest GPUs!
+- This quadratic bottleneck is why techniques like Flash Attention (Chapter 12) and sparse attention (Chapter 13) are critical for modern LLMs
+
+**Key Insight**: The attention matrix memory ($n \times n$ floats) is often the limiting factor, not compute time. Even if we could compute it quickly, storing it for backpropagation becomes prohibitive for long sequences.
 
 ```python
 import torch

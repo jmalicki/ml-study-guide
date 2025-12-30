@@ -1349,6 +1349,239 @@ class ModernTransformer(nn.Module):
             input_ids = torch.cat([input_ids, next_token], dim=1)
 
         return input_ids
+
+    @torch.no_grad()
+    def generate_with_kv_cache(
+        self,
+        input_ids: torch.Tensor,
+        max_new_tokens: int = 100,
+        temperature: float = 1.0,
+        top_k: int = None,
+        top_p: float = None
+    ) -> torch.Tensor:
+        """Generate text with KV caching for efficiency.
+
+        KV caching stores past key and value states to avoid recomputing
+        attention for previously processed tokens. This is critical for
+        efficient autoregressive generation.
+
+        Memory savings: Without caching, each step recomputes O(n^2) attention.
+        With caching, each step only computes O(n) for the new token.
+
+        Args:
+            input_ids: Prompt (batch, seq_len)
+            max_new_tokens: Tokens to generate
+            temperature: Sampling temperature
+            top_k: Top-k filtering
+            top_p: Nucleus sampling threshold
+
+        Returns:
+            Generated sequence (batch, seq_len + max_new_tokens)
+        """
+        batch_size = input_ids.shape[0]
+        device = input_ids.device
+
+        # Initialize KV cache for each layer
+        # cache[layer_idx] = (keys, values)
+        # keys/values: (batch, n_kv_heads, seq_len, head_dim)
+        kv_cache = [None] * len(self.layers)
+
+        # Process initial prompt
+        seq_len = input_ids.shape[1]
+        x = self.token_embedding(input_ids)
+        mask = self._create_causal_mask(seq_len, device)
+
+        # Forward through all layers, building initial cache
+        for layer_idx, layer in enumerate(self.layers):
+            # For the first pass, we need to modify the layer to return KV states
+            # In practice, you'd modify the layer's forward method to accept/return cache
+            x = layer(x, mask)
+            # Cache would be populated here in a full implementation
+
+        x = self.norm(x)
+        logits = self.lm_head(x)
+
+        # Sample first new token
+        logits = logits[:, -1, :] / temperature
+        if top_k is not None:
+            v, _ = torch.topk(logits, min(top_k, logits.size(-1)))
+            logits[logits < v[:, [-1]]] = -float('inf')
+        if top_p is not None:
+            sorted_logits, sorted_indices = torch.sort(logits, descending=True)
+            cumulative_probs = torch.cumsum(
+                torch.softmax(sorted_logits, dim=-1), dim=-1
+            )
+            sorted_indices_to_remove = cumulative_probs > top_p
+            sorted_indices_to_remove[:, 1:] = sorted_indices_to_remove[:, :-1].clone()
+            sorted_indices_to_remove[:, 0] = 0
+            indices_to_remove = sorted_indices_to_remove.scatter(
+                1, sorted_indices, sorted_indices_to_remove
+            )
+            logits[indices_to_remove] = -float('inf')
+
+        probs = torch.softmax(logits, dim=-1)
+        next_token = torch.multinomial(probs, num_samples=1)
+        input_ids = torch.cat([input_ids, next_token], dim=1)
+
+        # Generate remaining tokens using cache
+        for _ in range(max_new_tokens - 1):
+            # Only process the new token
+            x = self.token_embedding(next_token)
+
+            # For each layer, use cached K,V and only compute new K,V
+            for layer_idx, layer in enumerate(self.layers):
+                # In a full implementation:
+                # 1. Extract cached K,V for this layer
+                # 2. Compute new K,V for current token
+                # 3. Concatenate with cache
+                # 4. Compute attention using full K,V but only new Q
+                # 5. Update cache
+                x = layer(x, mask=None)  # Simplified
+
+            x = self.norm(x)
+            logits = self.lm_head(x)
+
+            # Sample next token
+            logits = logits[:, -1, :] / temperature
+            if top_k is not None:
+                v, _ = torch.topk(logits, min(top_k, logits.size(-1)))
+                logits[logits < v[:, [-1]]] = -float('inf')
+            if top_p is not None:
+                sorted_logits, sorted_indices = torch.sort(logits, descending=True)
+                cumulative_probs = torch.cumsum(
+                    torch.softmax(sorted_logits, dim=-1), dim=-1
+                )
+                sorted_indices_to_remove = cumulative_probs > top_p
+                sorted_indices_to_remove[:, 1:] = sorted_indices_to_remove[:, :-1].clone()
+                sorted_indices_to_remove[:, 0] = 0
+                indices_to_remove = sorted_indices_to_remove.scatter(
+                    1, sorted_indices, sorted_indices_to_remove
+                )
+                logits[indices_to_remove] = -float('inf')
+
+            probs = torch.softmax(logits, dim=-1)
+            next_token = torch.multinomial(probs, num_samples=1)
+            input_ids = torch.cat([input_ids, next_token], dim=1)
+
+        return input_ids
+```
+
+### KV Caching for Efficient Inference
+
+The `generate_with_kv_cache` method above provides a template for KV caching. In production, you need to modify the attention layers to support caching. Here's a complete implementation:
+
+```python
+class GroupedQueryAttentionWithCache(nn.Module):
+    """GQA with KV caching support for efficient generation."""
+
+    def __init__(
+        self,
+        d_model: int,
+        n_heads: int,
+        n_kv_heads: int,
+        max_seq_len: int,
+        dropout: float = 0.0,
+        rope_theta: float = 10000.0
+    ):
+        super().__init__()
+        assert d_model % n_heads == 0
+        assert n_heads % n_kv_heads == 0
+
+        self.n_heads = n_heads
+        self.n_kv_heads = n_kv_heads
+        self.n_groups = n_heads // n_kv_heads
+        self.head_dim = d_model // n_heads
+
+        self.wq = nn.Linear(d_model, n_heads * self.head_dim, bias=False)
+        self.wk = nn.Linear(d_model, n_kv_heads * self.head_dim, bias=False)
+        self.wv = nn.Linear(d_model, n_kv_heads * self.head_dim, bias=False)
+        self.wo = nn.Linear(n_heads * self.head_dim, d_model, bias=False)
+
+        self.dropout = dropout
+
+        self.register_buffer(
+            "rope_freqs",
+            precompute_rope_freqs(self.head_dim, max_seq_len, rope_theta)
+        )
+
+    def forward(
+        self,
+        x: torch.Tensor,
+        mask: torch.Tensor = None,
+        cache: tuple = None,
+        position_offset: int = 0
+    ) -> tuple[torch.Tensor, tuple]:
+        """
+        Args:
+            x: Input (batch, seq_len, d_model)
+            mask: Causal mask (seq_len, seq_len)
+            cache: Tuple of (cached_keys, cached_values) or None
+            position_offset: Position offset for RoPE (used with cache)
+
+        Returns:
+            output: (batch, seq_len, d_model)
+            new_cache: Tuple of (keys, values) including new tokens
+        """
+        batch, seq_len, _ = x.shape
+
+        # Project to Q, K, V
+        q = self.wq(x).view(batch, seq_len, self.n_heads, self.head_dim)
+        k = self.wk(x).view(batch, seq_len, self.n_kv_heads, self.head_dim)
+        v = self.wv(x).view(batch, seq_len, self.n_kv_heads, self.head_dim)
+
+        # Apply RoPE with position offset
+        rope_freqs = self.rope_freqs[position_offset:position_offset + seq_len]
+        q = apply_rope(q, rope_freqs)
+        k = apply_rope(k, rope_freqs)
+
+        # Handle caching
+        if cache is not None:
+            cached_k, cached_v = cache
+            # Concatenate with cached K,V
+            k = torch.cat([cached_k, k], dim=1)
+            v = torch.cat([cached_v, v], dim=1)
+
+        # Store new cache
+        new_cache = (k, v)
+
+        # Repeat K, V for each group
+        k = k.repeat_interleave(self.n_groups, dim=2)
+        v = v.repeat_interleave(self.n_groups, dim=2)
+
+        # Transpose for attention
+        q = q.transpose(1, 2)
+        k = k.transpose(1, 2)
+        v = v.transpose(1, 2)
+
+        # Compute attention
+        scores = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(self.head_dim)
+
+        if mask is not None:
+            scores = scores + mask
+
+        attn_weights = torch.softmax(scores, dim=-1)
+        if self.dropout > 0:
+            attn_weights = nn.functional.dropout(
+                attn_weights, p=self.dropout, training=self.training
+            )
+
+        output = torch.matmul(attn_weights, v)
+        output = output.transpose(1, 2).contiguous()
+        output = output.view(batch, seq_len, -1)
+
+        return self.wo(output), new_cache
+
+
+# Memory savings from KV caching:
+# Without cache: Generate N tokens = N forward passes through full sequence
+#                Memory: O(N^2 * d_model) per layer
+# With cache:    Generate N tokens = N forward passes through single token
+#                Memory: O(N * d_model) per layer
+#
+# For a 7B model with 32 layers, batch=1, generating 100 tokens:
+# - Without cache: ~2.5GB KV states recomputed each step
+# - With cache: ~25MB KV states computed once and reused
+# Speedup: ~100x for long generations
 ```
 
 ### Model Size Comparison
@@ -1398,6 +1631,38 @@ print(f"Model parameters: {sum(p.numel() for p in model.parameters()) / 1e9:.2f}
 Let's put it all together with a complete training example.
 
 ### Dataset Preparation
+
+#### The Problem: Efficient Data Loading for Language Modeling
+
+Language model training requires processing massive amounts of text data efficiently. The key challenge is transforming raw text into a format suitable for autoregressive training where the model predicts the next token given previous tokens.
+
+**Why This Matters:**
+- Language models learn by predicting token $t_i$ given context $(t_1, \ldots, t_{i-1})$
+- Training requires millions to billions of text sequences
+- Naive approaches (loading all text into memory) fail for large corpora
+- Need efficient batching and shuffling for good gradient estimates
+
+**Theoretical Foundation:**
+
+The causal language modeling objective is:
+$$
+\mathcal{L} = -\frac{1}{T} \sum_{t=1}^{T} \log P(x_t \mid x_{<t}; \theta)
+$$
+
+To compute this efficiently, we:
+1. **Chunk text into fixed-length blocks**: Allows batching sequences of equal length
+2. **Create input-target pairs**: For sequence $[x_1, \ldots, x_n]$, input is $[x_1, \ldots, x_{n-1}]$ and target is $[x_2, \ldots, x_n]$
+3. **Shuffle blocks**: Reduces correlation between consecutive batches
+
+**Key Design Choices:**
+- **Block size**: Typically 512-4096 tokens (matches model's max sequence length)
+- **Overlap strategy**: No overlap for simplicity; overlapping windows possible for better data utilization
+- **Padding**: Usually avoided by filtering to complete blocks only
+
+**How This Relates to Alternatives:**
+- **Per-document processing**: Wastes computation on padding for variable-length documents
+- **Streaming tokenization**: More memory-efficient but complex; we'll cover below
+- **Dynamic batching**: Groups similar-length sequences but adds complexity
 
 ```python
 import torch
@@ -1486,9 +1751,354 @@ print(f"Vocabulary size: {tokenizer.vocab_size}")
 print(f"Dataset size: {len(dataset)} blocks")
 ```
 
+### Memory-Efficient Datasets for Large-Scale Training
+
+The `TextDataset` above loads all tokens into memory, which works for small corpora but fails for large-scale training (billions of tokens). For production, use these alternatives:
+
+#### 1. Memory-Mapped Datasets
+
+**The Problem: RAM Limitations with Large Corpora**
+
+When training on datasets with billions of tokens (e.g., Common Crawl, C4, RedPajama), loading all data into RAM is impossible. A 100GB tokenized dataset cannot fit in typical GPU server memory (128-256GB).
+
+**Why Memory Mapping Matters:**
+- Allows working with datasets larger than available RAM
+- The OS handles data loading transparently via virtual memory
+- Only loads needed chunks into RAM on-demand (lazy loading)
+- Much faster than reading from disk repeatedly
+
+**Theoretical Justification:**
+
+Memory mapping leverages the OS page cache:
+1. File is mapped to virtual address space (no actual RAM used yet)
+2. When accessing position $i$, OS loads surrounding page into RAM
+3. Least-recently-used pages evicted when RAM fills
+4. Sequential access patterns (common in training) are highly efficient
+
+**Performance Characteristics:**
+- **Memory usage**: O(block_size) instead of O(dataset_size)
+- **Access speed**: ~95% of RAM speed for sequential access
+- **Random access**: Slower due to page faults, but still practical
+
+**How This Compares to Alternatives:**
+- **In-memory dataset**: Fastest but limited to ~1GB datasets
+- **Memory-mapped**: Handles 1GB-100GB datasets efficiently
+- **Streaming** (below): For 100GB+ or distributed/cloud storage
+- **Database (e.g., LMDB)**: Adds overhead, mainly for key-value workloads
+
+**Key Insight**: Memory mapping converts a storage problem into an OS caching problem, which is highly optimized in modern systems.
+
+```python
+import numpy as np
+import os
+
+class MemoryMappedDataset(Dataset):
+    """Dataset using memory-mapped files for efficient large-scale training.
+
+    Memory-mapped files allow the OS to handle data loading without
+    loading everything into RAM.
+    """
+    def __init__(
+        self,
+        data_path: str,
+        block_size: int = 512
+    ):
+        """
+        Args:
+            data_path: Path to .npy file containing tokenized data
+            block_size: Sequence length
+        """
+        self.block_size = block_size
+
+        # Memory-map the file (doesn't load into RAM)
+        self.data = np.memmap(data_path, dtype=np.uint16, mode='r')
+
+    def __len__(self):
+        return len(self.data) // self.block_size
+
+    def __getitem__(self, idx):
+        start = idx * self.block_size
+        end = start + self.block_size + 1
+
+        # Only this chunk is loaded into RAM
+        chunk = self.data[start:end].astype(np.int64)
+
+        x = torch.from_numpy(chunk[:-1])
+        y = torch.from_numpy(chunk[1:])
+
+        return x, y
+
+
+# To create a memory-mapped dataset:
+# 1. Tokenize your corpus
+# 2. Save as numpy array
+def create_memmap_dataset(text_files: list, output_path: str, tokenizer):
+    """Create memory-mapped dataset from text files."""
+    tokens = []
+    for file_path in text_files:
+        with open(file_path, 'r') as f:
+            text = f.read()
+            tokens.extend(tokenizer(text))
+
+    # Save as memory-mapped array
+    tokens_array = np.array(tokens, dtype=np.uint16)
+    np.save(output_path, tokens_array)
+
+    print(f"Created memmap dataset: {len(tokens_array):,} tokens")
+    print(f"File size: {os.path.getsize(output_path + '.npy') / 1e9:.2f} GB")
+
+# Example usage:
+# create_memmap_dataset(['corpus1.txt', 'corpus2.txt'], 'data.npy', tokenizer)
+# dataset = MemoryMappedDataset('data.npy', block_size=512)
+```
+
+#### 2. Streaming Datasets
+
+**The Problem: Datasets Larger Than Local Storage**
+
+Modern LLM training uses datasets too large to store locally (multi-terabyte corpora) or distributed across cloud storage. Additionally, we may want to process data on-the-fly (e.g., dynamic augmentation, filtering).
+
+**Why Streaming Matters:**
+- **Unlimited dataset size**: Process data that exceeds local storage
+- **Distributed training**: Each worker can stream different data subsets
+- **Cloud-native**: Read directly from S3, GCS, Azure Blob, etc.
+- **Dynamic processing**: Apply transformations on-the-fly without preprocessing
+
+**Theoretical Foundation:**
+
+Streaming datasets implement an **iterator pattern** rather than random access:
+- Traditional dataset: Implements `__getitem__(idx)` for random access
+- Streaming dataset: Implements `__iter__()` for sequential access
+
+This enables:
+$$
+\text{Sample} \sim \text{Stream}(\text{DataSource}) \rightarrow \text{Process} \rightarrow \text{Batch}
+$$
+
+**Key Advantages:**
+1. **Constant memory**: O(buffer_size) regardless of dataset size
+2. **Deterministic shuffling**: Via shuffle buffers (reservoir sampling)
+3. **Fault tolerance**: Can resume from any point in stream
+4. **Multi-worker friendly**: Each worker gets different shard
+
+**How This Compares to Alternatives:**
+- **Memory-mapped**: Requires all data on local disk
+- **Streaming**: Works with cloud storage, infinite data streams
+- **Trade-off**: Cannot randomly sample; must process sequentially
+
+**Key Insight**: Streaming converts large-scale training from a "storage problem" to a "network bandwidth problem" - much easier to solve in cloud environments.
+
+**Implementation Details:**
+The shuffle buffer uses **reservoir sampling** to maintain randomness:
+1. Fill buffer with first $k$ samples
+2. For each new sample $x_i$ (where $i > k$):
+   - With probability $k/i$, replace random buffer element with $x_i$
+3. Ensures each sample has equal probability of being in buffer
+
+```python
+from torch.utils.data import IterableDataset
+import random
+
+class StreamingDataset(IterableDataset):
+    """Streaming dataset that loads data on-the-fly.
+
+    Useful for:
+    - Very large datasets that don't fit on disk
+    - Distributed training across many nodes
+    - Datasets stored in cloud storage
+    """
+    def __init__(
+        self,
+        file_paths: list,
+        tokenizer,
+        block_size: int = 512,
+        shuffle_buffer_size: int = 10000
+    ):
+        """
+        Args:
+            file_paths: List of paths to text files
+            tokenizer: Tokenizer function
+            block_size: Sequence length
+            shuffle_buffer_size: Size of shuffle buffer
+        """
+        self.file_paths = file_paths
+        self.tokenizer = tokenizer
+        self.block_size = block_size
+        self.shuffle_buffer_size = shuffle_buffer_size
+
+    def _process_file(self, file_path: str):
+        """Process a single file and yield chunks."""
+        with open(file_path, 'r') as f:
+            # Read in chunks to avoid loading entire file
+            buffer = []
+            for line in f:
+                tokens = self.tokenizer(line.strip())
+                buffer.extend(tokens)
+
+                # Yield complete blocks
+                while len(buffer) >= self.block_size + 1:
+                    chunk = buffer[:self.block_size + 1]
+                    buffer = buffer[self.block_size:]
+
+                    x = torch.tensor(chunk[:-1], dtype=torch.long)
+                    y = torch.tensor(chunk[1:], dtype=torch.long)
+                    yield x, y
+
+    def __iter__(self):
+        # Shuffle file order
+        file_paths = self.file_paths.copy()
+        random.shuffle(file_paths)
+
+        # Process files
+        for file_path in file_paths:
+            yield from self._process_file(file_path)
+
+
+# Example usage:
+# dataset = StreamingDataset(['file1.txt', 'file2.txt'], tokenizer, block_size=512)
+# dataloader = DataLoader(dataset, batch_size=16)
+```
+
+#### 3. HuggingFace Datasets (Recommended for Production)
+
+```python
+from datasets import load_dataset
+
+def create_hf_dataset(dataset_name: str, tokenizer, block_size: int = 512):
+    """Use HuggingFace datasets library for efficient data loading.
+
+    Benefits:
+    - Automatic caching and memory mapping
+    - Supports streaming from cloud storage
+    - Built-in data processing pipelines
+    - Works seamlessly with distributed training
+    """
+    # Load dataset (automatically cached and memory-mapped)
+    dataset = load_dataset(dataset_name, split='train', streaming=True)
+
+    def tokenize_function(examples):
+        # Tokenize text
+        tokens = tokenizer(examples['text'])
+        return {'input_ids': tokens}
+
+    # Tokenize dataset
+    tokenized_dataset = dataset.map(
+        tokenize_function,
+        batched=True,
+        remove_columns=['text']
+    )
+
+    def group_texts(examples):
+        # Concatenate all texts and split into chunks
+        concatenated = sum(examples['input_ids'], [])
+
+        # Split into blocks
+        total_length = len(concatenated)
+        total_length = (total_length // block_size) * block_size
+
+        result = {
+            'input_ids': [
+                concatenated[i:i + block_size]
+                for i in range(0, total_length, block_size)
+            ]
+        }
+        return result
+
+    # Group into blocks
+    blocked_dataset = tokenized_dataset.map(
+        group_texts,
+        batched=True
+    )
+
+    return blocked_dataset
+
+
+# Example usage:
+# from datasets import load_dataset
+# dataset = create_hf_dataset('openwebtext', tokenizer, block_size=512)
+# dataloader = DataLoader(dataset, batch_size=16)
+```
+
+#### Dataset Comparison
+
+| Method | Memory Usage | Speed | Complexity | Use Case |
+|--------|--------------|-------|------------|----------|
+| **In-memory** | High (all data in RAM) | Fastest | Simple | Small datasets (<1GB) |
+| **Memory-mapped** | Low (OS manages) | Fast | Medium | Large local datasets |
+| **Streaming** | Very low | Medium | Medium | Very large or remote data |
+| **HuggingFace** | Low (automatic) | Fast | Low | Production (recommended) |
+
+#### Best Practices
+
+1. **For datasets < 1GB**: Use in-memory dataset
+2. **For datasets 1GB-100GB**: Use memory-mapped dataset
+3. **For datasets > 100GB**: Use streaming or HuggingFace datasets
+4. **For distributed training**: Always use HuggingFace datasets or custom streaming
+
 ---
 
 ## Training the Model
+
+### The Problem: Stable and Efficient Optimization
+
+Training large language models is notoriously difficult due to:
+1. **Numerical instability**: Gradients can explode or vanish in deep networks
+2. **Optimization challenges**: High-dimensional non-convex loss landscape
+3. **Computational cost**: Billions of parameters and tokens require efficient training
+
+**Why These Training Techniques Matter:**
+
+Modern LLMs use a carefully designed training recipe that has been refined over years:
+- **AdamW optimizer**: Handles sparse gradients better than SGD, decouples weight decay
+- **Learning rate warmup**: Prevents early training instability
+- **Cosine decay**: Gradually reduces LR for better final convergence
+- **Gradient clipping**: Prevents explosive gradients in deep networks
+
+**Theoretical Justification:**
+
+**1. AdamW Optimizer:**
+$$
+\begin{align}
+m_t &= \beta_1 m_{t-1} + (1-\beta_1) g_t \quad \text{(momentum)} \\
+v_t &= \beta_2 v_{t-1} + (1-\beta_2) g_t^2 \quad \text{(variance)} \\
+\hat{m}_t &= m_t / (1-\beta_1^t), \quad \hat{v}_t = v_t / (1-\beta_2^t) \quad \text{(bias correction)} \\
+\theta_t &= \theta_{t-1} - \alpha \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon} - \lambda \theta_{t-1} \quad \text{(update with weight decay)}
+\end{align}
+$$
+
+Key insight: AdamW applies weight decay **directly to weights**, not to gradients (unlike Adam). This improves generalization.
+
+**2. Learning Rate Schedule:**
+
+Warmup + cosine decay:
+$$
+\alpha(t) = \begin{cases}
+\alpha_{\text{max}} \cdot \frac{t}{T_{\text{warmup}}} & \text{if } t < T_{\text{warmup}} \\
+\alpha_{\text{max}} \cdot \frac{1}{2}\left(1 + \cos\left(\pi \frac{t - T_{\text{warmup}}}{T_{\text{max}} - T_{\text{warmup}}}\right)\right) & \text{otherwise}
+\end{cases}
+$$
+
+- **Warmup** (1-2% of steps): Prevents large updates when Adam statistics are poorly estimated
+- **Cosine decay**: Smooth reduction allows model to settle into better minima
+
+**3. Gradient Clipping:**
+
+Scale gradients if their norm exceeds threshold:
+$$
+\tilde{g} = \begin{cases}
+g & \text{if } \|g\| \leq \tau \\
+\tau \frac{g}{\|g\|} & \text{otherwise}
+\end{cases}
+$$
+
+This prevents rare catastrophic updates that can destabilize training.
+
+**How This Relates to Alternatives:**
+- **SGD with momentum**: Simpler but requires careful LR tuning, slower convergence
+- **Adam**: Original version couples weight decay with gradients (less effective)
+- **Lion, Sophia**: Recent optimizers with potential benefits, less battle-tested
+
+**Key Insight**: The training recipe is as important as the architecture. Using wrong hyperparameters (e.g., no warmup, wrong LR) can completely prevent training.
 
 Now let's train our modern transformer on the text data.
 
@@ -1584,6 +2194,196 @@ def train_language_model(
     return model
 
 
+### The Problem: GPU Memory Constraints and Training Speed
+
+**Why Mixed Precision Training is Essential:**
+
+Training large models is limited by:
+1. **GPU memory**: A 7B model in FP32 requires ~28GB just for parameters
+2. **Memory bandwidth**: Moving FP32 tensors is slow
+3. **Compute throughput**: Modern GPUs (Ampere, Hopper) have 2-8x more FP16/BF16 compute than FP32
+
+**Theoretical Foundation:**
+
+Mixed precision uses different numerical formats for different operations:
+
+**Floating Point Formats:**
+- **FP32** (32 bits): 1 sign + 8 exponent + 23 mantissa → range $\approx 10^{-38}$ to $10^{38}$, precision $\approx 7$ decimal digits
+- **FP16** (16 bits): 1 sign + 5 exponent + 10 mantissa → range $\approx 10^{-5}$ to $10^{5}$, precision $\approx 3$ decimal digits
+- **BF16** (16 bits): 1 sign + 8 exponent + 7 mantissa → same range as FP32, precision $\approx 2$ decimal digits
+
+**The Mixed Precision Strategy:**
+$$
+\begin{align}
+\text{Forward/Backward:} &\quad \text{FP16/BF16} \quad \text{(2x memory, 2-8x faster compute)} \\
+\text{Weights (master copy):} &\quad \text{FP32} \quad \text{(numerical stability)} \\
+\text{Optimizer states:} &\quad \text{FP32} \quad \text{(accumulation precision)} \\
+\text{Loss scaling:} &\quad \text{FP32} \quad \text{(prevent underflow)}
+\end{align}
+$$
+
+**Key Technique: Loss Scaling**
+
+Problem: FP16 gradients can underflow (become 0) for small values.
+Solution: Scale loss by $S$ before backward pass:
+$$
+\begin{align}
+\mathcal{L}_{\text{scaled}} &= S \cdot \mathcal{L} \\
+g_{\text{scaled}} &= \nabla_\theta \mathcal{L}_{\text{scaled}} = S \cdot g \\
+g &= g_{\text{scaled}} / S \quad \text{(unscale before optimizer)}
+\end{align}
+$$
+
+The GradScaler dynamically adjusts $S$:
+- Increase $S$ if no overflow occurs (capture smaller gradients)
+- Decrease $S$ if overflow detected (prevent NaN)
+
+**Memory Savings Breakdown:**
+
+For a 7B parameter model (batch=4, seq=2048):
+- **Model weights**: 28GB (FP32) → 14GB (FP16) = **14GB saved**
+- **Activations**: ~16GB (FP32) → ~8GB (FP16) = **8GB saved**
+- **Gradients**: 28GB (FP32) → 14GB (FP16) = **14GB saved**
+- **Total**: ~72GB → ~36GB = **50% reduction**
+
+**BF16 vs FP16:**
+- **BF16 advantages**: Same range as FP32, no loss scaling needed, more stable
+- **FP16 advantages**: Higher precision for values in range
+- **Modern practice**: Use BF16 on Ampere+ GPUs (A100, H100), FP16 on older (V100)
+
+**How This Relates to Alternatives:**
+- **Pure FP32**: Most stable but 2x memory and slower
+- **Pure FP16**: Risk of underflow/overflow, needs careful tuning
+- **Mixed precision**: Best of both worlds - speed + stability
+- **INT8 quantization**: Even faster but mainly for inference
+
+**Key Insight**: Mixed precision is a form of "computational regularization" - the slight noise from reduced precision can actually improve generalization.
+
+def train_with_mixed_precision(
+    model: nn.Module,
+    dataloader: DataLoader,
+    num_epochs: int = 10,
+    learning_rate: float = 3e-4,
+    device: str = 'cuda' if torch.cuda.is_available() else 'cpu',
+    grad_clip: float = 1.0,
+    gradient_accumulation_steps: int = 1
+):
+    """Train with mixed precision (FP16/BF16) for memory efficiency and speed.
+
+    Mixed precision training:
+    - Uses FP16/BF16 for forward/backward passes (2x memory savings)
+    - Uses FP32 for optimizer states (maintains numerical stability)
+    - Can train 2x larger models or use 2x larger batch sizes
+    - Often provides 1.5-3x speedup on modern GPUs
+
+    Args:
+        model: Transformer model
+        dataloader: Training data
+        num_epochs: Number of epochs
+        learning_rate: Learning rate
+        device: Device to train on
+        grad_clip: Gradient clipping threshold
+        gradient_accumulation_steps: Accumulate gradients over N steps
+                                       (simulates larger batch size)
+    """
+    model = model.to(device)
+    model.train()
+
+    optimizer = torch.optim.AdamW(
+        model.parameters(),
+        lr=learning_rate,
+        betas=(0.9, 0.95),
+        weight_decay=0.1
+    )
+
+    # GradScaler for mixed precision training
+    # Handles loss scaling to prevent underflow in FP16
+    scaler = torch.cuda.amp.GradScaler()
+
+    # Learning rate schedule
+    def get_lr(step, warmup_steps=100, max_steps=num_epochs * len(dataloader)):
+        if step < warmup_steps:
+            return learning_rate * (step / warmup_steps)
+        progress = (step - warmup_steps) / (max_steps - warmup_steps)
+        return learning_rate * 0.5 * (1 + math.cos(math.pi * progress))
+
+    global_step = 0
+
+    for epoch in range(num_epochs):
+        epoch_loss = 0.0
+        progress_bar = tqdm(dataloader, desc=f"Epoch {epoch+1}/{num_epochs}")
+
+        optimizer.zero_grad()
+
+        for batch_idx, (x, y) in enumerate(progress_bar):
+            x, y = x.to(device), y.to(device)
+
+            # Update learning rate
+            lr = get_lr(global_step)
+            for param_group in optimizer.param_groups:
+                param_group['lr'] = lr
+
+            # Mixed precision forward pass
+            # autocast automatically uses FP16/BF16 for compatible operations
+            with torch.cuda.amp.autocast(dtype=torch.float16):
+                logits = model(x)
+                loss = F.cross_entropy(
+                    logits.view(-1, logits.size(-1)),
+                    y.view(-1)
+                )
+                # Scale loss for gradient accumulation
+                loss = loss / gradient_accumulation_steps
+
+            # Scaled backward pass
+            scaler.scale(loss).backward()
+
+            # Only update weights every N steps
+            if (batch_idx + 1) % gradient_accumulation_steps == 0:
+                # Unscale gradients and clip
+                scaler.unscale_(optimizer)
+                if grad_clip > 0:
+                    torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
+
+                # Optimizer step with scaling
+                scaler.step(optimizer)
+                scaler.update()
+                optimizer.zero_grad()
+
+            # Track metrics
+            epoch_loss += loss.item() * gradient_accumulation_steps
+            global_step += 1
+
+            progress_bar.set_postfix({
+                'loss': f'{loss.item() * gradient_accumulation_steps:.4f}',
+                'lr': f'{lr:.6f}'
+            })
+
+        avg_loss = epoch_loss / len(dataloader)
+        print(f"Epoch {epoch+1} average loss: {avg_loss:.4f}")
+
+    return model
+
+
+# Example: Training with different precision modes
+"""
+# FP32 (baseline)
+model_fp32 = train_language_model(model, dataloader)
+
+# FP16 (2x memory savings, ~2x speedup)
+model_fp16 = train_with_mixed_precision(model, dataloader)
+
+# BF16 (better numerical stability, requires Ampere+ GPUs)
+# Change autocast dtype to torch.bfloat16
+
+# With gradient accumulation (simulate larger batch)
+model_grad_accum = train_with_mixed_precision(
+    model,
+    dataloader,
+    gradient_accumulation_steps=4  # Effective batch = 4x actual batch
+)
+"""
+
+
 # Create model
 model = ModernTransformer(
     vocab_size=tokenizer.vocab_size,
@@ -1666,7 +2466,356 @@ print(f"\nPrompt: {prompt}")
 print(f"Generated: {generated}")
 ```
 
+### Model Saving and Loading
+
+Production models need to be saved and loaded for checkpointing, deployment, and sharing. Here's how to properly save and load transformer models:
+
+```python
+import os
+from pathlib import Path
+
+def save_checkpoint(
+    model: nn.Module,
+    optimizer: torch.optim.Optimizer,
+    epoch: int,
+    loss: float,
+    checkpoint_path: str,
+    model_config: dict = None
+):
+    """Save model checkpoint with all training state.
+
+    Args:
+        model: Model to save
+        optimizer: Optimizer state
+        epoch: Current epoch
+        loss: Current loss
+        checkpoint_path: Path to save checkpoint
+        model_config: Model configuration dict (for reconstruction)
+    """
+    # Create checkpoint directory
+    Path(checkpoint_path).parent.mkdir(parents=True, exist_ok=True)
+
+    checkpoint = {
+        'epoch': epoch,
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'loss': loss,
+    }
+
+    # Include model config for easy reconstruction
+    if model_config is not None:
+        checkpoint['model_config'] = model_config
+
+    # Save checkpoint
+    torch.save(checkpoint, checkpoint_path)
+    print(f"Checkpoint saved to {checkpoint_path}")
+
+
+def load_checkpoint(
+    checkpoint_path: str,
+    model: nn.Module = None,
+    optimizer: torch.optim.Optimizer = None,
+    device: str = 'cuda' if torch.cuda.is_available() else 'cpu'
+) -> dict:
+    """Load model checkpoint.
+
+    Args:
+        checkpoint_path: Path to checkpoint
+        model: Model to load weights into (if None, only returns checkpoint)
+        optimizer: Optimizer to load state into (optional)
+        device: Device to load model on
+
+    Returns:
+        Dictionary with checkpoint info (epoch, loss, config)
+    """
+    checkpoint = torch.load(checkpoint_path, map_location=device)
+
+    if model is not None:
+        model.load_state_dict(checkpoint['model_state_dict'])
+        model.to(device)
+
+    if optimizer is not None and 'optimizer_state_dict' in checkpoint:
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+
+    print(f"Loaded checkpoint from epoch {checkpoint['epoch']} "
+          f"with loss {checkpoint['loss']:.4f}")
+
+    return {
+        'epoch': checkpoint['epoch'],
+        'loss': checkpoint['loss'],
+        'model_config': checkpoint.get('model_config', None)
+    }
+
+
+def save_model_for_inference(
+    model: nn.Module,
+    save_path: str,
+    model_config: dict
+):
+    """Save model for inference (weights only, no optimizer state).
+
+    Args:
+        model: Trained model
+        save_path: Path to save model
+        model_config: Model configuration
+    """
+    Path(save_path).parent.mkdir(parents=True, exist_ok=True)
+
+    save_dict = {
+        'model_state_dict': model.state_dict(),
+        'model_config': model_config
+    }
+
+    torch.save(save_dict, save_path)
+    print(f"Model saved to {save_path}")
+
+
+def load_model_for_inference(
+    load_path: str,
+    model_class: type,
+    device: str = 'cuda' if torch.cuda.is_available() else 'cpu'
+) -> nn.Module:
+    """Load model for inference.
+
+    Args:
+        load_path: Path to saved model
+        model_class: Model class (e.g., ModernTransformer)
+        device: Device to load on
+
+    Returns:
+        Loaded model in eval mode
+    """
+    save_dict = torch.load(load_path, map_location=device)
+
+    # Reconstruct model from config
+    model = model_class(**save_dict['model_config'])
+    model.load_state_dict(save_dict['model_state_dict'])
+    model.to(device)
+    model.eval()
+
+    print(f"Model loaded from {load_path}")
+    return model
+
+
+# Example: Training with checkpointing
+def train_with_checkpointing(
+    model: nn.Module,
+    dataloader: DataLoader,
+    num_epochs: int = 10,
+    learning_rate: float = 3e-4,
+    checkpoint_dir: str = './checkpoints',
+    save_every: int = 1,
+    model_config: dict = None
+):
+    """Train model with periodic checkpointing.
+
+    Args:
+        model: Model to train
+        dataloader: Training data
+        num_epochs: Number of epochs
+        learning_rate: Learning rate
+        checkpoint_dir: Directory to save checkpoints
+        save_every: Save checkpoint every N epochs
+        model_config: Model configuration dict
+    """
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    model = model.to(device)
+
+    optimizer = torch.optim.AdamW(
+        model.parameters(),
+        lr=learning_rate,
+        betas=(0.9, 0.95),
+        weight_decay=0.1
+    )
+
+    # Resume from checkpoint if exists
+    latest_checkpoint = os.path.join(checkpoint_dir, 'latest.pt')
+    start_epoch = 0
+    if os.path.exists(latest_checkpoint):
+        info = load_checkpoint(latest_checkpoint, model, optimizer, device)
+        start_epoch = info['epoch'] + 1
+        print(f"Resuming from epoch {start_epoch}")
+
+    for epoch in range(start_epoch, num_epochs):
+        model.train()
+        epoch_loss = 0.0
+
+        for x, y in tqdm(dataloader, desc=f"Epoch {epoch+1}/{num_epochs}"):
+            x, y = x.to(device), y.to(device)
+
+            logits = model(x)
+            loss = F.cross_entropy(
+                logits.view(-1, logits.size(-1)),
+                y.view(-1)
+            )
+
+            optimizer.zero_grad()
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            optimizer.step()
+
+            epoch_loss += loss.item()
+
+        avg_loss = epoch_loss / len(dataloader)
+        print(f"Epoch {epoch+1} loss: {avg_loss:.4f}")
+
+        # Save checkpoint
+        if (epoch + 1) % save_every == 0:
+            # Save numbered checkpoint
+            checkpoint_path = os.path.join(
+                checkpoint_dir, f'checkpoint_epoch_{epoch+1}.pt'
+            )
+            save_checkpoint(
+                model, optimizer, epoch, avg_loss,
+                checkpoint_path, model_config
+            )
+
+            # Save as latest (for resuming)
+            save_checkpoint(
+                model, optimizer, epoch, avg_loss,
+                latest_checkpoint, model_config
+            )
+
+    # Save final model for inference
+    final_model_path = os.path.join(checkpoint_dir, 'final_model.pt')
+    save_model_for_inference(model, final_model_path, model_config)
+
+    return model
+
+
+# Example usage:
+model_config = {
+    'vocab_size': tokenizer.vocab_size,
+    'd_model': 256,
+    'n_heads': 8,
+    'n_kv_heads': 4,
+    'n_layers': 6,
+    'max_seq_len': 128
+}
+
+model = ModernTransformer(**model_config)
+
+# Train with checkpointing
+trained_model = train_with_checkpointing(
+    model,
+    dataloader,
+    num_epochs=10,
+    checkpoint_dir='./checkpoints',
+    save_every=2,  # Save every 2 epochs
+    model_config=model_config
+)
+
+# Later: Load for inference
+loaded_model = load_model_for_inference(
+    './checkpoints/final_model.pt',
+    ModernTransformer
+)
+```
+
+### Best Practices for Model Persistence
+
+1. **Checkpointing Strategy**:
+   - Save checkpoints every N epochs or steps
+   - Keep the last K checkpoints (delete old ones to save space)
+   - Save best checkpoint based on validation loss
+   - Save optimizer state for resuming training
+
+2. **What to Save**:
+   - **Training checkpoint**: Model weights + optimizer state + epoch + loss
+   - **Inference model**: Model weights + config only
+   - **Full snapshot**: Add learning rate scheduler, RNG state for exact reproducibility
+
+3. **File Organization**:
+   ```
+   checkpoints/
+   ├── latest.pt              # Most recent checkpoint (for resuming)
+   ├── best.pt                # Best validation loss
+   ├── checkpoint_epoch_10.pt # Periodic checkpoints
+   ├── checkpoint_epoch_20.pt
+   └── final_model.pt         # Final trained model (inference only)
+   ```
+
+4. **Memory Considerations**:
+   - Save models on CPU to free GPU memory: `model.cpu()`
+   - Use `torch.save(..., _use_new_zipfile_serialization=True)` for large models
+   - Consider saving in FP16 for smaller file sizes (inference only)
+
 ### Evaluation: Perplexity
+
+**The Problem: Measuring Language Model Quality**
+
+How do we quantify how well a language model has learned? We need a metric that:
+1. Measures predictive accuracy across all vocabulary
+2. Is interpretable and comparable across models
+3. Correlates with downstream task performance
+
+**Why Perplexity Matters:**
+
+Perplexity is the standard metric for evaluating generative language models. It directly measures how "surprised" the model is by the test data.
+
+**Theoretical Foundation:**
+
+**Definition:**
+Perplexity is the exponential of the average negative log-likelihood:
+$$
+\text{PPL}(X) = \exp\left(-\frac{1}{T}\sum_{t=1}^{T} \log P(x_t \mid x_{<t}; \theta)\right)
+$$
+
+where $T$ is the total number of tokens and $P(x_t \mid x_{<t}; \theta)$ is the model's predicted probability of token $x_t$.
+
+**Intuitive Interpretation:**
+
+Perplexity can be interpreted as the **effective vocabulary size** the model is uncertain about at each step.
+
+- **PPL = 1**: Perfect prediction (model assigns probability 1 to correct token)
+- **PPL = V**: Random guessing (uniform over vocabulary of size $V$)
+- **PPL = 20**: Model is as uncertain as choosing uniformly among 20 tokens
+
+**Mathematical Derivation:**
+
+For a perfect uniform distribution over $k$ equally likely outcomes:
+$$
+H = -\sum_{i=1}^{k} \frac{1}{k} \log \frac{1}{k} = \log k
+$$
+$$
+\text{PPL} = \exp(H) = \exp(\log k) = k
+$$
+
+**Relationship to Cross-Entropy:**
+$$
+\text{PPL} = \exp(\text{CrossEntropy}) = \exp\left(\mathcal{L}_{\text{CE}}\right)
+$$
+
+This means:
+- **Lower perplexity = better model**
+- Perplexity of 10 means average cross-entropy loss of $\ln(10) \approx 2.3$
+- Perplexity of 100 means average cross-entropy loss of $\ln(100) \approx 4.6$
+
+**Typical Perplexity Values:**
+
+| Model Type | Dataset | Typical PPL |
+|------------|---------|-------------|
+| Small model (100M) | WikiText-103 | 30-50 |
+| Medium model (1B) | WikiText-103 | 15-25 |
+| Large model (7B+) | WikiText-103 | 10-15 |
+| Character-level | Text | 1.5-3.0 |
+
+**How This Relates to Alternatives:**
+- **Accuracy**: Too coarse (ignores confidence in predictions)
+- **Cross-entropy loss**: Less interpretable (perplexity has intuitive meaning)
+- **BLEU, ROUGE**: For specific generation tasks (translation, summarization)
+- **Human evaluation**: Gold standard but expensive and not reproducible
+
+**Key Insights:**
+1. Perplexity is **dataset-dependent**: Only comparable on same test set
+2. Lower perplexity ≠ better generation quality (correlation not perfect)
+3. Perplexity measures **calibration**: How well probabilities match true distribution
+4. For downstream tasks, task-specific metrics often more relevant
+
+**Limitations:**
+- Doesn't measure generation quality (fluency, factuality)
+- Sensitive to tokenization (BPE vs character vs word level)
+- Can be "gamed" by overfitting to test distribution
 
 ```python
 @torch.no_grad()
@@ -1766,10 +2915,189 @@ print(f"Perplexity: {perplexity:.2f}")
    - See [Data Curation and Preprocessing](14-data-curation.md)
 
 5. **Efficiency**:
-   - Mixed precision training (BF16)
-   - Gradient accumulation for large batches
+   - Mixed precision training (BF16/FP16) - see training section above
+   - Gradient accumulation for large batches - see `train_with_mixed_precision`
+   - Gradient checkpointing for memory savings
    - Flash Attention for long sequences
    - See [Flash Attention](12-flash-attention.md)
+
+### Gradient Checkpointing
+
+Gradient checkpointing (also called activation checkpointing) trades compute for memory by recomputing activations during the backward pass instead of storing them. This allows training much larger models on limited GPU memory.
+
+**Trade-off**:
+- Memory savings: ~50-75% reduction in activation memory
+- Compute cost: ~30-40% increase in training time
+- Use when: Memory-bound (can't fit larger batch or model)
+
+```python
+import torch.utils.checkpoint as checkpoint
+
+class ModernTransformerBlockWithCheckpointing(nn.Module):
+    """Transformer block with optional gradient checkpointing."""
+
+    def __init__(
+        self,
+        d_model: int,
+        n_heads: int,
+        n_kv_heads: int,
+        d_ff: int,
+        max_seq_len: int,
+        dropout: float = 0.0,
+        use_checkpointing: bool = False
+    ):
+        super().__init__()
+        self.use_checkpointing = use_checkpointing
+
+        self.attn_norm = RMSNorm(d_model)
+        self.ffn_norm = RMSNorm(d_model)
+        self.attn = GroupedQueryAttention(
+            d_model, n_heads, n_kv_heads, max_seq_len, dropout
+        )
+        self.ffn = SwiGLU(d_model, d_ff)
+
+    def _forward_impl(self, x: torch.Tensor, mask: torch.Tensor):
+        """The actual forward computation."""
+        # Attention
+        x = x + self.attn(self.attn_norm(x), mask)
+        # FFN
+        x = x + self.ffn(self.ffn_norm(x))
+        return x
+
+    def forward(self, x: torch.Tensor, mask: torch.Tensor = None):
+        if self.use_checkpointing and self.training:
+            # Use gradient checkpointing
+            # Don't store intermediate activations, recompute during backward
+            return checkpoint.checkpoint(
+                self._forward_impl,
+                x,
+                mask,
+                use_reentrant=False
+            )
+        else:
+            # Normal forward pass
+            return self._forward_impl(x, mask)
+
+
+class ModernTransformerWithCheckpointing(nn.Module):
+    """Modern transformer with gradient checkpointing support."""
+
+    def __init__(
+        self,
+        vocab_size: int,
+        d_model: int = 4096,
+        n_heads: int = 32,
+        n_kv_heads: int = 8,
+        n_layers: int = 32,
+        d_ff: int = None,
+        max_seq_len: int = 2048,
+        dropout: float = 0.0,
+        use_checkpointing: bool = False
+    ):
+        super().__init__()
+        self.d_model = d_model
+        self.max_seq_len = max_seq_len
+
+        if d_ff is None:
+            d_ff = int(8 * d_model / 3)
+            d_ff = 256 * ((d_ff + 255) // 256)
+
+        self.token_embedding = nn.Embedding(vocab_size, d_model)
+
+        self.layers = nn.ModuleList([
+            ModernTransformerBlockWithCheckpointing(
+                d_model, n_heads, n_kv_heads, d_ff, max_seq_len,
+                dropout, use_checkpointing
+            )
+            for _ in range(n_layers)
+        ])
+
+        self.norm = RMSNorm(d_model)
+        self.lm_head = nn.Linear(d_model, vocab_size, bias=False)
+        self.lm_head.weight = self.token_embedding.weight
+
+        self._init_weights()
+
+    def _init_weights(self):
+        for module in self.modules():
+            if isinstance(module, nn.Linear):
+                torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
+                if module.bias is not None:
+                    torch.nn.init.zeros_(module.bias)
+            elif isinstance(module, nn.Embedding):
+                torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
+
+    def _create_causal_mask(self, seq_len: int, device: torch.device):
+        mask = torch.triu(
+            torch.full((seq_len, seq_len), float('-inf'), device=device),
+            diagonal=1
+        )
+        return mask
+
+    def forward(self, input_ids: torch.Tensor) -> torch.Tensor:
+        batch, seq_len = input_ids.shape
+        device = input_ids.device
+
+        x = self.token_embedding(input_ids)
+        mask = self._create_causal_mask(seq_len, device)
+
+        for layer in self.layers:
+            x = layer(x, mask)
+
+        x = self.norm(x)
+        logits = self.lm_head(x)
+
+        return logits
+
+
+# Memory comparison for a 7B model (d_model=4096, 32 layers):
+# Without checkpointing: ~24GB activation memory (batch=1, seq=2048)
+# With checkpointing:    ~6GB activation memory (batch=1, seq=2048)
+# Benefit: Can use 4x larger batch size or train on smaller GPUs
+
+# Example usage:
+model_without_cp = ModernTransformerWithCheckpointing(
+    vocab_size=32000,
+    d_model=4096,
+    n_layers=32,
+    use_checkpointing=False  # Store all activations
+)
+
+model_with_cp = ModernTransformerWithCheckpointing(
+    vocab_size=32000,
+    d_model=4096,
+    n_layers=32,
+    use_checkpointing=True  # Recompute activations during backward
+)
+
+# When to use gradient checkpointing:
+# 1. Training very large models (>1B parameters)
+# 2. Limited GPU memory
+# 3. Want to use larger batch sizes
+# 4. Memory-bound rather than compute-bound
+#
+# When NOT to use:
+# 1. Small models that fit comfortably in memory
+# 2. Already compute-bound (will make training even slower)
+# 3. Inference (no backward pass, so no benefit)
+```
+
+### Memory-Efficient Training Techniques Comparison
+
+| Technique | Memory Savings | Speed Impact | When to Use |
+|-----------|----------------|--------------|-------------|
+| **Mixed Precision (FP16)** | 50% | +50% faster | Always (modern GPUs) |
+| **Gradient Checkpointing** | 50-75% activations | -30% slower | Memory-bound training |
+| **Gradient Accumulation** | None | Neutral | Simulate larger batch |
+| **Flash Attention** | O(N²) → O(N) | +2-4x faster | Long sequences (>512) |
+| **GQA vs MHA** | 50-75% KV cache | Minimal | Inference with long context |
+
+**Recommended Stack for Large Model Training**:
+1. Mixed precision (BF16 on A100/H100, FP16 on V100)
+2. Flash Attention for sequence length >512
+3. Gradient checkpointing if memory-bound
+4. Gradient accumulation to reach target batch size
+5. GQA for efficient inference
 
 ### Common Pitfalls
 

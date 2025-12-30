@@ -74,6 +74,22 @@ $$
 
 ### Implementation
 
+**Problem and Motivation:**
+
+While ReLU has significant limitations for modern LLMs, understanding its implementation is important because:
+1. It serves as the baseline against which all other activations are compared
+2. Many legacy models and codebases still use ReLU
+3. The simplicity of ReLU makes it ideal for understanding the basic FFN structure
+
+**Implementation Considerations:**
+
+When implementing ReLU in a feed-forward network, we face a fundamental trade-off:
+- **Computational efficiency**: ReLU is extremely fast (just a max operation)
+- **Expressiveness**: The hard cutoff at zero limits the function class the network can learn
+- **Gradient flow**: The zero gradient for negative inputs can cause neurons to "die" during training
+
+The code below demonstrates ReLU in the context of a complete FFN module, following the standard transformer architecture where the hidden dimension $d_{\text{ff}}$ is typically 4 times the model dimension $d_{\text{model}}$.
+
 ```python
 import torch
 import torch.nn as nn
@@ -172,6 +188,30 @@ GELU is used in:
 - Many other transformer-based models
 
 ### Implementation
+
+**Problem and Motivation:**
+
+The key challenge GELU addresses is: *How can we create a smooth, probabilistically-motivated activation that improves upon ReLU's hard cutoff while maintaining computational efficiency?*
+
+**Why This Matters:**
+
+GELU represents a paradigm shift from ReLU because:
+1. **Smooth gradients everywhere**: Unlike ReLU's discontinuous derivative, GELU is differentiable everywhere, leading to more stable optimization
+2. **Stochastic regularization interpretation**: GELU can be viewed as applying dropout with a probability that adapts based on the input magnitude
+3. **Better empirical performance**: GELU consistently outperformed ReLU in transformer models, as demonstrated by BERT and GPT-2
+
+**Theoretical Justification:**
+
+The exact GELU formula $x \cdot \Phi(x)$ has an elegant interpretation: it's the expected transformation of $x$ under stochastic regularization where we multiply the input by either 0 or 1 depending on whether $x$ is greater than a random sample from $\mathcal{N}(0, 1)$. This creates adaptive regularization where larger inputs are more likely to pass through.
+
+**Approximation Trade-offs:**
+
+The implementation provides three variants:
+1. **Exact (erf-based)**: Most accurate but slower due to error function computation
+2. **Tanh approximation**: Nearly identical results with faster computation (commonly used)
+3. **Sigmoid approximation**: Fastest but less accurate
+
+Modern implementations (PyTorch, JAX) default to the tanh approximation as it provides the best accuracy/speed trade-off. The code below demonstrates all three approaches so you can understand the trade-offs in practice.
 
 ```python
 import torch
@@ -290,6 +330,32 @@ SiLU and GELU are very similar in shape and performance:
 - In practice, they often perform comparably
 
 ### Implementation
+
+**Problem and Motivation:**
+
+SiLU addresses the question: *Can we achieve GELU-like performance with a simpler, more computationally efficient formula?*
+
+**Key Insight:**
+
+The breakthrough of SiLU/Swish is the **self-gating** property: $x \cdot \sigma(x)$. Instead of using a Gaussian CDF like GELU, it uses the simpler sigmoid function. This provides:
+1. **Computational simplicity**: Sigmoid is faster to compute than error functions
+2. **Similar behavior**: The shape of SiLU closely approximates GELU
+3. **Better hardware support**: Sigmoid is a primitive operation on most hardware accelerators
+
+**Relation to Alternatives:**
+
+- **vs ReLU**: SiLU is smooth everywhere, avoiding the dying ReLU problem
+- **vs GELU**: Nearly identical performance but computationally simpler
+- **vs Tanh**: Self-gating (multiplicative) vs. pure non-linearity (additive)
+
+**Why It Works:**
+
+The self-gating mechanism $x \cdot \sigma(x)$ creates an adaptive scaling where:
+- Large positive inputs: $\sigma(x) \approx 1$, so output $\approx x$ (linear passthrough)
+- Large negative inputs: $\sigma(x) \approx 0$, so output $\approx 0$ (suppressed)
+- Near zero: Smooth interpolation between these extremes
+
+This creates a non-monotonic function with smooth gradients that helps with optimization.
 
 ```python
 import torch
@@ -455,6 +521,32 @@ See [Architecture Comparison: Modern LLMs](29-model-architectures.md) for a comp
 
 ### Implementation
 
+**Problem Being Solved:**
+
+How do we build a feed-forward network that combines the smooth properties of SiLU with the dynamic gating mechanism of GLU to achieve state-of-the-art performance in large language models?
+
+**Theoretical Foundation:**
+
+SwiGLU's success stems from combining two powerful ideas:
+1. **Gating mechanism**: Allows the network to learn what information to pass (value path) and how much to pass (gate path)
+2. **Smooth activation**: SiLU provides smooth gradients that help with optimization at scale
+
+The formula $\text{SwiGLU}(x) = \text{SiLU}(xW) \otimes (xV)$ creates a **multiplicative interaction** between two learned transformations of the input. This is fundamentally different from additive non-linearities.
+
+**Why This Works Better:**
+
+The key insight from Shazeer's empirical study is that gated activations allow for **context-dependent feature selection**. The gate path learns to amplify or suppress features from the value path based on the input, creating more expressive transformations than simple pointwise non-linearities.
+
+**Relation to Alternatives:**
+
+- **vs GELU**: SwiGLU adds gating, which empirically improves performance by 1-2% on language tasks
+- **vs GeGLU**: SiLU is computationally simpler than GELU, with similar or slightly better performance
+- **vs Standard SiLU**: The gated version consistently outperforms the non-gated version
+
+**Implementation Considerations:**
+
+The main challenge with SwiGLU is the parameter increase: we need separate weight matrices $W$ and $V$ for the gate and value paths. To maintain similar parameter counts to standard FFNs, the hidden dimension $d_{\text{ff}}$ is typically reduced from $4d_{\text{model}}$ to $\frac{8}{3}d_{\text{model}}$ (rounded to multiples of 256 for hardware efficiency). The code below implements this following the LLaMA architecture.
+
 ```python
 import torch
 import torch.nn as nn
@@ -583,6 +675,39 @@ GeGLU is less common in production LLMs compared to SwiGLU, but it's used in som
 
 ### Implementation
 
+**Problem and Motivation:**
+
+GeGLU addresses the question: *What happens if we combine GELU's probabilistic smoothness with GLU's gating mechanism?*
+
+**Theoretical Justification:**
+
+GeGLU represents an alternative approach to gating that uses GELU instead of SiLU. The rationale is:
+1. **GELU's theoretical foundation**: The Gaussian CDF has a strong probabilistic interpretation
+2. **Proven success**: GELU already showed strong results in GPT-2/3 and BERT
+3. **Gating benefits**: Adding the gating mechanism should improve upon non-gated GELU
+
+**Why GeGLU vs SwiGLU?**
+
+Shazeer's empirical comparison found:
+- **SwiGLU**: Slightly better empirical performance (typically 0.1-0.2% improvement)
+- **GeGLU**: Nearly as good, but GELU is slightly more expensive to compute
+- **Use case**: GeGLU is a reasonable choice if you're already using GELU elsewhere and want consistency
+
+**Relation to Alternatives:**
+
+- **vs SwiGLU**: Very similar performance, SwiGLU slightly faster and marginally better
+- **vs GELU (non-gated)**: GeGLU consistently outperforms by leveraging the gating mechanism
+- **vs ReGLU**: GeGLU performs better due to smooth gradients (vs ReLU's discontinuity)
+
+**When to Use:**
+
+GeGLU is a good choice when:
+- You want gated activation but prefer GELU's probabilistic interpretation
+- Your codebase already uses GELU and you want consistency
+- The small performance difference from SwiGLU doesn't matter for your application
+
+The implementation below is nearly identical to SwiGLU, with the only difference being the activation function used for gating.
+
 ```python
 import torch
 import torch.nn as nn
@@ -694,8 +819,11 @@ Based on Shazeer's empirical study and subsequent research:
 1. SwiGLU
 2. GeGLU
 3. GELU / SiLU (non-gated)
-4. ReLU
-5. ReGLU
+4. Mish
+5. ReLU
+6. ReGLU
+
+**Note on Mish**: Mish is defined as $\text{Mish}(x) = x \cdot \tanh(\text{softplus}(x)) = x \cdot \tanh(\ln(1 + e^x))$. While less common in large-scale LLMs, it has been used in some computer vision models and smaller language models. It's similar in spirit to GELU/SiLU (smooth, non-monotonic) but hasn't gained the same traction in the LLM community as gated variants. For interview preparation, it's sufficient to know it exists as an alternative smooth activation, but SwiGLU/GeGLU are far more important for modern LLM work.
 
 **Computational Cost:**
 - ReLU: Lowest (simple thresholding)
@@ -712,6 +840,84 @@ Several hypotheses:
 3. **Increased expressiveness**: The gating mechanism adds a form of multiplicative interaction
 4. **Better gradient flow**: The gating path provides an additional route for gradients
 
+**Intuitive Explanation:**
+
+Think of gated activations as learning both **what** information to pass forward (the value path) **and how much** to pass (the gate path). This is fundamentally different from non-gated activations:
+
+- **Non-gated (GELU, SiLU)**: Apply the same activation pattern to all features based purely on their values
+- **Gated (SwiGLU, GeGLU)**: Learn context-dependent activation patterns where the gate can suppress or amplify features based on what's needed
+
+For example, in a language model processing "The cat sat on the ___":
+- The **value path** might compute representations related to possible completions ("mat", "floor", "chair")
+- The **gate path** learns which of these features are relevant given the context (furniture-related features should be amplified)
+
+This multiplicative interaction creates a richer function class than simple pointwise non-linearities.
+
+**Empirical Evidence from Shazeer (2020):**
+
+Shazeer's comprehensive study on the Transformer translation task showed:
+- SwiGLU achieved the best performance across multiple datasets
+- GeGLU was a close second (within 0.1 BLEU)
+- Both significantly outperformed non-gated GELU
+- The improvement held across different model sizes and training budgets
+
+The gating mechanism appears to help models learn more selective and context-dependent transformations, which is particularly valuable for the complex patterns in natural language.
+
+### Numerical Stability and Memory Considerations
+
+When implementing and deploying activation functions, several practical considerations matter:
+
+**Numerical Stability:**
+
+1. **Sigmoid Saturation** (affects SiLU, GLU variants):
+   - For very large $|x|$, sigmoid approaches 0 or 1, potentially causing gradient vanishing
+   - In practice, modern architectures (layer norm, skip connections) mitigate this
+   - PyTorch implementations use numerically stable formulas
+
+2. **Exponential Overflow** (GELU exact formula):
+   - The error function $\text{erf}(x)$ is numerically stable for all $x$
+   - The tanh approximation avoids exponential overflow for large inputs
+   - Most implementations default to tanh approximation for this reason
+
+3. **Implementation Tip**:
+   ```python
+   # Numerically stable sigmoid for very negative values
+   def stable_sigmoid(x: torch.Tensor) -> torch.Tensor:
+       """Numerically stable sigmoid implementation."""
+       return torch.where(
+           x >= 0,
+           1 / (1 + torch.exp(-x)),
+           torch.exp(x) / (1 + torch.exp(x))
+       )
+   ```
+
+**Memory Considerations:**
+
+1. **Activation Memory** (for backward pass):
+   - Non-gated activations: Store intermediate values for backprop
+   - Gated activations: Must store BOTH gate and value paths
+   - Memory usage: GLU variants require approximately 2x activation memory
+
+2. **Gradient Checkpointing**:
+   - Can recompute activations during backward pass to save memory
+   - Trade-off: Reduces memory by ~33% but adds ~33% compute time
+   - Essential for training very large models
+
+3. **Memory Example**:
+   ```python
+   # For a layer with input shape (batch_size, seq_len, d_model):
+   # Standard activation memory: batch_size * seq_len * d_ff
+   # SwiGLU activation memory: batch_size * seq_len * d_ff * 2
+   # (must store both gate and value for backprop)
+   ```
+
+4. **Hardware Efficiency**:
+   - Many implementations round $d_{\text{ff}}$ to multiples of 256 or 512
+   - This ensures efficient memory access patterns on GPUs/TPUs
+   - Example: LLaMA rounds to nearest 256 for optimal hardware utilization
+
+**Practical Tip for Production**: Use PyTorch's built-in implementations (`F.gelu`, `F.silu`) which are optimized for both numerical stability and hardware efficiency. Only implement custom versions for learning or when you need specific behavior.
+
 ### Practical Considerations
 
 **When to use what:**
@@ -723,6 +929,34 @@ Several hypotheses:
 - **Production LLMs**: SwiGLU is the standard
 
 ### Visualization Comparison
+
+**Problem and Motivation:**
+
+Understanding activation functions theoretically is important, but **visualizing** them is crucial for developing intuition about:
+1. **How they differ**: The shape differences between ReLU, GELU, and SiLU
+2. **Why gating works**: Visual demonstration of the multiplicative gating effect
+3. **Gradient behavior**: How the derivatives differ and impact training
+
+**What These Visualizations Show:**
+
+The code below creates two key visualizations:
+
+1. **Activation Comparison Plot**: Shows how different activations transform the same input range. This helps you see:
+   - ReLU's hard cutoff at zero
+   - GELU and SiLU's smooth curves and slight negative regions
+   - The non-monotonic behavior of smooth activations
+
+2. **Gating Effect Plot**: Demonstrates the power of GLU-style gating by showing:
+   - The separate gate and value paths
+   - How multiplication creates context-dependent transformations
+   - The difference between gated and non-gated outputs
+
+**Key Insights to Look For:**
+
+When running these visualizations, notice:
+- GELU and SiLU are nearly identical in shape but GELU is slightly smoother near zero
+- The gating mechanism creates a **different shape** than just applying the activation to the value
+- Gated activations can produce outputs that neither the gate nor value could produce alone
 
 ```python
 import torch
@@ -809,7 +1043,43 @@ plot_glu_effect()
 
 ### Complete FFN Implementations
 
-Here's a complete comparison of different FFN implementations:
+**Problem and Motivation:**
+
+When building real transformer models, you need a flexible FFN implementation that can:
+1. **Support multiple activations**: Switch between different activations for experimentation
+2. **Handle parameter budgets correctly**: Adjust $d_{\text{ff}}$ based on whether using gated activations
+3. **Follow best practices**: Match production implementations (no bias, proper rounding)
+
+**Why This Implementation Matters:**
+
+This unified implementation demonstrates several key engineering practices:
+
+1. **Automatic dimension calculation**: For GLU variants, automatically adjusts $d_{\text{ff}}$ to $\frac{8d}{3}$ to maintain similar parameter counts to standard FFN
+2. **Hardware alignment**: Rounds $d_{\text{ff}}$ to multiples of 256 for optimal GPU/TPU performance
+3. **Conditional architecture**: Uses different layer structures for gated vs non-gated activations
+
+**Theoretical Foundation:**
+
+The implementation handles two fundamentally different architectures:
+
+**Non-gated (ReLU, GELU, SiLU):**
+$$\text{FFN}(x) = W_2 \cdot \text{Activation}(W_1 x)$$
+- Parameters: $2 \times d_{\text{model}} \times d_{\text{ff}}$
+- Standard choice: $d_{\text{ff}} = 4 \times d_{\text{model}}$
+
+**Gated (SwiGLU, GeGLU, etc.):**
+$$\text{FFN}(x) = W_2 \cdot (\text{Activation}(W_1 x) \otimes W_3 x)$$
+- Parameters: $d_{\text{model}} \times d_{\text{ff}} \times 3$ (three weight matrices)
+- Adjusted choice: $d_{\text{ff}} = \frac{8}{3} \times d_{\text{model}}$ to match non-gated parameter count
+
+**Key Design Decisions:**
+
+The code below makes several production-ready choices:
+- **No bias by default**: Following LLaMA and other modern LLMs
+- **Dropout placement**: Applied after activation, before final projection
+- **Hardware efficiency**: Dimension rounding to 256
+
+This is the type of flexible, production-quality implementation you'd use in real research or production code.
 
 ```python
 import torch
@@ -957,7 +1227,49 @@ if torch.cuda.is_available():
 
 ### Using in a Complete Transformer Block
 
-Here's how the FFN fits into a complete transformer block:
+**Problem and Context:**
+
+Understanding activations in isolation is important, but they exist within the broader transformer architecture. This section demonstrates:
+1. **Integration**: How FFN with configurable activations fits into the full transformer block
+2. **Architecture pattern**: The standard pre-norm pattern used in modern LLMs
+3. **End-to-end model**: Building a complete mini language model with different activations
+
+**Why This Matters for Interviews:**
+
+Being able to explain how activation functions fit into the transformer architecture shows:
+- **System-level understanding**: You know where activations are used (FFN, not attention)
+- **Architectural knowledge**: You understand the pre-norm vs post-norm distinction
+- **Practical experience**: You can build complete models, not just isolated components
+
+**Architectural Pattern:**
+
+Modern transformers use the **pre-norm** pattern (normalize before each sub-layer):
+
+```
+x → LayerNorm → Attention → (+) → LayerNorm → FFN → (+)
+↓                            ↑                      ↑
+└────────────────────────────┘                      │
+└──────────────────────────────────────────────────┘
+```
+
+This differs from the original "Attention is All You Need" post-norm pattern and provides:
+- Better gradient flow in deep networks
+- More stable training
+- Ability to train much deeper models
+
+**Key Implementation Details:**
+
+The code below shows:
+1. How the FFN with configurable activation integrates into the transformer block
+2. How to build a complete mini-LLM with different activations
+3. Parameter count comparison between GELU and SwiGLU variants
+
+**Relation to Production Models:**
+
+This pattern is used in all modern LLMs:
+- **GPT-2/3**: Pre-norm with GELU FFN
+- **LLaMA**: Pre-norm with SwiGLU FFN
+- **PaLM**: Pre-norm with SwiGLU FFN
 
 ```python
 import torch
@@ -1262,6 +1574,40 @@ def analyze_gradient_flow(activation: str, n_layers: int = 20):
 ### Solutions
 
 Solutions to these exercises can be found in the accompanying notebook: `solutions/10-activation-functions-solutions.ipynb`
+
+---
+
+## Quick Reference: Activation Functions for Interviews
+
+This table provides a quick reference for common interview questions about activation functions:
+
+| Activation | Formula | Key Properties | Modern Usage | When to Use |
+|------------|---------|----------------|--------------|-------------|
+| **ReLU** | $\max(0, x)$ | Simple, fast, sparse outputs | Legacy models | Simple baselines only |
+| **GELU** | $x \cdot \Phi(x)$ | Smooth, probabilistic | GPT-2/3, BERT | GPT-era models (2018-2020) |
+| **SiLU/Swish** | $x \cdot \sigma(x)$ | Smooth, self-gated | Various experiments | Alternative to GELU |
+| **SwiGLU** | $\text{silu}(xW) \otimes (xV)$ | Gated, best empirical performance | **LLaMA, PaLM, Mistral** | **Default for new LLMs (2022+)** |
+| **GeGLU** | $\text{gelu}(xW) \otimes (xV)$ | Gated, slightly behind SwiGLU | Gemma, some experiments | Alternative gated option |
+| **Mish** | $x \cdot \tanh(\ln(1+e^x))$ | Smooth, non-monotonic | Rare in LLMs | Computer vision mostly |
+
+**Interview Quick Facts:**
+
+- **"What activation does LLaMA use?"** → SwiGLU
+- **"What activation did GPT-2/3 use?"** → GELU (tanh approximation)
+- **"Why SwiGLU over GELU?"** → Gating mechanism allows dynamic, context-dependent activation; empirically better performance
+- **"Parameter impact of SwiGLU?"** → Requires 2 projections (gate + value), so $d_{\text{ff}}$ adjusted from $4d$ to $\frac{8d}{3}$ to maintain similar parameter count
+- **"Computational cost difference?"** → Similar FLOPs when $d_{\text{ff}}$ is adjusted, but SwiGLU uses more activation memory (2x)
+
+**Common Interview Question: "How would you choose between GELU and SwiGLU for a new model?"**
+
+Answer framework:
+1. **Default choice**: SwiGLU (current best practice, used by leading models)
+2. **Consider GELU if**:
+   - Parameter budget is very tight (SwiGLU needs ~33% more parameters for same $d_{\text{ff}}$)
+   - Compatibility with existing GPT-2/3-style codebases is important
+   - Model is small and the performance difference won't matter much
+3. **Performance**: SwiGLU consistently shows better results across benchmarks
+4. **Trend**: Industry has moved to SwiGLU (LLaMA, PaLM, Mistral, etc.)
 
 ---
 

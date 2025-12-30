@@ -125,6 +125,7 @@ Where:
 - $pos$ is the position in the sequence (0, 1, 2, ...)
 - $i$ is the dimension index (0 to $d_{model}/2 - 1$)
 - $d_{model}$ is the embedding dimension
+- $10000$ is an empirically chosen base that provides wavelengths ranging from $2\pi$ to $10000 \cdot 2\pi$ across dimensions, creating a geometric progression of frequencies
 
 ### Intuition
 
@@ -133,6 +134,32 @@ The sinusoidal encoding uses different frequencies for different dimensions:
 - **High dimensions**: Low frequency (changes slowly with position)
 
 This creates a unique "fingerprint" for each position, similar to binary encoding but with smooth, continuous values.
+
+### Why This Approach Works
+
+Before implementing sinusoidal encodings, it's important to understand the theoretical foundation:
+
+**The Problem Being Solved**: We need a function that maps position integers to continuous vectors such that:
+- Each position gets a unique representation
+- The model can learn to identify relative positions (e.g., "5 positions apart")
+- The encoding generalizes to unseen sequence lengths
+
+**Theoretical Justification**: The sinusoidal approach leverages trigonometric properties to achieve these goals:
+
+1. **Uniqueness through frequency decomposition**: By using different frequencies across dimensions (geometric progression from high to low), each position gets a unique "signature." This is analogous to how Fourier analysis decomposes signals into frequency components.
+
+2. **Linear transformation property**: The angle addition formulas for sine and cosine mean that $\text{PE}(pos + k)$ can be expressed as a linear transformation of $\text{PE}(pos)$. This makes it trivial for the model to learn relative position relationships through simple linear operations (what attention naturally does).
+
+3. **Bounded and smooth**: Unlike incrementing integers (0, 1, 2, ...), which grow unbounded, sine and cosine values stay in [-1, 1], preventing numerical instability and ensuring the positional information doesn't dominate the semantic token embeddings.
+
+**Relation to Alternatives**:
+- **vs. Learned embeddings**: Sinusoidal is deterministic and extrapolates, but learned embeddings can be more task-adaptive
+- **vs. Binary encoding**: Binary (0/1 patterns) would give unique positions but lacks smoothness for the model to interpolate
+- **vs. Simple incrementing**: Position values 0, 1, 2, ... would grow unbounded and lack the linear transformation property
+
+**Key Insight**: The genius of sinusoidal encoding is that it provides a **dense, continuous representation** where positions that are close together have similar encodings, while still maintaining uniqueness. The multiple frequencies ensure both local patterns (high frequency) and global patterns (low frequency) are captured.
+
+### Implementation
 
 ```python
 import torch
@@ -283,12 +310,34 @@ if __name__ == "__main__":
 
 **2. Deterministic**: Same position always gets same encoding.
 
-**3. Relative Position Information**: Due to the trigonometric identity:
+**3. Relative Position Information**: The encoding at position $pos + k$ can be represented as a linear transformation of the encoding at position $pos$. Using the trigonometric angle addition formulas:
+
 $$
-\sin(\alpha + \beta) = \sin(\alpha)\cos(\beta) + \cos(\alpha)\sin(\beta)
+\begin{align}
+\sin(\alpha + \beta) &= \sin(\alpha)\cos(\beta) + \cos(\alpha)\sin(\beta) \\
+\cos(\alpha + \beta) &= \cos(\alpha)\cos(\beta) - \sin(\alpha)\sin(\beta)
+\end{align}
 $$
 
-The encoding at position $pos + k$ can be represented as a linear transformation of the encoding at position $pos$. This allows the model to easily learn to attend based on relative positions.
+We can express this relationship as a matrix transformation. For each frequency $\omega_i = 1/10000^{2i/d_{model}}$, the encoding at position $pos + k$ can be written as:
+
+$$
+\begin{bmatrix}
+\text{PE}_{(pos+k, 2i)} \\
+\text{PE}_{(pos+k, 2i+1)}
+\end{bmatrix}
+=
+\begin{bmatrix}
+\cos(k \omega_i) & -\sin(k \omega_i) \\
+\sin(k \omega_i) & \cos(k \omega_i)
+\end{bmatrix}
+\begin{bmatrix}
+\text{PE}_{(pos, 2i)} \\
+\text{PE}_{(pos, 2i+1)}
+\end{bmatrix}
+$$
+
+This means $\text{PE}(pos + k) = M_k \cdot \text{PE}(pos)$, where the transformation matrix $M_k$ depends only on the offset $k$, not the absolute position $pos$. This property allows the model to easily learn to attend based on relative positions, as the relationship between positions is encoded in a linear transformation that is consistent regardless of absolute position.
 
 **4. Infinite Length**: Can generate encodings for any position, even beyond training sequence lengths.
 
@@ -307,6 +356,27 @@ $$
 $$
 
 The positional embeddings are stored in an embedding matrix $P \in \mathbb{R}^{max\_len \times d_{model}}$ and updated during training via backpropagation.
+
+### Why Learn Position Embeddings?
+
+**The Problem Being Solved**: While sinusoidal encodings provide a mathematically elegant solution, they impose a fixed structure on how positions are represented. But what if the optimal positional representation is task-specific? For example, in sentiment analysis, nearby words might be more critical than in machine translation.
+
+**Theoretical Justification**: Learned positional embeddings offer flexibility through optimization:
+
+1. **Task adaptation**: The model learns the positional structure that best serves the specific task during training. For instance, in BERT's masked language modeling, the model might learn that positions near the mask matter more than distant ones.
+
+2. **Implicit pattern discovery**: Rather than hard-coding the sinusoidal pattern, the model discovers patterns in the data. Empirical studies show that learned embeddings often develop local smoothness (nearby positions become similar) naturally through gradient descent.
+
+3. **Simplicity**: Conceptually simpler than sinusoidal—just another embedding table, using the same machinery as token embeddings.
+
+**Relation to Alternatives**:
+- **vs. Sinusoidal**: Trades determinism and extrapolation for task-specific flexibility
+- **vs. No position encoding**: Absolutely necessary—without any positional information, transformers are order-agnostic
+- **vs. Relative methods**: Simpler to implement but encodes absolute position rather than relative distances
+
+**Key Insight**: Learned embeddings demonstrate that **position is a learnable feature** just like word semantics. The model doesn't need to be told how to encode position—it figures out the optimal representation from the training data. This works remarkably well when sequence lengths are fixed or bounded.
+
+**Practical Consideration**: The main limitation is extrapolation—if trained on sequences up to length 512 (like BERT), the model literally has no embedding parameters for position 513. This is a hard constraint, unlike sinusoidal encodings which can generate encodings for any position.
 
 ### Implementation
 
@@ -429,6 +499,19 @@ if __name__ == "__main__":
 ---
 
 ## Comparison: Sinusoidal vs Learned
+
+Now that we understand both approaches theoretically, let's empirically compare them to validate the trade-offs.
+
+### Why Compare Empirically?
+
+**The Problem**: Theory tells us sinusoidal should extrapolate better and learned should be more task-adaptive, but how significant are these differences in practice?
+
+**What We're Testing**:
+1. **Learning capability**: Can both methods learn to use positional information effectively?
+2. **Extrapolation**: What happens when we test on sequences longer than training?
+3. **Convergence speed**: Does one approach learn faster than the other?
+
+**Methodology**: We'll use a toy task (predicting next position) to isolate the effect of positional encoding from other factors. While artificial, this clearly demonstrates how the model uses position information.
 
 Let's empirically compare the two approaches:
 
@@ -556,8 +639,10 @@ if __name__ == "__main__":
 |----------|-----------|---------|
 | **Extrapolation** | ✓ Works on any length | ✗ Limited to max_len |
 | **Parameters** | 0 (deterministic) | max_len × d_model |
+| **Memory** | O(d_model) buffer | O(max_len × d_model) params |
+| **Computation** | One-time O(max_len × d_model) precomputation | O(batch × seq_len) embedding lookups per forward pass |
 | **Interpretability** | ✓ Clear frequency structure | ✗ Opaque learned patterns |
-| **Training Time** | - | Slightly slower (more params) |
+| **Training Time** | Faster (no gradient computation for PE) | Slightly slower (gradients for all positions) |
 | **Performance** | Good | Often slightly better on fixed lengths |
 | **Used In** | Original Transformer, many seq2seq models | GPT-2, GPT-3, BERT |
 
@@ -593,10 +678,199 @@ Where $R$ is a matrix of relative position biases.
 
 **Note**: This is just an introduction. Modern relative positional encoding methods include:
 - **RoPE (Rotary Position Embeddings)**: See [Chapter 8](08-rope.md) for detailed coverage
-- **ALiBi (Attention with Linear Biases)**: Adds biases to attention scores
+- **ALiBi (Attention with Linear Biases)**: Simple yet effective approach covered below
 - **T5's relative position biases**: Learned biases for relative distances
 
-These methods are covered in more detail in subsequent chapters.
+### ALiBi: Attention with Linear Biases
+
+ALiBi ([Press et al., 2021](https://arxiv.org/abs/2108.12409)) provides a remarkably simple alternative to positional encodings. Instead of adding position information to the input embeddings, ALiBi adds a static, non-learned bias directly to the attention scores based on the distance between query and key positions.
+
+#### Mathematical Formulation
+
+The attention mechanism is modified as follows:
+
+$$
+\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}} + \text{bias}_{ij}\right)V
+$$
+
+where the bias for position pair $(i, j)$ is:
+
+$$
+\text{bias}_{ij} = -m \cdot |i - j|
+$$
+
+Here, $m$ is a head-specific slope (a constant, not learned), and $|i - j|$ is the distance between the query position $i$ and key position $j$. Different attention heads use different values of $m$, typically following a geometric sequence: $m \in \{2^{-1}, 2^{-2}, 2^{-3}, ..., 2^{-n}\}$ for $n$ heads.
+
+#### Key Properties
+
+**Advantages**:
+1. **No positional embeddings**: Saves parameters and computation—no need to add anything to the input
+2. **Excellent extrapolation**: Can train on sequences of length 512 and generalize to 2048+ tokens with minimal degradation
+3. **Extremely simple**: Just a single bias addition to attention scores
+4. **Head-specific distances**: Different heads can focus on different distance ranges
+
+**Disadvantages**:
+1. **Linear penalty only**: May not capture all positional relationships as well as more complex methods
+2. **Less common in practice**: RoPE has become more standard for modern LLMs
+
+**Used in**: BLOOM (176B parameter model), MPT models
+
+#### Simple Implementation
+
+```python
+class ALiBiAttention(nn.Module):
+    """Attention with Linear Biases (ALiBi).
+
+    Instead of adding positional encodings to inputs, we add position-dependent
+    biases directly to attention scores.
+
+    Args:
+        d_model: Model dimension
+        num_heads: Number of attention heads
+    """
+    def __init__(self, d_model: int, num_heads: int):
+        super().__init__()
+        self.d_model = d_model
+        self.num_heads = num_heads
+        self.d_k = d_model // num_heads
+
+        # Linear projections
+        self.q_proj = nn.Linear(d_model, d_model)
+        self.k_proj = nn.Linear(d_model, d_model)
+        self.v_proj = nn.Linear(d_model, d_model)
+        self.o_proj = nn.Linear(d_model, d_model)
+
+        # Compute head-specific slopes (not learned, fixed)
+        # For 8 heads: [2^-1, 2^-2, 2^-3, ..., 2^-8]
+        slopes = torch.tensor([2 ** (-i) for i in range(1, num_heads + 1)])
+        self.register_buffer('slopes', slopes)
+
+    def get_alibi_bias(self, seq_len: int, device: torch.device) -> torch.Tensor:
+        """Compute ALiBi bias matrix.
+
+        Args:
+            seq_len: Sequence length
+            device: Device to create tensor on
+
+        Returns:
+            Bias tensor of shape (num_heads, seq_len, seq_len)
+        """
+        # Create position indices
+        positions = torch.arange(seq_len, device=device)
+
+        # Compute distances: |i - j|
+        distances = torch.abs(positions[None, :] - positions[:, None])  # (seq_len, seq_len)
+
+        # Apply head-specific slopes: -m * |i - j|
+        # slopes: (num_heads,), distances: (seq_len, seq_len)
+        # Result: (num_heads, seq_len, seq_len)
+        bias = -self.slopes[:, None, None] * distances[None, :, :]
+
+        return bias
+
+    def forward(self, x: torch.Tensor, mask: torch.Tensor = None) -> torch.Tensor:
+        """Forward pass with ALiBi.
+
+        Args:
+            x: Input tensor of shape (batch, seq_len, d_model)
+            mask: Optional attention mask
+
+        Returns:
+            Output tensor of shape (batch, seq_len, d_model)
+        """
+        batch_size, seq_len, _ = x.shape
+
+        # Linear projections and reshape for multi-head attention
+        # Shape: (batch, num_heads, seq_len, d_k)
+        q = self.q_proj(x).view(batch_size, seq_len, self.num_heads, self.d_k).transpose(1, 2)
+        k = self.k_proj(x).view(batch_size, seq_len, self.num_heads, self.d_k).transpose(1, 2)
+        v = self.v_proj(x).view(batch_size, seq_len, self.num_heads, self.d_k).transpose(1, 2)
+
+        # Compute attention scores
+        scores = torch.matmul(q, k.transpose(-2, -1)) / (self.d_k ** 0.5)
+
+        # Add ALiBi bias
+        alibi_bias = self.get_alibi_bias(seq_len, x.device)
+        scores = scores + alibi_bias.unsqueeze(0)  # Broadcast over batch
+
+        # Apply mask if provided
+        if mask is not None:
+            scores = scores.masked_fill(mask == 0, float('-inf'))
+
+        # Softmax and apply to values
+        attn_weights = torch.softmax(scores, dim=-1)
+        output = torch.matmul(attn_weights, v)
+
+        # Reshape and project
+        output = output.transpose(1, 2).contiguous().view(batch_size, seq_len, self.d_model)
+        output = self.o_proj(output)
+
+        return output
+
+
+def demonstrate_alibi():
+    """Demonstrate ALiBi bias patterns."""
+    num_heads = 4
+    seq_len = 20
+
+    # Create ALiBi attention module
+    alibi_attn = ALiBiAttention(d_model=64, num_heads=num_heads)
+
+    # Get bias matrix
+    bias = alibi_attn.get_alibi_bias(seq_len, torch.device('cpu'))
+
+    print(f"ALiBi bias shape: {bias.shape}")
+    print(f"Head slopes: {alibi_attn.slopes.tolist()}")
+
+    # Visualize bias patterns
+    fig, axes = plt.subplots(1, num_heads, figsize=(16, 4))
+
+    for head in range(num_heads):
+        im = axes[head].imshow(bias[head].numpy(), cmap='RdYlGn', aspect='auto')
+        axes[head].set_title(f'Head {head} (slope={alibi_attn.slopes[head]:.3f})')
+        axes[head].set_xlabel('Key Position')
+        axes[head].set_ylabel('Query Position')
+        plt.colorbar(im, ax=axes[head])
+
+    plt.suptitle('ALiBi Bias Patterns: Darker = More Negative = Less Attention', y=1.02)
+    plt.tight_layout()
+    plt.savefig('/tmp/alibi_patterns.png', dpi=150, bbox_inches='tight')
+    print("\nALiBi visualization saved to /tmp/alibi_patterns.png")
+    print("\nNotice: Diagonal is 0 (no penalty for same position)")
+    print("        Bias becomes more negative farther from diagonal")
+    print("        Different heads have different slopes (different 'attention ranges')")
+
+
+if __name__ == "__main__":
+    demonstrate_alibi()
+```
+
+The beauty of ALiBi lies in its simplicity: by penalizing attention to distant tokens linearly, the model learns to focus on nearby context while still maintaining the ability to attend to far positions when necessary. The lack of learned parameters for position encoding means the method naturally extrapolates to longer sequences than seen during training.
+
+**When to use ALiBi vs RoPE**: For modern production LLMs, RoPE ([Chapter 8](08-rope.md)) has become the dominant choice and is used in models like LLaMA, GPT-NeoX, and PaLM. However, ALiBi remains an elegant and effective alternative, especially valued for its simplicity and strong extrapolation properties.
+
+### T5-Style Relative Position Biases
+
+Beyond ALiBi, another influential approach is the relative position bias used in T5 (Text-to-Text Transfer Transformer).
+
+**The Problem Being Solved**: Both absolute encodings (sinusoidal and learned) encode "position 5" and "position 10" as fixed vectors. But linguistically, what often matters is that two words are "5 positions apart," regardless of their absolute positions. Relative position bias directly models this distance relationship.
+
+**Theoretical Justification**:
+
+1. **Translation invariance**: The relationship between words should depend on their relative distance, not absolute positions. "The cat sat" has the same structure whether it appears at the start or middle of a document.
+
+2. **Learnable distance importance**: Different distances (adjacent, nearby, far) may have different importance for different heads. The model learns these importance weights through the bias parameters.
+
+3. **Attention-level encoding**: Rather than adding position to embeddings (which then propagates through all layers possibly getting diluted), relative biases directly influence attention scores where position matters most.
+
+**Relation to Alternatives**:
+- **vs. Absolute encodings**: More robust to position shifts; models relationships rather than locations
+- **vs. ALiBi**: More flexible (learned) but requires parameters; ALiBi is simpler and parameter-free
+- **vs. RoPE**: T5-style is conceptually simpler but RoPE has better theoretical properties for long-range extrapolation
+
+**Key Insight**: By making the bias depend only on $|i - j|$ (the distance), the model learns a **distance function** rather than position embeddings. This means "5 positions apart" always has the same bias, whether that's positions (0,5), (10,15), or (100,105).
+
+**Practical Note**: T5 uses bucketing to limit the number of parameters—distances beyond a threshold are grouped into buckets (e.g., all distances > 128 use the same bias). This simplifies the model while retaining the relative position benefits.
 
 ```python
 class SimpleRelativePositionalBias(nn.Module):
@@ -688,6 +962,35 @@ if __name__ == "__main__":
 ---
 
 ## Complete Implementation
+
+Now we bring together all the concepts to show how positional encodings integrate into a full transformer architecture.
+
+### Why a Complete Implementation?
+
+**The Problem**: Understanding individual components (embeddings, positional encoding, attention) is crucial, but seeing how they **compose** into a working system is equally important. The complete picture shows:
+- How position information flows through the model
+- The interaction between token semantics and position
+- Practical considerations for building production systems
+
+**What This Demonstrates**:
+1. **Component integration**: Token embeddings + positional encoding + transformer layers + output projection
+2. **Flexibility**: Easy to swap between different positional encoding schemes
+3. **End-to-end training**: How gradients flow back through all components
+
+**Architecture Flow**:
+```
+Input tokens (batch, seq_len)
+    ↓ [Token Embedding]
+Token embeddings (batch, seq_len, d_model)
+    ↓ [+ Positional Encoding]
+Position-aware embeddings (batch, seq_len, d_model)
+    ↓ [Transformer Layers]
+Contextualized representations (batch, seq_len, d_model)
+    ↓ [Output Projection]
+Logits (batch, seq_len, vocab_size)
+```
+
+**Key Insight**: Positional encoding happens **exactly once** at the input. After that, the position information is implicitly carried through the residual connections and attention patterns. The transformer layers don't need to re-encode position—it's already baked into the representations.
 
 Let's put it all together with a complete example showing how positional encodings integrate with the full transformer pipeline:
 

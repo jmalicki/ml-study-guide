@@ -26,9 +26,16 @@ This chapter covers the fundamentals of training large language models (LLMs) th
    - [Loss Scaling](#loss-scaling)
 6. [Advanced Training Techniques](#advanced-training-techniques)
    - [Gradient Clipping](#gradient-clipping)
-   - [Learning Rate Warmup](#learning-rate-warmup)
+   - [Learning Rate Warmup and Schedules](#learning-rate-warmup-and-schedules)
    - [Weight Decay](#weight-decay)
-7. [Putting It All Together](#putting-it-all-together)
+   - [Gradient Checkpointing](#gradient-checkpointing)
+7. [Common Issues and Solutions](#common-issues-and-solutions)
+   - [Loss Not Decreasing](#loss-not-decreasing)
+   - [NaN or Inf Values in Loss](#nan-or-inf-values-in-loss)
+   - [Out of Memory (OOM) Errors](#out-of-memory-oom-errors)
+   - [Slow Training](#slow-training)
+   - [Model Not Converging](#model-not-converging)
+8. [Putting It All Together](#putting-it-all-together)
 
 ---
 
@@ -314,6 +321,38 @@ y'_i = \begin{cases}
 \frac{\epsilon}{V} & \text{otherwise}
 \end{cases}
 $$
+
+#### Problem: Model Overconfidence
+
+Standard cross-entropy training encourages models to assign probability 1.0 to the correct token and 0.0 to all others. This can lead to:
+- **Overconfidence**: Model becomes too certain about predictions, even when multiple tokens might be valid
+- **Poor calibration**: Predicted probabilities don't reflect true uncertainty
+- **Reduced generalization**: Model memorizes training distribution rather than learning robust patterns
+
+#### Theoretical Justification
+
+Label smoothing acts as a regularizer by preventing the model from becoming overly confident:
+
+1. **Entropy regularization**: By distributing some probability mass to incorrect tokens, label smoothing increases the entropy of the output distribution, encouraging the model to remain uncertain when appropriate.
+
+2. **Implicit knowledge distillation**: The smoothed distribution can be viewed as a soft teacher that provides additional information about which wrong answers are "less wrong" (all wrong answers are treated equally).
+
+3. **Prevents extreme logits**: Without smoothing, the model is incentivized to push logits to $\pm\infty$ to achieve 100% probability. Smoothing bounds the optimal logits, leading to more stable training.
+
+#### Relationship to Alternatives
+
+- **Dropout**: Both prevent overfitting, but dropout adds noise during training while label smoothing modifies the training objective
+- **Temperature scaling**: Used at inference time for calibration; label smoothing affects training
+- **Mixup**: Another regularization technique that interpolates between training examples; label smoothing is simpler and cheaper
+
+#### Key Insight
+
+The optimal logit for the correct class with label smoothing $\epsilon$ is bounded: rather than pushing logits to infinity, the model learns to output finite values. This creates a margin between correct and incorrect predictions without extreme values, leading to:
+- Better generalization to unseen data
+- More robust probability estimates
+- Reduced sensitivity to mislabeled training data
+
+Note: Label smoothing is **rarely used in LLM pretraining** (where data is abundant and diverse) but can be beneficial for fine-tuning on smaller datasets or classification tasks.
 
 ```python
 class LabelSmoothingCrossEntropy(nn.Module):
@@ -1260,9 +1299,78 @@ def why_gradient_clipping():
     pass
 ```
 
-### Learning Rate Warmup
+### Learning Rate Warmup and Schedules
 
-Learning rate warmup gradually increases the learning rate from 0 to the target value at the start of training.
+Learning rate scheduling is crucial for stable and efficient LLM training. Modern training typically combines warmup with various decay strategies.
+
+#### Learning Rate Warmup
+
+Warmup gradually increases the learning rate from 0 to the target value at the start of training.
+
+##### The Problem: Training Instability at Initialization
+
+When training starts, the model parameters are randomly initialized and far from optimal. Using a large learning rate immediately can cause:
+
+1. **Divergence**: Large gradient updates can push parameters to regions with even worse loss
+2. **Optimizer state instability**: Adaptive optimizers (Adam, AdamW) need time to build accurate estimates of gradient statistics
+3. **Layer-wise gradient imbalance**: Different layers may have vastly different gradient magnitudes initially
+
+**Example**: Starting GPT-3 training at lr=3e-4 from random initialization can cause the loss to spike to infinity within the first few steps.
+
+##### Theoretical Justification
+
+**1. Optimizer Moment Estimation**
+
+Adam/AdamW maintain running estimates of gradient mean $m_t$ and variance $v_t$:
+
+$$
+m_t = \beta_1 m_{t-1} + (1-\beta_1) g_t
+$$
+$$
+v_t = \beta_2 v_{t-1} + (1-\beta_2) g_t^2
+$$
+
+Early in training, these estimates are unreliable (high bias toward initialization at 0). Warmup gives the optimizer time to build accurate statistics before taking large steps.
+
+**2. Gradient Noise and Batch Statistics**
+
+At initialization, gradients can have high variance. The effective learning rate in Adam is $\frac{\alpha}{\sqrt{v_t}}$. Without warmup:
+- Small initial $v_t$ → very large effective learning rate → instability
+- Warmup allows $v_t$ to stabilize before using the full learning rate
+
+**3. Sharp Loss Landscapes**
+
+Random initialization may place parameters in regions with:
+- Sharp minima (high curvature)
+- Large gradients in certain directions
+
+Warmup allows the model to escape these regions gently before accelerating optimization.
+
+##### Relationship to Alternatives
+
+- **Learning rate decay**: Applied late in training to refine convergence; warmup is applied at the start
+- **Gradient clipping**: Prevents exploding gradients; warmup prevents them from occurring in the first place
+- **Batch size warmup**: Alternative approach where batch size increases instead of learning rate (less common)
+- **Layer-wise learning rates**: Different learning rates per layer; warmup applies to all layers
+
+Warmup and decay are often combined: warmup → stable → decay (see WSD schedule below).
+
+##### Key Insights
+
+1. **Duration is critical but small**: Typical warmup is only 0.5-2% of total training steps, but it prevents catastrophic failures
+2. **Linear warmup is standard**: More complex schedules (exponential, etc.) provide minimal benefit
+3. **Larger models need more warmup**: GPT-3 used 375M warmup steps; smaller models use 1,000-2,000
+4. **Works across architectures**: Transformers, CNNs, ResNets all benefit from warmup
+5. **Essential for adaptive optimizers**: Less critical for SGD with momentum, crucial for Adam/AdamW
+
+##### Empirical Evidence
+
+- **BERT**: 10,000 step warmup (critical for training stability)
+- **GPT-3**: 375M warmup steps out of 300B tokens
+- **LLaMA**: 2,000 step warmup
+- **Chinchilla**: ~1% of total steps
+
+Without warmup, these models would diverge or converge to poor solutions.
 
 ```python
 class WarmupScheduler:
@@ -1271,9 +1379,6 @@ class WarmupScheduler:
 
     Warmup prevents early instability by starting with a small learning rate
     and gradually increasing to the target value.
-
-    See [Hardware, Quantization, and Training Optimization](31-hardware-quantization-optimization.md)
-    for more advanced schedules (cosine, WSD, etc.).
     """
 
     def __init__(
@@ -1310,34 +1415,6 @@ class WarmupScheduler:
         return self.optimizer.param_groups[0]['lr']
 
 
-# Example usage
-def train_with_warmup():
-    """Example of training with learning rate warmup."""
-    model = CausalLanguageModel(vocab_size=50000, d_model=768, n_layers=12)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4)
-
-    # Create scheduler with 2000 warmup steps
-    scheduler = WarmupScheduler(
-        optimizer=optimizer,
-        warmup_steps=2000,
-        initial_lr=0.0,
-        max_lr=3e-4
-    )
-
-    # Training loop
-    for epoch in range(num_epochs):
-        for batch in train_dataloader:
-            # Training step
-            loss = train_step(model, optimizer, batch)
-
-            # Update learning rate
-            scheduler.step()
-
-            # Log current learning rate
-            if step % 100 == 0:
-                print(f"Step {step}, LR: {scheduler.get_lr():.2e}, Loss: {loss:.4f}")
-
-
 def why_warmup():
     """
     Why learning rate warmup is important.
@@ -1362,6 +1439,586 @@ def why_warmup():
     - Usually <1% of total training steps
     """
     pass
+```
+
+#### Cosine Annealing Schedule
+
+Cosine annealing smoothly decays the learning rate following a cosine curve. This is one of the most popular schedules for LLM training.
+
+##### The Problem: Balancing Exploration and Convergence
+
+During training, we face competing objectives:
+- **Early/mid training**: Need high learning rate to explore loss landscape and make rapid progress
+- **Late training**: Need low learning rate to converge to a good minimum without overshooting
+
+A constant learning rate can't satisfy both. Abrupt changes (step decay) can cause:
+- Training instability when learning rate drops
+- Wasted computation if decay happens too early or too late
+- Difficulty in hyperparameter tuning (when to decay? by how much?)
+
+##### Theoretical Justification
+
+**1. Smooth Convergence**
+
+The cosine schedule provides a smooth, continuous decay that:
+- Gradually reduces learning rate as training progresses
+- Avoids sudden jumps that can destabilize training
+- Ensures the model smoothly transitions from exploration to exploitation
+
+**2. Stochastic Gradient Descent Theory**
+
+Classical SGD theory suggests that learning rate should decay as $O(1/\sqrt{t})$ or $O(1/t)$ for convergence guarantees. However, for non-convex deep learning:
+- Cosine decay is empirically superior to polynomial decay
+- The specific functional form matters less than smooth, monotonic decrease
+- Cosine provides a good balance: fast initial decay, slower later decay
+
+**3. Connection to Simulated Annealing**
+
+Cosine annealing draws inspiration from simulated annealing in optimization:
+- High "temperature" (learning rate) early: explore widely
+- Gradually cool (decay lr): focus on promising regions
+- Low temperature late: fine-tune solution
+
+The cosine curve naturally implements this cooling schedule.
+
+##### Relationship to Alternatives
+
+- **Step decay**: Drops learning rate by fixed factor at intervals; cosine is smoother and requires less tuning
+- **Exponential decay**: $\text{lr}(t) = \text{lr}_0 e^{-\lambda t}$; decays too quickly early, too slowly late
+- **Linear decay**: $\text{lr}(t) = \text{lr}_0 (1 - t/T)$; simpler but cosine provides better empirical results
+- **Polynomial decay**: $\text{lr}(t) = \text{lr}_0 (1 - t/T)^p$; cosine is special case with smoother transition
+- **Inverse sqrt**: $\text{lr}(t) = \text{lr}_0 / \sqrt{t}$; never reaches zero, used when training time is unknown
+
+**Why cosine wins in practice:**
+- Single hyperparameter (min_lr) vs multiple for step decay
+- Smooth transitions prevent instability
+- Works well across diverse tasks and model sizes
+- Strong empirical track record (GPT-3, LLaMA, etc.)
+
+##### Key Insights
+
+1. **Front-loaded decay**: Cosine schedule decays more aggressively early, slower late - matches typical training dynamics where most progress happens early
+
+2. **Non-zero minimum**: Setting $\text{lr}_{\min} = 0.1 \times \text{lr}_{\max}$ (rather than 0) prevents premature stagnation and allows continued refinement
+
+3. **Restarts possible**: Cosine schedule can be restarted (SGDR - Stochastic Gradient Descent with Warm Restarts) to escape local minima, though rarely used in LLM pretraining
+
+4. **Schedule length must match training**: Unlike inverse-sqrt, cosine requires knowing total training steps upfront - a minor constraint in practice
+
+5. **Empirical sweet spot**: The cosine curve happens to match the empirical behavior of loss improvement in transformers, though the theoretical reason is not fully understood
+
+**Mathematical Formulation:**
+
+After warmup, the learning rate follows:
+
+$$
+\text{lr}(t) = \text{lr}_{\min} + \frac{1}{2}(\text{lr}_{\max} - \text{lr}_{\min}) \left(1 + \cos\left(\frac{t - t_{\text{warmup}}}{T - t_{\text{warmup}}} \pi\right)\right)
+$$
+
+where:
+- $t$ is the current step
+- $t_{\text{warmup}}$ is the warmup duration
+- $T$ is the total training steps
+- $\text{lr}_{\max}$ is the peak learning rate
+- $\text{lr}_{\min}$ is the minimum learning rate (often 0.1 × lr_max)
+
+**Properties:**
+- At $t = t_{\text{warmup}}$: $\text{lr} = \text{lr}_{\max}$ (starts at peak)
+- At $t = T$: $\text{lr} = \text{lr}_{\min}$ (ends at minimum)
+- Derivative is continuous everywhere (smooth)
+- Decay rate is fastest around $t = (T + t_{\text{warmup}})/2$ (midpoint)
+
+```python
+import math
+
+class CosineAnnealingWithWarmup:
+    """
+    Cosine annealing learning rate schedule with warmup.
+
+    Used in GPT-3, LLaMA, and many modern LLMs.
+
+    Learning rate schedule:
+    - Steps 0 to warmup_steps: Linear increase from 0 to max_lr
+    - Steps warmup_steps to total_steps: Cosine decay from max_lr to min_lr
+    """
+
+    def __init__(
+        self,
+        optimizer: torch.optim.Optimizer,
+        warmup_steps: int,
+        total_steps: int,
+        max_lr: float = 3e-4,
+        min_lr: float = 3e-5
+    ):
+        self.optimizer = optimizer
+        self.warmup_steps = warmup_steps
+        self.total_steps = total_steps
+        self.max_lr = max_lr
+        self.min_lr = min_lr
+        self.current_step = 0
+
+    def step(self):
+        """Update learning rate for current step."""
+        self.current_step += 1
+
+        if self.current_step <= self.warmup_steps:
+            # Linear warmup
+            lr = self.max_lr * self.current_step / self.warmup_steps
+        else:
+            # Cosine decay
+            progress = (self.current_step - self.warmup_steps) / \
+                      (self.total_steps - self.warmup_steps)
+            lr = self.min_lr + 0.5 * (self.max_lr - self.min_lr) * \
+                 (1 + math.cos(math.pi * progress))
+
+        # Update optimizer
+        for param_group in self.optimizer.param_groups:
+            param_group['lr'] = lr
+
+    def get_lr(self) -> float:
+        """Get current learning rate."""
+        return self.optimizer.param_groups[0]['lr']
+
+
+# PyTorch built-in version
+def get_cosine_schedule_with_warmup_pytorch(
+    optimizer: torch.optim.Optimizer,
+    warmup_steps: int,
+    total_steps: int
+):
+    """
+    Create cosine schedule using PyTorch's built-in scheduler.
+
+    This is equivalent to the manual implementation above.
+    """
+    from torch.optim.lr_scheduler import LambdaLR
+
+    def lr_lambda(step):
+        if step < warmup_steps:
+            # Warmup
+            return step / warmup_steps
+        else:
+            # Cosine decay
+            progress = (step - warmup_steps) / (total_steps - warmup_steps)
+            return 0.5 * (1 + math.cos(math.pi * progress))
+
+    return LambdaLR(optimizer, lr_lambda)
+```
+
+#### Linear Decay Schedule
+
+Linear decay decreases the learning rate linearly after warmup. Simpler than cosine but still effective.
+
+$$
+\text{lr}(t) = \text{lr}_{\max} \times \left(1 - \frac{t - t_{\text{warmup}}}{T - t_{\text{warmup}}}\right)
+$$
+
+```python
+class LinearDecayWithWarmup:
+    """
+    Linear learning rate decay with warmup.
+
+    Simpler alternative to cosine annealing.
+    Used in some BERT variants and older transformers.
+    """
+
+    def __init__(
+        self,
+        optimizer: torch.optim.Optimizer,
+        warmup_steps: int,
+        total_steps: int,
+        max_lr: float = 3e-4,
+        min_lr: float = 0.0
+    ):
+        self.optimizer = optimizer
+        self.warmup_steps = warmup_steps
+        self.total_steps = total_steps
+        self.max_lr = max_lr
+        self.min_lr = min_lr
+        self.current_step = 0
+
+    def step(self):
+        """Update learning rate for current step."""
+        self.current_step += 1
+
+        if self.current_step <= self.warmup_steps:
+            # Linear warmup
+            lr = self.max_lr * self.current_step / self.warmup_steps
+        else:
+            # Linear decay
+            progress = (self.current_step - self.warmup_steps) / \
+                      (self.total_steps - self.warmup_steps)
+            lr = self.max_lr - (self.max_lr - self.min_lr) * progress
+
+        # Ensure lr doesn't go below min_lr
+        lr = max(lr, self.min_lr)
+
+        for param_group in self.optimizer.param_groups:
+            param_group['lr'] = lr
+
+    def get_lr(self) -> float:
+        return self.optimizer.param_groups[0]['lr']
+```
+
+#### Inverse Square Root Schedule
+
+The inverse square root schedule decays learning rate as $1/\sqrt{t}$. Popular in machine translation and early transformer models.
+
+$$
+\text{lr}(t) = \text{lr}_{\max} \times \min\left(1, \frac{1}{\sqrt{t}}, \frac{t}{t_{\text{warmup}}}\right)
+$$
+
+```python
+class InverseSqrtSchedule:
+    """
+    Inverse square root learning rate schedule.
+
+    Used in the original Transformer paper (Vaswani et al., 2017).
+    Less common for modern LLM pretraining but still used in some settings.
+
+    lr(t) = d_model^(-0.5) * min(t^(-0.5), t * warmup_steps^(-1.5))
+    """
+
+    def __init__(
+        self,
+        optimizer: torch.optim.Optimizer,
+        warmup_steps: int,
+        d_model: int = 512,  # Model dimension, used for scaling
+        scale: float = 1.0
+    ):
+        self.optimizer = optimizer
+        self.warmup_steps = warmup_steps
+        self.d_model = d_model
+        self.scale = scale
+        self.current_step = 0
+
+    def step(self):
+        """Update learning rate for current step."""
+        self.current_step += 1
+
+        # Original Transformer formulation
+        step = max(self.current_step, 1)  # Avoid division by zero
+        lr = self.scale * (self.d_model ** -0.5) * \
+             min(step ** -0.5, step * (self.warmup_steps ** -1.5))
+
+        for param_group in self.optimizer.param_groups:
+            param_group['lr'] = lr
+
+    def get_lr(self) -> float:
+        return self.optimizer.param_groups[0]['lr']
+```
+
+#### WSD (Warmup-Stable-Decay) Schedule
+
+The WSD schedule is used in many recent large language models. It consists of three phases: warmup, stable training at peak LR, and final decay.
+
+##### The Problem: Premature Decay vs Late Convergence
+
+Traditional cosine schedules decay learning rate throughout training. However, for very large models and long training runs, this presents challenges:
+
+1. **Uncertainty in training budget**: You may want to extend training if loss is still decreasing
+2. **Most learning happens mid-training**: Early training is exploration; late training is refinement; mid-training does the heavy lifting
+3. **Cosine decay starts immediately**: After warmup, learning rate begins decreasing - potentially too early for massive models
+
+**Example**: PaLM (540B parameters) and Chinchilla (70B) trained on trillions of tokens. Starting decay immediately after warmup would waste the majority of training compute.
+
+##### Theoretical Justification
+
+**1. Staged Learning Dynamics**
+
+Large-scale training exhibits distinct phases:
+- **Phase 1 (Warmup)**: Stabilize optimizer and escape initialization
+- **Phase 2 (Stable)**: Rapid loss reduction as model learns fundamental patterns
+- **Phase 3 (Decay)**: Fine-tuning and convergence to final solution
+
+WSD explicitly models these phases rather than smoothly transitioning between them.
+
+**2. Computational Efficiency**
+
+For models trained on 1-10 trillion tokens:
+- Warmup: ~1% of steps (stabilization)
+- Stable: ~80-90% of steps (main learning)
+- Decay: ~10-15% of steps (convergence)
+
+This allocation ensures maximum compute is spent with optimal learning rate, with decay reserved for final refinement.
+
+**3. Flexibility and Continuation**
+
+Unlike cosine (which requires knowing total steps upfront), WSD:
+- Allows extending training in stable phase if beneficial
+- Can transition to decay phase based on validation performance
+- Separates exploration (stable) from exploitation (decay)
+
+##### Relationship to Alternatives
+
+- **Cosine annealing**: WSD is a generalization; cosine ≈ WSD with zero stable phase
+- **Constant LR**: WSD's stable phase is constant LR, but adds warmup and decay
+- **Step decay**: WSD uses smooth decay after stable, not abrupt steps
+- **Inverse sqrt**: Never reaches minimum; WSD guarantees convergence via decay phase
+
+**Why WSD for large-scale training:**
+- Cosine: Good for fixed budgets, shorter training
+- WSD: Better for long training runs, flexible stopping, very large models
+- Most modern LLMs use WSD or variants (PaLM, Chinchilla, Gopher, etc.)
+
+##### Key Insights
+
+1. **Most learning happens at peak LR**: The stable phase (80-90% of training) should use the maximum learning rate, not a decaying one
+
+2. **Decay for final convergence only**: The last 10-15% is enough to converge; decaying earlier wastes potential learning
+
+3. **Empirical validation**: PaLM, Chinchilla, and Gopher all showed improved performance with WSD vs continuous decay
+
+4. **Scaling law compatibility**: WSD aligns with Chinchilla scaling laws suggesting optimal compute allocation throughout training
+
+5. **Monitoring is key**: Can observe when loss plateaus in stable phase to decide when to start decay phase
+
+##### Typical Allocation
+
+For a training run of $T$ total steps:
+- **Warmup**: $0.01T$ to $0.02T$ (1-2%)
+- **Stable**: $0.80T$ to $0.90T$ (80-90%)
+- **Decay**: $0.10T$ to $0.15T$ (10-15%)
+
+**Example (100K steps):**
+- Warmup: 1,000 steps
+- Stable: 85,000 steps
+- Decay: 14,000 steps
+
+```python
+class WSDSchedule:
+    """
+    Warmup-Stable-Decay (WSD) learning rate schedule.
+
+    Used in recent large language models like PaLM and Chinchilla.
+
+    Three phases:
+    1. Warmup: Linear increase to max_lr
+    2. Stable: Constant max_lr for majority of training
+    3. Decay: Cosine or linear decay to min_lr
+
+    Typical allocation:
+    - Warmup: 1-2% of total steps
+    - Stable: 80-90% of total steps
+    - Decay: 10-15% of total steps
+    """
+
+    def __init__(
+        self,
+        optimizer: torch.optim.Optimizer,
+        warmup_steps: int,
+        stable_steps: int,
+        decay_steps: int,
+        max_lr: float = 3e-4,
+        min_lr: float = 3e-5,
+        decay_type: str = 'cosine'  # 'cosine' or 'linear'
+    ):
+        self.optimizer = optimizer
+        self.warmup_steps = warmup_steps
+        self.stable_steps = stable_steps
+        self.decay_steps = decay_steps
+        self.max_lr = max_lr
+        self.min_lr = min_lr
+        self.decay_type = decay_type
+        self.current_step = 0
+
+        self.total_steps = warmup_steps + stable_steps + decay_steps
+
+    def step(self):
+        """Update learning rate for current step."""
+        self.current_step += 1
+
+        if self.current_step <= self.warmup_steps:
+            # Phase 1: Warmup
+            lr = self.max_lr * self.current_step / self.warmup_steps
+
+        elif self.current_step <= self.warmup_steps + self.stable_steps:
+            # Phase 2: Stable
+            lr = self.max_lr
+
+        else:
+            # Phase 3: Decay
+            decay_progress = (self.current_step - self.warmup_steps - self.stable_steps) / \
+                           self.decay_steps
+
+            if self.decay_type == 'cosine':
+                lr = self.min_lr + 0.5 * (self.max_lr - self.min_lr) * \
+                     (1 + math.cos(math.pi * decay_progress))
+            else:  # linear
+                lr = self.max_lr - (self.max_lr - self.min_lr) * decay_progress
+
+        for param_group in self.optimizer.param_groups:
+            param_group['lr'] = lr
+
+    def get_lr(self) -> float:
+        return self.optimizer.param_groups[0]['lr']
+
+
+# Example: Create WSD schedule for 100K steps
+def example_wsd_schedule():
+    """Example WSD schedule configuration."""
+    total_steps = 100000
+
+    # Typical allocation
+    warmup_steps = int(0.01 * total_steps)      # 1% warmup
+    stable_steps = int(0.85 * total_steps)      # 85% stable
+    decay_steps = total_steps - warmup_steps - stable_steps  # 14% decay
+
+    model = CausalLanguageModel(vocab_size=50000, d_model=768, n_layers=12)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4)
+
+    scheduler = WSDSchedule(
+        optimizer=optimizer,
+        warmup_steps=warmup_steps,
+        stable_steps=stable_steps,
+        decay_steps=decay_steps,
+        max_lr=3e-4,
+        min_lr=3e-5,
+        decay_type='cosine'
+    )
+
+    return scheduler
+```
+
+#### Comparing Learning Rate Schedules
+
+```python
+def compare_lr_schedules():
+    """
+    Compare different learning rate schedules.
+
+    Visualize how different schedules behave over training.
+    """
+    import matplotlib.pyplot as plt
+
+    total_steps = 10000
+    warmup_steps = 500
+    max_lr = 3e-4
+    min_lr = 3e-5
+
+    # Create dummy optimizer
+    model = nn.Linear(10, 10)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=max_lr)
+
+    # Create schedulers
+    schedules = {
+        'Cosine': CosineAnnealingWithWarmup(
+            optimizer, warmup_steps, total_steps, max_lr, min_lr
+        ),
+        'Linear Decay': LinearDecayWithWarmup(
+            optimizer, warmup_steps, total_steps, max_lr, min_lr
+        ),
+        'WSD': WSDSchedule(
+            optimizer, warmup_steps, int(0.8 * total_steps),
+            total_steps - warmup_steps - int(0.8 * total_steps),
+            max_lr, min_lr, 'cosine'
+        ),
+    }
+
+    # Track learning rates
+    lr_histories = {name: [] for name in schedules}
+
+    for step in range(total_steps):
+        for name, scheduler in schedules.items():
+            lr_histories[name].append(scheduler.get_lr())
+            scheduler.step()
+
+    # Plot
+    plt.figure(figsize=(12, 6))
+    for name, lrs in lr_histories.items():
+        plt.plot(lrs, label=name, linewidth=2)
+
+    plt.xlabel('Training Step')
+    plt.ylabel('Learning Rate')
+    plt.title('Learning Rate Schedule Comparison')
+    plt.legend()
+    plt.grid(alpha=0.3)
+    plt.tight_layout()
+    plt.savefig('lr_schedules.png')
+    plt.close()
+
+    print("Learning rate schedule comparison saved to lr_schedules.png")
+
+
+def schedule_recommendations():
+    """
+    Recommendations for choosing learning rate schedules.
+
+    1. Cosine Annealing (Most Common):
+       - Best for: Pretraining large language models
+       - Pros: Smooth decay, well-studied, good empirical results
+       - Cons: Requires knowing total training steps in advance
+       - Use cases: GPT-3, LLaMA, most modern LLMs
+
+    2. WSD (Modern Choice):
+       - Best for: Very large models, long training runs
+       - Pros: Stable phase allows for more consistent training
+       - Cons: More hyperparameters to tune
+       - Use cases: PaLM, Chinchilla, Gopher
+
+    3. Linear Decay:
+       - Best for: Fine-tuning, smaller models
+       - Pros: Simple, predictable
+       - Cons: Less smooth than cosine, may not optimize as well
+       - Use cases: BERT fine-tuning, classification tasks
+
+    4. Inverse Square Root:
+       - Best for: Machine translation, when training time is unknown
+       - Pros: No need to specify total steps, mathematically principled
+       - Cons: Less common for modern LLM pretraining
+       - Use cases: Original Transformer, NMT models
+
+    General Guidelines:
+    - For pretraining: Use Cosine or WSD
+    - For fine-tuning: Use Linear Decay or Cosine with short decay
+    - Warmup steps: 0.5-2% of total training steps
+    - min_lr: Typically 10% of max_lr (e.g., 3e-5 if max_lr is 3e-4)
+    """
+    pass
+```
+
+#### Example: Training with Cosine Schedule
+
+```python
+def train_with_cosine_schedule():
+    """Example of training with cosine annealing schedule."""
+    # Configuration
+    total_steps = 100000
+    warmup_steps = 2000
+    max_lr = 3e-4
+    min_lr = 3e-5
+
+    # Model and optimizer
+    model = CausalLanguageModel(vocab_size=50000, d_model=768, n_layers=12)
+    optimizer = torch.optim.AdamW(
+        model.parameters(),
+        lr=max_lr,
+        betas=(0.9, 0.95),
+        weight_decay=0.1
+    )
+
+    # Create scheduler
+    scheduler = CosineAnnealingWithWarmup(
+        optimizer=optimizer,
+        warmup_steps=warmup_steps,
+        total_steps=total_steps,
+        max_lr=max_lr,
+        min_lr=min_lr
+    )
+
+    # Training loop
+    for step in range(total_steps):
+        # Training step
+        loss = train_step(model, optimizer)
+
+        # Update learning rate
+        scheduler.step()
+
+        # Log
+        if step % 1000 == 0:
+            current_lr = scheduler.get_lr()
+            print(f"Step {step}/{total_steps}: "
+                  f"Loss = {loss:.4f}, LR = {current_lr:.2e}")
 ```
 
 ### Weight Decay
@@ -1431,6 +2088,910 @@ def selective_weight_decay():
         {'params': decay_params, 'weight_decay': 0.1},
         {'params': no_decay_params, 'weight_decay': 0.0}
     ], lr=3e-4)
+```
+
+### Gradient Checkpointing
+
+Gradient checkpointing (also called activation checkpointing) is a memory-saving technique that trades computation for memory by recomputing activations during the backward pass instead of storing them.
+
+#### The Problem: Activation Memory Bottleneck
+
+During standard backpropagation, the forward pass computes and stores activations at every layer. These activations are needed during the backward pass to compute gradients via the chain rule. For deep networks:
+
+- **Memory grows linearly with depth**: A 32-layer transformer stores 32 sets of activations
+- **Activation memory dominates**: For large models, activations often consume 10-100x more memory than model parameters
+- **Limits batch size and model scale**: With limited GPU memory, you're forced to use smaller batches or smaller models
+
+**Example**: A 7B parameter LLaMA model with batch_size=8, seq_len=2048 requires ~100GB just for activations (far exceeding parameter storage of ~14GB in BF16).
+
+#### Theoretical Justification: The Memory-Computation Trade-off
+
+Gradient checkpointing is based on a fundamental insight: **activations can be recomputed from stored checkpoints**.
+
+**Mathematical Formulation:**
+
+For a sequential model $f = f_L \circ f_{L-1} \circ \cdots \circ f_1$:
+- Standard backprop: Store all intermediate activations $a_1, a_2, \ldots, a_L$
+- Gradient checkpointing: Store only selected checkpoints (e.g., every $k$ layers)
+- During backward: Recompute missing activations by re-running forward pass from nearest checkpoint
+
+**Optimal checkpoint spacing** (Chen et al., 2016): For $L$ layers, placing $\sqrt{L}$ checkpoints reduces memory from $O(L)$ to $O(\sqrt{L})$ with only $O(\sqrt{L})$ recomputation overhead.
+
+#### Relationship to Alternatives
+
+- **Model parallelism**: Splits model across GPUs; gradient checkpointing reduces memory per GPU
+- **Gradient accumulation**: Reduces batch size; gradient checkpointing allows larger batch sizes
+- **Mixed precision**: Reduces memory per activation; gradient checkpointing reduces number of stored activations
+- **Offloading**: Moves activations to CPU/disk; gradient checkpointing recomputes instead of transferring
+
+These techniques are **complementary** and often used together in large-scale training.
+
+#### Key Insights That Make It Work
+
+1. **Computation is cheap, memory is expensive**: Modern GPUs have abundant compute (TFLOPS) but limited memory (tens of GB). Trading 20-30% more compute for 40-50% less memory is often worthwhile.
+
+2. **Selective checkpointing**: Not all layers need checkpointing. Typically:
+   - Checkpoint transformer blocks (large activations)
+   - Don't checkpoint embeddings or output layers (small activations)
+   - Checkpoint every $k$ layers to balance memory and compute
+
+3. **Automatic differentiation compatibility**: PyTorch's autograd system seamlessly integrates checkpointing - no manual gradient calculations needed.
+
+4. **Critical for scale**: Essential for training models >3B parameters on consumer hardware (e.g., single A100).
+
+#### How Gradient Checkpointing Works
+
+**Standard Training:**
+1. Forward pass: Compute and store all activations
+2. Backward pass: Use stored activations to compute gradients
+3. Memory usage: O(n × layers) where n is batch size
+
+**With Gradient Checkpointing:**
+1. Forward pass: Only store activations at checkpoints (e.g., every few layers)
+2. Backward pass: Recompute activations from checkpoints as needed
+3. Memory usage: O(n × sqrt(layers)) - significant reduction!
+
+**Trade-off:**
+- Memory savings: 40-50% reduction in activation memory
+- Computational cost: 20-30% slower (one extra forward pass per checkpoint)
+
+```python
+import torch.utils.checkpoint as checkpoint
+
+class TransformerBlockWithCheckpointing(nn.Module):
+    """
+    Transformer block with gradient checkpointing support.
+
+    Gradient checkpointing is essential for training very large models
+    or using larger batch sizes with limited GPU memory.
+    """
+
+    def __init__(self, d_model: int, n_heads: int, use_checkpoint: bool = False):
+        super().__init__()
+        self.attention = MultiHeadAttention(d_model, n_heads)
+        self.feed_forward = FeedForward(d_model)
+        self.norm1 = nn.LayerNorm(d_model)
+        self.norm2 = nn.LayerNorm(d_model)
+        self.use_checkpoint = use_checkpoint
+
+    def forward(self, x: torch.Tensor, mask: Optional[torch.Tensor] = None):
+        """
+        Forward pass with optional gradient checkpointing.
+        """
+        if self.use_checkpoint and self.training:
+            # Use gradient checkpointing during training
+            return checkpoint.checkpoint(self._forward, x, mask)
+        else:
+            # Normal forward pass (inference or no checkpointing)
+            return self._forward(x, mask)
+
+    def _forward(self, x: torch.Tensor, mask: Optional[torch.Tensor] = None):
+        """Actual forward computation."""
+        # Self-attention block
+        attn_out = self.attention(self.norm1(x), mask)
+        x = x + attn_out
+
+        # Feed-forward block
+        ff_out = self.feed_forward(self.norm2(x))
+        x = x + ff_out
+
+        return x
+
+
+class ModelWithCheckpointing(nn.Module):
+    """
+    Complete model with gradient checkpointing.
+
+    Typically applied to transformer layers, not embeddings or output layers.
+    """
+
+    def __init__(
+        self,
+        vocab_size: int,
+        d_model: int,
+        n_layers: int,
+        n_heads: int,
+        use_checkpoint: bool = True
+    ):
+        super().__init__()
+
+        self.token_embedding = nn.Embedding(vocab_size, d_model)
+        self.position_embedding = nn.Embedding(2048, d_model)
+
+        # Transformer layers with checkpointing
+        self.layers = nn.ModuleList([
+            TransformerBlockWithCheckpointing(d_model, n_heads, use_checkpoint)
+            for _ in range(n_layers)
+        ])
+
+        self.output_norm = nn.LayerNorm(d_model)
+        self.output_projection = nn.Linear(d_model, vocab_size)
+
+    def forward(self, input_ids: torch.Tensor):
+        """Forward pass with gradient checkpointing in layers."""
+        batch_size, seq_len = input_ids.shape
+
+        # Embeddings (not checkpointed - small memory footprint)
+        token_emb = self.token_embedding(input_ids)
+        pos_ids = torch.arange(seq_len, device=input_ids.device)
+        pos_emb = self.position_embedding(pos_ids)
+        x = token_emb + pos_emb
+
+        # Transformer layers (checkpointed)
+        for layer in self.layers:
+            x = layer(x)
+
+        # Output (not checkpointed)
+        x = self.output_norm(x)
+        logits = self.output_projection(x)
+
+        return logits
+
+
+# Alternative: PyTorch's built-in checkpoint function
+def example_checkpoint_function():
+    """
+    Example using PyTorch's checkpoint function directly.
+
+    This is more flexible than the module-based approach above.
+    """
+
+    def custom_forward(module, x):
+        """Custom forward function to checkpoint."""
+        return module(x)
+
+    class ModelWithFlexibleCheckpointing(nn.Module):
+        def __init__(self, layers: nn.ModuleList, checkpoint_every: int = 1):
+            super().__init__()
+            self.layers = layers
+            self.checkpoint_every = checkpoint_every
+
+        def forward(self, x):
+            for i, layer in enumerate(self.layers):
+                # Checkpoint every N layers
+                if i % self.checkpoint_every == 0 and self.training:
+                    x = checkpoint.checkpoint(custom_forward, layer, x)
+                else:
+                    x = layer(x)
+            return x
+
+    return ModelWithFlexibleCheckpointing
+
+
+# Memory comparison
+def memory_comparison():
+    """
+    Memory usage comparison: with and without gradient checkpointing.
+
+    Example for a 7B parameter model:
+
+    Without checkpointing:
+    - Activations: ~100GB for batch_size=8, seq_len=2048
+    - Cannot train on single 80GB A100
+
+    With checkpointing:
+    - Activations: ~50GB for same batch size
+    - Can train on single 80GB A100
+
+    Rule of thumb:
+    - Checkpointing reduces activation memory by ~40-50%
+    - Increases training time by ~20-30%
+    - Essential for large models (>3B parameters) on consumer GPUs
+    """
+    pass
+
+
+def when_to_use_checkpointing():
+    """
+    Guidelines for using gradient checkpointing.
+
+    Use gradient checkpointing when:
+    1. Training large models (>1B parameters)
+    2. Using long sequences (>2048 tokens)
+    3. Want to maximize batch size
+    4. GPU memory is the bottleneck (not computation)
+
+    Don't use gradient checkpointing when:
+    1. Training small models (<500M parameters)
+    2. Computational speed is critical
+    3. Already have enough GPU memory
+    4. Using very short sequences (<512 tokens)
+
+    Best practices:
+    - Checkpoint transformer layers, not embeddings/output layers
+    - Consider checkpointing every N layers (e.g., every 2-3 layers)
+    - Combine with other memory optimizations (mixed precision, etc.)
+    - Profile to find optimal checkpoint frequency
+    """
+    pass
+
+
+# Example usage in training
+def train_with_gradient_checkpointing():
+    """Example of training with gradient checkpointing."""
+    # Create model with checkpointing enabled
+    model = ModelWithCheckpointing(
+        vocab_size=50000,
+        d_model=4096,
+        n_layers=32,
+        n_heads=32,
+        use_checkpoint=True  # Enable gradient checkpointing
+    )
+
+    optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4)
+
+    # Training loop (same as before)
+    for batch in train_dataloader:
+        input_ids = batch['input_ids'].to('cuda')
+        labels = batch['labels'].to('cuda')
+
+        # Forward pass (checkpointing happens automatically)
+        logits = model(input_ids)
+        loss = F.cross_entropy(
+            logits.view(-1, model.output_projection.out_features),
+            labels.view(-1)
+        )
+
+        # Backward pass (activations are recomputed as needed)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+    print("Training with gradient checkpointing complete!")
+
+
+# Advanced: Selective checkpointing
+class SelectiveCheckpointing:
+    """
+    Advanced gradient checkpointing strategies.
+
+    Instead of checkpointing all layers, you can be selective:
+    1. Checkpoint only expensive layers (e.g., large FFN layers)
+    2. Checkpoint every N layers
+    3. Checkpoint based on memory/computation trade-off
+    """
+
+    @staticmethod
+    def checkpoint_every_n_layers(layers: nn.ModuleList, n: int = 3):
+        """
+        Checkpoint every N layers.
+
+        Example: For 32 layers with n=3, checkpoint layers 0, 3, 6, 9, ...
+        This balances memory savings with computation overhead.
+        """
+        class SelectiveCheckpointModel(nn.Module):
+            def __init__(self, layers, checkpoint_interval):
+                super().__init__()
+                self.layers = layers
+                self.checkpoint_interval = checkpoint_interval
+
+            def forward(self, x):
+                for i, layer in enumerate(self.layers):
+                    if i % self.checkpoint_interval == 0 and self.training:
+                        x = checkpoint.checkpoint(layer, x)
+                    else:
+                        x = layer(x)
+                return x
+
+        return SelectiveCheckpointModel(layers, n)
+```
+
+---
+
+## Common Issues and Solutions
+
+This section covers common problems encountered during LLM training and how to debug them. These are essential for interviews as they demonstrate practical experience.
+
+### Loss Not Decreasing
+
+**Symptoms:**
+- Training loss stays constant or decreases very slowly
+- Validation loss doesn't improve
+- Model appears to be "stuck"
+
+**Common Causes and Solutions:**
+
+```python
+def debug_loss_not_decreasing():
+    """
+    Debugging checklist for loss not decreasing.
+
+    1. Learning rate too low:
+       - Check: Print current learning rate
+       - Fix: Increase max_lr (try 1e-4, 3e-4, 6e-4)
+       - Note: Use learning rate finder to find optimal LR
+
+    2. Learning rate too high:
+       - Check: Loss oscillates or increases
+       - Fix: Decrease max_lr, increase warmup steps
+
+    3. Gradient flow issues:
+       - Check: Print gradient norms
+       - Fix: Check for vanishing gradients, adjust initialization
+
+    4. Data quality issues:
+       - Check: Inspect training data
+       - Fix: Verify labels match inputs, check for corruption
+
+    5. Model too small/large:
+       - Check: Monitor training vs validation loss
+       - Fix: Adjust model size
+
+    6. Incorrect loss computation:
+       - Check: Verify loss calculation
+       - Fix: Ensure labels are shifted correctly for LM
+    """
+
+    # Debug: Check learning rate
+    def check_learning_rate(optimizer):
+        lr = optimizer.param_groups[0]['lr']
+        print(f"Current learning rate: {lr:.2e}")
+        if lr < 1e-5:
+            print("WARNING: Learning rate very low!")
+        elif lr > 1e-3:
+            print("WARNING: Learning rate very high!")
+
+    # Debug: Check gradient norms
+    def check_gradient_norms(model):
+        total_norm = 0.0
+        for p in model.parameters():
+            if p.grad is not None:
+                param_norm = p.grad.data.norm(2)
+                total_norm += param_norm.item() ** 2
+        total_norm = total_norm ** 0.5
+        print(f"Gradient norm: {total_norm:.4f}")
+
+        if total_norm < 1e-6:
+            print("WARNING: Vanishing gradients detected!")
+        elif total_norm > 100:
+            print("WARNING: Exploding gradients detected!")
+
+    # Debug: Verify data
+    def verify_data(batch):
+        input_ids = batch['input_ids']
+        labels = batch['labels']
+
+        print(f"Input shape: {input_ids.shape}")
+        print(f"Labels shape: {labels.shape}")
+
+        # Check if labels are shifted correctly
+        print(f"First input token: {input_ids[0, 0]}")
+        print(f"First label token: {labels[0, 0]}")
+        print(f"Should match: input[0,1] == labels[0,0]? "
+              f"{input_ids[0, 1].item() == labels[0, 0].item()}")
+
+    # Learning rate finder
+    def learning_rate_finder(model, train_dataloader, device='cuda'):
+        """
+        Simple learning rate finder implementation.
+
+        Gradually increases LR and tracks loss to find optimal range.
+        """
+        import matplotlib.pyplot as plt
+
+        model.train()
+        optimizer = torch.optim.AdamW(model.parameters(), lr=1e-8)
+
+        lr_find_steps = 100
+        start_lr = 1e-8
+        end_lr = 1e-2
+
+        lrs = []
+        losses = []
+
+        # Exponential LR increase
+        gamma = (end_lr / start_lr) ** (1 / lr_find_steps)
+
+        for step, batch in enumerate(train_dataloader):
+            if step >= lr_find_steps:
+                break
+
+            # Update learning rate
+            lr = start_lr * (gamma ** step)
+            for param_group in optimizer.param_groups:
+                param_group['lr'] = lr
+
+            # Training step
+            input_ids = batch['input_ids'].to(device)
+            labels = batch['labels'].to(device)
+
+            outputs = model(input_ids, labels=labels)
+            loss = outputs['loss']
+
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+            lrs.append(lr)
+            losses.append(loss.item())
+
+        # Plot
+        plt.figure(figsize=(10, 6))
+        plt.plot(lrs, losses)
+        plt.xscale('log')
+        plt.xlabel('Learning Rate')
+        plt.ylabel('Loss')
+        plt.title('Learning Rate Finder')
+        plt.grid(alpha=0.3)
+        plt.savefig('lr_finder.png')
+        plt.close()
+
+        print("Learning rate finder complete. Check lr_finder.png")
+        print(f"Suggested LR: {lrs[losses.index(min(losses))]:.2e}")
+```
+
+### NaN or Inf Values in Loss
+
+**Symptoms:**
+- Loss becomes NaN (not a number) or inf (infinity)
+- Training crashes or produces nonsensical outputs
+
+**Common Causes and Solutions:**
+
+```python
+def debug_nan_loss():
+    """
+    Debugging NaN or inf loss values.
+
+    1. Gradient explosion:
+       - Symptom: Loss suddenly becomes NaN
+       - Fix: Add/strengthen gradient clipping
+       - Fix: Reduce learning rate
+       - Fix: Increase warmup steps
+
+    2. Numerical instability:
+       - Symptom: NaN appears in specific operations
+       - Fix: Use mixed precision (BF16, not FP16 without scaling)
+       - Fix: Check for division by zero
+       - Fix: Use numerically stable implementations
+
+    3. Bad initialization:
+       - Symptom: NaN on first few steps
+       - Fix: Check weight initialization
+       - Fix: Use proper layer norm placement
+
+    4. Data issues:
+       - Symptom: Random NaN appearances
+       - Fix: Check for NaN/inf in input data
+       - Fix: Verify data preprocessing
+
+    5. FP16 underflow:
+       - Symptom: NaN when using FP16
+       - Fix: Use BF16 instead
+       - Fix: Use loss scaling with FP16
+    """
+
+    # Add NaN detection
+    def detect_nan_in_model(model):
+        """Check for NaN in model parameters or gradients."""
+        for name, param in model.named_parameters():
+            if torch.isnan(param).any():
+                print(f"NaN detected in parameter: {name}")
+            if param.grad is not None and torch.isnan(param.grad).any():
+                print(f"NaN detected in gradient: {name}")
+
+    # Add NaN hooks
+    def add_nan_hook(model):
+        """Add hooks to detect where NaN first appears."""
+        def nan_hook(module, input, output):
+            if isinstance(output, torch.Tensor):
+                if torch.isnan(output).any():
+                    print(f"NaN detected in {module.__class__.__name__}")
+                    raise RuntimeError(f"NaN in {module.__class__.__name__}")
+
+        for module in model.modules():
+            module.register_forward_hook(nan_hook)
+
+    # Safer training loop
+    def safe_training_step(model, batch, optimizer):
+        """Training step with NaN detection and recovery."""
+        input_ids = batch['input_ids']
+        labels = batch['labels']
+
+        # Check input for NaN
+        if torch.isnan(input_ids.float()).any():
+            print("WARNING: NaN in input data, skipping batch")
+            return None
+
+        # Forward pass
+        outputs = model(input_ids, labels=labels)
+        loss = outputs['loss']
+
+        # Check loss
+        if torch.isnan(loss) or torch.isinf(loss):
+            print(f"WARNING: Invalid loss: {loss.item()}, skipping batch")
+            return None
+
+        # Backward pass
+        optimizer.zero_grad()
+        loss.backward()
+
+        # Check gradients
+        detect_nan_in_model(model)
+
+        # Gradient clipping
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+
+        optimizer.step()
+
+        return loss.item()
+```
+
+### Out of Memory (OOM) Errors
+
+**Symptoms:**
+- CUDA out of memory error
+- Training crashes during forward or backward pass
+- Inconsistent OOM (works sometimes, fails other times)
+
+**Solutions:**
+
+```python
+def debug_oom_errors():
+    """
+    Strategies for handling out-of-memory errors.
+
+    1. Reduce batch size:
+       - Simplest solution
+       - Use gradient accumulation to maintain effective batch size
+
+    2. Use gradient checkpointing:
+       - Reduces activation memory by 40-50%
+       - See gradient checkpointing section above
+
+    3. Use mixed precision:
+       - BF16 reduces memory by ~40%
+       - Essential for large models
+
+    4. Optimize sequence length:
+       - Memory scales quadratically with sequence length (attention)
+       - Use shorter sequences or sparse attention
+
+    5. Model parallelism:
+       - Split model across multiple GPUs
+       - See Chapter 16 on distributed training
+
+    6. Offloading:
+       - Move optimizer states to CPU
+       - Use ZeRO optimizer (DeepSpeed)
+    """
+
+    # Memory monitoring
+    def monitor_gpu_memory():
+        """Monitor GPU memory usage."""
+        if torch.cuda.is_available():
+            allocated = torch.cuda.memory_allocated() / 1e9
+            reserved = torch.cuda.memory_reserved() / 1e9
+            print(f"GPU Memory: {allocated:.2f}GB allocated, "
+                  f"{reserved:.2f}GB reserved")
+
+    # Clear cache
+    def clear_gpu_cache():
+        """Clear GPU cache to free memory."""
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+    # OOM-safe training
+    def oom_safe_training():
+        """Training loop that handles OOM gracefully."""
+        model = ModelWithCheckpointing(
+            vocab_size=50000,
+            d_model=4096,
+            n_layers=32,
+            n_heads=32,
+            use_checkpoint=True
+        )
+
+        optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4)
+
+        for batch in train_dataloader:
+            try:
+                # Forward pass
+                input_ids = batch['input_ids'].to('cuda')
+                labels = batch['labels'].to('cuda')
+
+                outputs = model(input_ids, labels=labels)
+                loss = outputs['loss']
+
+                # Backward pass
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+
+                # Monitor memory
+                if step % 100 == 0:
+                    monitor_gpu_memory()
+
+            except RuntimeError as e:
+                if "out of memory" in str(e):
+                    print("WARNING: OOM detected, clearing cache and skipping batch")
+                    clear_gpu_cache()
+                    continue
+                else:
+                    raise e
+
+    # Memory estimation
+    def estimate_memory_requirements(
+        num_params: int,
+        batch_size: int,
+        seq_len: int,
+        d_model: int,
+        use_mixed_precision: bool = True,
+        use_checkpointing: bool = True
+    ):
+        """
+        Estimate memory requirements for training.
+
+        Args:
+            num_params: Number of model parameters
+            batch_size: Batch size
+            seq_len: Sequence length
+            d_model: Model dimension
+            use_mixed_precision: Whether using BF16/FP16
+            use_checkpointing: Whether using gradient checkpointing
+
+        Returns:
+            Estimated memory in GB
+        """
+        bytes_per_param = 2 if use_mixed_precision else 4
+
+        # Model parameters
+        param_memory = num_params * bytes_per_param
+
+        # Optimizer states (AdamW: 2x params for momentum and variance)
+        optimizer_memory = num_params * 4 * 2  # Always FP32
+
+        # Gradients
+        gradient_memory = num_params * bytes_per_param
+
+        # Activations (rough estimate)
+        activation_memory = batch_size * seq_len * d_model * bytes_per_param * 20
+
+        if use_checkpointing:
+            activation_memory *= 0.5  # Roughly 50% reduction
+
+        total_memory = (param_memory + optimizer_memory +
+                       gradient_memory + activation_memory) / 1e9
+
+        print(f"Estimated memory usage:")
+        print(f"  Parameters: {param_memory / 1e9:.2f}GB")
+        print(f"  Optimizer: {optimizer_memory / 1e9:.2f}GB")
+        print(f"  Gradients: {gradient_memory / 1e9:.2f}GB")
+        print(f"  Activations: {activation_memory / 1e9:.2f}GB")
+        print(f"  Total: {total_memory:.2f}GB")
+
+        return total_memory
+
+
+# Example usage
+def example_memory_estimation():
+    """Example memory estimation for 7B model."""
+    memory = estimate_memory_requirements(
+        num_params=7_000_000_000,  # 7B parameters
+        batch_size=4,
+        seq_len=2048,
+        d_model=4096,
+        use_mixed_precision=True,
+        use_checkpointing=True
+    )
+    print(f"\nCan fit on 80GB A100: {memory < 80}")
+```
+
+### Slow Training
+
+**Symptoms:**
+- Training is slower than expected
+- Low GPU utilization
+- High training time per batch
+
+**Solutions:**
+
+```python
+def debug_slow_training():
+    """
+    Strategies for improving training speed.
+
+    1. Data loading bottleneck:
+       - Check: CPU usage, time spent waiting for data
+       - Fix: Increase num_workers in DataLoader
+       - Fix: Use faster data format (e.g., memory-mapped files)
+       - Fix: Prefetch data to GPU
+
+    2. Mixed precision not enabled:
+       - Check: Verify BF16/FP16 is active
+       - Fix: Enable autocast and use compatible hardware
+
+    3. Gradient accumulation overhead:
+       - Check: Profile gradient accumulation
+       - Fix: Optimize accumulation loop
+
+    4. Inefficient operations:
+       - Check: Profile with PyTorch profiler
+       - Fix: Replace slow operations, fuse operations
+
+    5. Suboptimal hardware utilization:
+       - Check: GPU utilization (nvidia-smi)
+       - Fix: Increase batch size, use tensor cores
+    """
+
+    # Profile training
+    def profile_training_step(model, batch, optimizer):
+        """Profile a single training step."""
+        from torch.profiler import profile, ProfilerActivity
+
+        with profile(
+            activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
+            record_shapes=True,
+            profile_memory=True,
+        ) as prof:
+            input_ids = batch['input_ids'].to('cuda')
+            labels = batch['labels'].to('cuda')
+
+            outputs = model(input_ids, labels=labels)
+            loss = outputs['loss']
+
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+        print(prof.key_averages().table(sort_by="cuda_time_total", row_limit=10))
+
+    # Optimize DataLoader
+    def optimize_dataloader():
+        """Example of optimized DataLoader configuration."""
+        train_dataloader = DataLoader(
+            train_dataset,
+            batch_size=32,
+            shuffle=True,
+            num_workers=4,  # Parallel data loading
+            pin_memory=True,  # Faster GPU transfer
+            prefetch_factor=2,  # Prefetch batches
+            persistent_workers=True  # Keep workers alive
+        )
+        return train_dataloader
+
+    # Measure tokens per second
+    def measure_throughput(model, train_dataloader, num_steps=100):
+        """Measure training throughput in tokens/second."""
+        import time
+
+        model.train()
+        torch.cuda.synchronize()
+        start_time = time.time()
+
+        total_tokens = 0
+
+        for step, batch in enumerate(train_dataloader):
+            if step >= num_steps:
+                break
+
+            batch_size, seq_len = batch['input_ids'].shape
+            total_tokens += batch_size * seq_len
+
+            # Training step (simplified)
+            input_ids = batch['input_ids'].to('cuda')
+            labels = batch['labels'].to('cuda')
+
+            outputs = model(input_ids, labels=labels)
+            loss = outputs['loss']
+
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+        torch.cuda.synchronize()
+        end_time = time.time()
+
+        elapsed = end_time - start_time
+        tokens_per_sec = total_tokens / elapsed
+
+        print(f"Throughput: {tokens_per_sec:.0f} tokens/second")
+        print(f"Time per step: {elapsed / num_steps:.3f} seconds")
+
+        return tokens_per_sec
+```
+
+### Model Not Converging
+
+**Symptoms:**
+- Validation loss stops improving while training loss decreases
+- Model outputs don't make sense
+- High variance in loss
+
+**Solutions:**
+
+```python
+def debug_convergence_issues():
+    """
+    Debugging convergence problems.
+
+    1. Overfitting:
+       - Symptom: Train loss << val loss
+       - Fix: Increase weight decay, add dropout
+       - Fix: Use more training data
+       - Fix: Reduce model size
+
+    2. Underfitting:
+       - Symptom: Train loss and val loss both high
+       - Fix: Increase model size
+       - Fix: Train longer
+       - Fix: Increase learning rate
+
+    3. Bad initialization:
+       - Symptom: Loss doesn't decrease from start
+       - Fix: Use proper initialization (Xavier, He, etc.)
+       - Fix: Check for zero gradients
+
+    4. Learning rate issues:
+       - Symptom: Oscillating loss
+       - Fix: Reduce learning rate
+       - Fix: Use learning rate schedule
+
+    5. Data distribution mismatch:
+       - Symptom: Train and val loss diverge early
+       - Fix: Check train/val split
+       - Fix: Ensure data is shuffled properly
+    """
+
+    # Monitor overfitting
+    def detect_overfitting(train_losses, val_losses, threshold=0.5):
+        """Detect if model is overfitting."""
+        recent_train = sum(train_losses[-10:]) / 10
+        recent_val = sum(val_losses[-10:]) / 10
+
+        gap = recent_val - recent_train
+
+        if gap > threshold:
+            print(f"WARNING: Possible overfitting detected!")
+            print(f"Train loss: {recent_train:.4f}, Val loss: {recent_val:.4f}")
+            print(f"Gap: {gap:.4f}")
+            return True
+
+        return False
+
+    # Early stopping
+    class EarlyStopping:
+        """Early stopping to prevent overfitting."""
+
+        def __init__(self, patience=5, min_delta=0.001):
+            self.patience = patience
+            self.min_delta = min_delta
+            self.counter = 0
+            self.best_loss = None
+
+        def __call__(self, val_loss):
+            if self.best_loss is None:
+                self.best_loss = val_loss
+            elif val_loss > self.best_loss - self.min_delta:
+                self.counter += 1
+                if self.counter >= self.patience:
+                    print(f"Early stopping triggered after {self.counter} epochs")
+                    return True
+            else:
+                self.best_loss = val_loss
+                self.counter = 0
+
+            return False
 ```
 
 ---

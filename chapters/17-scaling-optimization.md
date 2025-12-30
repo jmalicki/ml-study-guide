@@ -246,6 +246,28 @@ The paper's namesake model, Chinchilla:
 - **Performance**: Outperformed Gopher on most benchmarks
 - **Efficiency**: Same compute budget, better results
 
+#### Implementing Chinchilla Scaling Laws
+
+**Problem:** Given a fixed compute budget, we need to determine the optimal allocation between model size and training data. The Kaplan laws suggested prioritizing model size, but empirical evidence from Chinchilla shows this leads to undertrained models.
+
+**Theoretical Justification:** Chinchilla's key insight is that the loss function has approximately equal sensitivity to model parameters and training tokens. Mathematically, if we model loss as:
+
+$$
+L(N, D) = \frac{a}{N^\alpha} + \frac{b}{D^\beta} + L_\infty
+$$
+
+Optimizing this under the compute constraint $C = 6ND$ shows that $N_{opt}$ and $D_{opt}$ should both scale as $C^{0.5}$, rather than prioritizing one over the other. This is derived by:
+1. Taking partial derivatives: $\frac{\partial L}{\partial N}$ and $\frac{\partial L}{\partial D}$
+2. Setting them equal (for optimal allocation)
+3. Solving under the constraint $C = 6ND$
+
+**How This Relates to Alternatives:**
+- **Kaplan scaling**: Recommended $N \propto C^{0.73}$ and $D \propto C^{0.27}$ (heavily favoring model size)
+- **Chinchilla scaling**: Recommends $N \propto C^{0.5}$ and $D \propto C^{0.5}$ (balanced allocation)
+- **Impact**: For the same compute, Chinchilla approach trains a 4× smaller model on 4× more data, achieving better performance
+
+**Key Insight:** The "bigger is better" intuition from Kaplan was misleading. While larger models are more sample-efficient per token, they need far more tokens to reach their potential. The optimal strategy balances both dimensions equally.
+
 ```python
 class ChinchillaScalingLaw:
     """
@@ -390,7 +412,7 @@ The shift from Kaplan to Chinchilla scaling laws had major implications:
 
 **Modern practice** (2024-2025):
 - Most models follow Chinchilla or train even longer
-- LLaMA 3 8B: trained on 15T tokens (~2000 tokens/param)
+- LLaMA 3 8B: trained on 15T tokens (~1875 tokens/param)
 - Extended training beyond Chinchilla optimal is common
 - Quality improvements justify extra compute
 
@@ -412,6 +434,27 @@ where:
 - $N$ = number of parameters (non-embedding)
 - $D$ = number of training tokens
 - Factor of 6 accounts for forward pass (2ND) and backward pass (4ND)
+
+#### Computing Training Costs
+
+**Problem:** Before committing to a training run, we need to estimate how long it will take and how much it will cost. Underestimating leads to incomplete training; overestimating wastes budget planning.
+
+**Theoretical Justification:** The $C \approx 6ND$ formula comes from counting floating-point operations in transformers:
+- **Forward pass**: Each matrix multiplication of size $d \times d$ with batch size $B$ and sequence length $L$ requires $\approx 2BLd^2$ FLOPs (2 FLOPs per multiply-add)
+- **Backward pass**: Requires computing gradients w.r.t. inputs and weights, which is roughly 2× the forward pass compute
+- **Total**: Forward (1×) + Backward (2×) = 3×, and each operation processes 2 FLOPs per parameter, giving $6ND$
+
+**Real-World Adjustments:**
+- **Efficiency factor**: GPUs rarely achieve 100% utilization. Typical: 30-60% for LLM training
+- **Attention overhead**: Flash Attention is near-optimal, but standard attention adds overhead
+- **Communication**: Multi-GPU training has data transfer costs (typically 10-20% overhead)
+
+**How This Relates to Alternatives:**
+- **Simple estimate** ($C = ND$): Ignores backward pass, off by 6×
+- **Detailed counting**: Track every operation in every layer (too complex, gives similar result)
+- **Empirical measurement**: Profile actual runs (most accurate, but requires training to start)
+
+**Key Insight:** The factor of 6 is approximate but remarkably accurate across different architectures. Use it for planning, then apply an efficiency factor (0.3-0.6) based on your hardware and implementation quality.
 
 ```python
 class ComputeCalculator:
@@ -576,6 +619,35 @@ where:
 - $\epsilon$ = small constant for numerical stability
 
 The key difference from Adam is that weight decay ($\lambda \theta_{t-1}$) is applied directly to parameters, not mixed with gradients.
+
+#### Implementing AdamW from Scratch
+
+**Problem:** We need an optimizer that combines adaptive learning rates (from Adam) with proper regularization (weight decay). The original Adam's approach of adding weight decay to the gradient (L2 regularization) doesn't work well with adaptive learning rates, leading to ineffective regularization.
+
+**Theoretical Justification:**
+
+The issue with standard Adam is that it applies weight decay as:
+$$
+g_t \leftarrow g_t + \lambda \theta_{t-1}
+$$
+This means weight decay gets scaled by the adaptive learning rate adjustment $\frac{1}{\sqrt{\hat{v}_t}}$, making it inconsistent across parameters with different gradient magnitudes.
+
+AdamW fixes this by **decoupling** weight decay from the gradient:
+$$
+\theta_t \leftarrow \theta_{t-1} - \eta \left( \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon} \right) - \eta \lambda \theta_{t-1}
+$$
+
+This ensures weight decay operates directly on parameters with strength proportional only to the learning rate $\eta$, not to gradient statistics.
+
+**How This Relates to Alternatives:**
+- **SGD with momentum + L2**: Works well but no adaptive learning rates (struggles with LLMs' varying gradient scales)
+- **Adam with L2**: Weight decay effectiveness varies wildly across parameters (poor regularization)
+- **AdamW**: Best of both worlds - adaptive rates + consistent regularization
+
+**Key Insights:**
+1. **Bias correction** ($\frac{1}{1-\beta^t}$): Essential in early training when moving averages are biased toward zero
+2. **Separate weight decay**: Applying $\lambda \theta$ directly ensures all parameters are regularized proportionally to their magnitude, not their gradient history
+3. **Epsilon placement**: Added inside the square root for numerical stability when gradients are tiny
 
 ```python
 import torch
@@ -759,6 +831,53 @@ Choosing the right hyperparameters for AdamW is crucial for LLM training.
 - Many models use $\beta_2 = 0.999$ (more conservative)
 - Lower $\beta_2$ can help with training stability but may be noisier
 
+#### Learning Rate Scaling with Model Size
+
+Learning rate should generally decrease as model size increases. A common empirical formula:
+
+$$
+\eta \approx \frac{0.003}{\sqrt{N / 125\text{M}}}
+$$
+
+where $N$ is the number of parameters. This gives:
+
+- **125M parameters**: LR ≈ 3e-4
+- **1B parameters**: LR ≈ 1.06e-4
+- **7B parameters**: LR ≈ 4e-5
+- **70B parameters**: LR ≈ 1.3e-5
+
+**In practice:**
+- Small models (<1B): 3e-4 to 6e-4
+- Medium models (1-10B): 1.5e-4 to 3e-4
+- Large models (10-100B): 8e-5 to 1.5e-4
+- Very large models (>100B): 4e-5 to 8e-5
+
+```python
+def compute_optimal_lr(n_params: float, base_lr: float = 3e-4, base_params: float = 125e6) -> float:
+    """
+    Compute optimal learning rate based on model size.
+
+    Args:
+        n_params: Number of model parameters
+        base_lr: Base learning rate for base_params model
+        base_params: Reference model size
+
+    Returns:
+        Scaled learning rate
+    """
+    scale_factor = (base_params / n_params) ** 0.5
+    return base_lr * scale_factor
+
+
+# Examples
+print("Learning Rate Recommendations by Model Size:")
+for size in [125e6, 350e6, 1e9, 7e9, 13e9, 70e9]:
+    lr = compute_optimal_lr(size)
+    print(f"  {size/1e9:.2f}B params: LR = {lr:.2e}")
+```
+
+These values are starting points; always validate with small-scale experiments before full training runs.
+
 ```python
 def get_optimizer_config(model_size: str) -> dict:
     """
@@ -801,6 +920,32 @@ def get_optimizer_config(model_size: str) -> dict:
 
 While AdamW dominates, several alternatives show promise. See [Hardware, Quantization, and Training Optimization](31-hardware-quantization-optimization.md) for detailed coverage of Muon, Shampoo, and SOAP optimizers.
 
+#### Muon Optimizer
+
+**Muon** is a recent optimizer (2024) that combines momentum for weight matrices with Adam for other parameters, achieving roughly 2× training efficiency.
+
+**Key innovation:**
+- Uses **momentum-based updates** (not adaptive) for large weight matrices (linear layers, attention weights)
+- Falls back to **Adam** for biases, LayerNorm parameters, and embeddings
+- Applies **Nesterov momentum** with orthogonalization to prevent gradient explosion
+
+**Why it works:**
+- Weight matrices benefit from momentum's implicit regularization
+- Simpler updates reduce computation and memory bandwidth
+- Newton-Schulz orthogonalization (5 iterations) stabilizes momentum
+
+**Typical settings:**
+- Momentum: μ = 0.95
+- Learning rate: 10× higher than AdamW (e.g., 3e-3 instead of 3e-4)
+- Still use warmup and decay schedules
+
+**Trade-offs:**
+- ~2× faster convergence per step
+- Slightly more complex implementation
+- Best for models where matmuls dominate (transformers)
+
+For full implementation details and empirical comparisons, see Chapter 31.
+
 **Quick comparison:**
 
 | Optimizer | Pros | Cons | Use Case |
@@ -833,6 +978,55 @@ $$
 - 1,000 to 2,000 steps for small models
 - 2,000 to 5,000 steps for large models
 - Usually <1% of total training steps
+
+#### Understanding Warmup Theory
+
+**Problem:** Without warmup, training often diverges in the first few hundred steps, with loss spikes or NaN values. Why does starting with the target learning rate fail?
+
+**Theoretical Justification:**
+
+Three factors make early training unstable:
+
+1. **Random initialization bias**: Parameters start far from optimal values, creating large gradients with high variance
+2. **Adam's moment estimates**: The second moment $v_t$ starts at zero, leading to overly aggressive learning rates initially (division by small $\sqrt{v_t}$)
+3. **Distribution shift**: As the model quickly adapts early on, the effective data distribution changes rapidly, making large steps dangerous
+
+Warmup addresses these by:
+- Giving Adam's variance estimates time to stabilize ($v_t$ needs ~100-1000 steps to become reliable)
+- Preventing large parameter updates when gradient direction is uncertain
+- Allowing the model to find a reasonable basin before accelerating
+
+Mathematically, warmup acts as a time-varying regularization strength that decreases as we gain confidence in gradient directions.
+
+**How This Relates to Alternatives:**
+- **No warmup**: Works for convex problems or very small learning rates, fails for LLMs
+- **Lower max LR**: Could avoid instability but sacrifices final convergence speed
+- **Gradient clipping only**: Helps but doesn't address the moment estimation problem in Adam
+- **Warmup**: Directly targets the root cause (unreliable early gradients/statistics)
+
+**Key Insight:** Warmup is not about the model needing to "wake up" - it's about giving the optimizer's internal statistics (especially $v_t$ in Adam) time to become reliable estimates of the true gradient variance.
+
+**Choosing warmup duration:**
+
+Several heuristics help determine appropriate warmup length:
+
+1. **Token-based**: Aim for ~375M tokens during warmup
+   - For batch size 4M tokens: warmup = 375M / 4M ≈ 100 steps
+   - For batch size 2M tokens: warmup = 375M / 2M ≈ 190 steps
+
+2. **Step-based**: Use a fraction of total steps
+   - `warmup_steps = max(2000, 0.02 × total_steps)`
+   - Ensures minimum 2K steps, scales with training length
+
+3. **Conservative approach**: When in doubt, use longer warmup
+   - Small models (<1B): 2,000 steps
+   - Medium models (1-10B): 3,000-4,000 steps
+   - Large models (>10B): 4,000-5,000 steps
+
+**Why these values?**
+- Too short: Early instability, loss spikes
+- Too long: Wastes training time, slower convergence
+- The ~375M token heuristic comes from empirical observation that models stabilize after seeing this amount of data
 
 ```python
 class WarmupSchedule:
@@ -900,6 +1094,36 @@ where:
 - Fast decay initially, then gradual
 - Reaches minimum exactly at final step
 - Requires knowing total training steps in advance
+
+#### Why Cosine Decay Works
+
+**Problem:** After warmup, we need to reduce the learning rate over time to achieve good final performance. A constant learning rate overshoots the optimum; too-rapid decay converges to suboptimal solutions. What decay schedule balances exploration and convergence?
+
+**Theoretical Justification:**
+
+Cosine decay has several desirable properties:
+
+1. **Smooth, continuous decay**: No sudden LR drops that could destabilize training
+2. **Fast initial decay**: Learning rate drops quickly from peak, corresponding to when gradients are noisiest
+3. **Slow final decay**: Near the end, LR decreases very gradually, allowing fine-tuning
+4. **Mathematical elegance**: The cosine function naturally provides these properties
+
+The schedule can be viewed as an **annealing strategy**: we start with large steps for rapid exploration, then gradually shrink steps as we approach a good solution, similar to simulated annealing in optimization.
+
+**Why not linear decay?** Linear schedules decay too aggressively early and not enough late:
+$$
+\text{Linear: } \eta(t) = \eta_{\max}(1 - t/T) \text{ vs. Cosine: } \eta(t) \propto \frac{1}{2}(1 + \cos(\pi t/T))
+$$
+At $t = 0.5T$, linear is at 50% of max LR, while cosine is at ~50%. But early on (t = 0.1T), linear is at 90% while cosine is at ~97%, preserving exploration longer.
+
+**How This Relates to Alternatives:**
+- **Constant LR**: Fast early progress but poor final convergence (overshoots)
+- **Step decay**: Sudden LR drops can cause loss spikes and suboptimal convergence
+- **Exponential decay**: $\eta_t = \eta_0 e^{-\lambda t}$ decays too fast, never reaches true minimum
+- **Linear decay**: Too aggressive early, too gentle late
+- **Cosine decay**: Empirically proven best across many domains (ImageNet, LLMs, etc.)
+
+**Key Insight:** The cosine curve's natural acceleration of decay as we approach zero matches the optimization landscape of neural networks, where we want aggressive exploration early (when far from optimum) and careful fine-tuning late (when close to optimum).
 
 ```python
 import math
@@ -1034,6 +1258,41 @@ WSD is a newer schedule gaining popularity for its flexibility and empirical per
 - **Linear**: $\eta(t) = \eta_{\max}(1 - p)$ where $p$ is decay progress
 - **Square root**: $\eta(t) = \eta_{\max}(1 - \sqrt{p})$ (recommended)
 - **Cosine**: Same as cosine schedule but only over decay phase
+
+#### Why WSD Outperforms Cosine
+
+**Problem:** Cosine schedules require knowing the total training steps in advance. In practice, we often want to extend training if the model hasn't converged, or we may discover we have more compute than expected. Continuing training from a low learning rate checkpoint is suboptimal.
+
+**Theoretical Justification:**
+
+WSD's key innovation is **separating learning phases** to match the training dynamics:
+
+1. **Stable phase rationale**: For most of training (typically 80-90%), the model is learning the main task structure. Keeping LR constant during this phase:
+   - Maximizes progress per step
+   - Avoids premature convergence to suboptimal solutions
+   - Allows the model to fully explore the loss landscape
+
+2. **Decay phase rationale**: Only in the final ~10% do we want to reduce LR for fine-tuning:
+   - By this point, the model has found a good basin
+   - Lower LR helps refine the solution without large jumps
+   - Too early decay wastes training time in high-loss regions with a low LR
+
+**Why square root decay?** The $1 - \sqrt{p}$ decay gives:
+- At $p = 0.25$: LR at 50% (rapid initial decay)
+- At $p = 0.75$: LR at 13% (still decreasing meaningfully)
+- At $p = 1.0$: LR at 0% (smooth landing)
+
+This is more aggressive than cosine over the same decay period, which makes sense because we're only decaying for 10% of total training (vs cosine's ~100%).
+
+**How This Relates to Alternatives:**
+- **Cosine**: Better if you know exact training budget and won't extend
+- **WSD**: Better for:
+  - Uncertain training budgets
+  - Experiments where you may want to continue
+  - Checkpoint flexibility (can resume from stable phase anytime)
+- **Constant LR**: Simpler but leaves performance on the table (no final refinement)
+
+**Key Insight:** WSD achieves lower final loss than cosine in most experiments because it maintains high LR longer (during stable phase), then decays more aggressively in the final stretch. This matches the "explore first, refine later" principle more explicitly than cosine's continuous decay.
 
 ```python
 class WSDSchedule:
@@ -1213,6 +1472,40 @@ where:
 - $\tau$ = clipping threshold (typically 1.0 for LLMs)
 - $\|\mathbf{g}\|$ = $L^2$ norm of gradients
 
+#### Understanding Gradient Clipping
+
+**Problem:** Even with careful learning rate tuning, occasional batches produce extremely large gradients that cause training to diverge. We need a safety mechanism that prevents catastrophic updates without interfering with normal training.
+
+**Theoretical Justification:**
+
+Gradient clipping works by ensuring no single update can move parameters too far:
+
+1. **Preserves direction**: By rescaling instead of truncating, we maintain the gradient direction (where to move) while limiting magnitude (how far to move)
+
+2. **Global vs per-parameter**: Using global norm ($\|\mathbf{g}\|$ across all parameters) rather than per-parameter clipping ensures:
+   - Relative magnitudes between parameters are preserved
+   - Small but important gradients aren't clipped unfairly
+   - The update direction in parameter space is maintained
+
+3. **Adaptive threshold**: The effective threshold adapts to the model:
+   - Early training: gradients are large, clipping activates frequently
+   - Late training: gradients are small, clipping rarely triggers
+   - This automatic adaptation is why a fixed $\tau = 1.0$ works across model sizes
+
+**Why does gradient explosion happen?**
+- **Long sequences**: In transformers, gradients flow through many layers; numerical errors accumulate
+- **Attention amplification**: Attention weights can focus heavily on few tokens, amplifying their gradients
+- **Rare tokens/patterns**: Unusual inputs can produce atypical activation patterns with large gradients
+- **Numerical precision**: FP16 has limited range; intermediate values can overflow
+
+**How This Relates to Alternatives:**
+- **No clipping**: Training fails completely on many LLM runs (diverges to NaN)
+- **Per-parameter clipping**: `clip(g_i, -τ, τ)` distorts gradient direction, poor performance
+- **Value clipping**: `clip(θ_i, min, max)` prevents divergence but limits model capacity
+- **Gradient norm clipping**: Best of all - safe, direction-preserving, widely used
+
+**Key Insight:** Think of gradient clipping as a "circuit breaker" for optimization. It almost never activates during healthy training (5-15% of steps), but when it does, it prevents a single bad batch from destroying hours of training. The threshold τ = 1.0 is remarkably universal because it's measured in the natural units of the optimizer's momentum-normalized gradient space.
+
 ```python
 import torch
 import torch.nn as nn
@@ -1366,6 +1659,154 @@ The **critical batch size** is the point beyond which increasing batch size give
 - Medium models (1-10B): 2M - 4M tokens
 - Large models (>10B): 4M - 8M tokens
 
+#### Critical Batch Size Formula
+
+From McCandlish et al. (2018), the critical batch size can be estimated as:
+
+$$
+B_{\text{crit}} \approx \left(\frac{G_{\text{noise}}}{\eta}\right)^2
+$$
+
+where:
+- $G_{\text{noise}}$ = gradient noise scale (measures gradient variance)
+- $\eta$ = learning rate
+
+**Gradient noise scale** measures how noisy gradients are:
+
+$$
+G_{\text{noise}} = \frac{\|\mathbb{E}[\mathbf{g}]\|^2}{\text{Var}[\mathbf{g}]}
+$$
+
+**Practical implications:**
+- Higher learning rate → smaller critical batch size
+- Noisier gradients → larger critical batch size needed
+- As training progresses, $G_{\text{noise}}$ typically decreases
+
+#### Understanding Critical Batch Size
+
+**Problem:** Larger batches improve hardware efficiency (better GPU utilization), but beyond a certain point, they don't improve model quality. Finding this "critical batch size" is essential for efficient training.
+
+**Theoretical Justification:**
+
+The critical batch size concept comes from analyzing the **noise in stochastic gradients**:
+
+1. **Signal-to-noise ratio**: Each gradient is noisy estimate of true gradient. The "signal" is $\|\mathbb{E}[\mathbf{g}]\|^2$ (true gradient), while "noise" is $\text{Var}[\mathbf{g}]$ (variance across batches)
+
+2. **Batch size effect**: Larger batches reduce noise by $1/\sqrt{B}$ (Central Limit Theorem), so:
+   $$
+   \text{Effective noise} \propto \frac{\text{Var}[\mathbf{g}]}{B}
+   $$
+
+3. **Learning rate interaction**: Higher LR amplifies both signal and noise. The critical batch size occurs when:
+   $$
+   \frac{\eta^2 \text{Var}[\mathbf{g}]}{B} \approx \|\mathbb{E}[\mathbf{g}]\|^2
+   $$
+
+   Solving for $B$:
+   $$
+   B_{\text{crit}} \approx \frac{\eta^2 \text{Var}[\mathbf{g}]}{\|\mathbb{E}[\mathbf{g}]\|^2} = \left(\frac{G_{\text{noise}}}{\eta}\right)^2
+   $$
+
+**What happens at different batch sizes?**
+- **$B < B_{\text{crit}}$**: Gradient noise dominates, can't increase LR safely, leaving performance on table
+- **$B = B_{\text{crit}}$**: Optimal trade-off between noise reduction and parallelism
+- **$B > B_{\text{crit}}$**: Noise is already small enough; larger batches don't help convergence (just waste compute)
+
+**How This Relates to Alternatives:**
+- **Very small batches** (B = 1-32): Maximum noise, requires tiny LR, slow convergence
+- **Medium batches** (B = 256-2048): Good for small models, below critical for LLMs
+- **Large batches** (B = 4096+): Necessary for LLMs to reach critical batch size
+- **Too large batches**: Waste compute with no quality improvement (generalization can even degrade)
+
+**Key Insight:** The critical batch size is not a fixed number - it depends on where you are in training! Early on, gradients are large and noisy ($G_{\text{noise}}$ is high), so $B_{\text{crit}}$ is large. Later, as gradients become smaller and more aligned, $B_{\text{crit}}$ decreases. This is why some advanced schedules decrease batch size during training, though this is rare in practice due to implementation complexity.
+
+```python
+import torch
+
+def estimate_gradient_noise_scale(
+    model: torch.nn.Module,
+    data_loader,
+    n_samples: int = 100
+) -> float:
+    """
+    Estimate gradient noise scale from sample gradients.
+
+    This helps determine the critical batch size.
+
+    Args:
+        model: The model to analyze
+        data_loader: Data loader (use small batches)
+        n_samples: Number of gradient samples to collect
+
+    Returns:
+        Gradient noise scale estimate
+    """
+    model.eval()
+    gradients = []
+
+    for i, batch in enumerate(data_loader):
+        if i >= n_samples:
+            break
+
+        # Compute gradient for this mini-batch
+        model.zero_grad()
+        loss = model(batch)
+        loss.backward()
+
+        # Flatten and collect gradients
+        grad = torch.cat([
+            p.grad.flatten() for p in model.parameters() if p.grad is not None
+        ])
+        gradients.append(grad)
+
+    # Stack gradients: [n_samples, n_params]
+    gradients = torch.stack(gradients)
+
+    # Compute mean and variance
+    mean_grad = gradients.mean(dim=0)
+    var_grad = gradients.var(dim=0)
+
+    # Gradient noise scale
+    signal = (mean_grad ** 2).sum()
+    noise = var_grad.sum()
+
+    g_noise = (signal / noise).item()
+
+    return g_noise
+
+
+def compute_critical_batch_size(
+    gradient_noise_scale: float,
+    learning_rate: float
+) -> float:
+    """
+    Compute critical batch size given gradient noise scale and LR.
+
+    Args:
+        gradient_noise_scale: Estimated G_noise
+        learning_rate: Training learning rate
+
+    Returns:
+        Critical batch size (in examples)
+    """
+    return (gradient_noise_scale / learning_rate) ** 2
+
+
+# Example
+print("Critical Batch Size Estimation:")
+print("For LR = 3e-4, G_noise = 1e-3:")
+print(f"  B_crit = {compute_critical_batch_size(1e-3, 3e-4):.0f} examples")
+print("\nFor LR = 1e-4, G_noise = 1e-3:")
+print(f"  B_crit = {compute_critical_batch_size(1e-3, 1e-4):.0f} examples")
+```
+
+**Using critical batch size:**
+1. **Below $B_{\text{crit}}$**: Increase batch size for better efficiency
+2. **At $B_{\text{crit}}$**: Optimal training speed vs. compute trade-off
+3. **Above $B_{\text{crit}}$**: Diminishing returns; consider increasing LR instead
+
+**Note:** Critical batch size changes during training as gradients become less noisy. It's typically measured early in training.
+
 ```python
 class BatchSizeCalculator:
     """Calculate optimal batch size configurations."""
@@ -1382,14 +1823,22 @@ class BatchSizeCalculator:
         self.sequence_length = sequence_length
         self.dtype_bytes = dtype_bytes
 
-    def max_micro_batch_size(self) -> int:
+    def max_micro_batch_size(self, use_activation_checkpointing: bool = False) -> int:
         """
         Estimate maximum micro batch size that fits in GPU memory.
 
-        This is a rough approximation. Actual memory usage depends on:
-        - Activation recomputation
+        This is a rough approximation for planning purposes only.
+        For precise estimates, see the Megatron-LM paper or use profiling tools.
+
+        Actual memory usage depends on:
+        - Activation recomputation (checkpointing)
         - Optimizer states
         - Framework overhead
+        - Attention implementation (Flash Attention reduces memory)
+
+        Args:
+            use_activation_checkpointing: If True, assumes gradient checkpointing
+                                          which trades compute for memory
         """
         # Model parameters (in bytes)
         model_memory = self.model_params * self.dtype_bytes
@@ -1404,6 +1853,11 @@ class BatchSizeCalculator:
         # This is highly approximate
         hidden_size = (self.model_params / (12 * 32)) ** 0.5  # Rough estimate
         activation_per_token = 12 * hidden_size
+
+        # Activation checkpointing reduces memory by ~L (number of layers)
+        # Typical transformer has ~32 layers, so ~4-5x reduction
+        if use_activation_checkpointing:
+            activation_per_token = activation_per_token / 4
 
         # Available memory (leave 20% headroom)
         available = self.gpu_memory_gb * 1e9 * 0.8
@@ -1524,19 +1978,510 @@ print(f"New (linear): LR={scale_learning_rate(3e-4, 2_000_000, 4_000_000, 'linea
 print(f"New (sqrt): LR={scale_learning_rate(3e-4, 2_000_000, 4_000_000, 'sqrt'):.2e}, BS=4M tokens")
 ```
 
+### Memory-Compute Tradeoffs
+
+Training efficiency involves balancing memory usage and computational cost. Several techniques trade one for the other.
+
+#### Activation Checkpointing (Gradient Checkpointing)
+
+**What it does:**
+- Saves memory by **not storing** intermediate activations during forward pass
+- **Recomputes** activations during backward pass when needed
+- Reduces memory by ~O(L) where L is number of layers
+
+**Impact on batch size:**
+- Without checkpointing: micro_batch_size = 1-2 for 7B model on A100
+- With checkpointing: micro_batch_size = 4-8 for same setup
+- Enables **2-4× larger micro batches**
+
+**Cost:**
+- ~20-30% increase in training time (one extra forward pass)
+- Worthwhile trade-off for memory-bound scenarios
+
+#### Understanding Activation Checkpointing
+
+**Problem:** Transformer models store activations for every layer during the forward pass (needed for backpropagation). For a 32-layer model with large batch sizes, this consumes enormous GPU memory, limiting batch sizes to 1-2 examples per GPU.
+
+**Theoretical Justification:**
+
+Standard backpropagation trades **compute for memory**:
+- **Forward pass**: Compute and **store** all activations
+- **Backward pass**: Use stored activations to compute gradients
+
+Activation checkpointing reverses this trade-off:
+- **Forward pass**: Compute activations but only **store** some (e.g., every 4th layer)
+- **Backward pass**: When needed, **recompute** activations from the nearest checkpoint
+
+**Memory savings analysis:**
+- Without checkpointing: Store activations for all $L$ layers → $O(L)$ memory
+- With checkpointing every $k$ layers: Store $L/k$ checkpoints, recompute up to $k$ layers → $O(L/k)$ memory
+- Typical $k=4$ gives **4× memory reduction**
+
+**Compute overhead:**
+- Each activation is computed twice: once in forward, once during backward
+- But GPUs are fast at forward passes (highly optimized matmuls)
+- Overhead is only **20-30%** for typical transformers (much less than 2× because backward is more expensive than forward anyway)
+
+**How This Relates to Alternatives:**
+- **No checkpointing**: Maximum speed, but tiny batch sizes (GPU underutilized)
+- **Full checkpointing** (checkpoint every layer): Maximum memory savings but 2× slower
+- **Selective checkpointing** (every 4 layers): Sweet spot - 4× memory for 1.25× time
+- **Offloading to CPU**: Can save more memory but much slower (100× for data transfer)
+
+**Key Insight:** Modern GPUs are **compute-abundant but memory-constrained**. A transformer layer takes ~5ms to compute but its activations need 2GB of memory. Recomputing is essentially "free" if it allows a 4× larger batch that better utilizes the GPU. The wall-clock time often *decreases* with checkpointing because of higher GPU utilization from larger batches.
+
+```python
+# PyTorch example
+import torch.utils.checkpoint as checkpoint
+
+class TransformerLayer(nn.Module):
+    def forward(self, x):
+        # Use checkpointing for this layer
+        return checkpoint.checkpoint(self._forward, x)
+
+    def _forward(self, x):
+        # Actual layer computation
+        return self.attn(x) + self.ffn(x)
+```
+
+#### Mixed Precision Training
+
+**What it does:**
+- Uses **FP16 or BF16** for most computations
+- Keeps **FP32** master copy of weights for optimizer
+- Reduces memory for activations and gradients by 2×
+
+**Impact on batch size:**
+- Activations: 2× larger batches possible
+- Weights: No change (FP32 master copy still needed)
+- Combined with checkpointing: 4-8× larger batches
+
+**Standard practice:**
+- BF16 preferred for training (better numeric range, no loss scaling needed)
+- FP16 acceptable with loss scaling
+
+```python
+# PyTorch AMP (Automatic Mixed Precision)
+from torch.cuda.amp import autocast, GradScaler
+
+scaler = GradScaler()
+
+for batch in dataloader:
+    optimizer.zero_grad()
+
+    # Forward in FP16/BF16
+    with autocast(dtype=torch.bfloat16):
+        loss = model(batch)
+
+    # Backward with scaling (for FP16)
+    scaler.scale(loss).backward()
+    scaler.step(optimizer)
+    scaler.update()
+```
+
+#### Flash Attention
+
+**What it does:**
+- Optimized attention that reduces memory from O(N²) to O(N)
+- Enables longer sequences and larger batches
+- See Chapter 12 for details
+
+**Impact on batch size:**
+- For seq_len=4096: ~2× larger batches possible
+- For seq_len=8192: ~4× larger batches possible
+- Critical for long-context models
+
+#### Memory-Compute Tradeoff Summary
+
+| Technique | Memory Saved | Compute Cost | Batch Size Increase | When to Use |
+|-----------|--------------|--------------|---------------------|-------------|
+| **Activation Checkpointing** | ~4× | +20-30% | 2-4× | Always for large models |
+| **Mixed Precision (BF16)** | 2× | None (faster!) | 2× | Always |
+| **Flash Attention** | O(N²) → O(N) | None (faster!) | 2-4× | Always for long sequences |
+| **Gradient Accumulation** | None | None | Any | When micro batch is limited |
+
+**Recommended stack for 7B model on A100 80GB:**
+```python
+config = {
+    'mixed_precision': 'bf16',           # 2× memory savings
+    'activation_checkpointing': True,     # 4× memory savings
+    'flash_attention': True,              # 2× memory savings for long sequences
+    'micro_batch_size': 4,                # With above: fits comfortably
+    'gradient_accumulation': 256,         # To reach 4M token effective batch
+}
+# Total: Can train with micro_batch_size=4 instead of 1
+# This is 4× better hardware utilization
+```
+
+**Note:** All modern LLM training uses these techniques. Not using them means wasting 10× compute efficiency.
+
 ### Batch Size Best Practices
 
 1. **Start with target effective batch size** based on model size
-2. **Maximize micro batch size** to fit GPU memory
-3. **Use gradient accumulation** to reach target
-4. **Scale learning rate** if changing batch size significantly
-5. **Monitor training dynamics** - large batches can hurt generalization
+2. **Enable all memory optimizations** (mixed precision, checkpointing, Flash Attention)
+3. **Maximize micro batch size** to fit GPU memory with optimizations
+4. **Use gradient accumulation** to reach target effective batch size
+5. **Scale learning rate** if changing batch size significantly
+6. **Monitor training dynamics** - large batches can hurt generalization
+7. **Profile memory usage** - theoretical estimates can be off by 20-30%
+
+---
+
+## Troubleshooting Training Issues
+
+Training large language models is complex, and problems will arise. This section provides guidance for diagnosing and fixing common issues.
+
+### Common Pitfalls and Solutions
+
+| Problem | Symptoms | Root Cause | Solution |
+|---------|----------|------------|----------|
+| **Learning rate too high** | Loss spikes, NaN/Inf values, divergence | LR exceeds stable region | Reduce LR by 2×, increase warmup to 4K-5K steps |
+| **Learning rate too low** | Very slow convergence, high final loss | LR in flat region | Increase LR by 1.5-2×, verify with smaller test |
+| **Insufficient warmup** | Early loss spikes, unstable first 1K steps | Cold start with high LR | Increase warmup_steps to 3K-5K |
+| **Batch size too small** | Very noisy gradients, erratic loss curve | High gradient variance | Increase via gradient accumulation |
+| **Batch size too large** | Smooth loss but poor generalization | Over-smoothed gradients | Reduce batch size or increase LR |
+| **Gradient clipping too aggressive** | Very slow convergence despite stable loss | Clipping >80% of steps | Increase max_norm to 2.0-5.0 |
+| **Gradient clipping too lenient** | Occasional loss spikes | Large gradients not clipped | Decrease max_norm to 0.5-1.0 |
+| **Data quality issues** | Sudden loss spikes at specific steps | Bad batches (corruption, repetition) | Check data, add data filtering |
+| **Numerical instability** | NaN in specific layers (often LayerNorm) | FP16 underflow/overflow | Use BF16 or increase epsilon in LayerNorm |
+
+### Loss Spike Diagnosis
+
+Loss spikes are common in LLM training. Use this flowchart to diagnose:
+
+```
+Loss spike detected (loss increases >0.5 in one step)
+│
+├─> Check gradient norm
+│   ├─> If grad_norm > 100: Learning rate too high
+│   │   └─> Action: Reduce LR by 2×, increase max_grad_norm
+│   │
+│   └─> If grad_norm normal (<10): Data issue
+│       └─> Action: Log the batch, check for anomalies
+│
+├─> Check if spike recovers
+│   ├─> Recovers in <100 steps: Acceptable, monitor
+│   │   └─> Action: Continue training, might be rare bad batch
+│   │
+│   └─> Doesn't recover or repeats: Serious issue
+│       └─> Action: Stop, diagnose further
+│
+└─> Check training step
+    ├─> Spike in first 1K steps: Warmup too short
+    │   └─> Action: Restart with longer warmup
+    │
+    └─> Spike mid-training: Check learning rate schedule
+        └─> Action: Ensure smooth decay, no sudden LR changes
+```
+
+### Debugging Flowchart
+
+When training is unstable or suboptimal:
+
+**Step 1: Identify the Issue**
+- [ ] Loss increasing or NaN?
+- [ ] Loss decreasing but too slowly?
+- [ ] Loss oscillating wildly?
+- [ ] Training crashes?
+
+**Step 2: Check Gradient Health**
+```python
+# Monitor these metrics every 100 steps
+grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm)
+
+stats = {
+    'grad_norm': grad_norm.item(),
+    'clip_rate': 1.0 if grad_norm > max_norm else 0.0,
+    'param_norm': sum(p.norm().item() ** 2 for p in model.parameters()) ** 0.5
+}
+
+# Red flags:
+# - grad_norm > 100: LR too high or data issue
+# - grad_norm < 0.01: LR too low or vanishing gradients
+# - clip_rate > 0.8: Too much clipping, increase max_norm or reduce LR
+# - param_norm growing exponentially: Instability, reduce LR
+```
+
+**Step 3: Check Data**
+```python
+# Validate current batch
+def check_batch_health(batch):
+    """Check for data issues."""
+    # Check for NaN/Inf
+    if torch.isnan(batch).any() or torch.isinf(batch).any():
+        return "NaN/Inf in input data"
+
+    # Check for duplicates (can cause spikes)
+    unique_ratio = len(torch.unique(batch)) / batch.numel()
+    if unique_ratio < 0.01:
+        return "Highly repetitive data"
+
+    # Check token distribution
+    token_counts = torch.bincount(batch.flatten())
+    if (token_counts.max() / token_counts.sum()) > 0.5:
+        return "Single token dominates batch"
+
+    return "OK"
+```
+
+**Step 4: Adjust Hyperparameters**
+
+Try adjustments in this order (one at a time):
+
+1. **If loss spikes:**
+   ```python
+   # Reduce LR (safest fix)
+   new_lr = current_lr * 0.5
+   # OR increase warmup
+   new_warmup = warmup_steps * 2
+   ```
+
+2. **If loss too high:**
+   ```python
+   # Increase LR cautiously
+   new_lr = current_lr * 1.5
+   # Verify with small test run first
+   ```
+
+3. **If gradients unstable:**
+   ```python
+   # Adjust clipping
+   if clip_rate > 0.8:
+       max_grad_norm *= 1.5  # Less aggressive clipping
+   elif clip_rate < 0.1:
+       max_grad_norm *= 0.7  # More aggressive clipping
+   ```
+
+### Learning Rate Sensitivity Analysis
+
+Before full training, do a learning rate sweep to find the stable range:
+
+#### Why Learning Rate Range Tests Matter
+
+**Problem:** The optimal learning rate for a specific model, dataset, and architecture is not known a priori. Using a learning rate that's too low wastes time; too high causes divergence. We need an empirical method to find the right range quickly.
+
+**Theoretical Justification:**
+
+The LR range test (also called "LR finder") works by observing how loss responds to increasing learning rates:
+
+1. **Low LR region**: Loss decreases slowly - we're in a safe but inefficient regime
+2. **Optimal LR region**: Loss decreases rapidly - we're taking maximum-size steps without instability
+3. **High LR region**: Loss starts increasing or oscillating - we're overshooting the optimum
+
+The test finds the **sweet spot** where:
+$$
+\frac{d L}{d \eta} \text{ is minimized (most negative)}
+$$
+
+This corresponds to the learning rate that provides the steepest descent in loss per training step.
+
+**Why exponentially increase LR?**
+- Learning rate effects span orders of magnitude (1e-6 to 1e-3)
+- Linear spacing would oversample low LRs, undersample high LRs
+- Exponential spacing: $\eta_t = \eta_0 \cdot \alpha^t$ gives equal representation on log scale
+
+**How This Relates to Alternatives:**
+- **Grid search**: Requires multiple full training runs (expensive)
+- **Bayesian optimization**: More efficient but still needs multiple runs
+- **LR range test**: Finds optimal LR in <1000 steps (~10 minutes), single run
+- **Default values from papers**: May not transfer to your specific setup
+
+**Key Insight:** The steepest point on the loss curve (maximum negative gradient w.r.t. LR) gives the most aggressive learning rate that's still stable. In practice, use this LR or 0.5× this value as your max_lr to ensure training stability. The test is so fast and informative that it should be standard practice before any serious training run.
+
+```python
+def lr_sweep(model, data_loader, lr_range=(1e-6, 1e-3), num_steps=1000):
+    """
+    Perform learning rate range test.
+
+    Gradually increase LR and plot loss to find:
+    - Minimum LR where learning happens (lower bound)
+    - Maximum LR before divergence (upper bound)
+    - Optimal LR (steepest descent region)
+    """
+    lrs = []
+    losses = []
+
+    # Exponential increase from lr_range[0] to lr_range[1]
+    lr_mult = (lr_range[1] / lr_range[0]) ** (1 / num_steps)
+
+    optimizer = torch.optim.AdamW(model.parameters(), lr=lr_range[0])
+    current_lr = lr_range[0]
+
+    for step, batch in enumerate(data_loader):
+        if step >= num_steps:
+            break
+
+        # Forward/backward
+        loss = model(batch)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+        # Record
+        lrs.append(current_lr)
+        losses.append(loss.item())
+
+        # Increase LR exponentially
+        current_lr *= lr_mult
+        for param_group in optimizer.param_groups:
+            param_group['lr'] = current_lr
+
+        # Stop if diverged
+        if loss.item() > losses[0] * 4:
+            print(f"Diverged at LR={current_lr:.2e}")
+            break
+
+    # Plot results
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    plt.figure(figsize=(10, 6))
+    plt.semilogx(lrs, losses)
+    plt.xlabel('Learning Rate')
+    plt.ylabel('Loss')
+    plt.title('Learning Rate Range Test')
+    plt.grid(True, alpha=0.3)
+
+    # Find optimal LR (steepest descent)
+    gradients = np.gradient(losses)
+    optimal_idx = np.argmin(gradients)
+    optimal_lr = lrs[optimal_idx]
+
+    plt.axvline(optimal_lr, color='r', linestyle='--',
+                label=f'Optimal LR: {optimal_lr:.2e}')
+    plt.legend()
+    plt.savefig('lr_range_test.png')
+
+    return optimal_lr
+
+# Usage
+# optimal_lr = lr_sweep(model, train_loader)
+# Use this as max_lr in your schedule
+```
+
+**Interpreting the LR range test:**
+- **Flat region** (left): LR too low, no learning
+- **Steep descent** (middle): Optimal LR range
+- **Increasing loss** (right): LR too high, instability
+- **Rule of thumb:** Use LR at steepest point, or 10× lower for safety
+
+### When to Restart vs. Adjust
+
+**Restart training if:**
+- Loss has diverged to NaN or >10× initial loss
+- Early instability (first 10% of training)
+- Wrong hyperparameters identified (e.g., LR too high by 10×)
+- Data quality issues fixed that affected early training
+
+**Adjust and continue if:**
+- Loss spike is temporary and recovers
+- Mid/late training instability (>50% through)
+- Minor hyperparameter adjustment needed
+- Checkpoint is available from before spike
+
+```python
+def should_restart(current_step, total_steps, loss_history, spike_severity):
+    """
+    Decide whether to restart or continue training.
+
+    Args:
+        current_step: Current training step
+        total_steps: Total planned steps
+        loss_history: List of recent losses
+        spike_severity: How bad the spike is (ratio of spike to normal)
+
+    Returns:
+        bool: True if should restart
+    """
+    progress = current_step / total_steps
+
+    # Early training (<10%): restart on any major issue
+    if progress < 0.1 and spike_severity > 2.0:
+        return True
+
+    # NaN/Inf: always restart
+    if any(np.isnan(loss_history[-10:])) or any(np.isinf(loss_history[-10:])):
+        return True
+
+    # Severe spike (>5× normal) mid-training: restart from checkpoint
+    if spike_severity > 5.0:
+        return True
+
+    # Otherwise: try to recover
+    return False
+```
+
+### Monitoring Checklist
+
+Track these metrics to catch issues early:
+
+```python
+# Every 100 steps, log:
+metrics = {
+    # Loss
+    'loss': loss.item(),
+    'loss_ma': moving_average(loss, window=100),
+
+    # Gradients
+    'grad_norm': grad_norm,
+    'grad_norm_ma': moving_average(grad_norm, window=100),
+    'clip_rate': clip_rate,
+
+    # Learning rate
+    'lr': current_lr,
+
+    # Parameters
+    'param_norm': param_norm,
+    'param_update_ratio': grad_norm * lr / param_norm,  # Should be ~1e-3
+
+    # System
+    'gpu_memory_gb': torch.cuda.max_memory_allocated() / 1e9,
+    'step_time_ms': step_time * 1000,
+}
+
+# Alert if:
+# - loss_ma increasing over 1K steps
+# - grad_norm > 100 for >10 consecutive steps
+# - clip_rate > 0.9 for >100 steps
+# - param_update_ratio > 0.1 (too aggressive) or < 1e-5 (too conservative)
+```
 
 ---
 
 ## Putting It All Together
 
 A complete training configuration combining all optimization techniques.
+
+### Integrating All Optimization Components
+
+**Problem:** We've covered many optimization techniques individually (AdamW, warmup, cosine/WSD schedules, gradient clipping, batch size tuning). How do they fit together into a coherent training pipeline? What are the dependencies and interactions?
+
+**System Design Rationale:**
+
+A robust LLM training configuration must handle:
+
+1. **Compute planning** → Determines model size and token budget (Chinchilla scaling)
+2. **Batch configuration** → Sets micro-batch size, gradient accumulation, and effective batch size
+3. **Optimizer setup** → Configures AdamW with model-size-appropriate hyperparameters
+4. **Learning rate schedule** → Implements warmup + decay (cosine or WSD)
+5. **Gradient management** → Applies clipping before optimizer step
+6. **Training loop** → Orchestrates all components with proper sequencing
+
+**Critical Interactions:**
+
+- **LR and batch size**: If you change batch size, scale LR proportionally (or √proportionally)
+- **Warmup and stability**: Longer warmup needed for larger models and higher max LR
+- **Clipping and LR**: Aggressive clipping (low threshold) can compensate for high LR, but reduces convergence speed
+- **Schedule and total steps**: Cosine requires knowing total steps; WSD doesn't
+
+**Implementation Principles:**
+
+1. **Configuration over magic numbers**: All hyperparameters explicit and tunable
+2. **Sensible defaults**: Based on empirical best practices (AdamW β₂=0.95, grad_norm=1.0, etc.)
+3. **Derived values**: Compute gradient accumulation, total steps automatically from targets
+4. **Verification**: Print summary to catch configuration errors before starting
+
+**Key Insight:** The training configuration is the "recipe" for your training run. Just as important as the model architecture, it should be versioned, documented, and reproducible. The configuration below serves as a template - adjust based on your compute budget and model size, but keep the interactions between components in mind.
 
 ```python
 import torch
@@ -1745,7 +2690,10 @@ class LLMTrainer:
         # Forward pass
         loss = self.model(batch)
 
-        # Scale loss by accumulation steps
+        # Scale loss by accumulation steps for proper gradient averaging
+        # Note: This is for logging consistency. Mathematically, gradients are
+        # averaged automatically when we accumulate and divide by batch size.
+        # We scale here so that loss.item() reflects the true per-example loss.
         loss = loss / self.config.grad_accum_steps
 
         # Backward pass
