@@ -95,7 +95,6 @@ where $N_c$, $D_c$, $C_c$ are constants and $\alpha_N \approx 0.076$, $\alpha_D 
 
 ```python
 import numpy as np
-import matplotlib.pyplot as plt
 
 class KaplanScalingLaw:
     """
@@ -147,48 +146,70 @@ class KaplanScalingLaw:
         return N_optimal, D_optimal
 
 
-def visualize_kaplan_scaling():
-    """Visualize Kaplan scaling laws."""
-    kaplan = KaplanScalingLaw()
+```
 
-    # Model size scaling
-    params = np.logspace(6, 12, 100)  # 1M to 1T parameters
-    losses_N = [kaplan.loss_from_params(n) for n in params]
+**Kaplan Scaling Laws Visualization:**
 
-    # Data size scaling
-    tokens = np.logspace(9, 14, 100)  # 1B to 100T tokens
-    losses_D = [kaplan.loss_from_data(d) for d in tokens]
+<svg viewBox="0 0 1200 350" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1200" height="350" fill="#f5f5f5"/>
 
-    # Compute scaling
-    compute = np.logspace(18, 24, 100)  # FLOPs
-    losses_C = [kaplan.loss_from_compute(c) for c in compute]
+  <!-- Plot 1: Model Size -->
+  <g transform="translate(50, 30)">
+    <rect width="320" height="280" fill="white" stroke="#ddd" stroke-width="1"/>
+    <!-- Axes -->
+    <line x1="40" y1="240" x2="300" y2="240" stroke="#333" stroke-width="2"/>
+    <line x1="40" y1="20" x2="40" y2="240" stroke="#333" stroke-width="2"/>
+    <!-- Power law curve (decreasing) -->
+    <path d="M 60 30 Q 120 80, 180 150 T 280 220" fill="none" stroke="#4A90A4" stroke-width="2.5"/>
+    <!-- Labels -->
+    <text x="160" y="270" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">Model Parameters (N)</text>
+    <text x="10" y="140" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333" transform="rotate(-90, 10, 140)">Test Loss</text>
+    <text x="160" y="15" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#333">Scaling with Model Size</text>
+    <!-- Tick labels -->
+    <text x="60" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">1M</text>
+    <text x="180" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">1B</text>
+    <text x="280" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">1T</text>
+  </g>
 
-    fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+  <!-- Plot 2: Data Size -->
+  <g transform="translate(440, 30)">
+    <rect width="320" height="280" fill="white" stroke="#ddd" stroke-width="1"/>
+    <!-- Axes -->
+    <line x1="40" y1="240" x2="300" y2="240" stroke="#333" stroke-width="2"/>
+    <line x1="40" y1="20" x2="40" y2="240" stroke="#333" stroke-width="2"/>
+    <!-- Power law curve (decreasing, slightly different slope) -->
+    <path d="M 60 40 Q 120 90, 180 160 T 280 225" fill="none" stroke="#4A90A4" stroke-width="2.5"/>
+    <!-- Labels -->
+    <text x="160" y="270" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">Training Tokens (D)</text>
+    <text x="10" y="140" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333" transform="rotate(-90, 10, 140)">Test Loss</text>
+    <text x="160" y="15" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#333">Scaling with Data</text>
+    <!-- Tick labels -->
+    <text x="60" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">1B</text>
+    <text x="180" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">10T</text>
+    <text x="280" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">100T</text>
+  </g>
 
-    # Plot 1: Model size
-    axes[0].loglog(params, losses_N)
-    axes[0].set_xlabel('Model Parameters (N)')
-    axes[0].set_ylabel('Test Loss')
-    axes[0].set_title('Scaling with Model Size')
-    axes[0].grid(True, alpha=0.3)
+  <!-- Plot 3: Compute -->
+  <g transform="translate(830, 30)">
+    <rect width="320" height="280" fill="white" stroke="#ddd" stroke-width="1"/>
+    <!-- Axes -->
+    <line x1="40" y1="240" x2="300" y2="240" stroke="#333" stroke-width="2"/>
+    <line x1="40" y1="20" x2="40" y2="240" stroke="#333" stroke-width="2"/>
+    <!-- Power law curve (decreasing, gentlest slope) -->
+    <path d="M 60 50 Q 120 100, 180 165 T 280 228" fill="none" stroke="#4A90A4" stroke-width="2.5"/>
+    <!-- Labels -->
+    <text x="160" y="270" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">Compute (FLOPs)</text>
+    <text x="10" y="140" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333" transform="rotate(-90, 10, 140)">Test Loss</text>
+    <text x="160" y="15" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#333">Scaling with Compute</text>
+    <!-- Tick labels -->
+    <text x="60" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">10¹⁸</text>
+    <text x="180" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">10²¹</text>
+    <text x="280" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">10²⁴</text>
+  </g>
+</svg>
 
-    # Plot 2: Data size
-    axes[1].loglog(tokens, losses_D)
-    axes[1].set_xlabel('Training Tokens (D)')
-    axes[1].set_ylabel('Test Loss')
-    axes[1].set_title('Scaling with Data')
-    axes[1].grid(True, alpha=0.3)
-
-    # Plot 3: Compute
-    axes[2].loglog(compute, losses_C)
-    axes[2].set_xlabel('Compute (FLOPs)')
-    axes[2].set_ylabel('Test Loss')
-    axes[2].set_title('Scaling with Compute')
-    axes[2].grid(True, alpha=0.3)
-
-    plt.tight_layout()
-    plt.savefig('kaplan_scaling_laws.png', dpi=150, bbox_inches='tight')
-    plt.show()
+```python
 
 
 # Example: GPT-3 was trained according to Kaplan scaling laws
@@ -336,51 +357,66 @@ class ChinchillaScalingLaw:
         return D_optimal / N
 
 
-def compare_scaling_laws():
-    """Compare Kaplan vs Chinchilla scaling laws."""
-    kaplan = KaplanScalingLaw()
-    chinchilla = ChinchillaScalingLaw()
+```
 
-    # Range of compute budgets
-    compute_budgets = np.logspace(20, 26, 20)  # FLOPs
+**Kaplan vs Chinchilla Comparison:**
 
-    kaplan_N = []
-    kaplan_D = []
-    chinchilla_N = []
-    chinchilla_D = []
+<svg viewBox="0 0 900 350" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="900" height="350" fill="#f5f5f5"/>
 
-    for C in compute_budgets:
-        N_k, D_k = kaplan.optimal_allocation(C)
-        N_c, D_c = chinchilla.optimal_allocation(C)
+  <!-- Plot 1: Model Size vs Compute -->
+  <g transform="translate(40, 30)">
+    <rect width="380" height="280" fill="white" stroke="#ddd" stroke-width="1"/>
+    <!-- Axes -->
+    <line x1="50" y1="240" x2="360" y2="240" stroke="#333" stroke-width="2"/>
+    <line x1="50" y1="20" x2="50" y2="240" stroke="#333" stroke-width="2"/>
+    <!-- Kaplan curve (steeper - prioritizes model size) -->
+    <path d="M 70 200 L 140 130 L 210 80 L 280 40 L 340 15" fill="none" stroke="#4A90A4" stroke-width="2.5"/>
+    <!-- Chinchilla curve (less steep - balanced) -->
+    <path d="M 70 215 L 140 160 L 210 115 L 280 75 L 340 45" fill="none" stroke="#E57373" stroke-width="2.5" stroke-dasharray="5,5"/>
+    <!-- Labels -->
+    <text x="200" y="270" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">Compute Budget (FLOPs)</text>
+    <text x="15" y="140" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333" transform="rotate(-90, 15, 140)">Model Size (Params)</text>
+    <text x="200" y="15" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#333">Model Size vs Compute</text>
+    <!-- Legend -->
+    <line x1="260" y1="260" x2="290" y2="260" stroke="#4A90A4" stroke-width="2.5"/>
+    <text x="295" y="264" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Kaplan</text>
+    <line x1="260" y1="275" x2="290" y2="275" stroke="#E57373" stroke-width="2.5" stroke-dasharray="5,5"/>
+    <text x="295" y="279" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Chinchilla</text>
+    <!-- Tick labels -->
+    <text x="70" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="9" fill="#666">10²⁰</text>
+    <text x="210" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="9" fill="#666">10²³</text>
+    <text x="340" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="9" fill="#666">10²⁶</text>
+  </g>
 
-        kaplan_N.append(N_k)
-        kaplan_D.append(D_k)
-        chinchilla_N.append(N_c)
-        chinchilla_D.append(D_c)
+  <!-- Plot 2: Training Tokens vs Compute -->
+  <g transform="translate(480, 30)">
+    <rect width="380" height="280" fill="white" stroke="#ddd" stroke-width="1"/>
+    <!-- Axes -->
+    <line x1="50" y1="240" x2="360" y2="240" stroke="#333" stroke-width="2"/>
+    <line x1="50" y1="20" x2="50" y2="240" stroke="#333" stroke-width="2"/>
+    <!-- Kaplan curve (less steep - less emphasis on data) -->
+    <path d="M 70 220 L 140 180 L 210 145 L 280 115 L 340 90" fill="none" stroke="#4A90A4" stroke-width="2.5"/>
+    <!-- Chinchilla curve (steeper - more emphasis on data) -->
+    <path d="M 70 210 L 140 150 L 210 100 L 280 60 L 340 30" fill="none" stroke="#E57373" stroke-width="2.5" stroke-dasharray="5,5"/>
+    <!-- Labels -->
+    <text x="200" y="270" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">Compute Budget (FLOPs)</text>
+    <text x="15" y="140" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333" transform="rotate(-90, 15, 140)">Training Tokens</text>
+    <text x="200" y="15" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#333">Training Data vs Compute</text>
+    <!-- Legend -->
+    <line x1="260" y1="260" x2="290" y2="260" stroke="#4A90A4" stroke-width="2.5"/>
+    <text x="295" y="264" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Kaplan</text>
+    <line x1="260" y1="275" x2="290" y2="275" stroke="#E57373" stroke-width="2.5" stroke-dasharray="5,5"/>
+    <text x="295" y="279" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Chinchilla</text>
+    <!-- Tick labels -->
+    <text x="70" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="9" fill="#666">10²⁰</text>
+    <text x="210" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="9" fill="#666">10²³</text>
+    <text x="340" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="9" fill="#666">10²⁶</text>
+  </g>
+</svg>
 
-    fig, axes = plt.subplots(1, 2, figsize=(12, 4))
-
-    # Plot 1: Model size vs compute
-    axes[0].loglog(compute_budgets, kaplan_N, 'b-', label='Kaplan', linewidth=2)
-    axes[0].loglog(compute_budgets, chinchilla_N, 'r--', label='Chinchilla', linewidth=2)
-    axes[0].set_xlabel('Compute Budget (FLOPs)')
-    axes[0].set_ylabel('Optimal Model Size (Parameters)')
-    axes[0].set_title('Model Size vs Compute')
-    axes[0].legend()
-    axes[0].grid(True, alpha=0.3)
-
-    # Plot 2: Training tokens vs compute
-    axes[1].loglog(compute_budgets, kaplan_D, 'b-', label='Kaplan', linewidth=2)
-    axes[1].loglog(compute_budgets, chinchilla_D, 'r--', label='Chinchilla', linewidth=2)
-    axes[1].set_xlabel('Compute Budget (FLOPs)')
-    axes[1].set_ylabel('Optimal Training Tokens')
-    axes[1].set_title('Training Data vs Compute')
-    axes[1].legend()
-    axes[1].grid(True, alpha=0.3)
-
-    plt.tight_layout()
-    plt.savefig('kaplan_vs_chinchilla.png', dpi=150, bbox_inches='tight')
-    plt.show()
+```python
 
 
 def chinchilla_examples():
@@ -721,7 +757,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
-import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader
 
 class ModularArithmeticDataset(Dataset):
@@ -952,36 +987,6 @@ def train_grokking_demo(
             print(f"Epoch {epoch:5d} | Train: {train_acc:.3f} ({train_loss:.4f}) | "
                   f"Val: {val_acc:.3f} ({val_loss:.4f})")
     
-    # Plot results
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
-    
-    epochs_range = range(len(train_accs))
-    
-    # Accuracy plot
-    ax1.plot(epochs_range, train_accs, label='Train Accuracy', linewidth=2)
-    ax1.plot(epochs_range, val_accs, label='Validation Accuracy', linewidth=2)
-    ax1.axhline(y=1.0, color='gray', linestyle='--', alpha=0.5, label='Perfect')
-    ax1.axhline(y=1/p, color='red', linestyle='--', alpha=0.5, label='Random')
-    ax1.set_xlabel('Epoch')
-    ax1.set_ylabel('Accuracy')
-    ax1.set_title(f'Grokking on Modular {operation.capitalize()} (mod {p})')
-    ax1.legend()
-    ax1.grid(True, alpha=0.3)
-    ax1.set_ylim([0, 1.05])
-    
-    # Loss plot (log scale)
-    ax2.semilogy(epochs_range, train_losses, label='Train Loss', linewidth=2)
-    ax2.semilogy(epochs_range, val_losses, label='Validation Loss', linewidth=2)
-    ax2.set_xlabel('Epoch')
-    ax2.set_ylabel('Loss (log scale)')
-    ax2.set_title('Loss Curves')
-    ax2.legend()
-    ax2.grid(True, alpha=0.3)
-    
-    plt.tight_layout()
-    plt.savefig(f'grokking_{operation}_p{p}.png', dpi=150, bbox_inches='tight')
-    plt.show()
-    
     return model, train_accs, val_accs
 
 
@@ -1006,22 +1011,80 @@ if __name__ == "__main__":
         weight_decay=0.0,  # No regularization
         lr=1e-3
     )
-    
-    # Compare
-    fig, ax = plt.subplots(figsize=(10, 6))
-    epochs = range(len(val_wd))
-    ax.plot(epochs, val_wd, label='With Weight Decay', linewidth=2)
-    ax.plot(epochs, val_no_wd, label='Without Weight Decay', linewidth=2, linestyle='--')
-    ax.axhline(y=1.0, color='gray', linestyle='--', alpha=0.5)
-    ax.axhline(y=1/97, color='red', linestyle='--', alpha=0.5, label='Random')
-    ax.set_xlabel('Epoch')
-    ax.set_ylabel('Validation Accuracy')
-    ax.set_title('Grokking: Effect of Weight Decay')
-    ax.legend()
-    ax.grid(True, alpha=0.3)
-    plt.savefig('grokking_comparison.png', dpi=150, bbox_inches='tight')
-    plt.show()
+
 ```
+
+**Grokking Phenomenon Visualization:**
+
+<svg viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="800" height="400" fill="#f5f5f5"/>
+
+  <!-- Main plot area -->
+  <g transform="translate(60, 30)">
+    <rect width="700" height="320" fill="white" stroke="#ddd" stroke-width="1"/>
+
+    <!-- Axes -->
+    <line x1="40" y1="280" x2="680" y2="280" stroke="#333" stroke-width="2"/>
+    <line x1="40" y1="20" x2="40" y2="280" stroke="#333" stroke-width="2"/>
+
+    <!-- Phase regions -->
+    <rect x="40" y="20" width="160" height="260" fill="#FFE0E0" opacity="0.3"/>
+    <text x="120" y="310" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">Phase 1: Memorization</text>
+
+    <rect x="200" y="20" width="320" height="260" fill="#E0E0FF" opacity="0.3"/>
+    <text x="360" y="310" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">Phase 2: Plateau</text>
+
+    <rect x="520" y="20" width="160" height="260" fill="#E0FFE0" opacity="0.3"/>
+    <text x="600" y="310" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">Phase 3: Grokking</text>
+
+    <!-- Train accuracy (quick rise to 1.0) -->
+    <path d="M 50 280 Q 80 250, 120 35 L 680 35" fill="none" stroke="#4A90A4" stroke-width="3"/>
+
+    <!-- Validation accuracy (stays low, then sudden jump) -->
+    <path d="M 50 270 L 500 270 Q 540 260, 570 100 L 680 35" fill="none" stroke="#E57373" stroke-width="3"/>
+
+    <!-- Reference lines -->
+    <line x1="40" y1="35" x2="680" y2="35" stroke="#666" stroke-width="1" stroke-dasharray="3,3"/>
+    <text x="685" y="40" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">100%</text>
+
+    <line x1="40" y1="270" x2="680" y2="270" stroke="#999" stroke-width="1" stroke-dasharray="3,3"/>
+    <text x="685" y="275" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#999">~1% (Random)</text>
+
+    <!-- Labels -->
+    <text x="360" y="335" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">Training Epoch</text>
+    <text x="10" y="160" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" transform="rotate(-90, 10, 160)">Accuracy</text>
+    <text x="360" y="20" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="600" fill="#333">Grokking: Delayed Generalization</text>
+
+    <!-- Legend -->
+    <g transform="translate(480, 50)">
+      <line x1="0" y1="0" x2="40" y2="0" stroke="#4A90A4" stroke-width="3"/>
+      <text x="45" y="5" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">Train Accuracy</text>
+
+      <line x1="0" y1="20" x2="40" y2="20" stroke="#E57373" stroke-width="3"/>
+      <text x="45" y="25" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">Validation Accuracy</text>
+    </g>
+
+    <!-- Epoch markers -->
+    <text x="120" y="295" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">100</text>
+    <text x="360" y="295" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">5000</text>
+    <text x="600" y="295" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">10000</text>
+  </g>
+
+  <!-- Annotation for grokking moment -->
+  <g transform="translate(570, 140)">
+    <path d="M 0 0 L -30 -20" stroke="#E57373" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <text x="5" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="600" fill="#E57373">Sudden</text>
+    <text x="5" y="12" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="600" fill="#E57373">Generalization!</text>
+  </g>
+
+  <!-- Arrow marker definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#E57373"/>
+    </marker>
+  </defs>
+</svg>
 
 **Key Observations from the Implementation:**
 
@@ -1151,10 +1214,8 @@ Let's demonstrate double descent on a simple polynomial regression task:
 
 ```python
 import numpy as np
-import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
-from sklearn.model_selection import train_test_split
 
 def generate_polynomial_data(n_samples=100, degree=3, noise=0.1, seed=42):
     """
@@ -1294,36 +1355,6 @@ def double_descent_experiment(
     train_errors_std = np.std(train_errors_all, axis=0)
     test_errors_std = np.std(test_errors_all, axis=0)
     
-    # Plot
-    fig, ax = plt.subplots(figsize=(12, 6))
-    
-    ax.plot(degrees, train_errors_mean, label='Train Error', linewidth=2, color='blue')
-    ax.fill_between(degrees, 
-                     train_errors_mean - train_errors_std,
-                     train_errors_mean + train_errors_std,
-                     alpha=0.2, color='blue')
-    
-    ax.plot(degrees, test_errors_mean, label='Test Error', linewidth=2, color='red')
-    ax.fill_between(degrees,
-                     test_errors_mean - test_errors_std,
-                     test_errors_mean + test_errors_std,
-                     alpha=0.2, color='red')
-    
-    # Mark interpolation threshold
-    ax.axvline(x=n_train, color='gray', linestyle='--', linewidth=1.5,
-               label=f'Interpolation Threshold (n={n_train})')
-    
-    ax.set_xlabel('Model Complexity (Polynomial Degree)', fontsize=12)
-    ax.set_ylabel('Mean Squared Error', fontsize=12)
-    ax.set_title(f'Double Descent: Varying Model Complexity (n_train={n_train})', fontsize=14)
-    ax.set_yscale('log')
-    ax.legend(fontsize=11)
-    ax.grid(True, alpha=0.3)
-    
-    plt.tight_layout()
-    plt.savefig(f'double_descent_n{n_train}.png', dpi=150, bbox_inches='tight')
-    plt.show()
-    
     return degrees, train_errors_mean, test_errors_mean
 
 
@@ -1343,6 +1374,89 @@ if __name__ == "__main__":
     print(f"\nPeak test error occurs at degree {degrees[peak_idx]}")
     print(f"Interpolation threshold is at n_train = 20")
 ```
+
+**Double Descent Visualization:**
+
+<svg viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="800" height="400" fill="#f5f5f5"/>
+
+  <!-- Main plot area -->
+  <g transform="translate(60, 30)">
+    <rect width="700" height="320" fill="white" stroke="#ddd" stroke-width="1"/>
+
+    <!-- Axes -->
+    <line x1="40" y1="280" x2="680" y2="280" stroke="#333" stroke-width="2"/>
+    <line x1="40" y1="20" x2="40" y2="280" stroke="#333" stroke-width="2"/>
+
+    <!-- Regime regions -->
+    <rect x="40" y="20" width="200" height="260" fill="#FFE0E0" opacity="0.2"/>
+    <text x="140" y="310" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">Classical Regime</text>
+
+    <rect x="440" y="20" width="240" height="260" fill="#E0FFE0" opacity="0.2"/>
+    <text x="560" y="310" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">Modern Regime</text>
+
+    <!-- Train error (monotonically decreasing) -->
+    <path d="M 50 100 Q 150 60, 340 30 Q 510 22, 670 20" fill="none" stroke="#4A90A4" stroke-width="3"/>
+
+    <!-- Test error (double descent - U shape then down again) -->
+    <path d="M 50 140 Q 150 80, 240 60 Q 300 70, 340 180 Q 380 100, 510 50 L 670 35" fill="none" stroke="#E57373" stroke-width="3"/>
+
+    <!-- Interpolation threshold line -->
+    <line x1="340" y1="20" x2="340" y2="280" stroke="#666" stroke-width="2" stroke-dasharray="5,5"/>
+    <text x="345" y="40" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666">Interpolation</text>
+    <text x="345" y="52" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666">Threshold</text>
+
+    <!-- Labels -->
+    <text x="360" y="335" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">Model Complexity (Parameters)</text>
+    <text x="10" y="160" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" transform="rotate(-90, 10, 160)">Error</text>
+    <text x="360" y="20" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="600" fill="#333">Double Descent Phenomenon</text>
+
+    <!-- Legend -->
+    <g transform="translate(500, 240)">
+      <line x1="0" y1="0" x2="35" y2="0" stroke="#4A90A4" stroke-width="3"/>
+      <text x="40" y="5" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">Train Error</text>
+
+      <line x1="0" y1="20" x2="35" y2="20" stroke="#E57373" stroke-width="3"/>
+      <text x="40" y="25" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">Test Error</text>
+    </g>
+
+    <!-- Descent annotations -->
+    <g transform="translate(180, 120)">
+      <path d="M 0 0 L 0 -30" stroke="#E57373" stroke-width="1.5" marker-start="url(#arrowup)" marker-end="url(#arrowdown)"/>
+      <text x="10" y="-10" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#E57373">1st</text>
+      <text x="10" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#E57373">Descent</text>
+    </g>
+
+    <g transform="translate(550, 100)">
+      <path d="M 0 0 L 0 -40" stroke="#E57373" stroke-width="1.5" marker-start="url(#arrowup)" marker-end="url(#arrowdown)"/>
+      <text x="10" y="-20" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#E57373">2nd</text>
+      <text x="10" y="-10" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#E57373">Descent</text>
+    </g>
+
+    <!-- Peak annotation -->
+    <g transform="translate(340, 200)">
+      <circle cx="0" cy="-20" r="4" fill="#E57373"/>
+      <text x="10" y="-15" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#E57373">Peak at</text>
+      <text x="10" y="-5" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#E57373">threshold</text>
+    </g>
+
+    <!-- Complexity markers -->
+    <text x="100" y="295" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">Underfit</text>
+    <text x="340" y="295" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">N ≈ n</text>
+    <text x="580" y="295" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">Overparameterized</text>
+  </g>
+
+  <!-- Arrow marker definitions -->
+  <defs>
+    <marker id="arrowdown" markerWidth="10" markerHeight="10" refX="5" refY="8" orient="auto">
+      <polygon points="5 0, 0 8, 10 8" fill="#E57373"/>
+    </marker>
+    <marker id="arrowup" markerWidth="10" markerHeight="10" refX="5" refY="2" orient="auto">
+      <polygon points="5 8, 0 0, 10 0" fill="#E57373"/>
+    </marker>
+  </defs>
+</svg>
 
 **What to observe in the results:**
 
