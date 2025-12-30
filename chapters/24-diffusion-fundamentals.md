@@ -1,4 +1,4 @@
-# Chapter 23: Diffusion Model Fundamentals
+# Chapter 24: Diffusion Model Fundamentals
 
 ## Prerequisites
 
@@ -19,7 +19,7 @@ If you need background on positional encodings, see earlier chapters on attentio
 
 Diffusion models have emerged as one of the most powerful classes of generative models, achieving state-of-the-art results in image generation, audio synthesis, and even text generation. Unlike autoregressive models (like GPT) or variational autoencoders (VAEs), diffusion models learn to generate data by reversing a gradual noising process.
 
-This chapter covers the mathematical foundations and core concepts behind diffusion models, preparing you for implementation in [Chapter 24: Implementing Diffusion Models](24-diffusion-implementation.md) and advanced techniques in [Chapter 25: Advanced Diffusion Topics](25-diffusion-advanced.md).
+This chapter covers the mathematical foundations and core concepts behind diffusion models, preparing you for implementation in [Chapter 25: Implementing Diffusion Models](25-diffusion-implementation.md) and advanced techniques in [Chapter 26: Advanced Diffusion Topics](26-diffusion-advanced.md).
 
 **Key Papers:**
 - [Denoising Diffusion Probabilistic Models (DDPM)](https://arxiv.org/abs/2006.11239) - Ho et al., 2020
@@ -1546,7 +1546,7 @@ class DiffusionModel:
 
 - **Training**: Comparable to VAEs (single forward/backward pass per sample)
 - **Sampling**: Much slower than VAEs/GANs (requires T forward passes, typically T=1000)
-- **Solution**: Fast sampling methods (DDIM, DPM-Solver) covered in [Chapter 25: Advanced Diffusion Topics](25-diffusion-advanced.md)
+- **Solution**: Fast sampling methods (DDIM, DPM-Solver) covered in [Chapter 26: Advanced Diffusion Topics](26-diffusion-advanced.md)
 
 ### Concrete Performance Numbers
 
@@ -1906,9 +1906,9 @@ In this chapter, we covered:
 - Iterative sampling trades speed for quality
 
 **Next Steps:**
-- [Chapter 24: Implementing Diffusion Models](24-diffusion-implementation.md): Build complete image generation models with UNet architecture
-- [Chapter 25: Advanced Diffusion Topics](25-diffusion-advanced.md): Fast sampling, conditional generation, guidance, and latent diffusion
-- [Chapter 29: Architecture Comparison: Modern LLMs](29-model-architectures.md): See how diffusion applies to language models (WeDLM)
+- [Chapter 25: Implementing Diffusion Models](25-diffusion-implementation.md): Build complete image generation models with UNet architecture
+- [Chapter 26: Advanced Diffusion Topics](26-diffusion-advanced.md): Fast sampling, conditional generation, guidance, and latent diffusion
+- [Chapter 30: Architecture Comparison: Modern LLMs](30-model-architectures.md): See how diffusion applies to language models (WeDLM)
 
 ## References
 

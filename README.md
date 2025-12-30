@@ -112,39 +112,48 @@ A comprehensive, hands-on study guide for machine learning interviews with a foc
     - ZeRO optimization stages
     - 3D parallelism strategies
 
-17. [Scaling Laws and Optimization](chapters/17-scaling-optimization.md)
-    - Learning rate schedules
+17. [Optimizers and Training Techniques](chapters/17-scaling-optimization.md)
     - AdamW and optimizer choices
+    - Learning rate schedules (warmup, cosine, WSD)
     - Gradient clipping
-    - Scaling laws overview
+    - Batch size scaling
+    - Troubleshooting training issues
+
+18. [Scaling Laws and Training Dynamics](chapters/18-scaling-dynamics.md)
+    - Kaplan and Chinchilla scaling laws
+    - Compute-optimal training
+    - Grokking: delayed generalization
+    - Double descent phenomenon
+    - Emergent capabilities in LLMs
+    - Neural scaling phenomena
 
 ### Part 7: Alignment and Fine-tuning
 
-18. [Supervised Fine-tuning (SFT)](chapters/18-sft.md)
+19. [Supervised Fine-tuning (SFT)](chapters/19-sft.md)
     - Instruction tuning
     - Dataset preparation
     - Fine-tuning strategies
 
-19. [LoRA and Parameter-Efficient Fine-tuning](chapters/19-peft.md)
+20. [LoRA and Parameter-Efficient Fine-tuning](chapters/20-peft.md)
     - Low-Rank Adaptation (LoRA)
     - QLoRA (quantized LoRA)
     - Prefix tuning and prompt tuning
     - Adapters and other PEFT methods
     - When to use PEFT vs full fine-tuning
 
-20. [Reinforcement Learning from Human Feedback (RLHF)](chapters/20-rlhf.md)
+21. [Reinforcement Learning from Human Feedback (RLHF)](chapters/21-rlhf.md)
     - Reward modeling
     - PPO for language models
     - KL divergence constraints
     - Implementation walkthrough
 
-21. [Direct Preference Optimization (DPO)](chapters/21-dpo.md)
+22. [Direct Preference Optimization (DPO)](chapters/22-dpo.md)
     - From RLHF to DPO
     - Mathematical derivation
     - Implementation
     - Variants (IPO, KTO, etc.)
 
-22. [Safety and Alignment Techniques](chapters/22-safety-alignment.md)
+23. [Safety and Alignment Techniques](chapters/23-safety-alignment.md)
     - Constitutional AI (CAI)
     - Red teaming and adversarial testing
     - Harmlessness training
@@ -153,19 +162,19 @@ A comprehensive, hands-on study guide for machine learning interviews with a foc
 
 ### Part 8: Diffusion Models
 
-23. [Diffusion Model Fundamentals](chapters/23-diffusion-fundamentals.md)
+24. [Diffusion Model Fundamentals](chapters/24-diffusion-fundamentals.md)
     - Forward diffusion process
     - Reverse denoising process
     - Score matching
     - DDPM formulation
 
-24. [Implementing Diffusion Models](chapters/24-diffusion-implementation.md)
+25. [Implementing Diffusion Models](chapters/25-diffusion-implementation.md)
     - U-Net architecture
     - Noise scheduling
     - Training loop
     - Sampling algorithms (DDPM, DDIM)
 
-25. [Advanced Diffusion Topics](chapters/25-diffusion-advanced.md)
+26. [Advanced Diffusion Topics](chapters/26-diffusion-advanced.md)
     - Classifier-free guidance
     - Latent diffusion (Stable Diffusion)
     - Conditioning mechanisms
@@ -173,7 +182,7 @@ A comprehensive, hands-on study guide for machine learning interviews with a foc
 
 ### Part 9: Advanced Capabilities
 
-26. [Long Context Techniques](chapters/26-long-context.md)
+27. [Long Context Techniques](chapters/27-long-context.md)
     - RoPE scaling methods (NTK-aware, YaRN)
     - Attention sinks and StreamingLLM
     - Memory-augmented architectures
@@ -181,14 +190,14 @@ A comprehensive, hands-on study guide for machine learning interviews with a foc
     - Ring attention for distributed long context
     - Evaluation on long-range tasks
 
-27. [Multimodality](chapters/27-multimodality.md)
+28. [Multimodality](chapters/28-multimodality.md)
     - Vision encoders (ViT, SigLIP)
     - Cross-modal attention mechanisms
     - Vision-language models (LLaVA, GPT-4V)
     - Audio and speech integration
     - Multimodal tokenization strategies
 
-28. [Reasoning and Chain-of-Thought](chapters/28-reasoning.md)
+29. [Reasoning and Chain-of-Thought](chapters/29-reasoning.md)
     - Chain-of-thought prompting
     - Self-consistency and voting
     - Tree-of-thought reasoning
@@ -198,7 +207,7 @@ A comprehensive, hands-on study guide for machine learning interviews with a foc
 
 ### Part 10: Model Architectures in Practice
 
-29. [Architecture Comparison: Modern LLMs](chapters/29-model-architectures.md)
+30. [Architecture Comparison: Modern LLMs](chapters/30-model-architectures.md)
     - GPT series (GPT-2, GPT-3, GPT-4)
     - Claude (Anthropic)
     - Gemini (Google DeepMind)
@@ -220,7 +229,7 @@ A comprehensive, hands-on study guide for machine learning interviews with a foc
       - Mixture of Experts (MoE) vs dense
       - Autoregressive vs diffusion-based generation
 
-30. [Model Merging and Distillation](chapters/30-merging-distillation.md)
+31. [Model Merging and Distillation](chapters/31-merging-distillation.md)
     - Knowledge distillation techniques
     - Model merging (TIES, DARE, SLERP)
     - Pruning and sparsification
@@ -229,7 +238,7 @@ A comprehensive, hands-on study guide for machine learning interviews with a foc
 
 ### Part 11: Hardware and Optimization
 
-31. [Hardware, Quantization, and Training Optimization](chapters/31-hardware-quantization-optimization.md)
+32. [Hardware, Quantization, and Training Optimization](chapters/32-hardware-quantization-optimization.md)
     - **Hardware**
       - NVIDIA GPUs (Ampere, Hopper, Blackwell)
       - Google TPUs (v5, v6 Trillium, v7 Ironwood)
@@ -260,7 +269,7 @@ A comprehensive, hands-on study guide for machine learning interviews with a foc
 
 ### Part 12: Evaluation and Deployment
 
-32. [Evaluation and Benchmarks](chapters/32-evaluation-benchmarks.md)
+33. [Evaluation and Benchmarks](chapters/33-evaluation-benchmarks.md)
     - Perplexity and language modeling metrics
     - Common benchmarks (MMLU, HellaSwag, GSM8K, HumanEval)
     - Reasoning benchmarks (ARC, MATH, BigBench)

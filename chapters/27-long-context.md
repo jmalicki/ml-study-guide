@@ -1,4 +1,4 @@
-# Chapter 26: Long Context Techniques
+# Chapter 27: Long Context Techniques
 
 Extending the context window of Large Language Models is one of the most active areas of research. While early models like GPT-2 were limited to 1024 tokens, modern LLMs can handle 100K+ tokens, with some models like Gemini 1.5 Pro supporting over 1 million tokens. This chapter explores the techniques that make long-context modeling possible.
 
@@ -3014,7 +3014,7 @@ class GroupedQueryAttention(nn.Module):
 class SwiGLU(nn.Module):
     """SwiGLU activation for FFN.
 
-    See [Architecture Comparison](29-model-architectures.md) for details.
+    See [Architecture Comparison](30-model-architectures.md) for details.
     """
     def __init__(self, d_model: int, d_ff: int):
         super().__init__()
@@ -3232,7 +3232,7 @@ class RMSNorm(nn.Module):
 - [Rotary Position Embeddings (RoPE)](08-rope.md) - Base RoPE mechanism
 - [Flash Attention](12-flash-attention.md) - Memory-efficient attention
 - [Other Efficient Attention Variants](13-efficient-attention.md) - Sparse and linear attention
-- [Architecture Comparison: Modern LLMs](29-model-architectures.md) - Context lengths in production models
+- [Architecture Comparison: Modern LLMs](30-model-architectures.md) - Context lengths in production models
 - [Distributed Training and Parallelism](16-distributed-training.md) - Parallelism strategies
 
 ### Additional Resources
@@ -3243,6 +3243,6 @@ class RMSNorm(nn.Module):
 
 ---
 
-**Next Chapter**: [Multimodality](27-multimodality.md) - Extending LLMs to vision, audio, and beyond.
+**Next Chapter**: [Multimodality](28-multimodality.md) - Extending LLMs to vision, audio, and beyond.
 
-**Previous Chapter**: [Advanced Diffusion Topics](25-diffusion-advanced.md) - Classifier-free guidance, latent diffusion, and more.
+**Previous Chapter**: [Advanced Diffusion Topics](26-diffusion-advanced.md) - Classifier-free guidance, latent diffusion, and more.

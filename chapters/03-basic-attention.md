@@ -1341,7 +1341,7 @@ The $O(n^2)$ complexity limits vanilla attention:
 Solutions (covered in later chapters):
 - [Flash Attention](12-flash-attention.md): Same complexity but 2-4x faster via better memory access
 - [Efficient Attention](13-efficient-attention.md): Linear or sparse attention variants
-- [Long Context Techniques](26-long-context.md): Specialized methods for ultra-long contexts
+- [Long Context Techniques](27-long-context.md): Specialized methods for ultra-long contexts
 
 ---
 

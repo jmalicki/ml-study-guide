@@ -1,337 +1,399 @@
-# Chapter 19 Review: LoRA and Parameter-Efficient Fine-tuning
+# Chapter 18 Review: Supervised Fine-tuning (SFT)
 
 ## Scores (0-10)
 
 | Category | Score | Notes |
 |----------|-------|-------|
-| **Overall** | 9.5/10 | Exceptional chapter with comprehensive coverage and excellent code |
-| Completeness | 10/10 | Covers all major PEFT methods thoroughly |
-| Technical Accuracy | 10/10 | Mathematics and implementations are correct and well-explained |
-| Code Quality | 9.5/10 | Excellent PyTorch code, well-documented, minor improvements possible |
-| Writing Quality | 9/10 | Clear and well-organized, appropriate depth for interviews |
-| Math/LaTeX | 10/10 | Formulas are correct, well-formatted, and properly explained |
-| Practical Value | 10/10 | Extremely valuable for ML interviews, includes real-world guidance |
+| **Overall** | 9.5/10 | Excellent comprehensive coverage, production-ready code, minor improvements possible |
+| Completeness | 10/10 | Covers all essential aspects from theory to practice including edge cases |
+| Technical Accuracy | 9.5/10 | Technically sound with one minor issue in loss masking implementation |
+| Code Quality | 9/10 | Well-documented, runnable PyTorch code; minor efficiency improvements possible |
+| Writing Quality | 10/10 | Clear, well-organized, perfect for ML interviews with good examples |
+| Math/LaTeX | 9/10 | Correct formulas, well-explained; could add more mathematical detail in places |
+| Practical Value | 10/10 | Highly valuable for interviews - includes common pitfalls and best practices |
 
 ## Detailed Review
 
 ### What the Chapter Does Well
 
-1. **Exceptional Structure and Progression**
-   - Starts with the problem (memory requirements of full fine-tuning) before jumping to solutions
-   - Logical flow from basic LoRA → QLoRA → other PEFT methods → advanced techniques
-   - Each section builds on previous concepts naturally
-   - The "Putting It All Together" section provides complete working examples
+1. **Outstanding Structure and Organization**
+   - The chapter follows a logical progression from theory to implementation
+   - Table of contents is comprehensive and well-organized
+   - Clear separation between concepts, implementation, and best practices
+   - The "SFT Pipeline" diagram effectively communicates where SFT fits in the bigger picture
 
-2. **Outstanding Mathematical Coverage**
-   - Core LoRA mathematics is clearly explained with proper notation
-   - The low-rank decomposition $W = W_0 + BA$ is well-motivated
-   - Scaling factor $\alpha/r$ is properly justified
-   - QLoRA's NF4 quantization mathematics is explained in depth
-   - DoRA's magnitude/direction decomposition is clear
+2. **Excellent Practical Focus**
+   - Includes both from-scratch implementation AND production-ready TRL library usage
+   - Best practices section is incredibly valuable (data quality over quantity, etc.)
+   - Common pitfalls section addresses real-world issues (catastrophic forgetting, mode collapse)
+   - Multiple evaluation approaches (quantitative, qualitative, A/B testing)
 
-3. **Excellent Code Quality**
-   - All PyTorch implementations are correct and runnable
-   - Code is well-documented with clear docstrings
-   - Includes both basic implementations and production-ready examples
-   - Great examples of:
-     - `LoRALayer` with proper initialization
-     - `LinearWithLoRA` with merge/unmerge capabilities
-     - `MultiHeadAttentionWithLoRA` with configurable targets
-     - `NF4Quantizer` with detailed quantization implementation
-     - Complete training pipeline in `LoRATrainer`
+3. **Comprehensive Code Examples**
+   - Complete, runnable training script with proper structure
+   - `InstructionDataset` class handles both single-turn and multi-turn formats
+   - Chat template implementation is clear and extensible
+   - Good use of type hints and docstrings
 
-4. **Comprehensive Coverage of PEFT Methods**
-   - LoRA (basic and advanced variants)
-   - QLoRA with NF4 and double quantization
-   - Prefix Tuning and Prompt Tuning
-   - Adapters (serial and parallel)
-   - IA³
-   - DoRA
-   - LoRA+
-   - Multi-LoRA serving
+4. **Strong Pedagogical Elements**
+   - Clear comparison tables (pre-training vs SFT, full fine-tuning vs PEFT)
+   - Good/bad examples for dataset quality
+   - Multiple chat template formats shown (LLaMA 2, ChatML, LLaMA 3)
+   - Mathematical formulations with clear explanations
 
-5. **Practical Guidance**
-   - `RANK_RECOMMENDATIONS` dictionary provides task-specific guidance
-   - `FineTuningStrategy.recommend()` helps choose the right method
-   - Detailed comparison tables for different PEFT methods
-   - Memory calculation utilities
-   - Real-world integration examples (HuggingFace, bitsandbytes)
+5. **Thorough Cross-Referencing**
+   - Links to relevant chapters (LM Training, PEFT, RLHF, DPO, Evaluation)
+   - Places SFT in context of the full LLM pipeline
+   - References are comprehensive and well-categorized
 
-6. **Interview-Relevant Content**
-   - "Key Takeaways for Interviews" section is excellent
-   - Quick reference table for method comparison
-   - Covers both theoretical understanding and practical implementation
-   - Includes tradeoffs and decision-making frameworks
-
-7. **Excellent References**
-   - All major papers are cited with proper attribution
-   - ArXiv links provided for easy access
-   - Organized by category (Core Papers, Advanced Techniques, etc.)
-   - Includes library/tool references
-
-8. **Strong Exercises**
-   - Good range from theoretical (LoRA mathematics) to practical (real-world application)
-   - Encourages both implementation and analysis
-   - Memory calculations help solidify understanding
+6. **Excellent Exercises**
+   - 8 well-designed exercises covering different aspects
+   - Range from analytical (dataset analysis) to implementation (complete pipeline)
+   - Progressive difficulty
+   - Include test cases and evaluation criteria
 
 ### What's Missing or Could Be Improved
 
-#### Minor Issues:
+1. **Loss Masking Implementation Issues**
 
-1. **Code Completeness**
-   - Line 2369: `prepare_dataset()` is referenced but not implemented
-     ```python
-     train_dataset = prepare_dataset(tokenizer, "train")
-     eval_dataset = prepare_dataset(tokenizer, "validation")
-     ```
-   - Suggestion: Add a simple example implementation or comment that this is task-specific
+   The `mask_non_assistant_tokens` method in lines 561-619 has significant complexity and potential bugs:
+   - The string-based approach of decoding tokens incrementally is inefficient
+   - Comparing string positions with token positions can be unreliable
+   - The nested loops and string searching make it hard to verify correctness
+   - A more robust approach would tokenize each message separately and track token ranges
 
-2. **LoRA+ Example**
-   - Line 1983: `create_model_with_lora()` is referenced but not defined
-   - Suggestion: Either implement or use a concrete example
+   **Suggested alternative approach:**
+   ```python
+   def mask_non_assistant_tokens(self, messages: List[ChatMessage]) -> torch.Tensor:
+       """Create labels with only assistant tokens unmasked."""
+       labels = []
+       for msg in messages:
+           msg_text = self.format_single_message(msg)
+           msg_tokens = self.tokenizer.encode(msg_text)
 
-3. **Missing Implementation Details**
-   - The `AttentionWithIA3` class (line 1473) doesn't show the complete attention computation like other examples
-   - Could benefit from showing the full attention mechanism
+           if msg.role == "assistant":
+               labels.extend(msg_tokens)  # Include
+           else:
+               labels.extend([-100] * len(msg_tokens))  # Mask
 
-4. **Prefix Tuning MLP Reparameterization**
-   - Line 1023-1030: The MLP reparameterization logic has a shape issue
-   - Line 1047: `prefix_flat` is `[2, prefix_length, hidden_size]` but `prefix_mlp` expects `hidden_size` input
-   - Should reshape before passing through MLP
+       return torch.tensor(labels)
+   ```
 
-5. **Minor Code Issues**
-   - Line 257-263: `unmerge_weights()` will fail if called after `merge_weights()` because `self.lora = None`
-   - The check `if self.lora is None` should happen before attempting to unmerge
+2. **Missing Topics**
 
-#### Content Gaps:
+   - **Instruction Diversity Techniques**: Could add more detail on ensuring diversity
+   - **Safety Filtering**: Only briefly mentioned; could expand on detecting harmful content
+   - **Data Contamination**: Should discuss test set contamination when using synthetic data
+   - **Multi-Lingual SFT**: Challenges and strategies for multilingual instruction tuning
+   - **System Prompt Engineering**: More guidance on crafting effective system prompts
+   - **Quantization-Aware SFT**: Training with quantization in mind for deployment
 
-6. **Performance Comparison**
-   - No empirical results or benchmarks showing actual performance differences
-   - Would be helpful to include a table with approximate performance (e.g., "LoRA r=8 typically achieves 95-98% of full FT on instruction following")
+3. **Mathematical Depth**
 
-7. **Hyperparameter Tuning Guidance**
-   - While rank selection is covered, could expand on:
-     - How to tune alpha independently of rank
-     - Dropout values for LoRA
-     - When to use different initialization schemes
+   - The loss formulation is basic; could add:
+     - Discussion of temperature in the softmax during training
+     - Connection to KL divergence from the base model
+     - Mathematical justification for why masking is equivalent to conditional probability
 
-8. **Failure Modes**
-   - No discussion of when PEFT methods fail or underperform
-   - When is full fine-tuning actually necessary?
-   - What tasks are poorly suited for low-rank adaptation?
+   Example addition:
+   ```latex
+   The masked SFT loss can be viewed as:
+   $$\mathcal{L}_{\text{SFT}} = -\mathbb{E}_{(x,y) \sim \mathcal{D}} \left[ \log p_\theta(y | x) \right]$$
 
-9. **Computational Cost Analysis**
-   - Memory is well-covered, but training time comparison is missing
-   - How much faster is LoRA training vs full FT?
-   - What's the inference latency impact of different methods?
+   This is equivalent to minimizing the KL divergence from the empirical data distribution
+   to the model distribution over assistant responses given instructions.
+   ```
 
-10. **Mixed PEFT Methods**
-    - No discussion of combining methods (e.g., LoRA + Prefix Tuning)
-    - When might this be beneficial?
+4. **Code Quality Improvements**
 
-#### Presentation Issues:
+   - **Memory Efficiency**: The dataset loads all data into memory. Should mention streaming for large datasets
+   - **Error Handling**: Limited error handling in the training loop (what if a batch fails?)
+   - **Checkpoint Recovery**: No code for resuming from checkpoints
+   - **Multi-GPU Considerations**: Brief mention but no DDP/FSDP example
+   - **Evaluation During Training**: The training script doesn't include validation
 
-11. **Figures/Visualizations**
-    - Line 517: `analyze_rank_impact()` saves a figure but it's not shown in the markdown
-    - Could benefit from actual visualizations of:
-      - LoRA architecture diagram
-      - Memory comparison chart
-      - Rank vs performance curve
-      - NF4 quantization bins visualization
+5. **Missing Practical Details**
 
-12. **Table Formatting**
-    - The comparison table at line 1732 would be more readable as a proper markdown table
-    - Currently uses formatted strings which may not render well in all viewers
+   - **Token Budget Management**: More detail on handling varying sequence lengths
+   - **Batch Packing**: Efficient batching strategy not mentioned
+   - **Learning Rate Finder**: How to determine optimal LR
+   - **Early Stopping Criteria**: Specific guidance on when to stop training
+   - **Data Mixing Ratios**: How to determine optimal mixing ratios empirically
 
-13. **Section Organization**
-    - "Other PEFT Methods" section is quite long (lines 1442-1552)
-    - Could be split into separate subsections for each method
+6. **Benchmark Results**
+
+   - Would benefit from example results showing:
+     - Expected perplexity ranges before/after SFT
+     - Typical performance improvements on MMLU, HellaSwag, etc.
+     - Training time estimates for different model sizes
+     - Memory requirements table (model size vs batch size vs GPU memory)
 
 ### Errors (Technical, Code, or Typos)
 
-#### Code Errors:
+1. **Technical Issues**
 
-1. **Prefix Tuning Implementation** (Line 1023-1054)
-   ```python
-   # Current code has shape mismatch:
-   prefix_flat = self.prefix[layer_idx].view(2, self.prefix_length, -1)
-   prefix_hidden = self.prefix_mlp(prefix_flat)  # MLP expects [*, hidden_size]
-   ```
-   Should be:
-   ```python
-   # Apply MLP to each position separately
-   prefix_flat = self.prefix[layer_idx].view(2 * self.prefix_length, -1)
-   prefix_hidden = self.prefix_mlp(prefix_flat)
-   prefix_kv = prefix_hidden.view(2, self.prefix_length, self.n_heads, self.head_dim)
-   ```
+   - **Line 683**: The scheduler is created with `CosineAnnealingLR` but the calculation for `T_max` is incorrect:
+     ```python
+     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+         optimizer,
+         T_max=total_steps - warmup_steps,  # Should be just total_steps
+         eta_min=learning_rate * 0.1
+     )
+     ```
+     The warmup isn't actually implemented here. Should either use `get_cosine_schedule_with_warmup` from transformers (as mentioned in best practices) or implement proper warmup.
 
-2. **DoRA Weight Computation** (Line 1845)
-   ```python
-   weight = self.magnitude.unsqueeze(1) * direction
-   ```
-   This broadcasts magnitude correctly, but should include a comment about the shape for clarity.
+   - **Line 543**: Padding strategy inconsistency:
+     ```python
+     padding="max_length",  # This pads everything to max_length
+     ```
+     This is inefficient. Should use dynamic padding in the collate function or padding="longest" in batches.
 
-3. **Multi-LoRA Batched Inference** (Line 2064)
-   ```python
-   final_output = torch.zeros(len(x), *outputs[0][1].shape[1:])
-   ```
-   Should specify device and dtype:
-   ```python
-   final_output = torch.zeros(len(x), *outputs[0][1].shape[1:],
-                               device=x.device, dtype=x.dtype)
-   ```
+   - **Lines 678-680**: AdamW parameters don't match standard practice:
+     ```python
+     betas=(0.9, 0.95),  # More common: (0.9, 0.999)
+     weight_decay=0.1    # Very high; typical: 0.01 or 0.1 for full fine-tuning
+     ```
+     Should clarify why these non-standard values are chosen or use standard values.
 
-#### Technical Issues:
+   - **Line 616**: The logic for detecting if token is in assistant response is complex and potentially buggy:
+     ```python
+     if in_assistant_response and assistant_marker not in token_text:
+     ```
+     This condition might incorrectly handle edge cases where the marker spans multiple tokens.
 
-4. **NF4 Quantization Performance** (Line 669-676)
-   - The nested loop for finding nearest quantile is very slow
-   - Should use vectorized operations:
-   ```python
-   distances = torch.abs(nf4_levels.unsqueeze(0).unsqueeze(0) -
-                        normalized.unsqueeze(-1))
-   quantized = torch.argmin(distances, dim=-1).to(torch.uint8)
-   ```
+2. **Code Issues**
 
-5. **Memory Calculation** (Line 64)
-   ```python
-   optimizer_memory = model_params_billions * 1e9 * 4 * 2
-   ```
-   Comment says "2x for first and second moments" but should mention these are in FP32 (4 bytes each)
+   - **Lines 508-509**: File loading without error handling:
+     ```python
+     with open(data_path, 'r') as f:
+         self.data = json.load(f)
+     ```
+     Should add try-except and validate JSON structure.
 
-#### Minor Typos/Clarity:
+   - **Line 673**: Hard-coded `num_workers=4` might cause issues:
+     ```python
+     num_workers=4
+     ```
+     Should be configurable or set based on available CPUs.
 
-6. **Line 18**: "(IA)³" - The notation is inconsistent with the section title "IA³"
+   - **Missing imports**: Line 298 shows `tokenizer=None` but the ChatTemplate is used later without a tokenizer.
 
-7. **Line 1707**: "Good*" - The asterisk references a note at the bottom, but could be clearer
+3. **Minor Typos/Inconsistencies**
 
-8. **Line 2493**: Link formatting `[Supervised Fine-tuning (SFT)](18-sft.md)` - should verify these links exist
+   - Line 297: Example shows `tokenizer=None` which would cause errors if the template methods are actually called
+   - Line 754: Model name "meta-llama/Llama-3.2-3B" - should verify this is the correct HF model ID (it's Llama-3.2-3B-Instruct for instruct model)
+   - The dataset mixing percentages in line 162-171 sum to 1.0 exactly, but in practice you might want to specify this more clearly
+
+4. **Documentation Issues**
+
+   - The `prepare_multi_turn_conversation` function (lines 399-436) has an incomplete implementation with comment "Implementation depends on template - see next section" but the next section doesn't fully show this implementation.
 
 ### Specific Suggestions for Improvement
 
-1. **Add Performance Benchmarks Section**
+1. **Add a "Quick Start" Section**
    ```markdown
-   ### Empirical Performance Comparison
+   ## Quick Start
 
-   | Task Type | Full FT | LoRA r=8 | LoRA r=16 | QLoRA r=16 | Prompt Tuning |
-   |-----------|---------|----------|-----------|------------|---------------|
-   | Instruction Following | 100% | 96-98% | 97-99% | 96-98% | 85-90% |
-   | Math Reasoning | 100% | 92-95% | 95-97% | 94-96% | 75-85% |
-   | Code Generation | 100% | 94-97% | 96-98% | 95-97% | 80-88% |
+   For those who want to jump right in:
 
-   *Approximate performance relative to full fine-tuning baseline*
+   \`\`\`bash
+   # Install dependencies
+   pip install transformers trl datasets accelerate
+
+   # Download sample dataset
+   wget https://huggingface.co/datasets/tatsu-lab/alpaca/raw/main/data/train-00000-of-00001.parquet
+
+   # Run SFT
+   python train_sft.py --model meta-llama/Llama-3.2-3B --data alpaca.json
+   \`\`\`
+
+   Expected time: 2-4 hours on a single A100 GPU for 10K examples.
    ```
 
-2. **Add Failure Modes Section**
+2. **Add Computational Requirements Table**
    ```markdown
-   ### When PEFT Methods Struggle
-
-   1. **Large Domain Shift**: Medical/Legal domain adaptation from general pretrained model
-      - LoRA may underperform with very different vocabulary and concepts
-      - Consider full FT or higher rank (r=64+)
-
-   2. **Fundamental Capability Changes**: Teaching new skills not in pretraining
-      - Example: Adding vision capabilities to text-only model
-      - PEFT typically insufficient
-
-   3. **Small Model, Small Rank**: Models <3B with r<8
-      - Limited capacity may not be sufficient
-      - Consider higher rank or full FT
+   | Model Size | Batch Size | GPU Memory | Training Time (10K examples, 3 epochs) |
+   |-----------|-----------|------------|----------------------------------------|
+   | 1.5B      | 4         | 16GB       | 1-2 hours                              |
+   | 3B        | 4         | 24GB       | 2-4 hours                              |
+   | 7B        | 2         | 40GB       | 4-8 hours                              |
+   | 13B       | 1         | 80GB       | 8-16 hours                             |
    ```
 
-3. **Fix Prefix Tuning MLP Implementation**
+3. **Improve the Loss Masking Section with Visual Aid**
+   ```markdown
+   ### Visualizing Loss Masking
 
-4. **Add Training Time Comparison**
+   Consider this tokenized conversation:
+
+   \`\`\`
+   Tokens:     [<|begin|>, <|user|>, What, is, AI, ?, <|eot|>, <|assistant|>, AI, is, artificial, intelligence, <|eot|>]
+   Input IDs:  [    128000,    128006,  3923,  374, 15592,  30,  128007,      128009,  15592, 374,     21075,    11044,  128007]
+   Labels:     [     -100,      -100,  -100, -100,  -100, -100,    -100,        -100,  15592, 374,     21075,    11044,  128007]
+   Loss:       [       ✗,         ✗,     ✗,    ✗,     ✗,    ✗,       ✗,           ✗,     ✓,   ✓,        ✓,       ✓,      ✓]
+   \`\`\`
+
+   Only tokens marked ✓ contribute to the loss calculation.
+   ```
+
+4. **Add Dataset Preparation Flowchart**
+   ```markdown
+   ### Dataset Preparation Workflow
+
+   \`\`\`
+   Raw Data (various formats)
+        │
+        ├─→ Quality Filtering ───→ Remove harmful/low-quality
+        │                          Remove duplicates
+        │                          Length filtering
+        │
+        ├─→ Format Conversion ──→ Standardize to messages format
+        │                         Apply chat template
+        │
+        ├─→ Tokenization ───────→ Convert to token IDs
+        │                         Apply loss masking
+        │
+        └─→ Batching ───────────→ Group by length
+                                  Create batches
+                                  Apply padding
+   \`\`\`
+   ```
+
+5. **Enhance Evaluation Section**
    ```python
-   def compare_training_time():
-       """
-       Training time comparison (approximate, single A100):
+   # Add this code example for automated evaluation
+   def evaluate_on_benchmarks(model, tokenizer):
+       """Evaluate on standard benchmarks."""
+       from lm_eval import evaluator
 
-       7B model, 10K examples:
-       - Full FT: ~8 hours
-       - LoRA (r=8): ~3 hours (2.7x faster)
-       - QLoRA (r=8): ~5 hours (1.6x faster, slower due to quantization overhead)
+       results = evaluator.simple_evaluate(
+           model=model,
+           tasks=["mmlu", "hellaswag", "truthfulqa", "gsm8k"],
+           num_fewshot=5,
+           batch_size=8
+       )
 
-       Speedup factors depend on:
-       - Batch size (memory-constrained in full FT)
-       - Model architecture
-       - Number of LoRA target modules
-       """
+       return results
    ```
 
-5. **Add Visual Diagrams**
-   - Consider adding ASCII art or references to diagrams for:
-     - LoRA architecture (parallel to base weights)
-     - Adapter placement in transformer
-     - Memory layout comparison
+6. **Add Troubleshooting Section**
+   ```markdown
+   ## Troubleshooting
 
-6. **Expand Quick Reference Table**
-   - Add columns for training time, inference latency
-   - Include typical rank/hyperparameter values
-   - Add memory requirements in absolute terms (GB for 7B model)
+   ### Common Issues and Solutions
+
+   **Problem**: Loss is NaN after a few steps
+   - **Cause**: Learning rate too high, gradient explosion
+   - **Solution**: Reduce LR by 10x, check gradient clipping is enabled
+
+   **Problem**: Model only generates short responses
+   - **Cause**: Imbalanced training data, EOS token learned too early
+   - **Solution**: Filter out very short examples, use length-normalized loss
+
+   **Problem**: Out of memory errors
+   - **Cause**: Batch size too large, sequences too long
+   - **Solution**: Reduce batch size, use gradient accumulation, enable gradient checkpointing
+
+   **Problem**: Model repeats the instruction in its response
+   - **Cause**: Loss masking not working correctly
+   - **Solution**: Verify labels have -100 for instruction tokens, check chat template
+   ```
+
+7. **Add More on Data Mixing**
+   ```python
+   def create_mixed_dataset(sources: Dict[str, str], ratios: Dict[str, float], total_size: int):
+       """
+       Create a mixed dataset from multiple sources.
+
+       Args:
+           sources: Mapping of source_name -> file_path
+           ratios: Mapping of source_name -> proportion (should sum to 1.0)
+           total_size: Total number of examples to sample
+
+       Returns:
+           Mixed dataset
+       """
+       mixed_data = []
+
+       for source_name, ratio in ratios.items():
+           file_path = sources[source_name]
+           n_samples = int(total_size * ratio)
+
+           # Load and sample
+           with open(file_path) as f:
+               data = json.load(f)
+               sampled = random.sample(data, min(n_samples, len(data)))
+
+           # Add source tag for tracking
+           for item in sampled:
+               item['source'] = source_name
+
+           mixed_data.extend(sampled)
+
+       # Shuffle
+       random.shuffle(mixed_data)
+
+       return mixed_data
+   ```
 
 ### Cross-Reference Quality
 
-**Excellent cross-references:**
-- References to Chapter 18 (SFT) are appropriate
-- Reference to Chapter 20 (RLHF) makes sense
-- Reference to Chapter 31 (Hardware/Quantization) is relevant
+**Excellent** - The chapter has appropriate links to:
+- [Language Model Training](15-lm-training.md) - Correctly references pre-training
+- [LoRA and PEFT](20-peft.md) - Multiple mentions with context
+- [RLHF](21-rlhf.md) and [DPO](22-dpo.md) - Properly positions SFT in the pipeline
+- [Evaluation and Benchmarks](33-evaluation-benchmarks.md) - Good reference for metrics
 
-**Suggestions:**
-- Could reference attention chapters when discussing applying LoRA to Q/K/V projections
-- Could reference tokenization chapter when discussing embedding layer adaptation
-- Links should be verified to ensure chapter numbers match the outline
+**Suggestion**: Could add more cross-references to:
+- Tokenization chapter (when discussing chat templates and special tokens)
+- Optimization chapter (when discussing AdamW, learning rate schedules)
+- Distributed training chapter (for multi-GPU setups)
 
-### Summary Assessment
+### Interview Readiness Assessment
 
-This is an **exceptional chapter** that would be extremely valuable for ML interviews. The combination of:
-- Clear mathematical explanations
-- Comprehensive, runnable code
-- Practical guidance and decision frameworks
-- Real-world integration examples
-- Strong exercise set
+**Excellent for ML Interviews**
 
-makes this one of the best technical references for PEFT methods.
+This chapter prepares someone well for:
 
-The few issues identified are minor and mostly involve:
-- Small implementation details that could be optimized
-- Missing helper functions in examples
-- Opportunities for additional content (benchmarks, failure modes)
+1. **Conceptual Questions**
+   - "What is supervised fine-tuning and how does it differ from pre-training?"
+   - "Why do we mask instruction tokens during SFT?"
+   - "What are common pitfalls in SFT?"
+   - "How do you prevent catastrophic forgetting?"
 
-**For interview preparation**, this chapter provides:
-1. ✅ Deep understanding of LoRA mathematics
-2. ✅ Ability to implement from scratch
-3. ✅ Knowledge of when to use different methods
-4. ✅ Practical considerations for real-world deployment
-5. ✅ Understanding of memory/compute tradeoffs
+2. **Practical Questions**
+   - "How would you fine-tune an LLM for a specific task?"
+   - "What hyperparameters would you tune for SFT?"
+   - "How do you evaluate an instruction-tuned model?"
 
-**Recommendation**: This chapter is production-ready with only minor fixes needed. The suggested improvements would make it even better, but it's already excellent as-is.
+3. **Implementation Questions**
+   - "Implement a loss masking function for chat data"
+   - "Design a chat template system"
+   - "How would you handle multi-turn conversations?"
 
-### Priority Fixes
+4. **System Design Questions**
+   - "Design an SFT pipeline for a production system"
+   - "How would you scale SFT training?"
 
-**High Priority:**
-1. Fix Prefix Tuning MLP shape issue (technical correctness)
-2. Add implementation for `prepare_dataset()` or mark as placeholder
-3. Optimize NF4 quantization loop (performance)
+The chapter provides both breadth and depth needed for confident discussion.
 
-**Medium Priority:**
-4. Add performance benchmarks table
-5. Fix `unmerge_weights()` logic
-6. Add failure modes section
-7. Verify cross-reference links
+## Summary
 
-**Low Priority:**
-8. Add diagrams/visualizations
-9. Improve table formatting
-10. Add training time comparisons
+This is an **excellent chapter** that thoroughly covers supervised fine-tuning from theory to practice. It successfully balances mathematical rigor with practical implementation details. The code is comprehensive and mostly production-ready, with minor improvements needed in loss masking efficiency and training loop robustness.
 
-### Interview Readiness Score: 9.5/10
+**Strengths:**
+- Comprehensive coverage of all SFT aspects
+- Production-ready code examples
+- Excellent best practices and common pitfalls sections
+- Strong pedagogical structure
+- Very interview-ready content
 
-This chapter fully prepares someone for interview questions about:
-- LoRA theory and implementation
-- PEFT method selection
-- Memory optimization for LLM fine-tuning
-- Practical deployment considerations
-- Quantization techniques (NF4, double quantization)
-- Advanced techniques (DoRA, LoRA+, multi-LoRA serving)
+**Areas for Improvement:**
+- Loss masking implementation needs simplification
+- Missing computational requirements table
+- Could add more troubleshooting guidance
+- Need to fix scheduler implementation in training loop
+- Would benefit from benchmark results examples
 
-The 0.5 point deduction is only due to minor code issues that should be fixed for completeness.
+**Recommendation:** This chapter is ready for use with minor revisions. The main priority should be fixing the loss masking implementation and the learning rate scheduler, as these are critical for correctness. The other suggestions are enhancements that would make an already strong chapter even better.
+
+**Overall Assessment:** 9.5/10 - Outstanding quality, publication-ready with minor fixes.

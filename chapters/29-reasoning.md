@@ -1,4 +1,4 @@
-# Chapter 28: Reasoning and Chain-of-Thought
+# Chapter 29: Reasoning and Chain-of-Thought
 
 Reasoning is a critical capability for large language models to solve complex problems, especially in domains like mathematics, programming, and logical inference. This chapter explores how LLMs can be prompted or trained to exhibit improved reasoning through explicit intermediate steps, verification mechanisms, and test-time compute scaling.
 
@@ -3972,9 +3972,9 @@ Key takeaways:
 - Understanding failure modes helps build robust systems
 - Real benchmark results show significant gains from proper technique selection
 
-For training reasoning models, see [Chapter 20: RLHF](20-rlhf.md) for reward modeling techniques.
+For training reasoning models, see [Chapter 20: RLHF](21-rlhf.md) for reward modeling techniques.
 
-For evaluating reasoning capabilities, see [Chapter 32: Evaluation and Benchmarks](32-evaluation-benchmarks.md).
+For evaluating reasoning capabilities, see [Chapter 33: Evaluation and Benchmarks](33-evaluation-benchmarks.md).
 
 ## Additional Resources
 

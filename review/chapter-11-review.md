@@ -218,11 +218,11 @@
 - Should link to Training chapters when discussing fine-tuning in exercises
 
 **Potentially broken references:**
-- Line 42: Links to "29-model-architectures.md" - need to verify this chapter exists
-- Line 902: Links to "29-model-architectures.md" again
+- Line 42: Links to "30-model-architectures.md" - need to verify this chapter exists
+- Line 902: Links to "30-model-architectures.md" again
 - Line 1495: Links to "15-lm-training.md" - verify chapter exists
 - Line 1766: Links to "14-data-curation.md" - verify chapter exists
-- Line 1886: Links to "18-sft.md" and "19-peft.md" - verify these exist
+- Line 1886: Links to "19-sft.md" and "20-peft.md" - verify these exist
 
 ### Additional Comments
 

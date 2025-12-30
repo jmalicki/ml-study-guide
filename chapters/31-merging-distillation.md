@@ -1,4 +1,4 @@
-# Chapter 30: Model Merging and Distillation
+# Chapter 31: Model Merging and Distillation
 
 This chapter covers techniques for combining and compressing models: knowledge distillation transfers knowledge from large "teacher" models to smaller "student" models, while model merging combines multiple fine-tuned models into a single model without additional training. These techniques are essential for creating efficient, specialized models from general-purpose ones.
 
@@ -1412,7 +1412,7 @@ def create_intermediate_checkpoint():
 
 ## LoRA Merging
 
-LoRA adapters (see [Chapter 19: LoRA and Parameter-Efficient Fine-tuning](19-peft.md)) can be merged into the base model or combined with other LoRAs.
+LoRA adapters (see [Chapter 20: LoRA and Parameter-Efficient Fine-tuning](20-peft.md)) can be merged into the base model or combined with other LoRAs.
 
 **LoRA Formulation Recap:**
 
@@ -3215,9 +3215,9 @@ This chapter covered:
 - Combining techniques creates efficient specialized models
 
 **Next Chapter:**
-[Hardware, Quantization, and Training Optimization](31-hardware-quantization-optimization.md) - Learn about efficient deployment and training.
+[Hardware, Quantization, and Training Optimization](32-hardware-quantization-optimization.md) - Learn about efficient deployment and training.
 
 **Related Chapters:**
-- [Supervised Fine-tuning (SFT)](18-sft.md) - Creating models to merge
-- [LoRA and Parameter-Efficient Fine-tuning](19-peft.md) - Efficient adaptation
-- [Architecture Comparison: Modern LLMs](29-model-architectures.md) - Understanding distilled models
+- [Supervised Fine-tuning (SFT)](19-sft.md) - Creating models to merge
+- [LoRA and Parameter-Efficient Fine-tuning](20-peft.md) - Efficient adaptation
+- [Architecture Comparison: Modern LLMs](30-model-architectures.md) - Understanding distilled models

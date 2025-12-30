@@ -1,4 +1,4 @@
-# Chapter 29: Architecture Comparison - Modern LLMs
+# Chapter 30: Architecture Comparison - Modern LLMs
 
 This chapter provides a comprehensive comparison of architectural choices across major Large Language Models. Understanding these differences is crucial for ML interviews, as it demonstrates knowledge of the practical trade-offs that shape production systems.
 
@@ -393,7 +393,7 @@ The progression from 100K → 200K → 1M tokens suggests:
 ### Training Approach
 
 Claude uses a combination of:
-1. **RLHF** (see [RLHF](20-rlhf.md)): Reinforcement Learning from Human Feedback
+1. **RLHF** (see [RLHF](21-rlhf.md)): Reinforcement Learning from Human Feedback
 2. **RLAIF** (Constitutional AI): Reinforcement Learning from AI Feedback, where a "trainer" model evaluates responses against constitutional principles
 
 **Problem and Motivation for Constitutional AI:**
@@ -1554,10 +1554,10 @@ class DiffusionLanguageModel(nn.Module):
     diffusion models start with noise/masks and iteratively denoise.
 
     WeDLM's key insight: Use causal attention so that KV cache,
-    FlashAttention (see [Hardware, Quantization, and Training Optimization](31-hardware-quantization-optimization.md)),
+    FlashAttention (see [Hardware, Quantization, and Training Optimization](32-hardware-quantization-optimization.md)),
     and other optimizations still work.
 
-    See [Diffusion Model Fundamentals](23-diffusion-fundamentals.md) for diffusion model details.
+    See [Diffusion Model Fundamentals](24-diffusion-fundamentals.md) for diffusion model details.
     """
     def __init__(
         self,

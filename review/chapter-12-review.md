@@ -221,7 +221,7 @@ For example, Exercise 1 asks to calculate memory but doesn't specify whether to 
 3. **Line 1246**: Link to "[Multi-Head Attention](04-multi-head-attention.md)"
    - Should verify this file exists and has relevant content
 
-4. **Line 1816**: Link to "[Hardware, Quantization, and Training Optimization](31-hardware-quantization-optimization.md)"
+4. **Line 1816**: Link to "[Hardware, Quantization, and Training Optimization](32-hardware-quantization-optimization.md)"
    - Chapter 31 seems far away; verify outline consistency
 
 ### Specific Suggestions for Improvement

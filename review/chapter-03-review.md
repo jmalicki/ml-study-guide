@@ -129,7 +129,7 @@ The mathematics, code, and explanations are all technically correct.
 
 4. **Line 1003**: "Efficient Attention" references `13-efficient-attention.md` - should verify.
 
-5. **Line 1004**: "Long Context Techniques" references `26-long-context.md` - should verify.
+5. **Line 1004**: "Long Context Techniques" references `27-long-context.md` - should verify.
 
 ### Cross-Reference Quality
 

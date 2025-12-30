@@ -256,7 +256,7 @@
 **Good References:**
 - Links to previous chapter (15-lm-training.md) for single-GPU training
 - Links to next chapter (17-scaling-optimization.md) for learning rate schedules
-- Links to hardware chapter (31-hardware-quantization-optimization.md)
+- Links to hardware chapter (32-hardware-quantization-optimization.md)
 - Good external references (arXiv papers, PyTorch docs)
 
 **Missing References:**

@@ -236,7 +236,7 @@ Topics like:
 
 ### Minor Formatting Suggestions
 
-1. **Line 39**: Link `[Architecture Comparison](29-model-architectures.md)` appears before the chapter is introduced - consider moving to a more natural location
+1. **Line 39**: Link `[Architecture Comparison](30-model-architectures.md)` appears before the chapter is introduced - consider moving to a more natural location
 
 2. **Consistency in Code Comments**: Some code has extensive docstrings, some has inline comments, some has both. Consider standardizing.
 

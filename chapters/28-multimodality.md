@@ -1,4 +1,4 @@
-# Chapter 27: Multimodality
+# Chapter 28: Multimodality
 
 Multimodal models extend language models to understand and generate content across multiple modalities—vision, audio, and text. This chapter covers the architectures and techniques that enable models like GPT-4V, LLaVA, and Gemini to process images, audio, and text together.
 
@@ -3465,7 +3465,7 @@ def example_multimodal_usage():
 
 1. **Use pre-trained encoders** when possible (CLIP, Whisper)
 2. **Stage training**: Align first, then instruct
-3. **LoRA for efficiency** when fine-tuning large LLMs (see [LoRA and PEFT](19-peft.md))
+3. **LoRA for efficiency** when fine-tuning large LLMs (see [LoRA and PEFT](20-peft.md))
 4. **Perceiver Resampler** for variable-length inputs
 5. **Data quality over quantity** for instruction tuning
 

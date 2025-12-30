@@ -2176,4 +2176,4 @@ Multi-head attention is a cornerstone of modern LLMs. Understanding the trade-of
 - [Basic Attention](03-basic-attention.md) - Foundation of attention mechanisms
 - [Flash Attention](12-flash-attention.md) - Efficient attention computation
 - [The Transformer Block](09-transformer-block.md) - How MHA fits into the full architecture
-- [Architecture Comparison: Modern LLMs](29-model-architectures.md) - See which models use which attention variants
+- [Architecture Comparison: Modern LLMs](30-model-architectures.md) - See which models use which attention variants

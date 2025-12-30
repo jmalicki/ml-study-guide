@@ -1,8 +1,8 @@
-# Chapter 25: Advanced Diffusion Topics
+# Chapter 26: Advanced Diffusion Topics
 
 This chapter explores advanced techniques in diffusion models, building on the fundamentals covered in previous chapters. We focus on key innovations that have made diffusion models practical for production use, including classifier-free guidance, latent diffusion, conditioning mechanisms, and recent advances like flow matching. We also cover discrete diffusion for language modeling.
 
-For foundational diffusion concepts, see [Diffusion Model Fundamentals](23-diffusion-fundamentals.md) and [Implementing Diffusion Models](24-diffusion-implementation.md).
+For foundational diffusion concepts, see [Diffusion Model Fundamentals](24-diffusion-fundamentals.md) and [Implementing Diffusion Models](25-diffusion-implementation.md).
 
 ## Table of Contents
 
@@ -3808,7 +3808,7 @@ class GumbelSoftmaxDiffusion:
 
 As of 2024/2025, autoregressive models (GPT-style) still dominate for text generation. Diffusion for language is an active research area but not yet production-ready for most applications.
 
-However, some recent work like **WeDLM** (see [Architecture Comparison: Modern LLMs](29-model-architectures.md)) shows promise by using causal attention in diffusion models, making them compatible with standard LLM infrastructure.
+However, some recent work like **WeDLM** (see [Architecture Comparison: Modern LLMs](30-model-architectures.md)) shows promise by using causal attention in diffusion models, making them compatible with standard LLM infrastructure.
 
 **Key Papers:**
 - [Structured Denoising Diffusion Models in Discrete State-Spaces](https://arxiv.org/abs/2107.03006) (Austin et al., 2021)

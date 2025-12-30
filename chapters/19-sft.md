@@ -1,4 +1,4 @@
-# Chapter 18: Supervised Fine-tuning (SFT)
+# Chapter 19: Supervised Fine-tuning (SFT)
 
 Supervised Fine-tuning (SFT) is the critical bridge between pre-trained language models and useful assistants. This chapter covers the theory, practice, and implementation of instruction tuning that transforms a base model into a helpful, instruction-following system.
 
@@ -71,7 +71,7 @@ Pre-trained language models (see [Language Model Training](15-lm-training.md)) a
   <text x="610" y="105" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#666">(RLHF)</text>
 </svg>
 
-SFT is typically followed by alignment techniques like RLHF (see [RLHF](20-rlhf.md)) or DPO (see [DPO](21-dpo.md)), but a well-executed SFT phase is critical for final model quality.
+SFT is typically followed by alignment techniques like RLHF (see [RLHF](21-rlhf.md)) or DPO (see [DPO](22-dpo.md)), but a well-executed SFT phase is critical for final model quality.
 
 ### Key Papers
 
@@ -382,7 +382,7 @@ print(formatted)
 | Method | Parameters Updated | Memory | Training Time | Quality |
 |--------|-------------------|--------|---------------|---------|
 | **Full Fine-tuning** | All (~7B for LLaMA-7B) | Very High | Slow | Best |
-| **LoRA** (see [LoRA and PEFT](19-peft.md)) | ~0.1-1% | Low | Fast | Very Good |
+| **LoRA** (see [LoRA and PEFT](20-peft.md)) | ~0.1-1% | Low | Fast | Very Good |
 | **QLoRA** | ~0.1-1% (quantized base) | Very Low | Fast | Good |
 
 For SFT specifically:
@@ -2002,7 +2002,7 @@ def evaluate_model(model, dataloader, device):
 
 **2. Benchmark Performance**
 
-Test on standard benchmarks (see [Evaluation and Benchmarks](32-evaluation-benchmarks.md)):
+Test on standard benchmarks (see [Evaluation and Benchmarks](33-evaluation-benchmarks.md)):
 - **MMLU**: Multi-task language understanding
 - **HellaSwag**: Commonsense reasoning
 - **TruthfulQA**: Truthfulness and informativeness
@@ -2309,9 +2309,9 @@ def ab_test(model_a, model_b, test_prompts, evaluators):
 
 After SFT, models can be further improved through:
 
-- **LoRA/PEFT** (see [LoRA and Parameter-Efficient Fine-tuning](19-peft.md)): Efficient fine-tuning methods
-- **RLHF** (see [RLHF](20-rlhf.md)): Optimize for human preferences using reinforcement learning
-- **DPO** (see [DPO](21-dpo.md)): Direct preference optimization without RL
+- **LoRA/PEFT** (see [LoRA and Parameter-Efficient Fine-tuning](20-peft.md)): Efficient fine-tuning methods
+- **RLHF** (see [RLHF](21-rlhf.md)): Optimize for human preferences using reinforcement learning
+- **DPO** (see [DPO](22-dpo.md)): Direct preference optimization without RL
 
 The SFT model serves as the **reference model** or **initialization** for these subsequent alignment techniques.
 
@@ -2611,4 +2611,4 @@ def augment_instruction_data(
 
 ---
 
-**Next Chapter:** [LoRA and Parameter-Efficient Fine-tuning](19-peft.md) - Learn efficient alternatives to full fine-tuning that preserve model quality while drastically reducing memory requirements.
+**Next Chapter:** [LoRA and Parameter-Efficient Fine-tuning](20-peft.md) - Learn efficient alternatives to full fine-tuning that preserve model quality while drastically reducing memory requirements.

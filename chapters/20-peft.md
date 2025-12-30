@@ -1,4 +1,4 @@
-# Chapter 19: LoRA and Parameter-Efficient Fine-tuning
+# Chapter 20: LoRA and Parameter-Efficient Fine-tuning
 
 Parameter-Efficient Fine-Tuning (PEFT) methods enable adapting large language models to specific tasks while updating only a small fraction of parameters. LoRA and its variants have become the dominant approach for fine-tuning LLMs efficiently. This chapter covers the mathematics, implementation, and practical considerations for PEFT methods.
 
@@ -3390,9 +3390,9 @@ def qlora_with_bitsandbytes():
 
 ### Related Chapters
 
-- [Supervised Fine-tuning (SFT)](18-sft.md): What we're fine-tuning for
-- [RLHF](20-rlhf.md): LoRA can be used for RLHF as well
-- [Hardware, Quantization, and Training Optimization](31-hardware-quantization-optimization.md): Quantization details
+- [Supervised Fine-tuning (SFT)](19-sft.md): What we're fine-tuning for
+- [RLHF](21-rlhf.md): LoRA can be used for RLHF as well
+- [Hardware, Quantization, and Training Optimization](32-hardware-quantization-optimization.md): Quantization details
 
 ---
 

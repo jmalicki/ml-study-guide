@@ -1,4 +1,4 @@
-# Chapter 32: Evaluation and Benchmarks
+# Chapter 33: Evaluation and Benchmarks
 
 ## Introduction
 
@@ -1732,7 +1732,7 @@ class ARCEvaluator:
 
 ### 32.3.2 MATH Dataset
 
-The MATH dataset ([Hendrycks et al., 2021](https://arxiv.org/abs/2103.03874)) contains challenging competition mathematics problems. Related to [Reasoning and Chain-of-Thought](28-reasoning.md).
+The MATH dataset ([Hendrycks et al., 2021](https://arxiv.org/abs/2103.03874)) contains challenging competition mathematics problems. Related to [Reasoning and Chain-of-Thought](29-reasoning.md).
 
 **Why MATH Dataset Matters**: While GSM8K tests elementary arithmetic reasoning, MATH tests **advanced mathematical problem-solving** at the competition level (AMC, AIME, etc.). This is important because:
 - It requires deep mathematical knowledge (algebra, geometry, calculus, number theory)
@@ -1972,7 +1972,7 @@ class BigBenchEvaluator:
 
 ## 32.4 Safety and Alignment Evaluations
 
-Safety evaluations are critical for deployed models. See [Safety and Alignment Techniques](22-safety-alignment.md) for training methods.
+Safety evaluations are critical for deployed models. See [Safety and Alignment Techniques](23-safety-alignment.md) for training methods.
 
 ### 32.4.1 Toxicity Detection
 

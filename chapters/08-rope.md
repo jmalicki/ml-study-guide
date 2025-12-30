@@ -36,7 +36,7 @@ RoPE achieves all these goals through a clever application of rotation matrices 
 
 ### Learned Absolute Positional Embeddings
 
-GPT-2 and GPT-3 use learned positional embeddings (see [Architecture Comparison](29-model-architectures.md)):
+GPT-2 and GPT-3 use learned positional embeddings (see [Architecture Comparison](30-model-architectures.md)):
 
 **Why this approach exists:**
 The simplest way to add positional information is to learn an embedding for each position, just like word embeddings. Each position index (0, 1, 2, ..., max_position) gets its own learnable vector that is added to the token embedding.
@@ -952,7 +952,7 @@ The model treats "word 5 attending to word 3" the same as "word 105 attending to
 
 ## RoPE in Modern LLMs
 
-RoPE has become the standard positional encoding in modern LLMs. See [Architecture Comparison](29-model-architectures.md) for a comprehensive comparison.
+RoPE has become the standard positional encoding in modern LLMs. See [Architecture Comparison](30-model-architectures.md) for a comprehensive comparison.
 
 ### Models Using RoPE
 
@@ -1025,7 +1025,7 @@ class LLaMARotaryEmbedding(nn.Module):
 
 While RoPE can extrapolate beyond its training context, performance degrades significantly. Several techniques have been developed to extend RoPE to longer contexts.
 
-See [Long Context Techniques](26-long-context.md) for comprehensive coverage of long-context methods.
+See [Long Context Techniques](27-long-context.md) for comprehensive coverage of long-context methods.
 
 ### The Extrapolation Problem
 
@@ -1576,7 +1576,7 @@ class iRoPEAttention(nn.Module):
 
 ### RoPE for Multimodal Models
 
-In vision-language models (see [Multimodality](27-multimodality.md)), RoPE can be applied differently:
+In vision-language models (see [Multimodality](28-multimodality.md)), RoPE can be applied differently:
 - **1D RoPE** for text tokens (standard)
 - **2D RoPE** for vision tokens (rows and columns)
 
@@ -2112,8 +2112,8 @@ test_yarn()
 
 - [Chapter 7: Positional Encodings](07-positional-encodings.md) - Other positional encoding methods
 - [Chapter 4: Multi-Head Attention](04-multi-head-attention.md) - Attention mechanisms that use RoPE
-- [Chapter 26: Long Context Techniques](26-long-context.md) - Advanced RoPE scaling and other long-context methods
-- [Chapter 29: Architecture Comparison](29-model-architectures.md) - Which models use RoPE
+- [Chapter 27: Long Context Techniques](27-long-context.md) - Advanced RoPE scaling and other long-context methods
+- [Chapter 30: Architecture Comparison](30-model-architectures.md) - Which models use RoPE
 - [Chapter 12: Flash Attention](12-flash-attention.md) - Efficient attention that works with RoPE
 
 ### Code Resources

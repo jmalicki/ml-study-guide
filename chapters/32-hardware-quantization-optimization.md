@@ -1,4 +1,4 @@
-# Chapter 31: Hardware, Quantization, and Training Optimization
+# Chapter 32: Hardware, Quantization, and Training Optimization
 
 This chapter covers the practical aspects of training and deploying LLMs efficiently: hardware considerations, quantization techniques, optimizers, and learning rate schedules. Understanding these topics is essential for ML interviews, as they bridge the gap between theoretical architecture and real-world deployment.
 

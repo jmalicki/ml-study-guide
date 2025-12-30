@@ -1,6 +1,6 @@
-# Chapter 24: Implementing Diffusion Models
+# Chapter 25: Implementing Diffusion Models
 
-This chapter provides a comprehensive, hands-on guide to implementing diffusion models with runnable PyTorch code. We build on the theoretical foundations from [Diffusion Model Fundamentals](23-diffusion-fundamentals.md) and implement all the core components needed for a working diffusion model.
+This chapter provides a comprehensive, hands-on guide to implementing diffusion models with runnable PyTorch code. We build on the theoretical foundations from [Diffusion Model Fundamentals](24-diffusion-fundamentals.md) and implement all the core components needed for a working diffusion model.
 
 ## Table of Contents
 
@@ -28,7 +28,7 @@ Diffusion models generate data by learning to reverse a gradual noising process.
 4. **Training**: How we train the denoising network
 5. **Sampling**: How we generate new samples using the trained model
 
-The core training objective from [Diffusion Model Fundamentals](23-diffusion-fundamentals.md) is:
+The core training objective from [Diffusion Model Fundamentals](24-diffusion-fundamentals.md) is:
 
 $$
 \mathcal{L}_{\text{simple}} = \mathbb{E}_{t, \mathbf{x}_0, \epsilon} \left[ \| \epsilon - \epsilon_\theta(\mathbf{x}_t, t) \|^2 \right]
@@ -679,7 +679,7 @@ The noise schedule $\{\beta_t\}_{t=1}^T$ controls how quickly noise is added dur
 
 ### Key Concepts
 
-From [Diffusion Model Fundamentals](23-diffusion-fundamentals.md), recall:
+From [Diffusion Model Fundamentals](24-diffusion-fundamentals.md), recall:
 - $\alpha_t = 1 - \beta_t$ (how much signal to keep)
 - $\bar{\alpha}_t = \prod_{s=1}^t \alpha_s$ (cumulative signal retention)
 - We can sample $\mathbf{x}_t$ directly: $\mathbf{x}_t = \sqrt{\bar{\alpha}_t} \mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_t} \epsilon$
@@ -1042,7 +1042,7 @@ def train_diffusion_model(
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
 
     # Cosine learning rate schedule with warmup
-    # See [Scaling Laws and Optimization](17-scaling-optimization.md)
+    # See [Optimizers and Training Techniques](17-scaling-optimization.md)
     from torch.optim.lr_scheduler import CosineAnnealingLR
     scheduler = CosineAnnealingLR(optimizer, T_max=num_epochs)
 
@@ -1823,7 +1823,7 @@ def generate_batch(model, batch_size=64):
 - Solutions:
   - Use DDIM instead of DDPM
   - Reduce ddim_steps (25-50 is usually enough)
-  - Consider distillation (see [Model Merging and Distillation](30-merging-distillation.md))
+  - Consider distillation (see [Model Merging and Distillation](31-merging-distillation.md))
 
 ---
 
@@ -2307,7 +2307,7 @@ $$
 
 where $c$ is a condition (e.g., class label) and $s$ is guidance scale.
 
-See [Advanced Diffusion Topics](25-diffusion-advanced.md) for details.
+See [Advanced Diffusion Topics](26-diffusion-advanced.md) for details.
 
 ### Exercise 4: FID Evaluation
 
@@ -2388,10 +2388,10 @@ Which schedule works best for your dataset?
 
 ### Related Chapters
 
-- [Diffusion Model Fundamentals](23-diffusion-fundamentals.md) - Theoretical foundations
-- [Advanced Diffusion Topics](25-diffusion-advanced.md) - Classifier-free guidance, latent diffusion
+- [Diffusion Model Fundamentals](24-diffusion-fundamentals.md) - Theoretical foundations
+- [Advanced Diffusion Topics](26-diffusion-advanced.md) - Classifier-free guidance, latent diffusion
 - [Distributed Training and Parallelism](16-distributed-training.md) - Scaling to larger models
-- [Hardware, Quantization, and Training Optimization](31-hardware-quantization-optimization.md) - Optimization techniques
+- [Hardware, Quantization, and Training Optimization](32-hardware-quantization-optimization.md) - Optimization techniques
 
 ---
 
@@ -2412,4 +2412,4 @@ Key takeaways:
 - DDIM enables fast sampling by skipping timesteps
 - EMA and proper schedules are crucial for quality
 
-Next, explore [Advanced Diffusion Topics](25-diffusion-advanced.md) for classifier-free guidance, latent diffusion, and recent advances.
+Next, explore [Advanced Diffusion Topics](26-diffusion-advanced.md) for classifier-free guidance, latent diffusion, and recent advances.

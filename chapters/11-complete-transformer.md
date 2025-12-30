@@ -39,7 +39,7 @@ Modern LLMs (GPT-4, Claude, LLaMA, Gemini) are all decoder-only because:
 3. **Generality**: Can be adapted to any task via prompting
 4. **Training simplicity**: Single causal language modeling objective
 
-See [Architecture Comparison: Modern LLMs](29-model-architectures.md) for details on production models.
+See [Architecture Comparison: Modern LLMs](30-model-architectures.md) for details on production models.
 
 ---
 
@@ -899,7 +899,7 @@ Modern LLMs (LLaMA, GPT-4, Claude) use advanced techniques beyond the basic deco
 4. **Grouped Query Attention** (GQA) for efficient inference
 5. **Pre-normalization** (more stable training)
 
-See [Architecture Comparison: Modern LLMs](29-model-architectures.md) for why these choices matter.
+See [Architecture Comparison: Modern LLMs](30-model-architectures.md) for why these choices matter.
 
 ### Implementation
 
@@ -3236,8 +3236,8 @@ model_with_cp = ModernTransformerWithCheckpointing(
 7. Measure perplexity and generate sample outputs
 
 **Extensions**:
-- Add instruction tuning (see [Supervised Fine-tuning](18-sft.md))
-- Implement LoRA for efficient fine-tuning (see [LoRA and PEFT](19-peft.md))
+- Add instruction tuning (see [Supervised Fine-tuning](19-sft.md))
+- Implement LoRA for efficient fine-tuning (see [LoRA and PEFT](20-peft.md))
 - Deploy with inference optimizations
 
 ---

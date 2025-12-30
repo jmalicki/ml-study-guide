@@ -1,590 +1,47 @@
-# Chapter 17: Scaling Laws and Optimization
+# Chapter 17: Optimizers and Training Techniques
 
-This chapter covers the principles and practices that govern how large language models scale, and the optimization techniques that enable efficient training. Understanding scaling laws helps predict model performance and allocate compute optimally, while mastering optimization techniques ensures stable and efficient training runs.
+This chapter covers the optimization techniques and best practices that enable stable, efficient training of large language models. Mastering these techniques is crucial for successful LLM training runs.
 
 ## Table of Contents
 
 1. [Introduction](#introduction)
-2. [Scaling Laws for Neural Language Models](#scaling-laws-for-neural-language-models)
-   - [The Kaplan Scaling Laws](#the-kaplan-scaling-laws)
-   - [The Chinchilla Scaling Laws](#the-chinchilla-scaling-laws)
-   - [Practical Implications](#practical-implications)
-3. [Compute-Optimal Training](#compute-optimal-training)
-4. [Optimizers for LLM Training](#optimizers-for-llm-training)
+2. [Optimizers for LLM Training](#optimizers-for-llm-training)
    - [AdamW](#adamw)
    - [Optimizer Hyperparameters](#optimizer-hyperparameters)
    - [Alternative Optimizers](#alternative-optimizers)
-5. [Learning Rate Schedules](#learning-rate-schedules)
+3. [Learning Rate Schedules](#learning-rate-schedules)
    - [Warmup](#warmup)
    - [Cosine Decay Schedule](#cosine-decay-schedule)
    - [Warmup-Stable-Decay (WSD)](#warmup-stable-decay-wsd)
    - [Schedule Comparison](#schedule-comparison)
-6. [Gradient Clipping](#gradient-clipping)
-7. [Batch Size Scaling](#batch-size-scaling)
-8. [Putting It All Together](#putting-it-all-together)
-9. [Summary](#summary)
-10. [References](#references)
-11. [Exercises](#exercises)
+4. [Gradient Clipping](#gradient-clipping)
+5. [Batch Size Scaling](#batch-size-scaling)
+6. [Troubleshooting Training Issues](#troubleshooting-training-issues)
+7. [Putting It All Together](#putting-it-all-together)
+8. [Summary](#summary)
+9. [References](#references)
+10. [Exercises](#exercises)
 
 ---
 
 ## Introduction
 
-Training large language models involves making critical decisions about model size, training data, compute budget, and optimization strategy. This chapter explores the empirical relationships that govern these decisions (scaling laws) and the optimization techniques that enable stable, efficient training.
+Training large language models requires careful selection of optimization algorithms, learning rate schedules, and training hyperparameters. Small choices in these areas can mean the difference between successful training and divergence or poor final performance.
 
 **Key Questions This Chapter Answers:**
 
-- How does model performance scale with size, data, and compute?
-- What is the optimal allocation of compute between model size and training tokens?
+- What optimizer should I use for LLM training?
 - How should learning rates be scheduled during training?
 - What optimizer settings work best for LLMs?
 - How does batch size affect training efficiency?
+- How do I prevent gradient explosions and training instability?
+
+**Prerequisites:** This chapter assumes familiarity with:
+- Basic gradient descent and backpropagation ([Chapter 15](15-lm-training.md))
+- Distributed training concepts ([Chapter 16](16-distributed-training.md))
+- Understanding of compute budgets and model sizing ([Chapter 18](18-scaling-dynamics.md))
 
 ---
-
-## Scaling Laws for Neural Language Models
-
-Scaling laws describe how model performance (typically measured by loss) changes as we vary model parameters, training data, and compute budget. These empirical relationships help us predict performance and make informed architectural decisions.
-
-### The Kaplan Scaling Laws
-
-In 2020, researchers at OpenAI published seminal work establishing power-law relationships for language model scaling.
-
-**Key Paper:** [Scaling Laws for Neural Language Models](https://arxiv.org/abs/2001.08361) (Kaplan et al., 2020)
-
-#### Power Law Relationships
-
-The Kaplan scaling laws identify three primary factors affecting model performance:
-
-1. **Model size** ($N$): Number of non-embedding parameters
-2. **Dataset size** ($D$): Number of training tokens
-3. **Compute** ($C$): Total floating-point operations used for training
-
-The test loss $L$ follows power laws:
-
-$$
-L(N) = \left(\frac{N_c}{N}\right)^{\alpha_N}
-$$
-
-$$
-L(D) = \left(\frac{D_c}{D}\right)^{\alpha_D}
-$$
-
-$$
-L(C) = \left(\frac{C_c}{C}\right)^{\alpha_C}
-$$
-
-where $N_c$, $D_c$, $C_c$ are constants and $\alpha_N \approx 0.076$, $\alpha_D \approx 0.095$, $\alpha_C \approx 0.050$.
-
-#### Key Findings from Kaplan et al.
-
-1. **Model size dominates**: Performance depends most strongly on model size, weakly on dataset size
-2. **Large models are sample-efficient**: Larger models reach the same performance with fewer training steps
-3. **Convergence is slow**: Models continue to improve even when trained far beyond one epoch
-4. **Optimal allocation**: For a fixed compute budget, most resources should go to larger models rather than more data
-
-**Recommendation:** Train very large models on relatively limited data (e.g., 200B tokens for a 175B parameter model like GPT-3).
-
-```python
-import numpy as np
-import matplotlib.pyplot as plt
-
-class KaplanScalingLaw:
-    """
-    Kaplan et al. scaling law implementation.
-
-    Models the relationship between model size, data, compute, and loss.
-    """
-
-    def __init__(
-        self,
-        N_c: float = 8.8e13,  # Critical parameter count
-        D_c: float = 5.4e13,  # Critical dataset size (tokens)
-        C_c: float = 3.1e8,   # Critical compute (PF-days)
-        alpha_N: float = 0.076,  # Model size exponent
-        alpha_D: float = 0.095,  # Data size exponent
-        alpha_C: float = 0.050,  # Compute exponent
-    ):
-        self.N_c = N_c
-        self.D_c = D_c
-        self.C_c = C_c
-        self.alpha_N = alpha_N
-        self.alpha_D = alpha_D
-        self.alpha_C = alpha_C
-
-    def loss_from_params(self, N: float) -> float:
-        """Compute loss as function of model parameters."""
-        return (self.N_c / N) ** self.alpha_N
-
-    def loss_from_data(self, D: float) -> float:
-        """Compute loss as function of training tokens."""
-        return (self.D_c / D) ** self.alpha_D
-
-    def loss_from_compute(self, C: float) -> float:
-        """Compute loss as function of compute budget."""
-        return (self.C_c / C) ** self.alpha_C
-
-    def optimal_allocation(self, C: float) -> tuple[float, float]:
-        """
-        Given compute budget C, find optimal N and D.
-
-        From Kaplan et al., the optimal allocation is:
-        N ∝ C^a, D ∝ C^b
-        where a + b ≈ 1
-        """
-        # From Kaplan: N should scale roughly as C^0.73
-        # and D should scale roughly as C^0.27
-        N_optimal = (C / 6) ** 0.73
-        D_optimal = (C / 6) ** 0.27
-        return N_optimal, D_optimal
-
-
-def visualize_kaplan_scaling():
-    """Visualize Kaplan scaling laws."""
-    kaplan = KaplanScalingLaw()
-
-    # Model size scaling
-    params = np.logspace(6, 12, 100)  # 1M to 1T parameters
-    losses_N = [kaplan.loss_from_params(n) for n in params]
-
-    # Data size scaling
-    tokens = np.logspace(9, 14, 100)  # 1B to 100T tokens
-    losses_D = [kaplan.loss_from_data(d) for d in tokens]
-
-    # Compute scaling
-    compute = np.logspace(18, 24, 100)  # FLOPs
-    losses_C = [kaplan.loss_from_compute(c) for c in compute]
-
-    fig, axes = plt.subplots(1, 3, figsize=(15, 4))
-
-    # Plot 1: Model size
-    axes[0].loglog(params, losses_N)
-    axes[0].set_xlabel('Model Parameters (N)')
-    axes[0].set_ylabel('Test Loss')
-    axes[0].set_title('Scaling with Model Size')
-    axes[0].grid(True, alpha=0.3)
-
-    # Plot 2: Data size
-    axes[1].loglog(tokens, losses_D)
-    axes[1].set_xlabel('Training Tokens (D)')
-    axes[1].set_ylabel('Test Loss')
-    axes[1].set_title('Scaling with Data')
-    axes[1].grid(True, alpha=0.3)
-
-    # Plot 3: Compute
-    axes[2].loglog(compute, losses_C)
-    axes[2].set_xlabel('Compute (FLOPs)')
-    axes[2].set_ylabel('Test Loss')
-    axes[2].set_title('Scaling with Compute')
-    axes[2].grid(True, alpha=0.3)
-
-    plt.tight_layout()
-    plt.savefig('kaplan_scaling_laws.png', dpi=150, bbox_inches='tight')
-    plt.show()
-
-
-# Example: GPT-3 was trained according to Kaplan scaling laws
-def gpt3_allocation():
-    """
-    GPT-3 (175B parameters, 300B tokens) follows Kaplan scaling.
-
-    According to Kaplan, this allocation prioritizes model size
-    over training data.
-    """
-    kaplan = KaplanScalingLaw()
-
-    # GPT-3 specs
-    N_gpt3 = 175e9  # 175B parameters
-    D_gpt3 = 300e9  # 300B tokens
-
-    # Compute (approximate)
-    # C ≈ 6ND (assuming training to completion)
-    C_gpt3 = 6 * N_gpt3 * D_gpt3
-
-    # What would be optimal according to Kaplan?
-    N_opt, D_opt = kaplan.optimal_allocation(C_gpt3)
-
-    print(f"GPT-3 Configuration:")
-    print(f"  Parameters: {N_gpt3/1e9:.0f}B")
-    print(f"  Tokens: {D_gpt3/1e9:.0f}B")
-    print(f"\nKaplan Optimal Configuration (same compute):")
-    print(f"  Parameters: {N_opt/1e9:.0f}B")
-    print(f"  Tokens: {D_opt/1e9:.0f}B")
-```
-
-### The Chinchilla Scaling Laws
-
-In 2022, DeepMind published revised scaling laws that challenged Kaplan's conclusions, showing that models should be trained on much more data.
-
-**Key Paper:** [Training Compute-Optimal Large Language Models](https://arxiv.org/abs/2203.15556) (Hoffmann et al., 2022)
-
-#### Key Findings from Chinchilla
-
-1. **Equal scaling**: Model parameters and training tokens should scale equally with compute
-2. **Data matters**: Previous models (including GPT-3) were significantly undertrained
-3. **Smaller models can match large ones**: With enough data, smaller models can match the performance of larger models trained on less data
-
-**Chinchilla's Law:** For compute-optimal training:
-
-$$
-N_{opt} \propto C^{0.5}, \quad D_{opt} \propto C^{0.5}
-$$
-
-More specifically:
-
-$$
-N_{opt} \approx \left(\frac{C}{6}\right)^{0.49}, \quad D_{opt} \approx 20 \times N_{opt}
-$$
-
-**Rule of thumb:** Use approximately **20 tokens per parameter**.
-
-#### The Chinchilla Model
-
-The paper's namesake model, Chinchilla:
-- **Parameters**: 70B (4× smaller than Gopher's 280B)
-- **Training tokens**: 1.4T (4× more than Gopher)
-- **Performance**: Outperformed Gopher on most benchmarks
-- **Efficiency**: Same compute budget, better results
-
-#### Implementing Chinchilla Scaling Laws
-
-**Problem:** Given a fixed compute budget, we need to determine the optimal allocation between model size and training data. The Kaplan laws suggested prioritizing model size, but empirical evidence from Chinchilla shows this leads to undertrained models.
-
-**Theoretical Justification:** Chinchilla's key insight is that the loss function has approximately equal sensitivity to model parameters and training tokens. Mathematically, if we model loss as:
-
-$$
-L(N, D) = \frac{a}{N^\alpha} + \frac{b}{D^\beta} + L_\infty
-$$
-
-Optimizing this under the compute constraint $C = 6ND$ shows that $N_{opt}$ and $D_{opt}$ should both scale as $C^{0.5}$, rather than prioritizing one over the other. This is derived by:
-1. Taking partial derivatives: $\frac{\partial L}{\partial N}$ and $\frac{\partial L}{\partial D}$
-2. Setting them equal (for optimal allocation)
-3. Solving under the constraint $C = 6ND$
-
-**How This Relates to Alternatives:**
-- **Kaplan scaling**: Recommended $N \propto C^{0.73}$ and $D \propto C^{0.27}$ (heavily favoring model size)
-- **Chinchilla scaling**: Recommends $N \propto C^{0.5}$ and $D \propto C^{0.5}$ (balanced allocation)
-- **Impact**: For the same compute, Chinchilla approach trains a 4× smaller model on 4× more data, achieving better performance
-
-**Key Insight:** The "bigger is better" intuition from Kaplan was misleading. While larger models are more sample-efficient per token, they need far more tokens to reach their potential. The optimal strategy balances both dimensions equally.
-
-```python
-class ChinchillaScalingLaw:
-    """
-    Chinchilla (Hoffmann et al., 2022) scaling law implementation.
-
-    Key insight: Model size and training data should scale equally.
-    """
-
-    def __init__(
-        self,
-        a: float = 406.4,  # Coefficient for loss equation
-        b: float = 410.7,  # Coefficient for loss equation
-        alpha: float = 0.34,  # Exponent for model size
-        beta: float = 0.28,   # Exponent for data
-        A: float = 0.3,    # Coefficient for optimal N
-        B: float = 0.6,    # Coefficient for optimal D
-    ):
-        self.a = a
-        self.b = b
-        self.alpha = alpha
-        self.beta = beta
-        self.A = A
-        self.B = B
-
-    def loss(self, N: float, D: float) -> float:
-        """
-        Compute loss given model size and training tokens.
-
-        L(N, D) = a/N^α + b/D^β + L_∞
-
-        where L_∞ is the irreducible loss (we ignore it here).
-        """
-        return self.a / (N ** self.alpha) + self.b / (D ** self.beta)
-
-    def optimal_allocation(self, C: float) -> tuple[float, float]:
-        """
-        Given compute budget C (in FLOPs), find optimal N and D.
-
-        From Chinchilla: N_opt and D_opt both scale as C^0.5
-        """
-        # Approximate relationship: C ≈ 6ND
-        # Solving the constraint optimization:
-        # N_opt ≈ (C/6)^0.5 * constant
-        # D_opt ≈ 20 * N_opt
-
-        N_optimal = self.A * (C ** 0.5)
-        D_optimal = self.B * (C ** 0.5)
-
-        return N_optimal, D_optimal
-
-    def tokens_per_parameter(self, N: float, C: float) -> float:
-        """
-        Compute optimal training tokens per parameter.
-
-        According to Chinchilla, this should be about 20.
-        """
-        _, D_optimal = self.optimal_allocation(C)
-        return D_optimal / N
-
-
-def compare_scaling_laws():
-    """Compare Kaplan vs Chinchilla scaling laws."""
-    kaplan = KaplanScalingLaw()
-    chinchilla = ChinchillaScalingLaw()
-
-    # Range of compute budgets
-    compute_budgets = np.logspace(20, 26, 20)  # FLOPs
-
-    kaplan_N = []
-    kaplan_D = []
-    chinchilla_N = []
-    chinchilla_D = []
-
-    for C in compute_budgets:
-        N_k, D_k = kaplan.optimal_allocation(C)
-        N_c, D_c = chinchilla.optimal_allocation(C)
-
-        kaplan_N.append(N_k)
-        kaplan_D.append(D_k)
-        chinchilla_N.append(N_c)
-        chinchilla_D.append(D_c)
-
-    fig, axes = plt.subplots(1, 2, figsize=(12, 4))
-
-    # Plot 1: Model size vs compute
-    axes[0].loglog(compute_budgets, kaplan_N, 'b-', label='Kaplan', linewidth=2)
-    axes[0].loglog(compute_budgets, chinchilla_N, 'r--', label='Chinchilla', linewidth=2)
-    axes[0].set_xlabel('Compute Budget (FLOPs)')
-    axes[0].set_ylabel('Optimal Model Size (Parameters)')
-    axes[0].set_title('Model Size vs Compute')
-    axes[0].legend()
-    axes[0].grid(True, alpha=0.3)
-
-    # Plot 2: Training tokens vs compute
-    axes[1].loglog(compute_budgets, kaplan_D, 'b-', label='Kaplan', linewidth=2)
-    axes[1].loglog(compute_budgets, chinchilla_D, 'r--', label='Chinchilla', linewidth=2)
-    axes[1].set_xlabel('Compute Budget (FLOPs)')
-    axes[1].set_ylabel('Optimal Training Tokens')
-    axes[1].set_title('Training Data vs Compute')
-    axes[1].legend()
-    axes[1].grid(True, alpha=0.3)
-
-    plt.tight_layout()
-    plt.savefig('kaplan_vs_chinchilla.png', dpi=150, bbox_inches='tight')
-    plt.show()
-
-
-def chinchilla_examples():
-    """Examples of models following Chinchilla scaling."""
-    chinchilla = ChinchillaScalingLaw()
-
-    models = [
-        ("GPT-3", 175e9, 300e9),
-        ("Chinchilla", 70e9, 1.4e12),
-        ("LLaMA", 65e9, 1.4e12),
-        ("LLaMA 2", 70e9, 2e12),
-        ("LLaMA 3", 70e9, 15e12),
-    ]
-
-    print("Model Training Efficiency (Chinchilla Scaling)")
-    print("=" * 60)
-    print(f"{'Model':<15} {'Params':<10} {'Tokens':<12} {'Tokens/Param':<15}")
-    print("-" * 60)
-
-    for name, params, tokens in models:
-        ratio = tokens / params
-        print(f"{name:<15} {params/1e9:>7.0f}B  {tokens/1e12:>8.1f}T    {ratio:>10.1f}")
-
-    print("\nChinchilla optimal: ~20 tokens per parameter")
-```
-
-### Practical Implications
-
-The shift from Kaplan to Chinchilla scaling laws had major implications:
-
-| Aspect | Kaplan (2020) | Chinchilla (2022) | Impact |
-|--------|---------------|-------------------|--------|
-| **Recommendation** | Large model, less data | Balanced scaling | Changed training strategies |
-| **GPT-3 assessment** | Well-allocated | Undertrained by 4× | Showed inefficiency |
-| **Tokens per param** | ~2-3 | ~20 | 10× more data needed |
-| **Model size trend** | Maximize size | Smaller models OK | Enabled efficient models |
-
-**Modern practice** (2024-2025):
-- Most models follow Chinchilla or train even longer
-- LLaMA 3 8B: trained on 15T tokens (~1875 tokens/param)
-- Extended training beyond Chinchilla optimal is common
-- Quality improvements justify extra compute
-
----
-
-## Compute-Optimal Training
-
-Computing optimal model size and training duration for a given compute budget.
-
-### Compute Estimation
-
-The total compute $C$ for training a transformer model is approximately:
-
-$$
-C \approx 6ND
-$$
-
-where:
-- $N$ = number of parameters (non-embedding)
-- $D$ = number of training tokens
-- Factor of 6 accounts for forward pass (2ND) and backward pass (4ND)
-
-#### Computing Training Costs
-
-**Problem:** Before committing to a training run, we need to estimate how long it will take and how much it will cost. Underestimating leads to incomplete training; overestimating wastes budget planning.
-
-**Theoretical Justification:** The $C \approx 6ND$ formula comes from counting floating-point operations in transformers:
-- **Forward pass**: Each matrix multiplication of size $d \times d$ with batch size $B$ and sequence length $L$ requires $\approx 2BLd^2$ FLOPs (2 FLOPs per multiply-add)
-- **Backward pass**: Requires computing gradients w.r.t. inputs and weights, which is roughly 2× the forward pass compute
-- **Total**: Forward (1×) + Backward (2×) = 3×, and each operation processes 2 FLOPs per parameter, giving $6ND$
-
-**Real-World Adjustments:**
-- **Efficiency factor**: GPUs rarely achieve 100% utilization. Typical: 30-60% for LLM training
-- **Attention overhead**: Flash Attention is near-optimal, but standard attention adds overhead
-- **Communication**: Multi-GPU training has data transfer costs (typically 10-20% overhead)
-
-**How This Relates to Alternatives:**
-- **Simple estimate** ($C = ND$): Ignores backward pass, off by 6×
-- **Detailed counting**: Track every operation in every layer (too complex, gives similar result)
-- **Empirical measurement**: Profile actual runs (most accurate, but requires training to start)
-
-**Key Insight:** The factor of 6 is approximate but remarkably accurate across different architectures. Use it for planning, then apply an efficiency factor (0.3-0.6) based on your hardware and implementation quality.
-
-```python
-class ComputeCalculator:
-    """
-    Calculate compute requirements for LLM training.
-
-    Based on the approximation C ≈ 6ND plus overhead.
-    """
-
-    def __init__(self, efficiency: float = 0.5):
-        """
-        Args:
-            efficiency: Hardware utilization (0-1). Accounts for:
-                - Attention operations (not pure matmul)
-                - Communication overhead
-                - Memory-bound operations
-                Typical: 0.3-0.6 for real training
-        """
-        self.efficiency = efficiency
-
-    def compute_flops(
-        self,
-        n_params: float,
-        n_tokens: float,
-        include_backward: bool = True
-    ) -> float:
-        """
-        Compute FLOPs required for training.
-
-        Args:
-            n_params: Model parameters (non-embedding)
-            n_tokens: Training tokens
-            include_backward: If True, multiply by 3 (forward + backward)
-
-        Returns:
-            Total FLOPs required
-        """
-        # Forward pass: 2ND (matmul is 2 ops per element)
-        forward_flops = 2 * n_params * n_tokens
-
-        if include_backward:
-            # Backward pass: ~2× forward (gradients + optimizer)
-            total_flops = forward_flops * 3
-        else:
-            total_flops = forward_flops
-
-        # Account for efficiency
-        actual_flops = total_flops / self.efficiency
-
-        return actual_flops
-
-    def training_time(
-        self,
-        n_params: float,
-        n_tokens: float,
-        device_tflops: float,
-        n_devices: int = 1
-    ) -> float:
-        """
-        Estimate training time in hours.
-
-        Args:
-            n_params: Model parameters
-            n_tokens: Training tokens
-            device_tflops: Peak TFLOPS per device (e.g., 312 for A100)
-            n_devices: Number of GPUs/TPUs
-
-        Returns:
-            Training time in hours
-        """
-        total_flops = self.compute_flops(n_params, n_tokens)
-
-        # Convert TFLOPS to FLOPS/sec
-        total_flops_per_sec = device_tflops * 1e12 * n_devices
-
-        # Time in seconds
-        time_seconds = total_flops / total_flops_per_sec
-
-        # Convert to hours
-        return time_seconds / 3600
-
-    def cost_estimate(
-        self,
-        n_params: float,
-        n_tokens: float,
-        device_tflops: float,
-        n_devices: int,
-        cost_per_gpu_hour: float
-    ) -> float:
-        """
-        Estimate training cost.
-
-        Args:
-            cost_per_gpu_hour: Cloud GPU cost (e.g., $2.50 for A100)
-
-        Returns:
-            Total cost in dollars
-        """
-        hours = self.training_time(n_params, n_tokens, device_tflops, n_devices)
-        return hours * n_devices * cost_per_gpu_hour
-
-
-def compute_examples():
-    """Examples of compute calculations for real models."""
-    calc = ComputeCalculator(efficiency=0.4)
-
-    models = [
-        # (name, params, tokens, GPUs, GPU_TFLOPS)
-        ("GPT-3", 175e9, 300e9, 1024, 312),  # A100
-        ("Chinchilla", 70e9, 1.4e12, 1024, 312),
-        ("LLaMA 65B", 65e9, 1.4e12, 2048, 312),
-        ("LLaMA 2 70B", 70e9, 2e12, 2048, 312),
-    ]
-
-    print("Training Compute and Time Estimates")
-    print("=" * 80)
-    print(f"{'Model':<15} {'Params':<10} {'Tokens':<10} {'FLOPs':<15} {'Days':<10}")
-    print("-" * 80)
-
-    for name, params, tokens, gpus, tflops in models:
-        flops = calc.compute_flops(params, tokens)
-        hours = calc.training_time(params, tokens, tflops, gpus)
-        days = hours / 24
-
-        print(f"{name:<15} {params/1e9:>7.0f}B  {tokens/1e12:>7.1f}T  "
-              f"{flops:.2e}  {days:>7.1f}")
-```
-
----
-
 ## Optimizers for LLM Training
 
 The choice of optimizer and its hyperparameters critically affects training stability and final model quality.
@@ -918,7 +375,7 @@ def get_optimizer_config(model_size: str) -> dict:
 
 ### Alternative Optimizers
 
-While AdamW dominates, several alternatives show promise. See [Hardware, Quantization, and Training Optimization](31-hardware-quantization-optimization.md) for detailed coverage of Muon, Shampoo, and SOAP optimizers.
+While AdamW dominates, several alternatives show promise. See [Hardware, Quantization, and Training Optimization](32-hardware-quantization-optimization.md) for detailed coverage of Muon, Shampoo, and SOAP optimizers.
 
 #### Muon Optimizer
 
@@ -2816,29 +2273,35 @@ class LLMTrainer:
 
 ---
 
+
 ## Summary
 
 ### Key Takeaways
 
-1. **Scaling Laws**
-   - Kaplan (2020): Model size matters most
-   - Chinchilla (2022): Equal scaling of model and data
-   - Modern practice: Train beyond Chinchilla optimal
-
-2. **Optimization**
-   - AdamW is standard: β₁=0.9, β₂=0.95, weight_decay=0.1
+1. **Optimizer Choice**
+   - AdamW is the standard optimizer: β₁=0.9, β₂=0.95, weight_decay=0.1
+   - Muon shows promise with ~2× efficiency for large weight matrices
    - Learning rate: 1e-4 to 3e-4 (scale with model size)
-   - Gradient clipping: max_norm=1.0
 
-3. **Learning Rate Schedules**
-   - Warmup: Essential for stability (2K-5K steps)
-   - Cosine: Standard, requires knowing total steps
-   - WSD: More flexible, empirically better
+2. **Learning Rate Schedules**
+   - Warmup: Essential for stability (2K-5K steps, <1% of training)
+   - Cosine: Standard choice, requires knowing total steps
+   - WSD (Warmup-Stable-Decay): More flexible, empirically better
+
+3. **Gradient Clipping**
+   - Essential for training stability
+   - max_norm=1.0 is standard
+   - Apply before optimizer step, after gradient accumulation
 
 4. **Batch Size**
    - Target: 2M-4M tokens for most models
-   - Use gradient accumulation to reach target
-   - Scale LR if changing batch size significantly
+   - Use gradient accumulation to reach target batch size
+   - Scale LR with sqrt(batch_size) if changing significantly
+
+5. **Training Stability**
+   - Monitor gradient norms (should be 0.1-10)
+   - Watch for loss spikes (reduce LR if frequent)
+   - Check activation statistics (mean near 0, std near 1)
 
 ### Quick Reference Table
 
@@ -2853,97 +2316,110 @@ class LLMTrainer:
 | **Schedule** | WSD or Cosine | WSD more flexible |
 | **Grad clip** | 1.0 | Stability |
 | **Batch size** | 4M tokens | 2-8M range |
-| **Tokens/param** | 20+ | Chinchilla: ~20 |
 
-### Workflow
+### Training Setup Workflow
 
-1. **Determine compute budget** (FLOPs or GPU-hours)
-2. **Choose model size and tokens** using Chinchilla scaling
-3. **Set batch size** based on model size
-4. **Configure optimizer** (AdamW with standard settings)
-5. **Choose LR schedule** (WSD for flexibility, Cosine for fixed runs)
-6. **Start training** with monitoring
-7. **Adjust if needed** based on loss curves and gradient norms
+1. **Choose optimizer and hyperparameters** (AdamW with standard settings)
+2. **Set batch size** based on model size and available memory
+3. **Configure learning rate schedule** (WSD for flexibility, Cosine for fixed runs)
+4. **Set up gradient clipping** (max_norm=1.0)
+5. **Start training** with monitoring
+6. **Adjust if needed** based on loss curves and gradient norms
+
+For guidance on choosing model size and compute budgets, see [Chapter 18: Scaling Laws and Training Dynamics](18-scaling-dynamics.md).
 
 ---
 
 ## References
 
-### Scaling Laws
-
-1. [Scaling Laws for Neural Language Models](https://arxiv.org/abs/2001.08361) (Kaplan et al., 2020)
-2. [Training Compute-Optimal Large Language Models](https://arxiv.org/abs/2203.15556) (Hoffmann et al., 2022) - Chinchilla
-3. [Scaling Laws for Autoregressive Generative Modeling](https://arxiv.org/abs/2010.14701) (Henighan et al., 2020)
-
 ### Optimization
 
-4. [Decoupled Weight Decay Regularization](https://arxiv.org/abs/1711.05101) (Loshchilov & Hutter, 2017) - AdamW
-5. [Adam: A Method for Stochastic Optimization](https://arxiv.org/abs/1412.6980) (Kingma & Ba, 2014)
-6. [On the Convergence of Adam and Beyond](https://arxiv.org/abs/1904.09237) (Reddi et al., 2019)
+1. [Decoupled Weight Decay Regularization](https://arxiv.org/abs/1711.05101) (Loshchilov & Hutter, 2017) - AdamW
+2. [Adam: A Method for Stochastic Optimization](https://arxiv.org/abs/1412.6980) (Kingma & Ba, 2014)
+3. [On the Convergence of Adam and Beyond](https://arxiv.org/abs/1904.09237) (Reddi et al., 2019)
 
 ### Learning Rate Schedules
 
-7. [SGDR: Stochastic Gradient Descent with Warm Restarts](https://arxiv.org/abs/1608.03983) (Loshchilov & Hutter, 2016)
-8. [MiniCPM: Unveiling the Potential of Small Language Models](https://arxiv.org/abs/2404.06395) (Hu et al., 2024) - WSD schedule
-9. [Understanding Warmup-Stable-Decay Learning Rates](https://arxiv.org/abs/2410.05192) (2024)
+4. [SGDR: Stochastic Gradient Descent with Warm Restarts](https://arxiv.org/abs/1608.03983) (Loshchilov & Hutter, 2016) - Cosine schedule
+5. [MiniCPM: Unveiling the Potential of Small Language Models](https://arxiv.org/abs/2404.06395) (Hu et al., 2024) - WSD schedule
+6. [Understanding Warmup-Stable-Decay Learning Rates](https://arxiv.org/abs/2410.05192) (2024)
 
 ### Batch Size and Gradient Clipping
 
-10. [Accurate, Large Minibatch SGD: Training ImageNet in 1 Hour](https://arxiv.org/abs/1706.02677) (Goyal et al., 2017)
-11. [Measuring the Effects of Data Parallelism on Neural Network Training](https://arxiv.org/abs/1811.03600) (Shallue et al., 2018)
-12. [On the Difficulty of Training Recurrent Neural Networks](https://arxiv.org/abs/1211.5063) (Pascanu et al., 2012) - Gradient clipping
+7. [Accurate, Large Minibatch SGD: Training ImageNet in 1 Hour](https://arxiv.org/abs/1706.02677) (Goyal et al., 2017) - Batch size scaling
+8. [Measuring the Effects of Data Parallelism on Neural Network Training](https://arxiv.org/abs/1811.03600) (Shallue et al., 2018)
+9. [On the Difficulty of Training Recurrent Neural Networks](https://arxiv.org/abs/1211.5063) (Pascanu et al., 2012) - Gradient clipping
 
-### Model Papers (for reference)
+### Alternative Optimizers
 
-13. [Language Models are Few-Shot Learners](https://arxiv.org/abs/2005.14165) (Brown et al., 2020) - GPT-3
-14. [LLaMA: Open and Efficient Foundation Language Models](https://arxiv.org/abs/2302.13971) (Touvron et al., 2023)
-15. [Llama 2: Open Foundation and Fine-Tuned Chat Models](https://arxiv.org/abs/2307.09288) (Touvron et al., 2023)
+10. [Shampoo: Preconditioned Stochastic Tensor Optimization](https://arxiv.org/abs/1802.09568) (Gupta et al., 2018)
+11. See [Chapter 32: Hardware, Quantization, and Training Optimization](32-hardware-quantization-optimization.md) for Muon and SOAP
+
+### Model Papers (for training details)
+
+12. [Language Models are Few-Shot Learners](https://arxiv.org/abs/2005.14165) (Brown et al., 2020) - GPT-3
+13. [LLaMA: Open and Efficient Foundation Language Models](https://arxiv.org/abs/2302.13971) (Touvron et al., 2023)
+14. [Llama 2: Open Foundation and Fine-Tuned Chat Models](https://arxiv.org/abs/2307.09288) (Touvron et al., 2023)
 
 ---
 
 ## Exercises
 
-1. **Scaling Law Analysis**
-   - Use the Chinchilla scaling law to determine the optimal model size and training tokens for a compute budget of 1e24 FLOPs.
-   - Compare this to what Kaplan scaling would recommend.
-   - Which models from the past 2 years followed which paradigm?
-
-2. **Learning Rate Schedule Implementation**
+1. **Learning Rate Schedule Implementation**
    - Implement a custom learning rate scheduler that combines warmup with inverse square root decay: $\eta(t) = \eta_{\max} \cdot \min(t / T_{\text{warmup}}, \sqrt{T_{\text{warmup}} / t})$
    - Compare it to cosine and WSD schedules visually
    - When might this schedule be preferable?
 
-3. **Gradient Clipping Experiment**
+2. **Gradient Clipping Experiment**
    - Train a small transformer (e.g., 100M parameters) with different gradient clipping thresholds: 0.5, 1.0, 5.0, and no clipping
    - Plot training loss curves
    - At what point does clipping hurt vs. help?
 
-4. **Batch Size Optimization**
+3. **Batch Size Optimization**
    - Given a model with 7B parameters and access to 64 A100 GPUs (80GB each), calculate:
      - Maximum micro batch size for sequence length 4096
      - Gradient accumulation steps needed for effective batch size of 4M tokens
      - Wall-clock time to train on 1T tokens
    - How would this change with 256 GPUs?
 
-5. **Compute Estimation**
-   - Estimate the total FLOPs required to train a 70B parameter model on 2T tokens
-   - If using H100 GPUs (1,979 TFLOPS FP8), how many GPU-days would this require?
-   - What would be the cloud cost at $3/GPU-hour?
-
-6. **Optimizer Comparison**
+4. **Optimizer Comparison**
    - Implement SGD with momentum and compare it to AdamW on a small language modeling task
    - Try different momentum values (0.9, 0.95, 0.99) for SGD
    - Under what conditions does SGD match AdamW?
 
-7. **Learning Rate Scaling**
+5. **Learning Rate Scaling**
    - Start with a baseline: LR=3e-4, batch_size=2M tokens
    - Double the batch size to 4M tokens
    - Compare linear scaling (LR=6e-4) vs. sqrt scaling (LR=4.24e-4) vs. no scaling
    - Which performs best? Why?
 
-8. **Training Configuration Design**
-   - Design a complete training configuration for a 13B parameter model with:
-     - Compute budget: 5e23 FLOPs
-     - Available: 128 A100 GPUs
-     - Sequence length: 4096
-   - Specify: model size, training tokens, batch size, learning rate, schedule, and expected training time
+6. **AdamW from Scratch**
+   - Implement AdamW optimizer from scratch following the equations in this chapter
+   - Test it on a simple neural network and compare results to PyTorch's `torch.optim.AdamW`
+   - Verify that bias correction works correctly in early training steps
+
+7. **Warmup Duration Study**
+   - Train a small language model with different warmup durations: 100, 500, 1000, 2000, 5000 steps
+   - Plot loss curves and final perplexity
+   - What warmup duration works best for your model size?
+
+8. **Training Stability Analysis**
+   - Monitor gradient norms, loss, and learning rate during training
+   - Identify loss spikes and correlate them with gradient norm spikes
+   - How does gradient clipping affect these spikes?
+
+9. **Schedule Comparison**
+   - Implement and compare three learning rate schedules: linear warmup + constant, linear warmup + cosine decay, and WSD
+   - Train identical models with each schedule
+   - Which achieves the best final perplexity?
+
+10. **Hyperparameter Sensitivity**
+    - Run an ablation study varying β₂ (0.95, 0.98, 0.999) and weight decay (0.01, 0.1, 0.3)
+    - Which combination works best for your task?
+    - How sensitive is training to these choices?
+
+---
+
+**Previous Chapter**: [Distributed Training and Parallelism](16-distributed-training.md) - Multi-GPU training strategies.
+
+**Next Chapter**: [Scaling Laws and Training Dynamics](18-scaling-dynamics.md) - Understanding how model performance scales and fascinating training phenomena.

@@ -1,8 +1,8 @@
-# Chapter 21: Direct Preference Optimization (DPO)
+# Chapter 22: Direct Preference Optimization (DPO)
 
 ## Introduction
 
-Direct Preference Optimization (DPO) is a powerful technique for aligning language models with human preferences without the complexity of reinforcement learning. Introduced by Rafailov et al. in 2023, DPO simplifies the [RLHF](20-rlhf.md) pipeline by directly optimizing the language model using preference data, eliminating the need for a separate reward model and reinforcement learning optimization.
+Direct Preference Optimization (DPO) is a powerful technique for aligning language models with human preferences without the complexity of reinforcement learning. Introduced by Rafailov et al. in 2023, DPO simplifies the [RLHF](21-rlhf.md) pipeline by directly optimizing the language model using preference data, eliminating the need for a separate reward model and reinforcement learning optimization.
 
 **Key Benefits:**
 - No reward model training required
@@ -15,9 +15,9 @@ Direct Preference Optimization (DPO) is a powerful technique for aligning langua
 
 ### The RLHF Pipeline Complexity
 
-As covered in [Chapter 20: RLHF](20-rlhf.md), the traditional RLHF pipeline involves:
+As covered in [Chapter 20: RLHF](21-rlhf.md), the traditional RLHF pipeline involves:
 
-1. **Supervised Fine-tuning (SFT)**: Train a model on demonstrations ([Chapter 18: SFT](18-sft.md))
+1. **Supervised Fine-tuning (SFT)**: Train a model on demonstrations ([Chapter 18: SFT](19-sft.md))
 2. **Reward Modeling**: Train a separate reward model on preference data
 3. **RL Optimization**: Use PPO or similar to optimize the policy against the reward model
 
@@ -1972,7 +1972,7 @@ where $c$ is a conditioning variable (e.g., "be concise" vs "be detailed").
 
 ## Connection to Alignment
 
-DPO is a key technique in the broader landscape of [AI safety and alignment](22-safety-alignment.md):
+DPO is a key technique in the broader landscape of [AI safety and alignment](23-safety-alignment.md):
 
 1. **Value Alignment**: Ensures model behavior aligns with human preferences
 2. **Scalable Oversight**: Can incorporate feedback from various sources
@@ -2284,6 +2284,6 @@ DPO has become the dominant approach for aligning modern LLMs, used in models li
 
 ## Next Steps
 
-- [Chapter 22: Safety and Alignment Techniques](22-safety-alignment.md): Explore broader alignment methods
-- [Chapter 20: RLHF](20-rlhf.md): Review the method DPO simplifies
-- [Chapter 18: Supervised Fine-tuning](18-sft.md): Understand the foundation for preference optimization
+- [Chapter 23: Safety and Alignment Techniques](23-safety-alignment.md): Explore broader alignment methods
+- [Chapter 20: RLHF](21-rlhf.md): Review the method DPO simplifies
+- [Chapter 19: Supervised Fine-tuning](19-sft.md): Understand the foundation for preference optimization

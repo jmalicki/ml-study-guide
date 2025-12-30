@@ -1,8 +1,8 @@
-# Chapter 22: Safety and Alignment Techniques
+# Chapter 23: Safety and Alignment Techniques
 
 This chapter covers the critical area of AI safety and alignment for Large Language Models. As LLMs become more capable, ensuring they behave safely and align with human values becomes paramount. We'll explore techniques used in production systems to make models helpful, harmless, and honest.
 
-For the foundational preference learning techniques, see [RLHF](20-rlhf.md) and [Direct Preference Optimization (DPO)](21-dpo.md).
+For the foundational preference learning techniques, see [RLHF](21-rlhf.md) and [Direct Preference Optimization (DPO)](22-dpo.md).
 
 ## Table of Contents
 
@@ -2289,7 +2289,7 @@ Instead of humans providing preferences:
 
 ### Mathematical Framework
 
-RLAIF follows the same RL framework as RLHF (see [RLHF](20-rlhf.md)), but the reward model $R_\phi$ is trained on AI-generated preferences:
+RLAIF follows the same RL framework as RLHF (see [RLHF](21-rlhf.md)), but the reward model $R_\phi$ is trained on AI-generated preferences:
 
 1. **AI Preference Generation**:
    $$P(y_1 \succ y_2 | x) = \text{AI-Evaluator}(x, y_1, y_2, \text{constitution})$$
@@ -2780,7 +2780,7 @@ class RLAIF:
     Implements the RLAIF algorithm from Bai et al. (2022).
     Uses AI evaluator to generate preference data instead of human feedback.
 
-    See [RLHF](20-rlhf.md) for the base RL framework.
+    See [RLHF](21-rlhf.md) for the base RL framework.
     """
 
     def __init__(
@@ -2946,7 +2946,7 @@ Answer:"""
         """Train reward model on AI-generated preferences.
 
         Uses Bradley-Terry model as in standard RLHF.
-        See [RLHF](20-rlhf.md) for details.
+        See [RLHF](21-rlhf.md) for details.
         """
         optimizer = torch.optim.AdamW(
             self.reward_model.parameters(),
@@ -3008,7 +3008,7 @@ Answer:"""
     ):
         """Single PPO update step.
 
-        Simplified PPO for RLAIF. See [RLHF](20-rlhf.md) for full details.
+        Simplified PPO for RLAIF. See [RLHF](21-rlhf.md) for full details.
 
         Args:
             prompts: Batch of prompts
@@ -3087,7 +3087,7 @@ Answer:"""
 class RewardModel(nn.Module):
     """Reward model for RLAIF/RLHF.
 
-    See [RLHF](20-rlhf.md) for detailed explanation.
+    See [RLHF](21-rlhf.md) for detailed explanation.
     """
 
     def __init__(self, model_name: str):
@@ -4127,7 +4127,7 @@ if __name__ == "__main__":
 
 ### Architecture Comparison
 
-For production safety systems like Claude's, see [Architecture Comparison: Modern LLMs](29-model-architectures.md), which discusses:
+For production safety systems like Claude's, see [Architecture Comparison: Modern LLMs](30-model-architectures.md), which discusses:
 - Claude's use of Constitutional AI and RLAIF
 - How different models approach safety-capability tradeoffs
 - Production deployment considerations
@@ -4190,9 +4190,9 @@ For production safety systems like Claude's, see [Architecture Comparison: Moder
 ---
 
 **Next Steps:**
-- Review [RLHF](20-rlhf.md) for the foundational RL techniques
-- See [DPO](21-dpo.md) for an alternative to RL-based alignment
-- Check [Architecture Comparison](29-model-architectures.md) for how different models implement safety
+- Review [RLHF](21-rlhf.md) for the foundational RL techniques
+- See [DPO](22-dpo.md) for an alternative to RL-based alignment
+- Check [Architecture Comparison](30-model-architectures.md) for how different models implement safety
 
 **Further Reading:**
 - Explore Anthropic's research on Constitutional AI

@@ -3570,8 +3570,8 @@ This gives:
 
 ---
 
-**Next Chapter**: [Scaling Laws and Optimization](17-scaling-optimization.md) - Learn about learning rate schedules, optimizers, and how model performance scales with size and compute.
+**Next Chapter**: [Optimizers and Training Techniques](17-scaling-optimization.md) - Learn about AdamW, learning rate schedules, gradient clipping, and training best practices.
 
 **Previous Chapter**: [Language Model Training](15-lm-training.md) - Single-GPU training fundamentals.
 
-**Related**: [Hardware, Quantization, and Training Optimization](31-hardware-quantization-optimization.md) - Hardware considerations for distributed training.
+**Related**: [Hardware, Quantization, and Training Optimization](32-hardware-quantization-optimization.md) - Hardware considerations for distributed training.
