@@ -224,7 +224,7 @@ class AttentionBlock(nn.Module):
         return x + h  # Residual connection
 
 
-# Note: For production use, consider Flash Attention (see [Flash Attention](14-flash-attention.md))
+# Note: For production use, consider Flash Attention (see [Flash Attention](12-flash-attention.md))
 # which provides 2-4x speedup with lower memory usage:
 #
 # from torch.nn.functional import scaled_dot_product_attention
