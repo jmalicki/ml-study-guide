@@ -636,81 +636,7 @@ In a standard encoder-decoder Transformer:
    - **Cross-attention**: Attends to encoder outputs
    - **Feed-forward network**: Additional transformation
 
-<svg viewBox="0 0 700 400" xmlns="http://www.w3.org/2000/svg" style="max-width: 700px; display: block; margin: 20px auto;">
-  <!-- Encoder Column -->
-  <text x="100" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="bold" fill="#333" text-anchor="middle">Encoder</text>
-
-  <!-- Encoder arrow down -->
-  <line x1="100" y1="40" x2="100" y2="60" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
-
-  <!-- Self-Attention box -->
-  <rect x="30" y="65" width="140" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
-  <text x="100" y="90" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" text-anchor="middle">Self-Attention</text>
-
-  <!-- Encoder arrow down -->
-  <line x1="100" y1="105" x2="100" y2="125" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
-
-  <!-- Feed-Forward box -->
-  <rect x="30" y="130" width="140" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
-  <text x="100" y="155" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" text-anchor="middle">Feed-Forward</text>
-
-  <!-- Encoder arrow down -->
-  <line x1="100" y1="170" x2="100" y2="240" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
-
-  <!-- Horizontal arrow from Encoder to Cross-Attention -->
-  <line x1="100" y1="240" x2="430" y2="240" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
-
-  <!-- Decoder Column -->
-  <text x="500" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="bold" fill="#333" text-anchor="middle">Decoder</text>
-
-  <!-- Decoder arrow down -->
-  <line x1="500" y1="40" x2="500" y2="60" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
-
-  <!-- Masked Self-Attention box -->
-  <rect x="390" y="65" width="220" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
-  <text x="500" y="90" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" text-anchor="middle">Masked Self-Attention</text>
-
-  <!-- Decoder arrow down -->
-  <line x1="500" y1="105" x2="500" y2="125" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
-
-  <!-- (Q) label -->
-  <text x="500" y="145" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" text-anchor="middle">(Q)</text>
-
-  <!-- Decoder arrow down to Cross-Attention -->
-  <line x1="500" y1="155" x2="500" y2="195" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
-
-  <!-- Cross-Attention box -->
-  <rect x="390" y="200" width="220" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
-  <text x="500" y="225" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" text-anchor="middle">Cross-Attention</text>
-
-  <!-- (K, V) label with arrow from right -->
-  <text x="640" y="225" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" text-anchor="start">(K, V)</text>
-  <line x1="620" y1="220" x2="610" y2="220" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead-left)"/>
-
-  <!-- Decoder arrow down -->
-  <line x1="500" y1="240" x2="500" y2="260" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
-
-  <!-- Feed-Forward box (decoder) -->
-  <rect x="390" y="265" width="220" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
-  <text x="500" y="290" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" text-anchor="middle">Feed-Forward</text>
-
-  <!-- Decoder arrow down -->
-  <line x1="500" y1="305" x2="500" y2="325" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
-
-  <!-- Output Projection box -->
-  <rect x="390" y="330" width="220" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
-  <text x="500" y="355" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" text-anchor="middle">Output Projection</text>
-
-  <!-- Arrowhead marker -->
-  <defs>
-    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-      <polygon points="0 0, 10 3, 0 6" fill="#4A90A4"/>
-    </marker>
-    <marker id="arrowhead-left" markerWidth="10" markerHeight="10" refX="1" refY="3" orient="auto">
-      <polygon points="10 0, 0 3, 10 6" fill="#4A90A4"/>
-    </marker>
-  </defs>
-</svg>
+![Chapter 06 cross attention diagram](../assets/diagrams/ch06-cross-attention-diagram.svg)
 
 ### Decoder Layer with Cross-Attention
 
@@ -887,82 +813,7 @@ x = x + sublayer(LayerNorm(x))
 
 **Visual Comparison**:
 
-<svg viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg" style="max-width: 800px; display: block; margin: 20px auto;">
-  <!-- Post-LN (Original) - Left Side -->
-  <text x="180" y="25" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="bold" fill="#333" text-anchor="middle">Post-LN (Original)</text>
-
-  <!-- Input box -->
-  <rect x="120" y="40" width="120" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
-  <text x="180" y="65" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" text-anchor="middle">Input</text>
-
-  <!-- Arrow down -->
-  <line x1="180" y1="80" x2="180" y2="100" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead2)"/>
-
-  <!-- Residual connection block -->
-  <rect x="100" y="100" width="160" height="100" fill="none" stroke="#4A90A4" stroke-width="2" stroke-dasharray="5,5" rx="5"/>
-
-  <!-- SubLayer box inside residual -->
-  <rect x="130" y="115" width="100" height="50" fill="#e8f4f8" stroke="#4A90A4" stroke-width="2" rx="5"/>
-  <text x="180" y="145" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" text-anchor="middle">SubLyr</text>
-
-  <!-- Plus symbol for residual -->
-  <text x="245" y="155" font-family="system-ui, -apple-system, sans-serif" font-size="18" fill="#333" text-anchor="middle">+</text>
-
-  <!-- Arrow down from residual block -->
-  <line x1="180" y1="200" x2="180" y2="220" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead2)"/>
-
-  <!-- LayerNorm box -->
-  <rect x="120" y="220" width="120" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
-  <text x="180" y="245" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" text-anchor="middle">LayerNorm</text>
-
-  <!-- Arrow down -->
-  <line x1="180" y1="260" x2="180" y2="280" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead2)"/>
-
-  <!-- Output box -->
-  <rect x="120" y="280" width="120" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
-  <text x="180" y="305" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" text-anchor="middle">Output</text>
-
-  <!-- Pre-LN (Modern) - Right Side -->
-  <text x="580" y="25" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="bold" fill="#333" text-anchor="middle">Pre-LN (Modern)</text>
-
-  <!-- Input box -->
-  <rect x="520" y="40" width="120" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
-  <text x="580" y="65" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" text-anchor="middle">Input</text>
-
-  <!-- Arrow down -->
-  <line x1="580" y1="80" x2="580" y2="100" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead2)"/>
-
-  <!-- Residual connection block (larger for Pre-LN) -->
-  <rect x="500" y="100" width="160" height="140" fill="none" stroke="#4A90A4" stroke-width="2" stroke-dasharray="5,5" rx="5"/>
-
-  <!-- LayerNorm box inside residual -->
-  <rect x="520" y="115" width="120" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
-  <text x="580" y="140" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" text-anchor="middle">LayerNorm</text>
-
-  <!-- Arrow down -->
-  <line x1="580" y1="155" x2="580" y2="175" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead2)"/>
-
-  <!-- SubLayer box inside residual -->
-  <rect x="520" y="175" width="120" height="40" fill="#e8f4f8" stroke="#4A90A4" stroke-width="2" rx="5"/>
-  <text x="580" y="200" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" text-anchor="middle">SubLyr</text>
-
-  <!-- Plus symbol for residual -->
-  <text x="645" y="210" font-family="system-ui, -apple-system, sans-serif" font-size="18" fill="#333" text-anchor="middle">+</text>
-
-  <!-- Arrow down from residual block -->
-  <line x1="580" y1="240" x2="580" y2="280" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead2)"/>
-
-  <!-- Output box -->
-  <rect x="520" y="280" width="120" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
-  <text x="580" y="305" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" text-anchor="middle">Output</text>
-
-  <!-- Arrowhead marker -->
-  <defs>
-    <marker id="arrowhead2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-      <polygon points="0 0, 10 3, 0 6" fill="#4A90A4"/>
-    </marker>
-  </defs>
-</svg>
+![Chapter 06 cross attention diagram 2](../assets/diagrams/ch06-cross-attention-diagram-2.svg)
 
 **Key Differences**:
 
@@ -2564,35 +2415,7 @@ Modern large language models (LLMs) are primarily decoder-only architectures (GP
 **Why Decoder-Only Models Avoided Cross-Attention**:
 
 Traditional decoder-only LLMs (GPT-3, GPT-4 text-only) concatenate all inputs:
-<svg viewBox="0 0 700 120" xmlns="http://www.w3.org/2000/svg" style="max-width: 700px; display: block; margin: 20px auto;">
-  <!-- Input label -->
-  <text x="20" y="35" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="bold">Input:</text>
-
-  <!-- System prompt box -->
-  <rect x="80" y="15" width="150" height="35" fill="#e8f4f8" stroke="#4A90A4" stroke-width="2" rx="3"/>
-  <text x="155" y="37" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333" text-anchor="middle">System prompt</text>
-
-  <!-- Separator -->
-  <text x="235" y="37" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#666">|</text>
-
-  <!-- User message box -->
-  <rect x="250" y="15" width="150" height="35" fill="#e8f4f8" stroke="#4A90A4" stroke-width="2" rx="3"/>
-  <text x="325" y="37" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333" text-anchor="middle">User message</text>
-
-  <!-- Separator -->
-  <text x="405" y="37" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#666">|</text>
-
-  <!-- Assistant response box -->
-  <rect x="420" y="15" width="180" height="35" fill="#e8f4f8" stroke="#4A90A4" stroke-width="2" rx="3"/>
-  <text x="510" y="37" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333" text-anchor="middle">Assistant response</text>
-
-  <!-- Brace underneath -->
-  <path d="M 80 60 Q 80 70 90 70 L 300 70 Q 310 70 310 80 Q 310 70 320 70 L 590 70 Q 600 70 600 60"
-        stroke="#4A90A4" stroke-width="2" fill="none"/>
-
-  <!-- Text below brace -->
-  <text x="340" y="100" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333" text-anchor="middle">All processed with self-attention</text>
-</svg>
+![Chapter 06 cross attention diagram 3](../assets/diagrams/ch06-cross-attention-diagram-3.svg)
 
 **Modern Multimodal Decoder-Only Models with Cross-Attention**:
 

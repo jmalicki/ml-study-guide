@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 700 600" xmlns="http://www.w3.org/2000/svg" style="max-width: 700px; height: auto;">
+  <!-- Base LM Pretraining -->
+  <rect x="250" y="20" width="200" height="70" rx="5" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2"/>
+  <text x="350" y="50" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#333" font-weight="600">Base LM</text>
+  <text x="350" y="70" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#333">Pretraining</text>
+
+  <!-- Arrow down -->
+  <line x1="350" y1="90" x2="350" y2="130" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <!-- Supervised Fine-tuning -->
+  <rect x="250" y="130" width="200" height="70" rx="5" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2"/>
+  <text x="350" y="160" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#333" font-weight="600">Supervised</text>
+  <text x="350" y="180" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#333">Fine-tuning</text>
+
+  <!-- Annotation for SFT -->
+  <text x="470" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#666">← Instruction datasets</text>
+
+  <!-- Arrow down -->
+  <line x1="350" y1="200" x2="350" y2="240" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <!-- Collect Human Preferences -->
+  <rect x="250" y="240" width="200" height="70" rx="5" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2"/>
+  <text x="350" y="270" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#333" font-weight="600">Collect Human</text>
+  <text x="350" y="290" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#333">Preferences</text>
+
+  <!-- Annotation for Human Preferences -->
+  <text x="470" y="275" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#666">← Generate pairs, humans rank</text>
+
+  <!-- Arrow down -->
+  <line x1="350" y1="310" x2="350" y2="350" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <!-- Train Reward Model -->
+  <rect x="250" y="350" width="200" height="70" rx="5" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2"/>
+  <text x="350" y="380" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#333" font-weight="600">Train Reward</text>
+  <text x="350" y="400" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#333">Model</text>
+
+  <!-- Annotation for Reward Model -->
+  <text x="470" y="385" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#666">← Bradley-Terry model</text>
+
+  <!-- Arrow down -->
+  <line x1="350" y1="420" x2="350" y2="460" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <!-- RL Fine-tuning (PPO) -->
+  <rect x="250" y="460" width="200" height="70" rx="5" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2"/>
+  <text x="350" y="490" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#333" font-weight="600">RL Fine-tuning</text>
+  <text x="350" y="510" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#333">(PPO)</text>
+
+  <!-- Annotation for PPO -->
+  <text x="470" y="495" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#666">← PPO with KL constraint</text>
+
+  <!-- Define arrowhead marker -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#4A90A4"/>
+    </marker>
+  </defs>
+</svg>

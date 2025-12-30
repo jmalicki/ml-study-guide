@@ -425,80 +425,10 @@ def visualize_standard_vs_flash():
     Visualize data movement: Standard vs Flash Attention.
 
     Standard Attention:
-<svg viewBox="0 0 400 380" xmlns="http://www.w3.org/2000/svg" style="max-width: 400px; margin: 20px 0;">
-  <!-- HBM Box -->
-  <rect x="50" y="20" width="150" height="340" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
-  <text x="125" y="50" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="bold" fill="#333" text-anchor="middle">HBM</text>
-  <text x="125" y="75" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#666" text-anchor="middle">(Slow)</text>
-
-  <!-- Data flow arrows and labels -->
-  <text x="220" y="110" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Q, K, V stored here</text>
-
-  <line x1="210" y1="125" x2="210" y2="145" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
-  <text x="220" y="140" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Read Q, K</text>
-
-  <line x1="210" y1="150" x2="210" y2="170" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
-  <text x="220" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Compute QK^T</text>
-
-  <line x1="210" y1="175" x2="210" y2="195" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
-  <text x="220" y="190" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Write S to HBM</text>
-
-  <line x1="210" y1="200" x2="210" y2="220" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
-  <text x="220" y="215" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Read S</text>
-
-  <line x1="210" y1="225" x2="210" y2="245" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
-  <text x="220" y="240" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Softmax</text>
-
-  <line x1="210" y1="250" x2="210" y2="270" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
-  <text x="220" y="265" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Write P to HBM</text>
-
-  <line x1="210" y1="275" x2="210" y2="295" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
-  <text x="220" y="290" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Read P, V</text>
-
-  <line x1="210" y1="300" x2="210" y2="320" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
-  <text x="220" y="315" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Write Output</text>
-
-  <!-- Arrow marker definition -->
-  <defs>
-    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-      <polygon points="0 0, 10 3, 0 6" fill="#4A90A4"/>
-    </marker>
-  </defs>
-</svg>
+![Chapter 12 flash attention diagram](../assets/diagrams/ch12-flash-attention-diagram.svg)
 
     Flash Attention:
-<svg viewBox="0 0 400 340" xmlns="http://www.w3.org/2000/svg" style="max-width: 400px; margin: 20px 0;">
-  <!-- SRAM Box -->
-  <rect x="50" y="20" width="150" height="300" fill="#e8f4f8" stroke="#4A90A4" stroke-width="2" rx="5"/>
-  <text x="125" y="50" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="bold" fill="#333" text-anchor="middle">SRAM</text>
-  <text x="125" y="75" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#2d7a8e" text-anchor="middle">(Fast)</text>
-
-  <!-- Data flow arrows and labels -->
-  <line x1="210" y1="100" x2="210" y2="120" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead2)"/>
-  <text x="220" y="115" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Load block of Q, K, V</text>
-
-  <line x1="210" y1="125" x2="210" y2="145" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead2)"/>
-  <text x="220" y="140" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Compute QK^T (stays in SRAM)</text>
-
-  <line x1="210" y1="150" x2="210" y2="170" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead2)"/>
-  <text x="220" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Softmax (stays in SRAM)</text>
-
-  <line x1="210" y1="175" x2="210" y2="195" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead2)"/>
-  <text x="220" y="190" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Multiply V (stays in SRAM)</text>
-
-  <line x1="210" y1="200" x2="210" y2="220" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead2)"/>
-  <text x="220" y="215" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Accumulate output</text>
-
-  <line x1="210" y1="225" x2="210" y2="245" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead2)"/>
-  <text x="220" y="240" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Write final block to HBM</text>
-
-  <!-- Arrow marker definition -->
-  <defs>
-    <marker id="arrowhead2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-      <polygon points="0 0, 10 3, 0 6" fill="#4A90A4"/>
-    </marker>
-  </defs>
-</svg>
+![Chapter 12 flash attention diagram 2](../assets/diagrams/ch12-flash-attention-diagram-2.svg)
 
     Key difference: Intermediate results never leave SRAM!
     """
@@ -614,65 +544,7 @@ def visualize_tiling():
     """
     Visualize how matrices are divided into blocks.
 
-<svg viewBox="0 0 700 280" xmlns="http://www.w3.org/2000/svg" style="max-width: 700px; margin: 20px 0;">
-  <!-- Q Matrix -->
-  <g transform="translate(50, 20)">
-    <text x="40" y="-5" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" fill="#333">Q (N × d)</text>
-    <!-- Grid -->
-    <rect x="0" y="0" width="30" height="30" fill="#f0f8ff" stroke="#4A90A4" stroke-width="1.5"/>
-    <rect x="30" y="0" width="30" height="30" fill="#f0f8ff" stroke="#4A90A4" stroke-width="1.5"/>
-    <rect x="60" y="0" width="30" height="30" fill="#f0f8ff" stroke="#4A90A4" stroke-width="1.5"/>
-    <rect x="0" y="30" width="30" height="30" fill="#f0f8ff" stroke="#4A90A4" stroke-width="1.5"/>
-    <rect x="30" y="30" width="30" height="30" fill="#f0f8ff" stroke="#4A90A4" stroke-width="1.5"/>
-    <rect x="60" y="30" width="30" height="30" fill="#f0f8ff" stroke="#4A90A4" stroke-width="1.5"/>
-    <rect x="0" y="60" width="30" height="30" fill="#f0f8ff" stroke="#4A90A4" stroke-width="1.5"/>
-    <rect x="30" y="60" width="30" height="30" fill="#f0f8ff" stroke="#4A90A4" stroke-width="1.5"/>
-    <rect x="60" y="60" width="30" height="30" fill="#f0f8ff" stroke="#4A90A4" stroke-width="1.5"/>
-    <text x="45" y="110" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666" text-anchor="middle">Br×d blocks</text>
-  </g>
-
-  <!-- K Matrix -->
-  <g transform="translate(250, 20)">
-    <text x="40" y="-5" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" fill="#333">K (N × d)</text>
-    <!-- Grid -->
-    <rect x="0" y="0" width="30" height="30" fill="#fff0f0" stroke="#4A90A4" stroke-width="1.5"/>
-    <rect x="30" y="0" width="30" height="30" fill="#fff0f0" stroke="#4A90A4" stroke-width="1.5"/>
-    <rect x="60" y="0" width="30" height="30" fill="#fff0f0" stroke="#4A90A4" stroke-width="1.5"/>
-    <rect x="0" y="30" width="30" height="30" fill="#fff0f0" stroke="#4A90A4" stroke-width="1.5"/>
-    <rect x="30" y="30" width="30" height="30" fill="#fff0f0" stroke="#4A90A4" stroke-width="1.5"/>
-    <rect x="60" y="30" width="30" height="30" fill="#fff0f0" stroke="#4A90A4" stroke-width="1.5"/>
-    <rect x="0" y="60" width="30" height="30" fill="#fff0f0" stroke="#4A90A4" stroke-width="1.5"/>
-    <rect x="30" y="60" width="30" height="30" fill="#fff0f0" stroke="#4A90A4" stroke-width="1.5"/>
-    <rect x="60" y="60" width="30" height="30" fill="#fff0f0" stroke="#4A90A4" stroke-width="1.5"/>
-    <text x="45" y="110" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666" text-anchor="middle">Bc×d blocks</text>
-  </g>
-
-  <!-- V Matrix -->
-  <g transform="translate(450, 20)">
-    <text x="40" y="-5" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" fill="#333">V (N × d)</text>
-    <!-- Grid -->
-    <rect x="0" y="0" width="30" height="30" fill="#f0fff0" stroke="#4A90A4" stroke-width="1.5"/>
-    <rect x="30" y="0" width="30" height="30" fill="#f0fff0" stroke="#4A90A4" stroke-width="1.5"/>
-    <rect x="60" y="0" width="30" height="30" fill="#f0fff0" stroke="#4A90A4" stroke-width="1.5"/>
-    <rect x="0" y="30" width="30" height="30" fill="#f0fff0" stroke="#4A90A4" stroke-width="1.5"/>
-    <rect x="30" y="30" width="30" height="30" fill="#f0fff0" stroke="#4A90A4" stroke-width="1.5"/>
-    <rect x="60" y="30" width="30" height="30" fill="#f0fff0" stroke="#4A90A4" stroke-width="1.5"/>
-    <rect x="0" y="60" width="30" height="30" fill="#f0fff0" stroke="#4A90A4" stroke-width="1.5"/>
-    <rect x="30" y="60" width="30" height="30" fill="#f0fff0" stroke="#4A90A4" stroke-width="1.5"/>
-    <rect x="60" y="60" width="30" height="30" fill="#f0fff0" stroke="#4A90A4" stroke-width="1.5"/>
-    <text x="45" y="110" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666" text-anchor="middle">Bc×d blocks</text>
-  </g>
-
-  <!-- Process description -->
-  <g transform="translate(50, 170)">
-    <text x="0" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="bold" fill="#333">Process:</text>
-    <text x="0" y="20" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">1. Outer loop over K, V blocks (Tc = ⌈N/Bc⌉ iterations)</text>
-    <text x="0" y="40" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">2. Inner loop over Q blocks (Tr = ⌈N/Br⌉ iterations)</text>
-    <text x="0" y="60" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">3. For each (Q_block, K_block, V_block):</text>
-    <text x="20" y="77" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666">• Compute attention for this block</text>
-    <text x="20" y="92" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666">• Accumulate to output</text>
-  </g>
-</svg>
+![Chapter 12 flash attention diagram 3](../assets/diagrams/ch12-flash-attention-diagram-3.svg)
 
     Total iterations: Tr × Tc
     But each iteration operates on small blocks in SRAM!

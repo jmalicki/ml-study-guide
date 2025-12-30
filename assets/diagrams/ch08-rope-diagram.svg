@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 280" xmlns="http://www.w3.org/2000/svg" style="max-width: 400px; margin: 20px auto; display: block;">
+  <!-- Background -->
+  <rect width="400" height="280" fill="#f5f5f5" rx="4"/>
+
+  <!-- Grid center point -->
+  <circle cx="80" cy="140" r="2" fill="#333" opacity="0.3"/>
+
+  <!-- Position 0: original (horizontal arrow pointing right) -->
+  <g>
+    <text x="10" y="45" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="500">Position 0:</text>
+    <line x1="80" y1="40" x2="140" y2="40" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <text x="150" y="45" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#666">(original)</text>
+  </g>
+
+  <!-- Position 1: rotated by θ (45 degrees up-right) -->
+  <g>
+    <text x="10" y="105" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="500">Position 1:</text>
+    <line x1="80" y1="100" x2="122.4" y2="57.6" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <text x="150" y="105" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#666">(rotated by θ)</text>
+  </g>
+
+  <!-- Position 2: rotated by 2θ (vertical arrow pointing up) -->
+  <g>
+    <text x="10" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="500">Position 2:</text>
+    <line x1="80" y1="160" x2="80" y2="100" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <text x="150" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#666">(rotated by 2θ)</text>
+  </g>
+
+  <!-- Position 3: rotated by 3θ (135 degrees up-left) -->
+  <g>
+    <text x="10" y="225" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="500">Position 3:</text>
+    <line x1="80" y1="220" x2="37.6" y2="177.6" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <text x="150" y="225" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#666">(rotated by 3θ)</text>
+  </g>
+
+  <!-- Arrow marker definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#4A90A4"/>
+    </marker>
+  </defs>
+</svg>

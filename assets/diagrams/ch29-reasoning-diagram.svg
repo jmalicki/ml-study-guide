@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 700 320" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .node-text { font-family: system-ui, -apple-system, sans-serif; font-size: 14px; fill: #333; font-weight: 500; }
+      .root-box { fill: #4A90A4; stroke: #2d5a66; stroke-width: 2; }
+      .root-text { font-family: system-ui, -apple-system, sans-serif; font-size: 14px; fill: white; font-weight: 600; }
+      .level1-box { fill: #e0f2f7; stroke: #4A90A4; stroke-width: 2; }
+      .level2-box { fill: #f5f5f5; stroke: #4A90A4; stroke-width: 1.5; }
+      .line { stroke: #4A90A4; stroke-width: 2; fill: none; }
+    </style>
+  </defs>
+
+  <!-- Root: Question -->
+  <rect x="300" y="10" width="100" height="40" rx="5" class="root-box"/>
+  <text x="350" y="35" text-anchor="middle" class="root-text">Question</text>
+
+  <!-- Lines from Question to Thoughts -->
+  <line x1="350" y1="50" x2="150" y2="90" class="line"/>
+  <line x1="350" y1="50" x2="350" y2="90" class="line"/>
+  <line x1="350" y1="50" x2="550" y2="90" class="line"/>
+
+  <!-- Level 1: Thoughts -->
+  <rect x="90" y="100" width="120" height="40" rx="5" class="level1-box"/>
+  <text x="150" y="125" text-anchor="middle" class="node-text">Thought 1</text>
+
+  <rect x="290" y="100" width="120" height="40" rx="5" class="level1-box"/>
+  <text x="350" y="125" text-anchor="middle" class="node-text">Thought 2</text>
+
+  <rect x="490" y="100" width="120" height="40" rx="5" class="level1-box"/>
+  <text x="550" y="125" text-anchor="middle" class="node-text">Thought 3</text>
+
+  <!-- Lines from Thought 1 to T1.1 and T1.2 -->
+  <line x1="150" y1="140" x2="100" y2="190" class="line"/>
+  <line x1="150" y1="140" x2="200" y2="190" class="line"/>
+
+  <!-- Lines from Thought 2 to T2.1 and T2.2 -->
+  <line x1="350" y1="140" x2="300" y2="190" class="line"/>
+  <line x1="350" y1="140" x2="400" y2="190" class="line"/>
+
+  <!-- Lines from Thought 3 to T3.1 and T3.2 -->
+  <line x1="550" y1="140" x2="500" y2="190" class="line"/>
+  <line x1="550" y1="140" x2="600" y2="190" class="line"/>
+
+  <!-- Level 2: Sub-thoughts -->
+  <rect x="60" y="200" width="80" height="40" rx="5" class="level2-box"/>
+  <text x="100" y="225" text-anchor="middle" class="node-text">T1.1</text>
+
+  <rect x="160" y="200" width="80" height="40" rx="5" class="level2-box"/>
+  <text x="200" y="225" text-anchor="middle" class="node-text">T1.2</text>
+
+  <rect x="260" y="200" width="80" height="40" rx="5" class="level2-box"/>
+  <text x="300" y="225" text-anchor="middle" class="node-text">T2.1</text>
+
+  <rect x="360" y="200" width="80" height="40" rx="5" class="level2-box"/>
+  <text x="400" y="225" text-anchor="middle" class="node-text">T2.2</text>
+
+  <rect x="460" y="200" width="80" height="40" rx="5" class="level2-box"/>
+  <text x="500" y="225" text-anchor="middle" class="node-text">T3.1</text>
+
+  <rect x="560" y="200" width="80" height="40" rx="5" class="level2-box"/>
+  <text x="600" y="225" text-anchor="middle" class="node-text">T3.2</text>
+</svg>

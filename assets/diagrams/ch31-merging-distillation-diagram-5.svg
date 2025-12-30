@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 700 520" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .box { fill: #f5f5f5; stroke: #4A90A4; stroke-width: 2; }
+    .lora { fill: #fff3cd; stroke: #4A90A4; stroke-width: 2; }
+    .result { fill: #d4edda; stroke: #4A90A4; stroke-width: 2; }
+    .text { font-family: system-ui, -apple-system, sans-serif; font-size: 14px; fill: #333; }
+    .label { font-family: system-ui, -apple-system, sans-serif; font-size: 12px; fill: #666; }
+    .arrow { stroke: #4A90A4; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+    .darrow { stroke: #4A90A4; stroke-width: 3; fill: none; marker-end: url(#arrowhead); }
+  </style>
+
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#4A90A4" />
+    </marker>
+  </defs>
+
+  <!-- Base clinical model -->
+  <rect x="240" y="20" width="220" height="40" rx="5" class="box"/>
+  <text x="350" y="45" text-anchor="middle" class="text" font-weight="bold">Base clinical model</text>
+
+  <!-- Branches to LoRA adapters -->
+  <path d="M 260 60 L 120 90" class="arrow"/>
+  <path d="M 350 60 L 350 90" class="arrow"/>
+  <path d="M 440 60 L 580 90" class="arrow"/>
+
+  <!-- LoRA diagnostics -->
+  <rect x="30" y="90" width="180" height="50" rx="5" class="lora"/>
+  <text x="120" y="112" text-anchor="middle" class="text" font-weight="bold">LoRA for diagnostics</text>
+  <text x="120" y="130" text-anchor="middle" class="label">(rank 8)</text>
+
+  <!-- LoRA procedures -->
+  <rect x="260" y="90" width="180" height="50" rx="5" class="lora"/>
+  <text x="350" y="112" text-anchor="middle" class="text" font-weight="bold">LoRA for procedures</text>
+  <text x="350" y="130" text-anchor="middle" class="label">(rank 8)</text>
+
+  <!-- LoRA medical coding -->
+  <rect x="490" y="90" width="180" height="50" rx="5" class="lora"/>
+  <text x="580" y="105" text-anchor="middle" class="text" font-weight="bold">LoRA for medical</text>
+  <text x="580" y="122" text-anchor="middle" class="text" font-weight="bold">coding</text>
+  <text x="580" y="135" text-anchor="middle" class="label">(rank 8)</text>
+
+  <!-- Converge to merge -->
+  <path d="M 120 140 L 350 190" class="arrow"/>
+  <path d="M 350 140 L 350 190" class="arrow"/>
+  <path d="M 580 140 L 350 190" class="arrow"/>
+
+  <!-- LoRA product merge -->
+  <rect x="230" y="190" width="240" height="40" rx="5" class="box"/>
+  <text x="350" y="215" text-anchor="middle" class="text" font-weight="bold">LoRA product merge</text>
+
+  <!-- Arrow down -->
+  <path d="M 350 230 L 350 260" class="darrow"/>
+
+  <!-- Medical expert -->
+  <rect x="180" y="260" width="340" height="50" rx="5" class="result"/>
+  <text x="350" y="282" text-anchor="middle" class="text" font-weight="bold">Medical expert</text>
+  <text x="350" y="300" text-anchor="middle" class="label">(combines all knowledge)</text>
+
+  <!-- Optional fine-tuning arrow -->
+  <path d="M 350 310 L 350 340" class="darrow"/>
+  <text x="395" y="330" class="label" font-style="italic">Optional</text>
+  <text x="350" y="355" text-anchor="middle" class="label">full fine-tuning</text>
+
+  <!-- Arrow to distillation -->
+  <path d="M 350 370 L 350 400" class="darrow"/>
+  <text x="395" y="390" class="label" font-style="italic">Optional</text>
+  <text x="350" y="415" text-anchor="middle" class="label">distillation for deployment</text>
+
+  <!-- Final efficient model -->
+  <rect x="180" y="430" width="340" height="50" rx="5" class="result"/>
+  <text x="350" y="460" text-anchor="middle" class="text" font-weight="bold">Efficient medical assistant</text>
+</svg>

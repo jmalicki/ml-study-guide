@@ -108,48 +108,7 @@ Consider two 2D vectors $\mathbf{q}$ and $\mathbf{k}$ at positions $m$ and $n$:
 2. Rotate $\mathbf{k}$ by angle $n\theta$
 3. Their dot product now depends on $(m-n)\theta$ — the relative position!
 
-<svg viewBox="0 0 400 280" xmlns="http://www.w3.org/2000/svg" style="max-width: 400px; margin: 20px auto; display: block;">
-  <!-- Background -->
-  <rect width="400" height="280" fill="#f5f5f5" rx="4"/>
-
-  <!-- Grid center point -->
-  <circle cx="80" cy="140" r="2" fill="#333" opacity="0.3"/>
-
-  <!-- Position 0: original (horizontal arrow pointing right) -->
-  <g>
-    <text x="10" y="45" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="500">Position 0:</text>
-    <line x1="80" y1="40" x2="140" y2="40" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
-    <text x="150" y="45" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#666">(original)</text>
-  </g>
-
-  <!-- Position 1: rotated by θ (45 degrees up-right) -->
-  <g>
-    <text x="10" y="105" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="500">Position 1:</text>
-    <line x1="80" y1="100" x2="122.4" y2="57.6" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
-    <text x="150" y="105" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#666">(rotated by θ)</text>
-  </g>
-
-  <!-- Position 2: rotated by 2θ (vertical arrow pointing up) -->
-  <g>
-    <text x="10" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="500">Position 2:</text>
-    <line x1="80" y1="160" x2="80" y2="100" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
-    <text x="150" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#666">(rotated by 2θ)</text>
-  </g>
-
-  <!-- Position 3: rotated by 3θ (135 degrees up-left) -->
-  <g>
-    <text x="10" y="225" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="500">Position 3:</text>
-    <line x1="80" y1="220" x2="37.6" y2="177.6" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
-    <text x="150" y="225" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#666">(rotated by 3θ)</text>
-  </g>
-
-  <!-- Arrow marker definition -->
-  <defs>
-    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-      <polygon points="0 0, 10 3, 0 6" fill="#4A90A4"/>
-    </marker>
-  </defs>
-</svg>
+![Chapter 08 rope diagram](../assets/diagrams/ch08-rope-diagram.svg)
 
 The rotation matrix for angle $\theta$ in 2D is:
 
@@ -1443,57 +1402,7 @@ def rope_flash_attention(q, k, v, rope):
 
 LLaMA 4 introduces iRoPE, which alternates between RoPE and NoPE (No Positional Encoding) layers:
 
-<svg viewBox="0 0 600 380" xmlns="http://www.w3.org/2000/svg" style="max-width: 600px; margin: 20px auto; display: block;">
-  <!-- Background -->
-  <rect width="600" height="380" fill="#f5f5f5" rx="4"/>
-
-  <!-- Title -->
-  <text x="300" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#333" font-weight="600" text-anchor="middle">iRoPE Layer Pattern</text>
-
-  <!-- Layer 0: RoPE + Chunked Attention -->
-  <g>
-    <rect x="50" y="60" width="500" height="50" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2" rx="4"/>
-    <text x="70" y="90" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="600">Layer 0:</text>
-    <text x="140" y="90" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#1976D2">RoPE + Chunked Attention</text>
-  </g>
-
-  <!-- Layer 1: NoPE + Full Attention -->
-  <g>
-    <rect x="50" y="120" width="500" height="50" fill="#FFF3E0" stroke="#FF9800" stroke-width="2" rx="4"/>
-    <text x="70" y="150" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="600">Layer 1:</text>
-    <text x="140" y="150" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#E65100">NoPE + Full Attention</text>
-  </g>
-
-  <!-- Layer 2: NoPE + Full Attention -->
-  <g>
-    <rect x="50" y="180" width="500" height="50" fill="#FFF3E0" stroke="#FF9800" stroke-width="2" rx="4"/>
-    <text x="70" y="210" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="600">Layer 2:</text>
-    <text x="140" y="210" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#E65100">NoPE + Full Attention</text>
-  </g>
-
-  <!-- Layer 3: NoPE + Full Attention -->
-  <g>
-    <rect x="50" y="240" width="500" height="50" fill="#FFF3E0" stroke="#FF9800" stroke-width="2" rx="4"/>
-    <text x="70" y="270" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="600">Layer 3:</text>
-    <text x="140" y="270" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#E65100">NoPE + Full Attention</text>
-  </g>
-
-  <!-- Layer 4: RoPE + Chunked Attention -->
-  <g>
-    <rect x="50" y="300" width="500" height="50" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2" rx="4"/>
-    <text x="70" y="330" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="600">Layer 4:</text>
-    <text x="140" y="330" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#1976D2">RoPE + Chunked Attention</text>
-  </g>
-
-  <!-- Ellipsis -->
-  <text x="300" y="370" font-family="system-ui, -apple-system, sans-serif" font-size="20" fill="#666" text-anchor="middle">...</text>
-
-  <!-- Legend -->
-  <g>
-    <rect x="420" y="15" width="15" height="15" fill="#E3F2FD" stroke="#4A90A4" stroke-width="1.5" rx="2"/>
-    <text x="440" y="27" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">RoPE layer (every 4th)</text>
-  </g>
-</svg>
+![Chapter 08 rope diagram 2](../assets/diagrams/ch08-rope-diagram-2.svg)
 
 **Benefits**:
 - NoPE layers handle long-range dependencies without position constraints

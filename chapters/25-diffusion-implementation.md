@@ -55,91 +55,7 @@ The U-Net architecture is the most popular choice for diffusion models. It featu
 
 ### Architecture Diagram
 
-<svg viewBox="0 0 700 600" xmlns="http://www.w3.org/2000/svg" style="max-width: 700px; margin: 20px auto; display: block;">
-  <!-- Define styles -->
-  <defs>
-    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-      <polygon points="0 0, 10 3, 0 6" fill="#4A90A4" />
-    </marker>
-  </defs>
-
-  <!-- Title -->
-  <text x="350" y="25" text-anchor="middle" style="font-family: system-ui, -apple-system, sans-serif; font-size: 14px; fill: #333; font-weight: 600;">Input (noisy image) + Time Embedding</text>
-
-  <!-- Encoder path (left side) -->
-  <!-- Conv Block 1 -->
-  <rect x="50" y="50" width="120" height="40" rx="5" style="fill: #f5f5f5; stroke: #4A90A4; stroke-width: 2;"/>
-  <text x="110" y="75" text-anchor="middle" style="font-family: system-ui, -apple-system, sans-serif; font-size: 13px; fill: #333;">Conv Block</text>
-
-  <!-- Downsample arrow -->
-  <line x1="110" y1="90" x2="110" y2="120" style="stroke: #4A90A4; stroke-width: 2;" marker-end="url(#arrowhead)"/>
-  <text x="130" y="105" style="font-family: system-ui, -apple-system, sans-serif; font-size: 11px; fill: #666;">downsample</text>
-
-  <!-- Conv Block 2 -->
-  <rect x="50" y="120" width="120" height="40" rx="5" style="fill: #f5f5f5; stroke: #4A90A4; stroke-width: 2;"/>
-  <text x="110" y="145" text-anchor="middle" style="font-family: system-ui, -apple-system, sans-serif; font-size: 13px; fill: #333;">Conv Block</text>
-
-  <!-- Downsample arrow -->
-  <line x1="110" y1="160" x2="110" y2="190" style="stroke: #4A90A4; stroke-width: 2;" marker-end="url(#arrowhead)"/>
-  <text x="130" y="175" style="font-family: system-ui, -apple-system, sans-serif; font-size: 11px; fill: #666;">downsample</text>
-
-  <!-- Conv Block 3 -->
-  <rect x="50" y="190" width="120" height="40" rx="5" style="fill: #f5f5f5; stroke: #4A90A4; stroke-width: 2;"/>
-  <text x="110" y="215" text-anchor="middle" style="font-family: system-ui, -apple-system, sans-serif; font-size: 13px; fill: #333;">Conv Block</text>
-
-  <!-- Downsample arrow -->
-  <line x1="110" y1="230" x2="110" y2="260" style="stroke: #4A90A4; stroke-width: 2;" marker-end="url(#arrowhead)"/>
-  <text x="130" y="245" style="font-family: system-ui, -apple-system, sans-serif; font-size: 11px; fill: #666;">downsample</text>
-
-  <!-- Bottleneck -->
-  <rect x="50" y="260" width="120" height="40" rx="5" style="fill: #ffe6e6; stroke: #4A90A4; stroke-width: 2;"/>
-  <text x="110" y="285" text-anchor="middle" style="font-family: system-ui, -apple-system, sans-serif; font-size: 13px; fill: #333; font-weight: 600;">Bottleneck</text>
-
-  <!-- Upsample arrow -->
-  <line x1="110" y1="300" x2="110" y2="330" style="stroke: #4A90A4; stroke-width: 2;" marker-end="url(#arrowhead)"/>
-  <text x="130" y="315" style="font-family: system-ui, -apple-system, sans-serif; font-size: 11px; fill: #666;">upsample</text>
-
-  <!-- Decoder path (right side) -->
-  <!-- Conv Block 4 -->
-  <rect x="250" y="330" width="120" height="40" rx="5" style="fill: #f5f5f5; stroke: #4A90A4; stroke-width: 2;"/>
-  <text x="310" y="355" text-anchor="middle" style="font-family: system-ui, -apple-system, sans-serif; font-size: 13px; fill: #333;">Conv Block</text>
-
-  <!-- Upsample arrow -->
-  <line x1="310" y1="370" x2="310" y2="400" style="stroke: #4A90A4; stroke-width: 2;" marker-end="url(#arrowhead)"/>
-  <text x="330" y="385" style="font-family: system-ui, -apple-system, sans-serif; font-size: 11px; fill: #666;">upsample</text>
-
-  <!-- Conv Block 5 -->
-  <rect x="250" y="400" width="120" height="40" rx="5" style="fill: #f5f5f5; stroke: #4A90A4; stroke-width: 2;"/>
-  <text x="310" y="425" text-anchor="middle" style="font-family: system-ui, -apple-system, sans-serif; font-size: 13px; fill: #333;">Conv Block</text>
-
-  <!-- Upsample arrow -->
-  <line x1="310" y1="440" x2="310" y2="470" style="stroke: #4A90A4; stroke-width: 2;" marker-end="url(#arrowhead)"/>
-  <text x="330" y="455" style="font-family: system-ui, -apple-system, sans-serif; font-size: 11px; fill: #666;">upsample</text>
-
-  <!-- Conv Block 6 -->
-  <rect x="250" y="470" width="120" height="40" rx="5" style="fill: #f5f5f5; stroke: #4A90A4; stroke-width: 2;"/>
-  <text x="310" y="495" text-anchor="middle" style="font-family: system-ui, -apple-system, sans-serif; font-size: 13px; fill: #333;">Conv Block</text>
-
-  <!-- Skip connections (curved paths) -->
-  <!-- Skip 1: Conv Block 3 to Conv Block 4 -->
-  <path d="M 170 210 Q 400 210, 370 350" style="fill: none; stroke: #4A90A4; stroke-width: 2; stroke-dasharray: 5,5;" marker-end="url(#arrowhead)"/>
-
-  <!-- Skip 2: Conv Block 2 to Conv Block 5 -->
-  <path d="M 170 140 Q 480 140, 370 420" style="fill: none; stroke: #4A90A4; stroke-width: 2; stroke-dasharray: 5,5;" marker-end="url(#arrowhead)"/>
-
-  <!-- Skip 3: Conv Block 1 to Conv Block 6 -->
-  <path d="M 170 70 Q 560 70, 370 490" style="fill: none; stroke: #4A90A4; stroke-width: 2; stroke-dasharray: 5,5;" marker-end="url(#arrowhead)"/>
-
-  <!-- Skip connection label -->
-  <text x="500" y="250" style="font-family: system-ui, -apple-system, sans-serif; font-size: 12px; fill: #666; font-style: italic;">Skip connections</text>
-
-  <!-- Connection from bottleneck to decoder -->
-  <line x1="170" y1="280" x2="250" y2="350" style="stroke: #4A90A4; stroke-width: 2;" marker-end="url(#arrowhead)"/>
-
-  <!-- Output -->
-  <text x="310" y="540" text-anchor="middle" style="font-family: system-ui, -apple-system, sans-serif; font-size: 14px; fill: #333; font-weight: 600;">Output (predicted noise)</text>
-  <line x1="310" y1="510" x2="310" y2="525" style="stroke: #4A90A4; stroke-width: 2;" marker-end="url(#arrowhead)"/>
-</svg>
+![Chapter 25 diffusion implementation diagram](../assets/diagrams/ch25-diffusion-implementation-diagram.svg)
 
 ### Basic Building Blocks
 
@@ -190,55 +106,7 @@ class ResidualBlock(nn.Module):
 
     Architecture:
 
-    <svg viewBox="0 0 800 180" xmlns="http://www.w3.org/2000/svg" style="max-width: 800px; margin: 10px 0; display: block;">
-      <defs>
-        <marker id="arrow-res" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
-          <polygon points="0 0, 8 3, 0 6" fill="#4A90A4" />
-        </marker>
-      </defs>
-
-      <!-- Input x (top path) -->
-      <text x="10" y="35" style="font-family: monospace; font-size: 14px; fill: #333; font-weight: bold;">x</text>
-      <line x1="25" y1="30" x2="60" y2="30" style="stroke: #4A90A4; stroke-width: 2;" marker-end="url(#arrow-res)"/>
-
-      <!-- First conv path -->
-      <rect x="60" y="10" width="180" height="40" rx="3" style="fill: #e8f4f8; stroke: #4A90A4; stroke-width: 1.5;"/>
-      <text x="150" y="35" text-anchor="middle" style="font-family: monospace; font-size: 12px; fill: #333;">GroupNorm → SiLU → Conv3x3</text>
-
-      <line x1="240" y1="30" x2="270" y2="30" style="stroke: #4A90A4; stroke-width: 2;" marker-end="url(#arrow-res)"/>
-
-      <!-- Second conv path -->
-      <rect x="270" y="10" width="180" height="40" rx="3" style="fill: #e8f4f8; stroke: #4A90A4; stroke-width: 1.5;"/>
-      <text x="360" y="35" text-anchor="middle" style="font-family: monospace; font-size: 12px; fill: #333;">GroupNorm → SiLU → Conv3x3</text>
-
-      <line x1="450" y1="30" x2="490" y2="30" style="stroke: #4A90A4; stroke-width: 2;" marker-end="url(#arrow-res)"/>
-
-      <!-- Input t (middle path) -->
-      <text x="10" y="95" style="font-family: monospace; font-size: 14px; fill: #333; font-weight: bold;">t</text>
-      <line x1="25" y1="90" x2="60" y2="90" style="stroke: #4A90A4; stroke-width: 2;" marker-end="url(#arrow-res)"/>
-
-      <!-- Time embedding path -->
-      <rect x="60" y="70" width="140" height="40" rx="3" style="fill: #fff4e6; stroke: #4A90A4; stroke-width: 1.5;"/>
-      <text x="130" y="95" text-anchor="middle" style="font-family: monospace; font-size: 12px; fill: #333;">SiLU → Linear</text>
-
-      <!-- Time to second conv (curved arrow going up) -->
-      <path d="M 200 90 L 280 90 L 280 50" style="fill: none; stroke: #4A90A4; stroke-width: 2; stroke-dasharray: 4,2;" marker-end="url(#arrow-res)"/>
-
-      <!-- Residual connection (bottom path) -->
-      <text x="10" y="155" style="font-family: monospace; font-size: 14px; fill: #333; font-weight: bold;">x</text>
-      <line x1="25" y1="150" x2="490" y2="150" style="stroke: #4A90A4; stroke-width: 2; stroke-dasharray: 4,2;" marker-end="url(#arrow-res)"/>
-
-      <!-- Addition node -->
-      <circle cx="505" cy="30" r="15" style="fill: #f5f5f5; stroke: #4A90A4; stroke-width: 2;"/>
-      <text x="505" y="37" text-anchor="middle" style="font-family: monospace; font-size: 16px; fill: #333; font-weight: bold;">+</text>
-
-      <!-- Merge residual into addition -->
-      <line x1="505" y1="45" x2="505" y2="135" style="stroke: #4A90A4; stroke-width: 2;"/>
-
-      <!-- Output -->
-      <line x1="520" y1="30" x2="560" y2="30" style="stroke: #4A90A4; stroke-width: 2;" marker-end="url(#arrow-res)"/>
-      <text x="565" y="35" style="font-family: monospace; font-size: 14px; fill: #333; font-weight: bold;">out</text>
-    </svg>
+    ![Chapter 25 diffusion implementation diagram 2](../assets/diagrams/ch25-diffusion-implementation-diagram-2.svg)
     """
     def __init__(self, in_channels: int, out_channels: int, time_emb_dim: int):
         super().__init__()

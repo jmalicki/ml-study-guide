@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 800 180" xmlns="http://www.w3.org/2000/svg" style="max-width: 800px; margin: 10px 0; display: block;">
+      <defs>
+        <marker id="arrow-res" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#4A90A4" />
+        </marker>
+      </defs>
+
+      <!-- Input x (top path) -->
+      <text x="10" y="35" style="font-family: monospace; font-size: 14px; fill: #333; font-weight: bold;">x</text>
+      <line x1="25" y1="30" x2="60" y2="30" style="stroke: #4A90A4; stroke-width: 2;" marker-end="url(#arrow-res)"/>
+
+      <!-- First conv path -->
+      <rect x="60" y="10" width="180" height="40" rx="3" style="fill: #e8f4f8; stroke: #4A90A4; stroke-width: 1.5;"/>
+      <text x="150" y="35" text-anchor="middle" style="font-family: monospace; font-size: 12px; fill: #333;">GroupNorm → SiLU → Conv3x3</text>
+
+      <line x1="240" y1="30" x2="270" y2="30" style="stroke: #4A90A4; stroke-width: 2;" marker-end="url(#arrow-res)"/>
+
+      <!-- Second conv path -->
+      <rect x="270" y="10" width="180" height="40" rx="3" style="fill: #e8f4f8; stroke: #4A90A4; stroke-width: 1.5;"/>
+      <text x="360" y="35" text-anchor="middle" style="font-family: monospace; font-size: 12px; fill: #333;">GroupNorm → SiLU → Conv3x3</text>
+
+      <line x1="450" y1="30" x2="490" y2="30" style="stroke: #4A90A4; stroke-width: 2;" marker-end="url(#arrow-res)"/>
+
+      <!-- Input t (middle path) -->
+      <text x="10" y="95" style="font-family: monospace; font-size: 14px; fill: #333; font-weight: bold;">t</text>
+      <line x1="25" y1="90" x2="60" y2="90" style="stroke: #4A90A4; stroke-width: 2;" marker-end="url(#arrow-res)"/>
+
+      <!-- Time embedding path -->
+      <rect x="60" y="70" width="140" height="40" rx="3" style="fill: #fff4e6; stroke: #4A90A4; stroke-width: 1.5;"/>
+      <text x="130" y="95" text-anchor="middle" style="font-family: monospace; font-size: 12px; fill: #333;">SiLU → Linear</text>
+
+      <!-- Time to second conv (curved arrow going up) -->
+      <path d="M 200 90 L 280 90 L 280 50" style="fill: none; stroke: #4A90A4; stroke-width: 2; stroke-dasharray: 4,2;" marker-end="url(#arrow-res)"/>
+
+      <!-- Residual connection (bottom path) -->
+      <text x="10" y="155" style="font-family: monospace; font-size: 14px; fill: #333; font-weight: bold;">x</text>
+      <line x1="25" y1="150" x2="490" y2="150" style="stroke: #4A90A4; stroke-width: 2; stroke-dasharray: 4,2;" marker-end="url(#arrow-res)"/>
+
+      <!-- Addition node -->
+      <circle cx="505" cy="30" r="15" style="fill: #f5f5f5; stroke: #4A90A4; stroke-width: 2;"/>
+      <text x="505" y="37" text-anchor="middle" style="font-family: monospace; font-size: 16px; fill: #333; font-weight: bold;">+</text>
+
+      <!-- Merge residual into addition -->
+      <line x1="505" y1="45" x2="505" y2="135" style="stroke: #4A90A4; stroke-width: 2;"/>
+
+      <!-- Output -->
+      <line x1="520" y1="30" x2="560" y2="30" style="stroke: #4A90A4; stroke-width: 2;" marker-end="url(#arrow-res)"/>
+      <text x="565" y="35" style="font-family: monospace; font-size: 14px; fill: #333; font-weight: bold;">out</text>
+    </svg>

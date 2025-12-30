@@ -615,48 +615,7 @@ Why does grouping work better than full sharing (MQA)?
 
 ### The Trade-off Spectrum
 
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 180">
-  <!-- Define arrow marker -->
-  <defs>
-    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-      <polygon points="0 0, 10 3, 0 6" fill="#4A90A4" />
-    </marker>
-  </defs>
-
-  <!-- Horizontal line with arrows -->
-  <line x1="100" y1="50" x2="700" y2="50" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)" />
-  <line x1="700" y1="50" x2="100" y2="50" stroke="#4A90A4" stroke-width="2" />
-
-  <!-- MHA box -->
-  <rect x="40" y="30" width="120" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
-  <text x="100" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="bold">MHA (h=h, g=h)</text>
-
-  <!-- GQA box -->
-  <rect x="340" y="30" width="120" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
-  <text x="400" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="bold">GQA (h&gt;g&gt;1)</text>
-
-  <!-- MQA box -->
-  <rect x="640" y="30" width="120" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
-  <text x="700" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="bold">MQA (h&gt;1, g=1)</text>
-
-  <!-- MHA properties -->
-  <text x="100" y="95" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">Max Quality</text>
-  <text x="100" y="115" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">Max Memory</text>
-
-  <!-- GQA properties -->
-  <text x="400" y="95" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">Balanced</text>
-  <text x="400" y="115" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">Good Quality</text>
-  <text x="400" y="135" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">Good Speed</text>
-
-  <!-- MQA properties -->
-  <text x="700" y="95" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">Max Speed</text>
-  <text x="700" y="115" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">Min Memory</text>
-
-  <!-- Vertical connectors -->
-  <line x1="100" y1="70" x2="100" y2="80" stroke="#4A90A4" stroke-width="1.5" />
-  <line x1="400" y1="70" x2="400" y2="80" stroke="#4A90A4" stroke-width="1.5" />
-  <line x1="700" y1="70" x2="700" y2="80" stroke="#4A90A4" stroke-width="1.5" />
-</svg>
+![Chapter 04 multi head attention diagram](../assets/diagrams/ch04-multi-head-attention-diagram.svg)
 
 ### Mathematical Formulation
 
@@ -1325,94 +1284,7 @@ Choosing between MHA, MQA, and GQA depends on your specific requirements. Here's
 
 #### Decision Flowchart
 
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 700">
-  <!-- Define arrow marker -->
-  <defs>
-    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-      <polygon points="0 0, 10 3, 0 6" fill="#4A90A4" />
-    </marker>
-  </defs>
-
-  <!-- Root question -->
-  <rect x="200" y="10" width="500" height="60" fill="#E8F4F8" stroke="#4A90A4" stroke-width="2" rx="5"/>
-  <text x="450" y="35" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="bold">Are you training a new model</text>
-  <text x="450" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="bold">from scratch?</text>
-
-  <!-- YES branch -->
-  <line x1="350" y1="70" x2="250" y2="100" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrow)" />
-  <text x="270" y="90" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#2d7a2d" font-weight="bold">YES</text>
-
-  <rect x="50" y="100" width="400" height="60" fill="#E8F4F8" stroke="#4A90A4" stroke-width="2" rx="5"/>
-  <text x="250" y="125" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333" font-weight="bold">Do you have strict inference</text>
-  <text x="250" y="145" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333" font-weight="bold">latency requirements?</text>
-
-  <!-- YES -> YES branch -->
-  <line x1="200" y1="160" x2="150" y2="190" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrow)" />
-  <text x="155" y="180" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#2d7a2d" font-weight="bold">YES</text>
-
-  <rect x="20" y="190" width="260" height="100" fill="#d4edda" stroke="#4A90A4" stroke-width="2" rx="5"/>
-  <text x="150" y="210" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333" font-weight="bold">Use GQA (4:1 or 8:1 ratio)</text>
-  <text x="150" y="230" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#555">Best balance of quality and speed</text>
-  <text x="150" y="250" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666" font-style="italic">Example: LLaMA 2</text>
-  <text x="150" y="270" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666" font-style="italic">(64 heads, 8 KV heads)</text>
-
-  <!-- YES -> NO branch -->
-  <line x1="300" y1="160" x2="350" y2="190" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrow)" />
-  <text x="345" y="180" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#a63d40" font-weight="bold">NO</text>
-
-  <rect x="290" y="190" width="260" height="100" fill="#d4edda" stroke="#4A90A4" stroke-width="2" rx="5"/>
-  <text x="420" y="210" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333" font-weight="bold">Use MHA</text>
-  <text x="420" y="230" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#555">Maximum quality, standard approach</text>
-  <text x="420" y="250" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666" font-style="italic">Example: GPT-3, BERT</text>
-
-  <!-- NO branch -->
-  <line x1="550" y1="70" x2="650" y2="100" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrow)" />
-  <text x="625" y="90" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#a63d40" font-weight="bold">NO</text>
-
-  <rect x="450" y="100" width="400" height="60" fill="#E8F4F8" stroke="#4A90A4" stroke-width="2" rx="5"/>
-  <text x="650" y="125" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333" font-weight="bold">Are you fine-tuning or deploying</text>
-  <text x="650" y="145" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333" font-weight="bold">an existing model?</text>
-
-  <!-- Memory constrained branch -->
-  <line x1="550" y1="160" x2="450" y2="330" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrow)" />
-
-  <rect x="350" y="330" width="200" height="50" fill="#fff3cd" stroke="#4A90A4" stroke-width="2" rx="5"/>
-  <text x="450" y="350" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333" font-weight="bold">Memory constrained</text>
-  <text x="450" y="368" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333" font-weight="bold">(mobile, edge devices)?</text>
-
-  <line x1="450" y1="380" x2="450" y2="410" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrow)" />
-
-  <rect x="330" y="410" width="240" height="90" fill="#d4edda" stroke="#4A90A4" stroke-width="2" rx="5"/>
-  <text x="450" y="430" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333" font-weight="bold">Use MQA or convert to MQA</text>
-  <text x="450" y="450" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#555">Smallest cache, fastest inference</text>
-  <text x="450" y="470" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666" font-style="italic">Example: Falcon, PaLM</text>
-
-  <!-- Balanced requirements branch -->
-  <line x1="650" y1="160" x2="650" y2="330" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrow)" />
-
-  <rect x="560" y="330" width="180" height="50" fill="#fff3cd" stroke="#4A90A4" stroke-width="2" rx="5"/>
-  <text x="650" y="350" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333" font-weight="bold">Balanced requirements?</text>
-
-  <line x1="650" y1="380" x2="650" y2="410" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrow)" />
-
-  <rect x="530" y="410" width="240" height="90" fill="#d4edda" stroke="#4A90A4" stroke-width="2" rx="5"/>
-  <text x="650" y="430" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333" font-weight="bold">Use GQA or convert to GQA</text>
-  <text x="650" y="450" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#555">Good middle ground</text>
-  <text x="650" y="470" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666" font-style="italic">Example: Mistral 7B</text>
-  <text x="650" y="487" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666" font-style="italic">(32 heads, 8 KV heads)</text>
-
-  <!-- Quality paramount branch -->
-  <line x1="750" y1="160" x2="800" y2="330" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrow)" />
-
-  <rect x="710" y="330" width="180" height="40" fill="#fff3cd" stroke="#4A90A4" stroke-width="2" rx="5"/>
-  <text x="800" y="355" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333" font-weight="bold">Quality is paramount?</text>
-
-  <line x1="800" y1="370" x2="800" y2="400" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrow)" />
-
-  <rect x="710" y="400" width="180" height="70" fill="#d4edda" stroke="#4A90A4" stroke-width="2" rx="5"/>
-  <text x="800" y="425" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333" font-weight="bold">Keep MHA</text>
-  <text x="800" y="445" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#555">Best accuracy</text>
-</svg>
+![Chapter 04 multi head attention diagram 2](../assets/diagrams/ch04-multi-head-attention-diagram-2.svg)
 
 #### Detailed Guidelines
 

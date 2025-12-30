@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 800 900" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .node { fill: #f5f5f5; stroke: #4A90A4; stroke-width: 2; }
+    .decision { fill: #e8f4f8; stroke: #4A90A4; stroke-width: 2; }
+    .text { font-family: system-ui, -apple-system, sans-serif; font-size: 13px; fill: #333; }
+    .label { font-family: system-ui, -apple-system, sans-serif; font-size: 12px; fill: #666; }
+    .arrow { stroke: #4A90A4; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+    .result { fill: #d4edda; stroke: #4A90A4; stroke-width: 2; }
+  </style>
+
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#4A90A4" />
+    </marker>
+  </defs>
+
+  <!-- Start -->
+  <ellipse cx="400" cy="20" rx="40" ry="20" class="node"/>
+  <text x="400" y="25" text-anchor="middle" class="text">START</text>
+
+  <!-- Main question -->
+  <rect x="260" y="60" width="280" height="50" rx="5" class="decision"/>
+  <text x="400" y="80" text-anchor="middle" class="text">Do you have multiple</text>
+  <text x="400" y="95" text-anchor="middle" class="text">models to combine?</text>
+
+  <!-- Arrow from start -->
+  <path d="M 400 40 L 400 60" class="arrow"/>
+
+  <!-- YES branch -->
+  <text x="250" y="135" class="label" font-weight="bold">YES</text>
+  <path d="M 300 110 L 150 140" class="arrow"/>
+
+  <rect x="10" y="140" width="280" height="50" rx="5" class="decision"/>
+  <text x="150" y="160" text-anchor="middle" class="text">Are they fine-tuned from</text>
+  <text x="150" y="175" text-anchor="middle" class="text">the same base?</text>
+
+  <!-- YES - same base -->
+  <text x="5" y="215" class="label" font-weight="bold">YES</text>
+  <path d="M 80 190 L 80 220" class="arrow"/>
+
+  <rect x="10" y="220" width="280" height="50" rx="5" class="decision"/>
+  <text x="150" y="240" text-anchor="middle" class="text">Do you need to preserve</text>
+  <text x="150" y="255" text-anchor="middle" class="text">all capabilities?</text>
+
+  <!-- YES - preserve all -->
+  <text x="5" y="295" class="label" font-weight="bold">YES</text>
+  <path d="M 80 270 L 80 300" class="arrow"/>
+
+  <rect x="10" y="300" width="130" height="50" rx="5" class="result"/>
+  <text x="75" y="315" text-anchor="middle" class="text" font-weight="bold">TIES-Merging</text>
+  <text x="75" y="330" text-anchor="middle" class="text" font-weight="bold">or DARE</text>
+  <text x="75" y="345" text-anchor="middle" class="label">(Handles interference)</text>
+
+  <!-- NO - don't preserve all -->
+  <text x="155" y="295" class="label" font-weight="bold">NO</text>
+  <path d="M 220 270 L 220 300" class="arrow"/>
+
+  <rect x="155" y="300" width="130" height="50" rx="5" class="result"/>
+  <text x="220" y="315" text-anchor="middle" class="text" font-weight="bold">Task Arithmetic</text>
+  <text x="220" y="330" text-anchor="middle" class="label">(Can remove capabilities</text>
+  <text x="220" y="345" text-anchor="middle" class="label">with negative λ)</text>
+
+  <!-- NO - not same base -->
+  <text x="295" y="215" class="label" font-weight="bold">NO</text>
+  <path d="M 220 190 L 380 220" class="arrow"/>
+
+  <rect x="310" y="220" width="280" height="50" rx="5" class="decision"/>
+  <text x="450" y="240" text-anchor="middle" class="text">Are they from different</text>
+  <text x="450" y="255" text-anchor="middle" class="text">training stages?</text>
+
+  <!-- YES - different stages -->
+  <text x="305" y="295" class="label" font-weight="bold">YES</text>
+  <path d="M 380 270 L 380 300" class="arrow"/>
+
+  <rect x="310" y="300" width="130" height="50" rx="5" class="result"/>
+  <text x="375" y="320" text-anchor="middle" class="text" font-weight="bold">Use SLERP</text>
+  <text x="375" y="340" text-anchor="middle" class="label">(Smooth interpolation)</text>
+
+  <!-- NO - can't merge -->
+  <text x="455" y="295" class="label" font-weight="bold">NO</text>
+  <path d="M 520 270 L 520 300" class="arrow"/>
+
+  <rect x="455" y="300" width="130" height="50" rx="5" class="result"/>
+  <text x="520" y="315" text-anchor="middle" class="text" font-weight="bold">Cannot merge</text>
+  <text x="520" y="330" text-anchor="middle" class="text" font-weight="bold">directly</text>
+  <text x="520" y="345" text-anchor="middle" class="label">(Consider distillation)</text>
+
+  <!-- NO branch from main -->
+  <text x="550" y="135" class="label" font-weight="bold">NO</text>
+  <path d="M 500 110 L 650 140" class="arrow"/>
+
+  <rect x="510" y="140" width="280" height="50" rx="5" class="decision"/>
+  <text x="650" y="160" text-anchor="middle" class="text">Need to compress</text>
+  <text x="650" y="175" text-anchor="middle" class="text">a single model?</text>
+
+  <!-- YES - compress -->
+  <text x="505" y="410" class="label" font-weight="bold">YES</text>
+  <path d="M 590 190 L 590 420" class="arrow"/>
+
+  <rect x="450" y="420" width="280" height="50" rx="5" class="decision"/>
+  <text x="590" y="440" text-anchor="middle" class="text">Do you have a larger</text>
+  <text x="590" y="455" text-anchor="middle" class="text">teacher model?</text>
+
+  <!-- YES - have teacher -->
+  <text x="445" y="495" class="label" font-weight="bold">YES</text>
+  <path d="M 520 470 L 520 500" class="arrow"/>
+
+  <rect x="380" y="500" width="280" height="50" rx="5" class="decision"/>
+  <text x="520" y="520" text-anchor="middle" class="text">Is it RLHF/DPO-trained?</text>
+
+  <!-- YES - RLHF trained -->
+  <text x="375" y="575" class="label" font-weight="bold">YES</text>
+  <path d="M 450 550 L 450 580" class="arrow"/>
+
+  <rect x="310" y="580" width="180" height="50" rx="5" class="result"/>
+  <text x="400" y="595" text-anchor="middle" class="text" font-weight="bold">Preference-Aware</text>
+  <text x="400" y="610" text-anchor="middle" class="text" font-weight="bold">Distillation</text>
+  <text x="400" y="625" text-anchor="middle" class="label">(Preserves alignment)</text>
+
+  <!-- NO - not RLHF -->
+  <text x="530" y="575" class="label" font-weight="bold">NO</text>
+  <path d="M 590 550 L 590 580" class="arrow"/>
+
+  <rect x="500" y="580" width="180" height="50" rx="5" class="result"/>
+  <text x="590" y="595" text-anchor="middle" class="text" font-weight="bold">Standard</text>
+  <text x="590" y="610" text-anchor="middle" class="text" font-weight="bold">Distillation</text>
+  <text x="590" y="625" text-anchor="middle" class="label">(Efficient transfer)</text>
+
+  <!-- NO - no teacher -->
+  <text x="665" y="495" class="label" font-weight="bold">NO</text>
+  <path d="M 660 470 L 660 500" class="arrow"/>
+
+  <rect x="570" y="500" width="180" height="50" rx="5" class="result"/>
+  <text x="660" y="520" text-anchor="middle" class="text" font-weight="bold">Use Pruning</text>
+  <text x="660" y="535" text-anchor="middle" class="label">(SparseGPT or Wanda)</text>
+
+  <!-- NO - don't compress -->
+  <text x="695" y="410" class="label" font-weight="bold">NO</text>
+  <path d="M 710 190 L 710 420" class="arrow"/>
+
+  <rect x="570" y="420" width="280" height="50" rx="5" class="result"/>
+  <text x="710" y="435" text-anchor="middle" class="text" font-weight="bold">Optimize existing</text>
+  <text x="710" y="450" text-anchor="middle" class="text" font-weight="bold">model structure</text>
+  <text x="710" y="465" text-anchor="middle" class="label">(See Chapter 31: Quantization)</text>
+</svg>

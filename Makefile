@@ -1,4 +1,4 @@
-.PHONY: help lint validate check install-hooks clean
+.PHONY: help lint validate check-svg check install-hooks clean
 
 help:
 	@echo "ML Study Guide - Development Commands"
@@ -6,7 +6,8 @@ help:
 	@echo "Available targets:"
 	@echo "  make lint           - Run markdown linting"
 	@echo "  make validate       - Run link validation"
-	@echo "  make check          - Run all checks (lint + validate)"
+	@echo "  make check-svg      - Check for inline SVG (not supported on GitHub)"
+	@echo "  make check          - Run all checks (lint + validate + svg)"
 	@echo "  make install-hooks  - Install pre-commit hooks"
 	@echo "  make clean          - Clean temporary files"
 	@echo ""
@@ -20,7 +21,11 @@ validate:
 	@echo "Running link validation..."
 	python3 scripts/validate_links.py
 
-check: lint validate
+check-svg:
+	@echo "Checking for inline SVG..."
+	python3 scripts/check_inline_svg.py
+
+check: lint validate check-svg
 	@echo ""
 	@echo "All checks passed!"
 

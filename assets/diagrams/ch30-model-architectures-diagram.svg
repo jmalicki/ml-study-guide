@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 800 1400" xmlns="http://www.w3.org/2000/svg" style="max-width: 100%; height: auto;">
+  <defs>
+    <style>
+      .timeline-line { stroke: #4A90A4; stroke-width: 3; fill: none; }
+      .year-text { font-family: system-ui, -apple-system, sans-serif; font-size: 16px; font-weight: 600; fill: #333; }
+      .title-text { font-family: system-ui, -apple-system, sans-serif; font-size: 15px; font-weight: 500; fill: #333; }
+      .detail-text { font-family: system-ui, -apple-system, sans-serif; font-size: 13px; fill: #666; }
+      .connector { stroke: #4A90A4; stroke-width: 2; fill: none; }
+      .dot { fill: #4A90A4; }
+    </style>
+  </defs>
+
+  <!-- Main timeline vertical line -->
+  <line x1="80" y1="20" x2="80" y2="1380" class="timeline-line"/>
+
+  <!-- 2017: Transformer -->
+  <circle cx="80" cy="30" r="6" class="dot"/>
+  <text x="100" y="35" class="year-text">2017: Transformer (Vaswani et al.)</text>
+  <line x1="80" y1="36" x2="130" y2="50" class="connector"/>
+  <text x="135" y="55" class="detail-text">Attention Is All You Need</text>
+
+  <!-- 2018: GPT-1 -->
+  <circle cx="80" cy="90" r="6" class="dot"/>
+  <text x="100" y="95" class="year-text">2018: GPT-1 (OpenAI)</text>
+  <line x1="80" y1="96" x2="130" y2="110" class="connector"/>
+  <text x="135" y="115" class="detail-text">Decoder-only, autoregressive</text>
+
+  <!-- 2019: GPT-2 -->
+  <circle cx="80" cy="150" r="6" class="dot"/>
+  <text x="100" y="155" class="year-text">2019: GPT-2</text>
+  <line x1="80" y1="156" x2="130" y2="170" class="connector"/>
+  <text x="135" y="175" class="detail-text">Pre-norm, larger scale</text>
+
+  <!-- 2020: GPT-3 -->
+  <circle cx="80" cy="210" r="6" class="dot"/>
+  <text x="100" y="215" class="year-text">2020: GPT-3</text>
+  <line x1="80" y1="216" x2="130" y2="230" class="connector"/>
+  <text x="135" y="235" class="detail-text">Few-shot learning, 175B parameters</text>
+
+  <!-- 2021: RoPE -->
+  <circle cx="80" cy="270" r="6" class="dot"/>
+  <text x="100" y="275" class="year-text">2021: RoPE (Su et al.)</text>
+  <line x1="80" y1="276" x2="130" y2="290" class="connector"/>
+  <text x="135" y="295" class="detail-text">Rotary Position Embeddings</text>
+
+  <!-- 2022: Chinchilla -->
+  <circle cx="80" cy="330" r="6" class="dot"/>
+  <text x="100" y="335" class="year-text">2022: Chinchilla (DeepMind)</text>
+  <line x1="80" y1="336" x2="130" y2="350" class="connector"/>
+  <text x="135" y="355" class="detail-text">Optimal compute allocation, training tokens matter</text>
+
+  <!-- 2023: LLaMA 1 (with multiple branches) -->
+  <circle cx="80" cy="390" r="6" class="dot"/>
+  <text x="100" y="395" class="year-text">2023: LLaMA 1 (Meta)</text>
+  <line x1="80" y1="396" x2="130" y2="410" class="connector"/>
+  <text x="135" y="415" class="detail-text">RMSNorm</text>
+  <line x1="80" y1="396" x2="130" y2="430" class="connector"/>
+  <text x="135" y="435" class="detail-text">SwiGLU</text>
+  <line x1="80" y1="396" x2="130" y2="450" class="connector"/>
+  <text x="135" y="455" class="detail-text">RoPE</text>
+
+  <!-- 2023: Mistral 7B (with multiple branches) -->
+  <circle cx="80" cy="490" r="6" class="dot"/>
+  <text x="100" y="495" class="year-text">2023: Mistral 7B</text>
+  <line x1="80" y1="496" x2="130" y2="510" class="connector"/>
+  <text x="135" y="515" class="detail-text">Sliding Window Attention</text>
+  <line x1="80" y1="496" x2="130" y2="530" class="connector"/>
+  <text x="135" y="535" class="detail-text">Rolling Buffer Cache</text>
+
+  <!-- 2023: GPT-4 -->
+  <circle cx="80" cy="570" r="6" class="dot"/>
+  <text x="100" y="575" class="year-text">2023: GPT-4 (OpenAI)</text>
+  <line x1="80" y1="576" x2="130" y2="590" class="connector"/>
+  <text x="135" y="595" class="detail-text">Rumored MoE, multimodal</text>
+
+  <!-- 2024: Mixtral 8x7B -->
+  <circle cx="80" cy="630" r="6" class="dot"/>
+  <text x="100" y="635" class="year-text">2024: Mixtral 8x7B</text>
+  <line x1="80" y1="636" x2="130" y2="650" class="connector"/>
+  <text x="135" y="655" class="detail-text">Sparse MoE for open models</text>
+
+  <!-- 2024: LLaMA 2/3 -->
+  <circle cx="80" cy="690" r="6" class="dot"/>
+  <text x="100" y="695" class="year-text">2024: LLaMA 2/3</text>
+  <line x1="80" y1="696" x2="130" y2="710" class="connector"/>
+  <text x="135" y="715" class="detail-text">GQA for inference efficiency</text>
+
+  <!-- 2024: DeepSeek V2/V3 (with multiple branches) -->
+  <circle cx="80" cy="750" r="6" class="dot"/>
+  <text x="100" y="755" class="year-text">2024: DeepSeek V2/V3</text>
+  <line x1="80" y1="756" x2="130" y2="770" class="connector"/>
+  <text x="135" y="775" class="detail-text">Multi-head Latent Attention (MLA)</text>
+  <line x1="80" y1="756" x2="130" y2="790" class="connector"/>
+  <text x="135" y="795" class="detail-text">Fine-grained MoE</text>
+
+  <!-- 2024: Gemma 2 -->
+  <circle cx="80" cy="830" r="6" class="dot"/>
+  <text x="100" y="835" class="year-text">2024: Gemma 2</text>
+  <line x1="80" y1="836" x2="130" y2="850" class="connector"/>
+  <text x="135" y="855" class="detail-text">Interleaved local/global attention</text>
+
+  <!-- 2024: Gemini 1.5 -->
+  <circle cx="80" cy="890" r="6" class="dot"/>
+  <text x="100" y="895" class="year-text">2024: Gemini 1.5</text>
+  <line x1="80" y1="896" x2="130" y2="910" class="connector"/>
+  <text x="135" y="915" class="detail-text">1M+ token context</text>
+
+  <!-- 2025: LLaMA 4 (with multiple branches) -->
+  <circle cx="80" cy="950" r="6" class="dot"/>
+  <text x="100" y="955" class="year-text">2025: LLaMA 4</text>
+  <line x1="80" y1="956" x2="130" y2="970" class="connector"/>
+  <text x="135" y="975" class="detail-text">iRoPE (interleaved RoPE/NoPE)</text>
+  <line x1="80" y1="956" x2="130" y2="990" class="connector"/>
+  <text x="135" y="995" class="detail-text">Native multimodal</text>
+  <line x1="80" y1="956" x2="130" y2="1010" class="connector"/>
+  <text x="135" y="1015" class="detail-text">MoE for open models</text>
+
+  <!-- 2025: Qwen 3 -->
+  <circle cx="80" cy="1070" r="6" class="dot"/>
+  <text x="100" y="1075" class="year-text">2025: Qwen 3</text>
+  <line x1="80" y1="1076" x2="130" y2="1090" class="connector"/>
+  <text x="135" y="1095" class="detail-text">QK-Norm for training stability</text>
+
+  <!-- 2025: WeDLM -->
+  <circle cx="80" cy="1130" r="6" class="dot"/>
+  <text x="100" y="1135" class="year-text">2025: WeDLM</text>
+  <line x1="80" y1="1136" x2="130" y2="1150" class="connector"/>
+  <text x="135" y="1155" class="detail-text">Diffusion LM with causal attention</text>
+</svg>

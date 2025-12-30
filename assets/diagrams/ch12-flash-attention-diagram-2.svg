@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 340" xmlns="http://www.w3.org/2000/svg" style="max-width: 400px; margin: 20px 0;">
+  <!-- SRAM Box -->
+  <rect x="50" y="20" width="150" height="300" fill="#e8f4f8" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="125" y="50" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="bold" fill="#333" text-anchor="middle">SRAM</text>
+  <text x="125" y="75" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#2d7a8e" text-anchor="middle">(Fast)</text>
+
+  <!-- Data flow arrows and labels -->
+  <line x1="210" y1="100" x2="210" y2="120" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead2)"/>
+  <text x="220" y="115" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Load block of Q, K, V</text>
+
+  <line x1="210" y1="125" x2="210" y2="145" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead2)"/>
+  <text x="220" y="140" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Compute QK^T (stays in SRAM)</text>
+
+  <line x1="210" y1="150" x2="210" y2="170" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead2)"/>
+  <text x="220" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Softmax (stays in SRAM)</text>
+
+  <line x1="210" y1="175" x2="210" y2="195" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead2)"/>
+  <text x="220" y="190" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Multiply V (stays in SRAM)</text>
+
+  <line x1="210" y1="200" x2="210" y2="220" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead2)"/>
+  <text x="220" y="215" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Accumulate output</text>
+
+  <line x1="210" y1="225" x2="210" y2="245" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead2)"/>
+  <text x="220" y="240" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Write final block to HBM</text>
+
+  <!-- Arrow marker definition -->
+  <defs>
+    <marker id="arrowhead2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#4A90A4"/>
+    </marker>
+  </defs>
+</svg>

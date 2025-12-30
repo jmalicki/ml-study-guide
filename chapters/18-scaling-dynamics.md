@@ -95,64 +95,7 @@ where $N_c$, $D_c$, $C_c$ are constants and $\alpha_N \approx 0.076$, $\alpha_D 
 
 **Kaplan Scaling Laws Visualization:**
 
-<svg viewBox="0 0 1200 350" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background -->
-  <rect width="1200" height="350" fill="#f5f5f5"/>
-
-  <!-- Plot 1: Model Size -->
-  <g transform="translate(50, 30)">
-    <rect width="320" height="280" fill="white" stroke="#ddd" stroke-width="1"/>
-    <!-- Axes -->
-    <line x1="40" y1="240" x2="300" y2="240" stroke="#333" stroke-width="2"/>
-    <line x1="40" y1="20" x2="40" y2="240" stroke="#333" stroke-width="2"/>
-    <!-- Power law curve (decreasing) -->
-    <path d="M 60 30 Q 120 80, 180 150 T 280 220" fill="none" stroke="#4A90A4" stroke-width="2.5"/>
-    <!-- Labels -->
-    <text x="160" y="270" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">Model Parameters (N)</text>
-    <text x="10" y="140" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333" transform="rotate(-90, 10, 140)">Test Loss</text>
-    <text x="160" y="15" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#333">Scaling with Model Size</text>
-    <!-- Tick labels -->
-    <text x="60" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">1M</text>
-    <text x="180" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">1B</text>
-    <text x="280" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">1T</text>
-  </g>
-
-  <!-- Plot 2: Data Size -->
-  <g transform="translate(440, 30)">
-    <rect width="320" height="280" fill="white" stroke="#ddd" stroke-width="1"/>
-    <!-- Axes -->
-    <line x1="40" y1="240" x2="300" y2="240" stroke="#333" stroke-width="2"/>
-    <line x1="40" y1="20" x2="40" y2="240" stroke="#333" stroke-width="2"/>
-    <!-- Power law curve (decreasing, slightly different slope) -->
-    <path d="M 60 40 Q 120 90, 180 160 T 280 225" fill="none" stroke="#4A90A4" stroke-width="2.5"/>
-    <!-- Labels -->
-    <text x="160" y="270" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">Training Tokens (D)</text>
-    <text x="10" y="140" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333" transform="rotate(-90, 10, 140)">Test Loss</text>
-    <text x="160" y="15" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#333">Scaling with Data</text>
-    <!-- Tick labels -->
-    <text x="60" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">1B</text>
-    <text x="180" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">10T</text>
-    <text x="280" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">100T</text>
-  </g>
-
-  <!-- Plot 3: Compute -->
-  <g transform="translate(830, 30)">
-    <rect width="320" height="280" fill="white" stroke="#ddd" stroke-width="1"/>
-    <!-- Axes -->
-    <line x1="40" y1="240" x2="300" y2="240" stroke="#333" stroke-width="2"/>
-    <line x1="40" y1="20" x2="40" y2="240" stroke="#333" stroke-width="2"/>
-    <!-- Power law curve (decreasing, gentlest slope) -->
-    <path d="M 60 50 Q 120 100, 180 165 T 280 228" fill="none" stroke="#4A90A4" stroke-width="2.5"/>
-    <!-- Labels -->
-    <text x="160" y="270" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">Compute (FLOPs)</text>
-    <text x="10" y="140" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333" transform="rotate(-90, 10, 140)">Test Loss</text>
-    <text x="160" y="15" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#333">Scaling with Compute</text>
-    <!-- Tick labels -->
-    <text x="60" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">10¹⁸</text>
-    <text x="180" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">10²¹</text>
-    <text x="280" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">10²⁴</text>
-  </g>
-</svg>
+![Chapter 18 scaling dynamics diagram](../assets/diagrams/ch18-scaling-dynamics-diagram.svg)
 
 ### The Chinchilla Scaling Laws
 
@@ -212,60 +155,7 @@ Optimizing this under the compute constraint $C = 6ND$ shows that $N_{opt}$ and 
 
 **Kaplan vs Chinchilla Comparison:**
 
-<svg viewBox="0 0 900 350" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background -->
-  <rect width="900" height="350" fill="#f5f5f5"/>
-
-  <!-- Plot 1: Model Size vs Compute -->
-  <g transform="translate(40, 30)">
-    <rect width="380" height="280" fill="white" stroke="#ddd" stroke-width="1"/>
-    <!-- Axes -->
-    <line x1="50" y1="240" x2="360" y2="240" stroke="#333" stroke-width="2"/>
-    <line x1="50" y1="20" x2="50" y2="240" stroke="#333" stroke-width="2"/>
-    <!-- Kaplan curve (steeper - prioritizes model size) -->
-    <path d="M 70 200 L 140 130 L 210 80 L 280 40 L 340 15" fill="none" stroke="#4A90A4" stroke-width="2.5"/>
-    <!-- Chinchilla curve (less steep - balanced) -->
-    <path d="M 70 215 L 140 160 L 210 115 L 280 75 L 340 45" fill="none" stroke="#E57373" stroke-width="2.5" stroke-dasharray="5,5"/>
-    <!-- Labels -->
-    <text x="200" y="270" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">Compute Budget (FLOPs)</text>
-    <text x="15" y="140" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333" transform="rotate(-90, 15, 140)">Model Size (Params)</text>
-    <text x="200" y="15" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#333">Model Size vs Compute</text>
-    <!-- Legend -->
-    <line x1="260" y1="260" x2="290" y2="260" stroke="#4A90A4" stroke-width="2.5"/>
-    <text x="295" y="264" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Kaplan</text>
-    <line x1="260" y1="275" x2="290" y2="275" stroke="#E57373" stroke-width="2.5" stroke-dasharray="5,5"/>
-    <text x="295" y="279" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Chinchilla</text>
-    <!-- Tick labels -->
-    <text x="70" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="9" fill="#666">10²⁰</text>
-    <text x="210" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="9" fill="#666">10²³</text>
-    <text x="340" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="9" fill="#666">10²⁶</text>
-  </g>
-
-  <!-- Plot 2: Training Tokens vs Compute -->
-  <g transform="translate(480, 30)">
-    <rect width="380" height="280" fill="white" stroke="#ddd" stroke-width="1"/>
-    <!-- Axes -->
-    <line x1="50" y1="240" x2="360" y2="240" stroke="#333" stroke-width="2"/>
-    <line x1="50" y1="20" x2="50" y2="240" stroke="#333" stroke-width="2"/>
-    <!-- Kaplan curve (less steep - less emphasis on data) -->
-    <path d="M 70 220 L 140 180 L 210 145 L 280 115 L 340 90" fill="none" stroke="#4A90A4" stroke-width="2.5"/>
-    <!-- Chinchilla curve (steeper - more emphasis on data) -->
-    <path d="M 70 210 L 140 150 L 210 100 L 280 60 L 340 30" fill="none" stroke="#E57373" stroke-width="2.5" stroke-dasharray="5,5"/>
-    <!-- Labels -->
-    <text x="200" y="270" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">Compute Budget (FLOPs)</text>
-    <text x="15" y="140" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333" transform="rotate(-90, 15, 140)">Training Tokens</text>
-    <text x="200" y="15" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#333">Training Data vs Compute</text>
-    <!-- Legend -->
-    <line x1="260" y1="260" x2="290" y2="260" stroke="#4A90A4" stroke-width="2.5"/>
-    <text x="295" y="264" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Kaplan</text>
-    <line x1="260" y1="275" x2="290" y2="275" stroke="#E57373" stroke-width="2.5" stroke-dasharray="5,5"/>
-    <text x="295" y="279" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Chinchilla</text>
-    <!-- Tick labels -->
-    <text x="70" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="9" fill="#666">10²⁰</text>
-    <text x="210" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="9" fill="#666">10²³</text>
-    <text x="340" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="9" fill="#666">10²⁶</text>
-  </g>
-</svg>
+![Chapter 18 scaling dynamics diagram 2](../assets/diagrams/ch18-scaling-dynamics-diagram-2.svg)
 
 **Examples of Models and Their Training Regimes:**
 
@@ -732,75 +622,7 @@ if __name__ == "__main__":
 
 **Grokking Phenomenon Visualization:**
 
-<svg viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background -->
-  <rect width="800" height="400" fill="#f5f5f5"/>
-
-  <!-- Main plot area -->
-  <g transform="translate(60, 30)">
-    <rect width="700" height="320" fill="white" stroke="#ddd" stroke-width="1"/>
-
-    <!-- Axes -->
-    <line x1="40" y1="280" x2="680" y2="280" stroke="#333" stroke-width="2"/>
-    <line x1="40" y1="20" x2="40" y2="280" stroke="#333" stroke-width="2"/>
-
-    <!-- Phase regions -->
-    <rect x="40" y="20" width="160" height="260" fill="#FFE0E0" opacity="0.3"/>
-    <text x="120" y="310" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">Phase 1: Memorization</text>
-
-    <rect x="200" y="20" width="320" height="260" fill="#E0E0FF" opacity="0.3"/>
-    <text x="360" y="310" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">Phase 2: Plateau</text>
-
-    <rect x="520" y="20" width="160" height="260" fill="#E0FFE0" opacity="0.3"/>
-    <text x="600" y="310" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">Phase 3: Grokking</text>
-
-    <!-- Train accuracy (quick rise to 1.0) -->
-    <path d="M 50 280 Q 80 250, 120 35 L 680 35" fill="none" stroke="#4A90A4" stroke-width="3"/>
-
-    <!-- Validation accuracy (stays low, then sudden jump) -->
-    <path d="M 50 270 L 500 270 Q 540 260, 570 100 L 680 35" fill="none" stroke="#E57373" stroke-width="3"/>
-
-    <!-- Reference lines -->
-    <line x1="40" y1="35" x2="680" y2="35" stroke="#666" stroke-width="1" stroke-dasharray="3,3"/>
-    <text x="685" y="40" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">100%</text>
-
-    <line x1="40" y1="270" x2="680" y2="270" stroke="#999" stroke-width="1" stroke-dasharray="3,3"/>
-    <text x="685" y="275" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#999">~1% (Random)</text>
-
-    <!-- Labels -->
-    <text x="360" y="335" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">Training Epoch</text>
-    <text x="10" y="160" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" transform="rotate(-90, 10, 160)">Accuracy</text>
-    <text x="360" y="20" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="600" fill="#333">Grokking: Delayed Generalization</text>
-
-    <!-- Legend -->
-    <g transform="translate(480, 50)">
-      <line x1="0" y1="0" x2="40" y2="0" stroke="#4A90A4" stroke-width="3"/>
-      <text x="45" y="5" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">Train Accuracy</text>
-
-      <line x1="0" y1="20" x2="40" y2="20" stroke="#E57373" stroke-width="3"/>
-      <text x="45" y="25" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">Validation Accuracy</text>
-    </g>
-
-    <!-- Epoch markers -->
-    <text x="120" y="295" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">100</text>
-    <text x="360" y="295" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">5000</text>
-    <text x="600" y="295" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">10000</text>
-  </g>
-
-  <!-- Annotation for grokking moment -->
-  <g transform="translate(570, 140)">
-    <path d="M 0 0 L -30 -20" stroke="#E57373" stroke-width="2" marker-end="url(#arrowhead)"/>
-    <text x="5" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="600" fill="#E57373">Sudden</text>
-    <text x="5" y="12" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="600" fill="#E57373">Generalization!</text>
-  </g>
-
-  <!-- Arrow marker definition -->
-  <defs>
-    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-      <polygon points="0 0, 10 3, 0 6" fill="#E57373"/>
-    </marker>
-  </defs>
-</svg>
+![Chapter 18 scaling dynamics diagram 3](../assets/diagrams/ch18-scaling-dynamics-diagram-3.svg)
 
 **Key Observations from the Implementation:**
 
@@ -1093,86 +915,7 @@ if __name__ == "__main__":
 
 **Double Descent Visualization:**
 
-<svg viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background -->
-  <rect width="800" height="400" fill="#f5f5f5"/>
-
-  <!-- Main plot area -->
-  <g transform="translate(60, 30)">
-    <rect width="700" height="320" fill="white" stroke="#ddd" stroke-width="1"/>
-
-    <!-- Axes -->
-    <line x1="40" y1="280" x2="680" y2="280" stroke="#333" stroke-width="2"/>
-    <line x1="40" y1="20" x2="40" y2="280" stroke="#333" stroke-width="2"/>
-
-    <!-- Regime regions -->
-    <rect x="40" y="20" width="200" height="260" fill="#FFE0E0" opacity="0.2"/>
-    <text x="140" y="310" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">Classical Regime</text>
-
-    <rect x="440" y="20" width="240" height="260" fill="#E0FFE0" opacity="0.2"/>
-    <text x="560" y="310" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">Modern Regime</text>
-
-    <!-- Train error (monotonically decreasing) -->
-    <path d="M 50 100 Q 150 60, 340 30 Q 510 22, 670 20" fill="none" stroke="#4A90A4" stroke-width="3"/>
-
-    <!-- Test error (double descent - U shape then down again) -->
-    <path d="M 50 140 Q 150 80, 240 60 Q 300 70, 340 180 Q 380 100, 510 50 L 670 35" fill="none" stroke="#E57373" stroke-width="3"/>
-
-    <!-- Interpolation threshold line -->
-    <line x1="340" y1="20" x2="340" y2="280" stroke="#666" stroke-width="2" stroke-dasharray="5,5"/>
-    <text x="345" y="40" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666">Interpolation</text>
-    <text x="345" y="52" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666">Threshold</text>
-
-    <!-- Labels -->
-    <text x="360" y="335" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">Model Complexity (Parameters)</text>
-    <text x="10" y="160" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" transform="rotate(-90, 10, 160)">Error</text>
-    <text x="360" y="20" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="600" fill="#333">Double Descent Phenomenon</text>
-
-    <!-- Legend -->
-    <g transform="translate(500, 240)">
-      <line x1="0" y1="0" x2="35" y2="0" stroke="#4A90A4" stroke-width="3"/>
-      <text x="40" y="5" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">Train Error</text>
-
-      <line x1="0" y1="20" x2="35" y2="20" stroke="#E57373" stroke-width="3"/>
-      <text x="40" y="25" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">Test Error</text>
-    </g>
-
-    <!-- Descent annotations -->
-    <g transform="translate(180, 120)">
-      <path d="M 0 0 L 0 -30" stroke="#E57373" stroke-width="1.5" marker-start="url(#arrowup)" marker-end="url(#arrowdown)"/>
-      <text x="10" y="-10" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#E57373">1st</text>
-      <text x="10" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#E57373">Descent</text>
-    </g>
-
-    <g transform="translate(550, 100)">
-      <path d="M 0 0 L 0 -40" stroke="#E57373" stroke-width="1.5" marker-start="url(#arrowup)" marker-end="url(#arrowdown)"/>
-      <text x="10" y="-20" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#E57373">2nd</text>
-      <text x="10" y="-10" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#E57373">Descent</text>
-    </g>
-
-    <!-- Peak annotation -->
-    <g transform="translate(340, 200)">
-      <circle cx="0" cy="-20" r="4" fill="#E57373"/>
-      <text x="10" y="-15" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#E57373">Peak at</text>
-      <text x="10" y="-5" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#E57373">threshold</text>
-    </g>
-
-    <!-- Complexity markers -->
-    <text x="100" y="295" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">Underfit</text>
-    <text x="340" y="295" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">N ≈ n</text>
-    <text x="580" y="295" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">Overparameterized</text>
-  </g>
-
-  <!-- Arrow marker definitions -->
-  <defs>
-    <marker id="arrowdown" markerWidth="10" markerHeight="10" refX="5" refY="8" orient="auto">
-      <polygon points="5 0, 0 8, 10 8" fill="#E57373"/>
-    </marker>
-    <marker id="arrowup" markerWidth="10" markerHeight="10" refX="5" refY="2" orient="auto">
-      <polygon points="5 8, 0 0, 10 0" fill="#E57373"/>
-    </marker>
-  </defs>
-</svg>
+![Chapter 18 scaling dynamics diagram 4](../assets/diagrams/ch18-scaling-dynamics-diagram-4.svg)
 
 **What to observe in the results:**
 
