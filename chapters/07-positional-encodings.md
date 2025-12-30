@@ -114,12 +114,12 @@ The original Transformer paper ([Vaswani et al., 2017](https://arxiv.org/abs/170
 
 For a position $pos$ and dimension $i$, the positional encoding is:
 
-$$
-\begin{align}
+```math
+\begin{aligned}
 \text{PE}_{(pos, 2i)} &= \sin\left(\frac{pos}{10000^{2i/d_{model}}}\right) \\
 \text{PE}_{(pos, 2i+1)} &= \cos\left(\frac{pos}{10000^{2i/d_{model}}}\right)
-\end{align}
-$$
+\end{aligned}
+```
 
 Where:
 - $pos$ is the position in the sequence (0, 1, 2, ...)
@@ -312,16 +312,16 @@ if __name__ == "__main__":
 
 **3. Relative Position Information**: The encoding at position $pos + k$ can be represented as a linear transformation of the encoding at position $pos$. Using the trigonometric angle addition formulas:
 
-$$
-\begin{align}
+```math
+\begin{aligned}
 \sin(\alpha + \beta) &= \sin(\alpha)\cos(\beta) + \cos(\alpha)\sin(\beta) \\
 \cos(\alpha + \beta) &= \cos(\alpha)\cos(\beta) - \sin(\alpha)\sin(\beta)
-\end{align}
-$$
+\end{aligned}
+```
 
 We can express this relationship as a matrix transformation. For each frequency $\omega_i = 1/10000^{2i/d_{model}}$, the encoding at position $pos + k$ can be written as:
 
-$$
+```math
 \begin{bmatrix}
 \text{PE}_{(pos+k, 2i)} \\
 \text{PE}_{(pos+k, 2i+1)}
@@ -335,7 +335,7 @@ $$
 \text{PE}_{(pos, 2i)} \\
 \text{PE}_{(pos, 2i+1)}
 \end{bmatrix}
-$$
+```
 
 This means $\text{PE}(pos + k) = M_k \cdot \text{PE}(pos)$, where the transformation matrix $M_k$ depends only on the offset $k$, not the absolute position $pos$. This property allows the model to easily learn to attend based on relative positions, as the relationship between positions is encoded in a linear transformation that is consistent regardless of absolute position.
 
