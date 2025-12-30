@@ -1052,20 +1052,7 @@ $$
 
 **Visualization:**
 
-```
-Accuracy
-   ^
-1.0|                    /----
-   |                   /
-   |                  /
-0.5|                 /
-   |                /
-   |               /
-0.0|______________/________> Model Size (parameters)
-    1B   10B   50B  100B
-    
-    Phase transition around 50B parameters
-```
+![Phase Transition in Emergent Capabilities](../assets/diagrams/ch18-phase-transition.svg)
 
 ### The Emergence Debate
 
