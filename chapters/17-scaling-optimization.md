@@ -1,0 +1,1923 @@
+# Chapter 17: Scaling Laws and Optimization
+
+This chapter covers the principles and practices that govern how large language models scale, and the optimization techniques that enable efficient training. Understanding scaling laws helps predict model performance and allocate compute optimally, while mastering optimization techniques ensures stable and efficient training runs.
+
+## Table of Contents
+
+1. [Introduction](#introduction)
+2. [Scaling Laws for Neural Language Models](#scaling-laws-for-neural-language-models)
+   - [The Kaplan Scaling Laws](#the-kaplan-scaling-laws)
+   - [The Chinchilla Scaling Laws](#the-chinchilla-scaling-laws)
+   - [Practical Implications](#practical-implications)
+3. [Compute-Optimal Training](#compute-optimal-training)
+4. [Optimizers for LLM Training](#optimizers-for-llm-training)
+   - [AdamW](#adamw)
+   - [Optimizer Hyperparameters](#optimizer-hyperparameters)
+   - [Alternative Optimizers](#alternative-optimizers)
+5. [Learning Rate Schedules](#learning-rate-schedules)
+   - [Warmup](#warmup)
+   - [Cosine Decay Schedule](#cosine-decay-schedule)
+   - [Warmup-Stable-Decay (WSD)](#warmup-stable-decay-wsd)
+   - [Schedule Comparison](#schedule-comparison)
+6. [Gradient Clipping](#gradient-clipping)
+7. [Batch Size Scaling](#batch-size-scaling)
+8. [Putting It All Together](#putting-it-all-together)
+9. [Summary](#summary)
+10. [References](#references)
+11. [Exercises](#exercises)
+
+---
+
+## Introduction
+
+Training large language models involves making critical decisions about model size, training data, compute budget, and optimization strategy. This chapter explores the empirical relationships that govern these decisions (scaling laws) and the optimization techniques that enable stable, efficient training.
+
+**Key Questions This Chapter Answers:**
+
+- How does model performance scale with size, data, and compute?
+- What is the optimal allocation of compute between model size and training tokens?
+- How should learning rates be scheduled during training?
+- What optimizer settings work best for LLMs?
+- How does batch size affect training efficiency?
+
+---
+
+## Scaling Laws for Neural Language Models
+
+Scaling laws describe how model performance (typically measured by loss) changes as we vary model parameters, training data, and compute budget. These empirical relationships help us predict performance and make informed architectural decisions.
+
+### The Kaplan Scaling Laws
+
+In 2020, researchers at OpenAI published seminal work establishing power-law relationships for language model scaling.
+
+**Key Paper:** [Scaling Laws for Neural Language Models](https://arxiv.org/abs/2001.08361) (Kaplan et al., 2020)
+
+#### Power Law Relationships
+
+The Kaplan scaling laws identify three primary factors affecting model performance:
+
+1. **Model size** ($N$): Number of non-embedding parameters
+2. **Dataset size** ($D$): Number of training tokens
+3. **Compute** ($C$): Total floating-point operations used for training
+
+The test loss $L$ follows power laws:
+
+$$
+L(N) = \left(\frac{N_c}{N}\right)^{\alpha_N}
+$$
+
+$$
+L(D) = \left(\frac{D_c}{D}\right)^{\alpha_D}
+$$
+
+$$
+L(C) = \left(\frac{C_c}{C}\right)^{\alpha_C}
+$$
+
+where $N_c$, $D_c$, $C_c$ are constants and $\alpha_N \approx 0.076$, $\alpha_D \approx 0.095$, $\alpha_C \approx 0.050$.
+
+#### Key Findings from Kaplan et al.
+
+1. **Model size dominates**: Performance depends most strongly on model size, weakly on dataset size
+2. **Large models are sample-efficient**: Larger models reach the same performance with fewer training steps
+3. **Convergence is slow**: Models continue to improve even when trained far beyond one epoch
+4. **Optimal allocation**: For a fixed compute budget, most resources should go to larger models rather than more data
+
+**Recommendation:** Train very large models on relatively limited data (e.g., 200B tokens for a 175B parameter model like GPT-3).
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+
+class KaplanScalingLaw:
+    """
+    Kaplan et al. scaling law implementation.
+
+    Models the relationship between model size, data, compute, and loss.
+    """
+
+    def __init__(
+        self,
+        N_c: float = 8.8e13,  # Critical parameter count
+        D_c: float = 5.4e13,  # Critical dataset size (tokens)
+        C_c: float = 3.1e8,   # Critical compute (PF-days)
+        alpha_N: float = 0.076,  # Model size exponent
+        alpha_D: float = 0.095,  # Data size exponent
+        alpha_C: float = 0.050,  # Compute exponent
+    ):
+        self.N_c = N_c
+        self.D_c = D_c
+        self.C_c = C_c
+        self.alpha_N = alpha_N
+        self.alpha_D = alpha_D
+        self.alpha_C = alpha_C
+
+    def loss_from_params(self, N: float) -> float:
+        """Compute loss as function of model parameters."""
+        return (self.N_c / N) ** self.alpha_N
+
+    def loss_from_data(self, D: float) -> float:
+        """Compute loss as function of training tokens."""
+        return (self.D_c / D) ** self.alpha_D
+
+    def loss_from_compute(self, C: float) -> float:
+        """Compute loss as function of compute budget."""
+        return (self.C_c / C) ** self.alpha_C
+
+    def optimal_allocation(self, C: float) -> tuple[float, float]:
+        """
+        Given compute budget C, find optimal N and D.
+
+        From Kaplan et al., the optimal allocation is:
+        N ∝ C^a, D ∝ C^b
+        where a + b ≈ 1
+        """
+        # From Kaplan: N should scale roughly as C^0.73
+        # and D should scale roughly as C^0.27
+        N_optimal = (C / 6) ** 0.73
+        D_optimal = (C / 6) ** 0.27
+        return N_optimal, D_optimal
+
+
+def visualize_kaplan_scaling():
+    """Visualize Kaplan scaling laws."""
+    kaplan = KaplanScalingLaw()
+
+    # Model size scaling
+    params = np.logspace(6, 12, 100)  # 1M to 1T parameters
+    losses_N = [kaplan.loss_from_params(n) for n in params]
+
+    # Data size scaling
+    tokens = np.logspace(9, 14, 100)  # 1B to 100T tokens
+    losses_D = [kaplan.loss_from_data(d) for d in tokens]
+
+    # Compute scaling
+    compute = np.logspace(18, 24, 100)  # FLOPs
+    losses_C = [kaplan.loss_from_compute(c) for c in compute]
+
+    fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+
+    # Plot 1: Model size
+    axes[0].loglog(params, losses_N)
+    axes[0].set_xlabel('Model Parameters (N)')
+    axes[0].set_ylabel('Test Loss')
+    axes[0].set_title('Scaling with Model Size')
+    axes[0].grid(True, alpha=0.3)
+
+    # Plot 2: Data size
+    axes[1].loglog(tokens, losses_D)
+    axes[1].set_xlabel('Training Tokens (D)')
+    axes[1].set_ylabel('Test Loss')
+    axes[1].set_title('Scaling with Data')
+    axes[1].grid(True, alpha=0.3)
+
+    # Plot 3: Compute
+    axes[2].loglog(compute, losses_C)
+    axes[2].set_xlabel('Compute (FLOPs)')
+    axes[2].set_ylabel('Test Loss')
+    axes[2].set_title('Scaling with Compute')
+    axes[2].grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    plt.savefig('kaplan_scaling_laws.png', dpi=150, bbox_inches='tight')
+    plt.show()
+
+
+# Example: GPT-3 was trained according to Kaplan scaling laws
+def gpt3_allocation():
+    """
+    GPT-3 (175B parameters, 300B tokens) follows Kaplan scaling.
+
+    According to Kaplan, this allocation prioritizes model size
+    over training data.
+    """
+    kaplan = KaplanScalingLaw()
+
+    # GPT-3 specs
+    N_gpt3 = 175e9  # 175B parameters
+    D_gpt3 = 300e9  # 300B tokens
+
+    # Compute (approximate)
+    # C ≈ 6ND (assuming training to completion)
+    C_gpt3 = 6 * N_gpt3 * D_gpt3
+
+    # What would be optimal according to Kaplan?
+    N_opt, D_opt = kaplan.optimal_allocation(C_gpt3)
+
+    print(f"GPT-3 Configuration:")
+    print(f"  Parameters: {N_gpt3/1e9:.0f}B")
+    print(f"  Tokens: {D_gpt3/1e9:.0f}B")
+    print(f"\nKaplan Optimal Configuration (same compute):")
+    print(f"  Parameters: {N_opt/1e9:.0f}B")
+    print(f"  Tokens: {D_opt/1e9:.0f}B")
+```
+
+### The Chinchilla Scaling Laws
+
+In 2022, DeepMind published revised scaling laws that challenged Kaplan's conclusions, showing that models should be trained on much more data.
+
+**Key Paper:** [Training Compute-Optimal Large Language Models](https://arxiv.org/abs/2203.15556) (Hoffmann et al., 2022)
+
+#### Key Findings from Chinchilla
+
+1. **Equal scaling**: Model parameters and training tokens should scale equally with compute
+2. **Data matters**: Previous models (including GPT-3) were significantly undertrained
+3. **Smaller models can match large ones**: With enough data, smaller models can match the performance of larger models trained on less data
+
+**Chinchilla's Law:** For compute-optimal training:
+
+$$
+N_{opt} \propto C^{0.5}, \quad D_{opt} \propto C^{0.5}
+$$
+
+More specifically:
+
+$$
+N_{opt} \approx \left(\frac{C}{6}\right)^{0.49}, \quad D_{opt} \approx 20 \times N_{opt}
+$$
+
+**Rule of thumb:** Use approximately **20 tokens per parameter**.
+
+#### The Chinchilla Model
+
+The paper's namesake model, Chinchilla:
+- **Parameters**: 70B (4× smaller than Gopher's 280B)
+- **Training tokens**: 1.4T (4× more than Gopher)
+- **Performance**: Outperformed Gopher on most benchmarks
+- **Efficiency**: Same compute budget, better results
+
+```python
+class ChinchillaScalingLaw:
+    """
+    Chinchilla (Hoffmann et al., 2022) scaling law implementation.
+
+    Key insight: Model size and training data should scale equally.
+    """
+
+    def __init__(
+        self,
+        a: float = 406.4,  # Coefficient for loss equation
+        b: float = 410.7,  # Coefficient for loss equation
+        alpha: float = 0.34,  # Exponent for model size
+        beta: float = 0.28,   # Exponent for data
+        A: float = 0.3,    # Coefficient for optimal N
+        B: float = 0.6,    # Coefficient for optimal D
+    ):
+        self.a = a
+        self.b = b
+        self.alpha = alpha
+        self.beta = beta
+        self.A = A
+        self.B = B
+
+    def loss(self, N: float, D: float) -> float:
+        """
+        Compute loss given model size and training tokens.
+
+        L(N, D) = a/N^α + b/D^β + L_∞
+
+        where L_∞ is the irreducible loss (we ignore it here).
+        """
+        return self.a / (N ** self.alpha) + self.b / (D ** self.beta)
+
+    def optimal_allocation(self, C: float) -> tuple[float, float]:
+        """
+        Given compute budget C (in FLOPs), find optimal N and D.
+
+        From Chinchilla: N_opt and D_opt both scale as C^0.5
+        """
+        # Approximate relationship: C ≈ 6ND
+        # Solving the constraint optimization:
+        # N_opt ≈ (C/6)^0.5 * constant
+        # D_opt ≈ 20 * N_opt
+
+        N_optimal = self.A * (C ** 0.5)
+        D_optimal = self.B * (C ** 0.5)
+
+        return N_optimal, D_optimal
+
+    def tokens_per_parameter(self, N: float, C: float) -> float:
+        """
+        Compute optimal training tokens per parameter.
+
+        According to Chinchilla, this should be about 20.
+        """
+        _, D_optimal = self.optimal_allocation(C)
+        return D_optimal / N
+
+
+def compare_scaling_laws():
+    """Compare Kaplan vs Chinchilla scaling laws."""
+    kaplan = KaplanScalingLaw()
+    chinchilla = ChinchillaScalingLaw()
+
+    # Range of compute budgets
+    compute_budgets = np.logspace(20, 26, 20)  # FLOPs
+
+    kaplan_N = []
+    kaplan_D = []
+    chinchilla_N = []
+    chinchilla_D = []
+
+    for C in compute_budgets:
+        N_k, D_k = kaplan.optimal_allocation(C)
+        N_c, D_c = chinchilla.optimal_allocation(C)
+
+        kaplan_N.append(N_k)
+        kaplan_D.append(D_k)
+        chinchilla_N.append(N_c)
+        chinchilla_D.append(D_c)
+
+    fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+
+    # Plot 1: Model size vs compute
+    axes[0].loglog(compute_budgets, kaplan_N, 'b-', label='Kaplan', linewidth=2)
+    axes[0].loglog(compute_budgets, chinchilla_N, 'r--', label='Chinchilla', linewidth=2)
+    axes[0].set_xlabel('Compute Budget (FLOPs)')
+    axes[0].set_ylabel('Optimal Model Size (Parameters)')
+    axes[0].set_title('Model Size vs Compute')
+    axes[0].legend()
+    axes[0].grid(True, alpha=0.3)
+
+    # Plot 2: Training tokens vs compute
+    axes[1].loglog(compute_budgets, kaplan_D, 'b-', label='Kaplan', linewidth=2)
+    axes[1].loglog(compute_budgets, chinchilla_D, 'r--', label='Chinchilla', linewidth=2)
+    axes[1].set_xlabel('Compute Budget (FLOPs)')
+    axes[1].set_ylabel('Optimal Training Tokens')
+    axes[1].set_title('Training Data vs Compute')
+    axes[1].legend()
+    axes[1].grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    plt.savefig('kaplan_vs_chinchilla.png', dpi=150, bbox_inches='tight')
+    plt.show()
+
+
+def chinchilla_examples():
+    """Examples of models following Chinchilla scaling."""
+    chinchilla = ChinchillaScalingLaw()
+
+    models = [
+        ("GPT-3", 175e9, 300e9),
+        ("Chinchilla", 70e9, 1.4e12),
+        ("LLaMA", 65e9, 1.4e12),
+        ("LLaMA 2", 70e9, 2e12),
+        ("LLaMA 3", 70e9, 15e12),
+    ]
+
+    print("Model Training Efficiency (Chinchilla Scaling)")
+    print("=" * 60)
+    print(f"{'Model':<15} {'Params':<10} {'Tokens':<12} {'Tokens/Param':<15}")
+    print("-" * 60)
+
+    for name, params, tokens in models:
+        ratio = tokens / params
+        print(f"{name:<15} {params/1e9:>7.0f}B  {tokens/1e12:>8.1f}T    {ratio:>10.1f}")
+
+    print("\nChinchilla optimal: ~20 tokens per parameter")
+```
+
+### Practical Implications
+
+The shift from Kaplan to Chinchilla scaling laws had major implications:
+
+| Aspect | Kaplan (2020) | Chinchilla (2022) | Impact |
+|--------|---------------|-------------------|--------|
+| **Recommendation** | Large model, less data | Balanced scaling | Changed training strategies |
+| **GPT-3 assessment** | Well-allocated | Undertrained by 4× | Showed inefficiency |
+| **Tokens per param** | ~2-3 | ~20 | 10× more data needed |
+| **Model size trend** | Maximize size | Smaller models OK | Enabled efficient models |
+
+**Modern practice** (2024-2025):
+- Most models follow Chinchilla or train even longer
+- LLaMA 3 8B: trained on 15T tokens (~2000 tokens/param)
+- Extended training beyond Chinchilla optimal is common
+- Quality improvements justify extra compute
+
+---
+
+## Compute-Optimal Training
+
+Computing optimal model size and training duration for a given compute budget.
+
+### Compute Estimation
+
+The total compute $C$ for training a transformer model is approximately:
+
+$$
+C \approx 6ND
+$$
+
+where:
+- $N$ = number of parameters (non-embedding)
+- $D$ = number of training tokens
+- Factor of 6 accounts for forward pass (2ND) and backward pass (4ND)
+
+```python
+class ComputeCalculator:
+    """
+    Calculate compute requirements for LLM training.
+
+    Based on the approximation C ≈ 6ND plus overhead.
+    """
+
+    def __init__(self, efficiency: float = 0.5):
+        """
+        Args:
+            efficiency: Hardware utilization (0-1). Accounts for:
+                - Attention operations (not pure matmul)
+                - Communication overhead
+                - Memory-bound operations
+                Typical: 0.3-0.6 for real training
+        """
+        self.efficiency = efficiency
+
+    def compute_flops(
+        self,
+        n_params: float,
+        n_tokens: float,
+        include_backward: bool = True
+    ) -> float:
+        """
+        Compute FLOPs required for training.
+
+        Args:
+            n_params: Model parameters (non-embedding)
+            n_tokens: Training tokens
+            include_backward: If True, multiply by 3 (forward + backward)
+
+        Returns:
+            Total FLOPs required
+        """
+        # Forward pass: 2ND (matmul is 2 ops per element)
+        forward_flops = 2 * n_params * n_tokens
+
+        if include_backward:
+            # Backward pass: ~2× forward (gradients + optimizer)
+            total_flops = forward_flops * 3
+        else:
+            total_flops = forward_flops
+
+        # Account for efficiency
+        actual_flops = total_flops / self.efficiency
+
+        return actual_flops
+
+    def training_time(
+        self,
+        n_params: float,
+        n_tokens: float,
+        device_tflops: float,
+        n_devices: int = 1
+    ) -> float:
+        """
+        Estimate training time in hours.
+
+        Args:
+            n_params: Model parameters
+            n_tokens: Training tokens
+            device_tflops: Peak TFLOPS per device (e.g., 312 for A100)
+            n_devices: Number of GPUs/TPUs
+
+        Returns:
+            Training time in hours
+        """
+        total_flops = self.compute_flops(n_params, n_tokens)
+
+        # Convert TFLOPS to FLOPS/sec
+        total_flops_per_sec = device_tflops * 1e12 * n_devices
+
+        # Time in seconds
+        time_seconds = total_flops / total_flops_per_sec
+
+        # Convert to hours
+        return time_seconds / 3600
+
+    def cost_estimate(
+        self,
+        n_params: float,
+        n_tokens: float,
+        device_tflops: float,
+        n_devices: int,
+        cost_per_gpu_hour: float
+    ) -> float:
+        """
+        Estimate training cost.
+
+        Args:
+            cost_per_gpu_hour: Cloud GPU cost (e.g., $2.50 for A100)
+
+        Returns:
+            Total cost in dollars
+        """
+        hours = self.training_time(n_params, n_tokens, device_tflops, n_devices)
+        return hours * n_devices * cost_per_gpu_hour
+
+
+def compute_examples():
+    """Examples of compute calculations for real models."""
+    calc = ComputeCalculator(efficiency=0.4)
+
+    models = [
+        # (name, params, tokens, GPUs, GPU_TFLOPS)
+        ("GPT-3", 175e9, 300e9, 1024, 312),  # A100
+        ("Chinchilla", 70e9, 1.4e12, 1024, 312),
+        ("LLaMA 65B", 65e9, 1.4e12, 2048, 312),
+        ("LLaMA 2 70B", 70e9, 2e12, 2048, 312),
+    ]
+
+    print("Training Compute and Time Estimates")
+    print("=" * 80)
+    print(f"{'Model':<15} {'Params':<10} {'Tokens':<10} {'FLOPs':<15} {'Days':<10}")
+    print("-" * 80)
+
+    for name, params, tokens, gpus, tflops in models:
+        flops = calc.compute_flops(params, tokens)
+        hours = calc.training_time(params, tokens, tflops, gpus)
+        days = hours / 24
+
+        print(f"{name:<15} {params/1e9:>7.0f}B  {tokens/1e12:>7.1f}T  "
+              f"{flops:.2e}  {days:>7.1f}")
+```
+
+---
+
+## Optimizers for LLM Training
+
+The choice of optimizer and its hyperparameters critically affects training stability and final model quality.
+
+### AdamW
+
+AdamW (Adam with decoupled Weight decay) is the standard optimizer for LLM training. It combines adaptive learning rates with proper weight decay regularization.
+
+**Key Paper:** [Decoupled Weight Decay Regularization](https://arxiv.org/abs/1711.05101) (Loshchilov & Hutter, 2017)
+
+#### Algorithm
+
+AdamW maintains two moving averages for each parameter:
+- $m_t$: First moment (mean of gradients)
+- $v_t$: Second moment (uncentered variance of gradients)
+
+$$
+\begin{align}
+m_t &= \beta_1 m_{t-1} + (1 - \beta_1) g_t \\
+v_t &= \beta_2 v_{t-1} + (1 - \beta_2) g_t^2 \\
+\hat{m}_t &= \frac{m_t}{1 - \beta_1^t} \\
+\hat{v}_t &= \frac{v_t}{1 - \beta_2^t} \\
+\theta_t &= \theta_{t-1} - \eta \left( \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon} + \lambda \theta_{t-1} \right)
+\end{align}
+$$
+
+where:
+- $g_t$ = gradient at step $t$
+- $\beta_1, \beta_2$ = exponential decay rates for moments
+- $\eta$ = learning rate
+- $\lambda$ = weight decay coefficient
+- $\epsilon$ = small constant for numerical stability
+
+The key difference from Adam is that weight decay ($\lambda \theta_{t-1}$) is applied directly to parameters, not mixed with gradients.
+
+```python
+import torch
+import torch.nn as nn
+from torch.optim import Optimizer
+
+class AdamW(Optimizer):
+    """
+    AdamW optimizer implementation.
+
+    Implements Adam with decoupled weight decay as described in
+    "Decoupled Weight Decay Regularization" (Loshchilov & Hutter, 2017).
+
+    This is a simplified educational implementation. For production,
+    use torch.optim.AdamW.
+    """
+
+    def __init__(
+        self,
+        params,
+        lr: float = 1e-3,
+        betas: tuple[float, float] = (0.9, 0.999),
+        eps: float = 1e-8,
+        weight_decay: float = 0.01,
+        amsgrad: bool = False
+    ):
+        """
+        Args:
+            params: Model parameters to optimize
+            lr: Learning rate
+            betas: Coefficients for computing running averages (β₁, β₂)
+            eps: Term added to denominator for numerical stability (ε)
+            weight_decay: Weight decay coefficient (λ)
+            amsgrad: Whether to use AMSGrad variant
+        """
+        if lr < 0.0:
+            raise ValueError(f"Invalid learning rate: {lr}")
+        if not 0.0 <= betas[0] < 1.0:
+            raise ValueError(f"Invalid beta1: {betas[0]}")
+        if not 0.0 <= betas[1] < 1.0:
+            raise ValueError(f"Invalid beta2: {betas[1]}")
+        if not 0.0 <= eps:
+            raise ValueError(f"Invalid epsilon: {eps}")
+        if not 0.0 <= weight_decay:
+            raise ValueError(f"Invalid weight_decay: {weight_decay}")
+
+        defaults = dict(
+            lr=lr,
+            betas=betas,
+            eps=eps,
+            weight_decay=weight_decay,
+            amsgrad=amsgrad
+        )
+        super().__init__(params, defaults)
+
+    @torch.no_grad()
+    def step(self, closure=None):
+        """
+        Perform a single optimization step.
+
+        Args:
+            closure: A closure that reevaluates the model and returns the loss
+        """
+        loss = None
+        if closure is not None:
+            with torch.enable_grad():
+                loss = closure()
+
+        for group in self.param_groups:
+            beta1, beta2 = group['betas']
+
+            for p in group['params']:
+                if p.grad is None:
+                    continue
+
+                grad = p.grad
+                if grad.is_sparse:
+                    raise RuntimeError('AdamW does not support sparse gradients')
+
+                state = self.state[p]
+
+                # State initialization
+                if len(state) == 0:
+                    state['step'] = 0
+                    # Exponential moving average of gradient values
+                    state['exp_avg'] = torch.zeros_like(p)
+                    # Exponential moving average of squared gradient values
+                    state['exp_avg_sq'] = torch.zeros_like(p)
+                    if group['amsgrad']:
+                        # Maximum of exp_avg_sq
+                        state['max_exp_avg_sq'] = torch.zeros_like(p)
+
+                exp_avg, exp_avg_sq = state['exp_avg'], state['exp_avg_sq']
+
+                state['step'] += 1
+
+                # Decay the first and second moment running average coefficient
+                exp_avg.mul_(beta1).add_(grad, alpha=1 - beta1)
+                exp_avg_sq.mul_(beta2).addcmul_(grad, grad, value=1 - beta2)
+
+                if group['amsgrad']:
+                    max_exp_avg_sq = state['max_exp_avg_sq']
+                    # Maintain max of all exp. moving avg. of sq. grad. values
+                    torch.maximum(max_exp_avg_sq, exp_avg_sq, out=max_exp_avg_sq)
+                    denom = max_exp_avg_sq.sqrt().add_(group['eps'])
+                else:
+                    denom = exp_avg_sq.sqrt().add_(group['eps'])
+
+                # Bias correction
+                step = state['step']
+                bias_correction1 = 1 - beta1 ** step
+                bias_correction2 = 1 - beta2 ** step
+                step_size = group['lr'] / bias_correction1
+
+                # Corrected second moment
+                bias_corrected_denom = denom / (bias_correction2 ** 0.5)
+
+                # Update parameters
+                # AdamW: weight decay is decoupled
+                p.mul_(1 - group['lr'] * group['weight_decay'])
+                p.addcdiv_(exp_avg, bias_corrected_denom, value=-step_size)
+
+        return loss
+
+
+# Example usage
+def train_with_adamw():
+    """Example training loop with AdamW."""
+    # Simple model
+    model = nn.Sequential(
+        nn.Linear(100, 256),
+        nn.ReLU(),
+        nn.Linear(256, 10)
+    )
+
+    # AdamW optimizer (use PyTorch's implementation in production)
+    optimizer = torch.optim.AdamW(
+        model.parameters(),
+        lr=3e-4,
+        betas=(0.9, 0.95),
+        eps=1e-8,
+        weight_decay=0.1
+    )
+
+    # Dummy data
+    for step in range(100):
+        x = torch.randn(32, 100)
+        y = torch.randint(0, 10, (32,))
+
+        # Forward pass
+        logits = model(x)
+        loss = nn.functional.cross_entropy(logits, y)
+
+        # Backward pass
+        optimizer.zero_grad()
+        loss.backward()
+
+        # Optimizer step
+        optimizer.step()
+
+        if step % 20 == 0:
+            print(f"Step {step}, Loss: {loss.item():.4f}")
+```
+
+### Optimizer Hyperparameters
+
+Choosing the right hyperparameters for AdamW is crucial for LLM training.
+
+#### Standard Settings for LLMs
+
+| Hyperparameter | Typical Value | Range | Notes |
+|----------------|---------------|-------|-------|
+| Learning rate ($\eta$) | 3e-4 | 1e-4 to 6e-4 | Varies with model size |
+| $\beta_1$ | 0.9 | 0.9 to 0.95 | First moment decay |
+| $\beta_2$ | 0.95 | 0.95 to 0.999 | Second moment decay |
+| $\epsilon$ | 1e-8 | 1e-8 to 1e-6 | Numerical stability |
+| Weight decay ($\lambda$) | 0.1 | 0.01 to 0.3 | Regularization strength |
+
+**Notes on $\beta_2$:**
+- GPT-3 used $\beta_2 = 0.95$ (more aggressive)
+- Many models use $\beta_2 = 0.999$ (more conservative)
+- Lower $\beta_2$ can help with training stability but may be noisier
+
+```python
+def get_optimizer_config(model_size: str) -> dict:
+    """
+    Get recommended optimizer configuration based on model size.
+
+    Args:
+        model_size: One of 'small' (<1B), 'medium' (1-10B), 'large' (>10B)
+
+    Returns:
+        Dictionary of optimizer hyperparameters
+    """
+    configs = {
+        'small': {
+            'lr': 6e-4,
+            'betas': (0.9, 0.999),
+            'eps': 1e-8,
+            'weight_decay': 0.1,
+        },
+        'medium': {
+            'lr': 3e-4,
+            'betas': (0.9, 0.95),
+            'eps': 1e-8,
+            'weight_decay': 0.1,
+        },
+        'large': {
+            'lr': 1.2e-4,
+            'betas': (0.9, 0.95),
+            'eps': 1e-8,
+            'weight_decay': 0.1,
+        }
+    }
+
+    if model_size not in configs:
+        raise ValueError(f"Unknown model size: {model_size}")
+
+    return configs[model_size]
+```
+
+### Alternative Optimizers
+
+While AdamW dominates, several alternatives show promise. See [Hardware, Quantization, and Training Optimization](31-hardware-quantization-optimization.md) for detailed coverage of Muon, Shampoo, and SOAP optimizers.
+
+**Quick comparison:**
+
+| Optimizer | Pros | Cons | Use Case |
+|-----------|------|------|----------|
+| **AdamW** | Stable, well-tested | Memory overhead (2× params) | Default choice |
+| **Muon** | 2× efficiency for hidden layers | Only for weight matrices | Cutting-edge research |
+| **Shampoo** | Better conditioning | High memory, expensive | When quality > cost |
+| **SGD + Momentum** | Low memory | Requires careful tuning | Memory-constrained |
+
+---
+
+## Learning Rate Schedules
+
+The learning rate schedule dramatically affects both training stability and final model quality. Modern LLM training uses sophisticated schedules with warmup and decay phases.
+
+### Warmup
+
+**Why warmup?** Starting with a high learning rate can destabilize training in the early steps when:
+- Model parameters are randomly initialized
+- Gradients can be very large and unstable
+- Adam's second moment estimates are inaccurate
+
+**Warmup phase:** Linearly increase learning rate from 0 (or small value) to maximum over initial steps.
+
+$$
+\eta(t) = \eta_{\max} \cdot \min\left(1, \frac{t}{T_{\text{warmup}}}\right) \quad \text{for } t \leq T_{\text{warmup}}
+$$
+
+**Typical warmup duration:**
+- 1,000 to 2,000 steps for small models
+- 2,000 to 5,000 steps for large models
+- Usually <1% of total training steps
+
+```python
+class WarmupSchedule:
+    """
+    Learning rate warmup schedule.
+
+    Linearly increases learning rate from 0 to max_lr over warmup_steps.
+    """
+
+    def __init__(self, max_lr: float, warmup_steps: int):
+        self.max_lr = max_lr
+        self.warmup_steps = warmup_steps
+
+    def get_lr(self, step: int) -> float:
+        """Get learning rate at given step."""
+        if step < self.warmup_steps:
+            # Linear warmup
+            return self.max_lr * step / self.warmup_steps
+        return self.max_lr
+
+
+# Visualize warmup
+def plot_warmup():
+    import matplotlib.pyplot as plt
+
+    warmup = WarmupSchedule(max_lr=3e-4, warmup_steps=2000)
+
+    steps = range(5000)
+    lrs = [warmup.get_lr(s) for s in steps]
+
+    plt.figure(figsize=(10, 4))
+    plt.plot(steps, lrs)
+    plt.axvline(x=2000, color='r', linestyle='--', alpha=0.5, label='Warmup end')
+    plt.xlabel('Step')
+    plt.ylabel('Learning Rate')
+    plt.title('Learning Rate Warmup')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig('warmup_schedule.png', dpi=150, bbox_inches='tight')
+    plt.show()
+```
+
+### Cosine Decay Schedule
+
+The cosine schedule is the most common choice for LLM pretraining. It smoothly decays learning rate following a cosine curve.
+
+**Key Paper:** [SGDR: Stochastic Gradient Descent with Warm Restarts](https://arxiv.org/abs/1608.03983) (Loshchilov & Hutter, 2016)
+
+**Formula:** After warmup, learning rate follows:
+
+$$
+\eta(t) = \eta_{\min} + \frac{1}{2}(\eta_{\max} - \eta_{\min})\left(1 + \cos\left(\frac{t - T_{\text{warmup}}}{T_{\text{total}} - T_{\text{warmup}}} \pi\right)\right)
+$$
+
+where:
+- $t$ = current step
+- $T_{\text{warmup}}$ = warmup steps
+- $T_{\text{total}}$ = total training steps
+- $\eta_{\max}$ = maximum learning rate (peak LR)
+- $\eta_{\min}$ = minimum learning rate (usually 0.1× max LR)
+
+**Properties:**
+- Smooth decay (no sharp drops)
+- Fast decay initially, then gradual
+- Reaches minimum exactly at final step
+- Requires knowing total training steps in advance
+
+```python
+import math
+
+class CosineDecaySchedule:
+    """
+    Cosine decay learning rate schedule with warmup.
+
+    Used by: GPT-3, LLaMA, Chinchilla, and most major LLMs.
+    """
+
+    def __init__(
+        self,
+        max_lr: float,
+        min_lr: float,
+        warmup_steps: int,
+        total_steps: int
+    ):
+        """
+        Args:
+            max_lr: Maximum learning rate (after warmup)
+            min_lr: Minimum learning rate (at end). Usually 0.1 * max_lr
+            warmup_steps: Number of warmup steps
+            total_steps: Total training steps
+        """
+        self.max_lr = max_lr
+        self.min_lr = min_lr
+        self.warmup_steps = warmup_steps
+        self.total_steps = total_steps
+
+        if warmup_steps >= total_steps:
+            raise ValueError("warmup_steps must be < total_steps")
+
+    def get_lr(self, step: int) -> float:
+        """Get learning rate at given step."""
+        if step < self.warmup_steps:
+            # Linear warmup
+            return self.max_lr * step / self.warmup_steps
+
+        # Cosine decay
+        progress = (step - self.warmup_steps) / (self.total_steps - self.warmup_steps)
+        progress = min(progress, 1.0)  # Clamp to [0, 1]
+
+        cosine_decay = 0.5 * (1 + math.cos(math.pi * progress))
+        return self.min_lr + (self.max_lr - self.min_lr) * cosine_decay
+
+
+def plot_cosine_schedule():
+    """Visualize cosine decay schedule."""
+    import matplotlib.pyplot as plt
+
+    schedule = CosineDecaySchedule(
+        max_lr=3e-4,
+        min_lr=3e-5,
+        warmup_steps=2000,
+        total_steps=100000
+    )
+
+    steps = range(100000)
+    lrs = [schedule.get_lr(s) for s in steps]
+
+    plt.figure(figsize=(12, 4))
+    plt.plot(steps, lrs, linewidth=2)
+    plt.axvline(x=2000, color='r', linestyle='--', alpha=0.5, label='Warmup end')
+    plt.xlabel('Training Step')
+    plt.ylabel('Learning Rate')
+    plt.title('Cosine Decay Schedule with Warmup')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig('cosine_schedule.png', dpi=150, bbox_inches='tight')
+    plt.show()
+
+
+# PyTorch implementation helper
+def get_cosine_schedule_with_warmup(
+    optimizer,
+    num_warmup_steps: int,
+    num_training_steps: int,
+    num_cycles: float = 0.5,
+    last_epoch: int = -1
+):
+    """
+    Create cosine schedule with warmup for PyTorch optimizer.
+
+    This is similar to transformers.get_cosine_schedule_with_warmup.
+
+    Args:
+        optimizer: PyTorch optimizer
+        num_warmup_steps: Warmup steps
+        num_training_steps: Total training steps
+        num_cycles: Number of cosine cycles (0.5 = decay to 0)
+        last_epoch: Last epoch index
+    """
+    from torch.optim.lr_scheduler import LambdaLR
+
+    def lr_lambda(current_step: int):
+        if current_step < num_warmup_steps:
+            # Warmup
+            return float(current_step) / float(max(1, num_warmup_steps))
+
+        # Cosine decay
+        progress = float(current_step - num_warmup_steps) / float(
+            max(1, num_training_steps - num_warmup_steps)
+        )
+        return max(
+            0.0,
+            0.5 * (1.0 + math.cos(math.pi * float(num_cycles) * 2.0 * progress))
+        )
+
+    return LambdaLR(optimizer, lr_lambda, last_epoch)
+```
+
+### Warmup-Stable-Decay (WSD)
+
+WSD is a newer schedule gaining popularity for its flexibility and empirical performance.
+
+**Key Paper:** [MiniCPM: Unveiling the Potential of Small Language Models](https://arxiv.org/abs/2404.06395) (Hu et al., 2024)
+
+**Three phases:**
+1. **Warmup**: Linear increase to max LR
+2. **Stable**: Constant at max LR (majority of training)
+3. **Decay**: Gradual decrease to min LR (usually final 10%)
+
+**Advantages over cosine:**
+- Don't need to know total steps in advance
+- Can continue training from any stable-phase checkpoint
+- Empirically achieves lower loss than cosine
+- More flexible for continued training
+
+**Decay variants:**
+- **Linear**: $\eta(t) = \eta_{\max}(1 - p)$ where $p$ is decay progress
+- **Square root**: $\eta(t) = \eta_{\max}(1 - \sqrt{p})$ (recommended)
+- **Cosine**: Same as cosine schedule but only over decay phase
+
+```python
+class WSDSchedule:
+    """
+    Warmup-Stable-Decay (WSD) learning rate schedule.
+
+    Three phases:
+    1. Warmup: Linear increase (e.g., 2K steps)
+    2. Stable: Constant LR (e.g., 90% of training)
+    3. Decay: Smooth decrease (e.g., 10% of training)
+
+    Reference: MiniCPM (Hu et al., 2024)
+    """
+
+    def __init__(
+        self,
+        max_lr: float,
+        min_lr: float,
+        warmup_steps: int,
+        stable_steps: int,
+        decay_steps: int,
+        decay_type: str = 'sqrt'
+    ):
+        """
+        Args:
+            max_lr: Maximum learning rate
+            min_lr: Minimum learning rate (can be 0)
+            warmup_steps: Warmup duration
+            stable_steps: Stable phase duration
+            decay_steps: Decay phase duration (typically 10% of total)
+            decay_type: 'linear', 'sqrt', or 'cosine'
+        """
+        self.max_lr = max_lr
+        self.min_lr = min_lr
+        self.warmup_steps = warmup_steps
+        self.stable_steps = stable_steps
+        self.decay_steps = decay_steps
+        self.decay_type = decay_type
+
+        self.stable_end = warmup_steps + stable_steps
+        self.total_steps = self.stable_end + decay_steps
+
+    def get_lr(self, step: int) -> float:
+        """Get learning rate at given step."""
+        if step < self.warmup_steps:
+            # Warmup phase
+            return self.max_lr * step / self.warmup_steps
+
+        if step < self.stable_end:
+            # Stable phase
+            return self.max_lr
+
+        # Decay phase
+        decay_progress = (step - self.stable_end) / self.decay_steps
+        decay_progress = min(decay_progress, 1.0)
+
+        if self.decay_type == 'linear':
+            decay_factor = 1 - decay_progress
+        elif self.decay_type == 'sqrt':
+            decay_factor = 1 - math.sqrt(decay_progress)
+        elif self.decay_type == 'cosine':
+            decay_factor = 0.5 * (1 + math.cos(math.pi * decay_progress))
+        else:
+            raise ValueError(f"Unknown decay type: {self.decay_type}")
+
+        return self.min_lr + (self.max_lr - self.min_lr) * decay_factor
+
+    def can_extend_training(self, current_step: int) -> bool:
+        """Check if training can be extended without penalty."""
+        # Can extend anytime during stable phase
+        return self.warmup_steps <= current_step < self.stable_end
+
+
+def plot_wsd_schedule():
+    """Visualize WSD schedule."""
+    import matplotlib.pyplot as plt
+
+    schedule = WSDSchedule(
+        max_lr=3e-4,
+        min_lr=0,
+        warmup_steps=2000,
+        stable_steps=88000,
+        decay_steps=10000,
+        decay_type='sqrt'
+    )
+
+    steps = range(100000)
+    lrs = [schedule.get_lr(s) for s in steps]
+
+    plt.figure(figsize=(12, 4))
+    plt.plot(steps, lrs, linewidth=2)
+    plt.axvline(x=2000, color='r', linestyle='--', alpha=0.5, label='Warmup end')
+    plt.axvline(x=90000, color='orange', linestyle='--', alpha=0.5, label='Stable end')
+    plt.axhspan(3e-4 * 0.95, 3e-4, alpha=0.2, color='green', label='Stable phase')
+    plt.xlabel('Training Step')
+    plt.ylabel('Learning Rate')
+    plt.title('Warmup-Stable-Decay (WSD) Schedule')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig('wsd_schedule.png', dpi=150, bbox_inches='tight')
+    plt.show()
+
+
+def compare_wsd_variants():
+    """Compare different WSD decay types."""
+    import matplotlib.pyplot as plt
+
+    schedules = {
+        'Linear': WSDSchedule(3e-4, 0, 2000, 88000, 10000, 'linear'),
+        'Square Root': WSDSchedule(3e-4, 0, 2000, 88000, 10000, 'sqrt'),
+        'Cosine': WSDSchedule(3e-4, 0, 2000, 88000, 10000, 'cosine'),
+    }
+
+    steps = range(85000, 100000)  # Focus on decay phase
+
+    plt.figure(figsize=(10, 5))
+    for name, schedule in schedules.items():
+        lrs = [schedule.get_lr(s) for s in steps]
+        plt.plot(steps, lrs, label=name, linewidth=2)
+
+    plt.axvline(x=90000, color='gray', linestyle='--', alpha=0.5, label='Decay start')
+    plt.xlabel('Training Step')
+    plt.ylabel('Learning Rate')
+    plt.title('WSD Decay Type Comparison')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig('wsd_variants.png', dpi=150, bbox_inches='tight')
+    plt.show()
+```
+
+### Schedule Comparison
+
+| Schedule | Pros | Cons | Use Case |
+|----------|------|------|----------|
+| **Cosine** | Smooth, well-tested | Requires knowing total steps | Fixed training budget |
+| **WSD** | Flexible, better empirical results | More hyperparameters | Uncertain compute budget |
+| **Linear** | Simple | Abrupt changes | Research/debugging |
+| **Constant** | No tuning needed | Poor final performance | Short runs only |
+
+**Modern recommendations:**
+- **Pretraining**: WSD with sqrt decay (10% decay phase)
+- **Fine-tuning**: Cosine or linear (shorter runs, fixed steps)
+- **Research**: WSD for flexibility in extending runs
+
+---
+
+## Gradient Clipping
+
+Gradient clipping prevents training instability from exploding gradients by capping gradient norms.
+
+### Why Gradient Clipping?
+
+Large gradients can cause:
+- Parameter updates that overshoot optimal values
+- Loss spikes and training divergence
+- NaN/Inf values propagating through the network
+
+**Common in LLMs** due to:
+- Long sequences create deep computational graphs
+- Attention mechanisms can amplify gradients
+- Large batch sizes increase gradient variance
+
+### Gradient Norm Clipping
+
+The most common approach: scale gradients if total norm exceeds threshold.
+
+**Algorithm:**
+
+$$
+\text{if } \|\mathbf{g}\| > \tau: \quad \mathbf{g} \leftarrow \frac{\tau \mathbf{g}}{\|\mathbf{g}\|}
+$$
+
+where:
+- $\mathbf{g}$ = gradient vector (all parameters)
+- $\tau$ = clipping threshold (typically 1.0 for LLMs)
+- $\|\mathbf{g}\|$ = $L^2$ norm of gradients
+
+```python
+import torch
+import torch.nn as nn
+
+def clip_grad_norm(
+    parameters,
+    max_norm: float,
+    norm_type: float = 2.0
+) -> float:
+    """
+    Clip gradient norm of model parameters.
+
+    Args:
+        parameters: Model parameters (or iterable of Tensors)
+        max_norm: Maximum norm threshold
+        norm_type: Type of norm (2.0 for L2 norm)
+
+    Returns:
+        Total norm before clipping
+    """
+    if isinstance(parameters, torch.Tensor):
+        parameters = [parameters]
+
+    parameters = [p for p in parameters if p.grad is not None]
+
+    max_norm = float(max_norm)
+    norm_type = float(norm_type)
+
+    if len(parameters) == 0:
+        return torch.tensor(0.)
+
+    device = parameters[0].grad.device
+
+    # Compute total norm
+    if norm_type == float('inf'):
+        # Max norm
+        total_norm = max(p.grad.data.abs().max() for p in parameters)
+    else:
+        # L^p norm
+        total_norm = torch.norm(
+            torch.stack([
+                torch.norm(p.grad.data, norm_type)
+                for p in parameters
+            ]),
+            norm_type
+        )
+
+    # Clip
+    clip_coef = max_norm / (total_norm + 1e-6)
+    if clip_coef < 1:
+        for p in parameters:
+            p.grad.data.mul_(clip_coef)
+
+    return total_norm
+
+
+# Usage in training loop
+def training_step_with_clipping(model, optimizer, batch, max_grad_norm=1.0):
+    """Training step with gradient clipping."""
+    # Forward pass
+    loss = model(batch)
+
+    # Backward pass
+    optimizer.zero_grad()
+    loss.backward()
+
+    # Gradient clipping (BEFORE optimizer step)
+    total_norm = torch.nn.utils.clip_grad_norm_(
+        model.parameters(),
+        max_norm=max_grad_norm
+    )
+
+    # Optimizer step
+    optimizer.step()
+
+    return loss.item(), total_norm.item()
+
+
+# Monitor gradient norms
+class GradientMonitor:
+    """Monitor gradient statistics during training."""
+
+    def __init__(self, window_size: int = 100):
+        self.window_size = window_size
+        self.norms = []
+        self.clipped_count = 0
+        self.total_count = 0
+
+    def update(self, grad_norm: float, max_norm: float):
+        """Update statistics."""
+        self.norms.append(grad_norm)
+        if len(self.norms) > self.window_size:
+            self.norms.pop(0)
+
+        self.total_count += 1
+        if grad_norm > max_norm:
+            self.clipped_count += 1
+
+    def get_stats(self) -> dict:
+        """Get gradient statistics."""
+        if not self.norms:
+            return {}
+
+        return {
+            'mean_norm': sum(self.norms) / len(self.norms),
+            'max_norm': max(self.norms),
+            'min_norm': min(self.norms),
+            'clip_rate': self.clipped_count / max(1, self.total_count)
+        }
+```
+
+**Recommended settings:**
+- **max_norm = 1.0**: Standard for most LLMs (GPT-3, LLaMA, etc.)
+- **max_norm = 0.5**: More aggressive, for unstable training
+- **max_norm = 5.0**: More lenient, for stable models
+
+**Monitoring:** Track clipping frequency. If >50% of steps clip, consider:
+- Reducing learning rate
+- Increasing warmup duration
+- Checking for data quality issues
+
+---
+
+## Batch Size Scaling
+
+Batch size affects both training speed and model quality. Finding the right balance is crucial.
+
+### Effective Batch Size
+
+The **effective batch size** is the total number of examples used per optimizer step:
+
+$$
+B_{\text{eff}} = B_{\text{micro}} \times N_{\text{acc}} \times N_{\text{devices}}
+$$
+
+where:
+- $B_{\text{micro}}$ = batch size per device (limited by memory)
+- $N_{\text{acc}}$ = gradient accumulation steps
+- $N_{\text{devices}}$ = number of GPUs/TPUs
+
+### Critical Batch Size
+
+The **critical batch size** is the point beyond which increasing batch size gives diminishing returns.
+
+**Key insight:** There's a sweet spot where:
+- Below critical: larger batches improve efficiency
+- Above critical: larger batches waste compute (no quality improvement)
+
+**Typical values for LLMs:**
+- Small models (<1B): 0.5M - 1M tokens
+- Medium models (1-10B): 2M - 4M tokens
+- Large models (>10B): 4M - 8M tokens
+
+```python
+class BatchSizeCalculator:
+    """Calculate optimal batch size configurations."""
+
+    def __init__(
+        self,
+        gpu_memory_gb: float,
+        model_params: float,
+        sequence_length: int,
+        dtype_bytes: int = 2  # 2 for FP16/BF16
+    ):
+        self.gpu_memory_gb = gpu_memory_gb
+        self.model_params = model_params
+        self.sequence_length = sequence_length
+        self.dtype_bytes = dtype_bytes
+
+    def max_micro_batch_size(self) -> int:
+        """
+        Estimate maximum micro batch size that fits in GPU memory.
+
+        This is a rough approximation. Actual memory usage depends on:
+        - Activation recomputation
+        - Optimizer states
+        - Framework overhead
+        """
+        # Model parameters (in bytes)
+        model_memory = self.model_params * self.dtype_bytes
+
+        # Optimizer states (Adam: 2x parameters for m and v)
+        optimizer_memory = 2 * self.model_params * 4  # FP32
+
+        # Gradients (same as parameters)
+        gradient_memory = model_memory
+
+        # Activations (very rough estimate: 12 * batch * seq * hidden)
+        # This is highly approximate
+        hidden_size = (self.model_params / (12 * 32)) ** 0.5  # Rough estimate
+        activation_per_token = 12 * hidden_size
+
+        # Available memory (leave 20% headroom)
+        available = self.gpu_memory_gb * 1e9 * 0.8
+
+        # Memory for static components
+        static_memory = model_memory + optimizer_memory + gradient_memory
+
+        # Remaining for activations
+        activation_budget = available - static_memory
+
+        if activation_budget <= 0:
+            return 0
+
+        # Compute max batch size
+        max_batch = int(
+            activation_budget / (self.sequence_length * activation_per_token * self.dtype_bytes)
+        )
+
+        return max(1, max_batch)
+
+    def compute_gradient_accumulation(
+        self,
+        target_batch_size: int,
+        micro_batch_size: int,
+        n_gpus: int
+    ) -> int:
+        """
+        Compute required gradient accumulation steps.
+
+        Args:
+            target_batch_size: Desired effective batch size
+            micro_batch_size: Batch size per GPU
+            n_gpus: Number of GPUs
+
+        Returns:
+            Number of gradient accumulation steps needed
+        """
+        total_per_step = micro_batch_size * n_gpus
+        grad_acc_steps = max(1, target_batch_size // total_per_step)
+        return grad_acc_steps
+
+
+# Example configurations
+def print_batch_configurations():
+    """Print example batch configurations for different model sizes."""
+    configs = [
+        # (name, params, seq_len, target_tokens, n_gpus, gpu_mem)
+        ("Small (350M)", 350e6, 2048, 512_000, 8, 80),
+        ("Medium (1.3B)", 1.3e9, 2048, 2_000_000, 64, 80),
+        ("Large (7B)", 7e9, 4096, 4_000_000, 256, 80),
+        ("XLarge (70B)", 70e9, 4096, 4_000_000, 1024, 80),
+    ]
+
+    print("Batch Size Configurations")
+    print("=" * 80)
+    print(f"{'Model':<15} {'Micro BS':<10} {'Grad Acc':<10} {'Eff. Tokens':<15} {'GPUs':<8}")
+    print("-" * 80)
+
+    for name, params, seq_len, target_tokens, n_gpus, gpu_mem in configs:
+        calc = BatchSizeCalculator(gpu_mem, params, seq_len)
+
+        # Estimate micro batch size (simplified)
+        if params < 1e9:
+            micro_batch = 8
+        elif params < 10e9:
+            micro_batch = 4
+        else:
+            micro_batch = 1
+
+        # Compute gradient accumulation
+        target_batch = target_tokens // seq_len
+        grad_acc = calc.compute_gradient_accumulation(target_batch, micro_batch, n_gpus)
+
+        # Actual effective batch
+        eff_batch = micro_batch * grad_acc * n_gpus
+        eff_tokens = eff_batch * seq_len
+
+        print(f"{name:<15} {micro_batch:<10} {grad_acc:<10} {eff_tokens:>12,}  {n_gpus:>6}")
+
+
+# Learning rate scaling with batch size
+def scale_learning_rate(
+    base_lr: float,
+    base_batch_size: int,
+    new_batch_size: int,
+    scaling_rule: str = 'linear'
+) -> float:
+    """
+    Scale learning rate with batch size.
+
+    Args:
+        base_lr: Learning rate for base_batch_size
+        base_batch_size: Reference batch size
+        new_batch_size: New batch size
+        scaling_rule: 'linear' or 'sqrt'
+
+    Returns:
+        Scaled learning rate
+    """
+    ratio = new_batch_size / base_batch_size
+
+    if scaling_rule == 'linear':
+        # Linear scaling: LR ∝ batch_size
+        # From "Accurate, Large Minibatch SGD" (Goyal et al., 2017)
+        return base_lr * ratio
+    elif scaling_rule == 'sqrt':
+        # Square root scaling: LR ∝ sqrt(batch_size)
+        # More conservative, often better for large batches
+        return base_lr * (ratio ** 0.5)
+    else:
+        raise ValueError(f"Unknown scaling rule: {scaling_rule}")
+
+
+# Example
+print(f"\nLearning Rate Scaling:")
+print(f"Base: LR=3e-4, BS=2M tokens")
+print(f"New (linear): LR={scale_learning_rate(3e-4, 2_000_000, 4_000_000, 'linear'):.2e}, BS=4M tokens")
+print(f"New (sqrt): LR={scale_learning_rate(3e-4, 2_000_000, 4_000_000, 'sqrt'):.2e}, BS=4M tokens")
+```
+
+### Batch Size Best Practices
+
+1. **Start with target effective batch size** based on model size
+2. **Maximize micro batch size** to fit GPU memory
+3. **Use gradient accumulation** to reach target
+4. **Scale learning rate** if changing batch size significantly
+5. **Monitor training dynamics** - large batches can hurt generalization
+
+---
+
+## Putting It All Together
+
+A complete training configuration combining all optimization techniques.
+
+```python
+import torch
+import torch.nn as nn
+from typing import Optional
+
+class LLMTrainingConfig:
+    """Complete training configuration for LLMs."""
+
+    def __init__(
+        self,
+        # Model
+        model_params: int,
+        sequence_length: int,
+
+        # Data
+        total_tokens: int,
+
+        # Optimization
+        learning_rate: float = 3e-4,
+        min_lr_ratio: float = 0.1,
+        weight_decay: float = 0.1,
+        beta1: float = 0.9,
+        beta2: float = 0.95,
+        eps: float = 1e-8,
+
+        # Schedule
+        schedule_type: str = 'wsd',  # 'cosine' or 'wsd'
+        warmup_ratio: float = 0.02,  # Warmup as fraction of total
+        stable_ratio: float = 0.88,  # For WSD only
+
+        # Gradient
+        max_grad_norm: float = 1.0,
+
+        # Batch
+        batch_size_tokens: int = 4_000_000,
+        micro_batch_size: int = 4,
+        n_gpus: int = 64,
+    ):
+        self.model_params = model_params
+        self.sequence_length = sequence_length
+        self.total_tokens = total_tokens
+
+        # Compute total steps
+        self.total_steps = total_tokens // batch_size_tokens
+        self.warmup_steps = int(self.total_steps * warmup_ratio)
+
+        # Learning rate
+        self.max_lr = learning_rate
+        self.min_lr = learning_rate * min_lr_ratio
+
+        # Optimizer
+        self.weight_decay = weight_decay
+        self.betas = (beta1, beta2)
+        self.eps = eps
+
+        # Schedule
+        self.schedule_type = schedule_type
+        if schedule_type == 'wsd':
+            self.stable_steps = int(self.total_steps * stable_ratio)
+            self.decay_steps = self.total_steps - self.warmup_steps - self.stable_steps
+
+        # Gradient clipping
+        self.max_grad_norm = max_grad_norm
+
+        # Batch configuration
+        self.batch_size_tokens = batch_size_tokens
+        self.micro_batch_size = micro_batch_size
+        self.n_gpus = n_gpus
+
+        # Compute gradient accumulation
+        tokens_per_step = micro_batch_size * sequence_length * n_gpus
+        self.grad_accum_steps = max(1, batch_size_tokens // tokens_per_step)
+
+        # Effective batch size (actual)
+        self.effective_batch_tokens = tokens_per_step * self.grad_accum_steps
+
+    def create_optimizer(self, model: nn.Module):
+        """Create AdamW optimizer with this configuration."""
+        return torch.optim.AdamW(
+            model.parameters(),
+            lr=self.max_lr,
+            betas=self.betas,
+            eps=self.eps,
+            weight_decay=self.weight_decay
+        )
+
+    def create_scheduler(self, optimizer):
+        """Create learning rate scheduler."""
+        if self.schedule_type == 'cosine':
+            return CosineDecaySchedule(
+                max_lr=self.max_lr,
+                min_lr=self.min_lr,
+                warmup_steps=self.warmup_steps,
+                total_steps=self.total_steps
+            )
+        elif self.schedule_type == 'wsd':
+            return WSDSchedule(
+                max_lr=self.max_lr,
+                min_lr=self.min_lr,
+                warmup_steps=self.warmup_steps,
+                stable_steps=self.stable_steps,
+                decay_steps=self.decay_steps,
+                decay_type='sqrt'
+            )
+        else:
+            raise ValueError(f"Unknown schedule: {self.schedule_type}")
+
+    def print_summary(self):
+        """Print configuration summary."""
+        print("=" * 70)
+        print("LLM Training Configuration")
+        print("=" * 70)
+        print(f"\nModel:")
+        print(f"  Parameters: {self.model_params/1e9:.1f}B")
+        print(f"  Sequence length: {self.sequence_length:,}")
+
+        print(f"\nTraining:")
+        print(f"  Total tokens: {self.total_tokens/1e12:.2f}T")
+        print(f"  Total steps: {self.total_steps:,}")
+        print(f"  Tokens per param: {self.total_tokens/self.model_params:.1f}")
+
+        print(f"\nOptimization:")
+        print(f"  Optimizer: AdamW")
+        print(f"  Max LR: {self.max_lr:.2e}")
+        print(f"  Min LR: {self.min_lr:.2e}")
+        print(f"  Weight decay: {self.weight_decay}")
+        print(f"  Betas: {self.betas}")
+
+        print(f"\nSchedule: {self.schedule_type.upper()}")
+        print(f"  Warmup steps: {self.warmup_steps:,} ({self.warmup_steps/self.total_steps*100:.1f}%)")
+        if self.schedule_type == 'wsd':
+            print(f"  Stable steps: {self.stable_steps:,} ({self.stable_steps/self.total_steps*100:.1f}%)")
+            print(f"  Decay steps: {self.decay_steps:,} ({self.decay_steps/self.total_steps*100:.1f}%)")
+
+        print(f"\nGradient:")
+        print(f"  Max norm: {self.max_grad_norm}")
+
+        print(f"\nBatch Size:")
+        print(f"  Micro batch: {self.micro_batch_size} per GPU")
+        print(f"  Gradient accumulation: {self.grad_accum_steps} steps")
+        print(f"  Number of GPUs: {self.n_gpus}")
+        print(f"  Effective batch: {self.effective_batch_tokens/1e6:.2f}M tokens")
+        print("=" * 70)
+
+
+# Example configurations
+def example_7b_model():
+    """Example: LLaMA-style 7B model."""
+    config = LLMTrainingConfig(
+        model_params=7e9,
+        sequence_length=4096,
+        total_tokens=1e12,  # 1T tokens (Chinchilla-optimal would be ~140B)
+        learning_rate=3e-4,
+        batch_size_tokens=4_000_000,
+        micro_batch_size=2,
+        n_gpus=256,
+        schedule_type='wsd'
+    )
+    config.print_summary()
+    return config
+
+
+def example_70b_model():
+    """Example: LLaMA-style 70B model."""
+    config = LLMTrainingConfig(
+        model_params=70e9,
+        sequence_length=4096,
+        total_tokens=2e12,  # 2T tokens
+        learning_rate=1.5e-4,  # Lower LR for larger model
+        batch_size_tokens=4_000_000,
+        micro_batch_size=1,
+        n_gpus=1024,
+        schedule_type='wsd'
+    )
+    config.print_summary()
+    return config
+
+
+# Complete training loop
+class LLMTrainer:
+    """Complete training loop with all optimizations."""
+
+    def __init__(self, model: nn.Module, config: LLMTrainingConfig):
+        self.model = model
+        self.config = config
+
+        # Create optimizer and scheduler
+        self.optimizer = config.create_optimizer(model)
+        self.scheduler = config.create_scheduler(self.optimizer)
+
+        # Gradient accumulation state
+        self.accum_steps = 0
+        self.global_step = 0
+
+    def training_step(self, batch: torch.Tensor) -> dict:
+        """
+        Single training step with gradient accumulation.
+
+        Args:
+            batch: Input batch [batch_size, seq_len]
+
+        Returns:
+            Dictionary of metrics
+        """
+        # Forward pass
+        loss = self.model(batch)
+
+        # Scale loss by accumulation steps
+        loss = loss / self.config.grad_accum_steps
+
+        # Backward pass
+        loss.backward()
+
+        self.accum_steps += 1
+
+        # Only update when accumulation is complete
+        if self.accum_steps == self.config.grad_accum_steps:
+            # Gradient clipping
+            grad_norm = torch.nn.utils.clip_grad_norm_(
+                self.model.parameters(),
+                self.config.max_grad_norm
+            )
+
+            # Optimizer step
+            self.optimizer.step()
+            self.optimizer.zero_grad()
+
+            # Update learning rate
+            lr = self.scheduler.get_lr(self.global_step)
+            for param_group in self.optimizer.param_groups:
+                param_group['lr'] = lr
+
+            # Reset accumulation
+            self.accum_steps = 0
+            self.global_step += 1
+
+            return {
+                'loss': loss.item() * self.config.grad_accum_steps,
+                'lr': lr,
+                'grad_norm': grad_norm.item(),
+                'step': self.global_step
+            }
+        else:
+            # Accumulating gradients
+            return {
+                'loss': loss.item() * self.config.grad_accum_steps,
+                'accumulating': True
+            }
+```
+
+---
+
+## Summary
+
+### Key Takeaways
+
+1. **Scaling Laws**
+   - Kaplan (2020): Model size matters most
+   - Chinchilla (2022): Equal scaling of model and data
+   - Modern practice: Train beyond Chinchilla optimal
+
+2. **Optimization**
+   - AdamW is standard: β₁=0.9, β₂=0.95, weight_decay=0.1
+   - Learning rate: 1e-4 to 3e-4 (scale with model size)
+   - Gradient clipping: max_norm=1.0
+
+3. **Learning Rate Schedules**
+   - Warmup: Essential for stability (2K-5K steps)
+   - Cosine: Standard, requires knowing total steps
+   - WSD: More flexible, empirically better
+
+4. **Batch Size**
+   - Target: 2M-4M tokens for most models
+   - Use gradient accumulation to reach target
+   - Scale LR if changing batch size significantly
+
+### Quick Reference Table
+
+| Aspect | Recommended Value | Notes |
+|--------|------------------|-------|
+| **Optimizer** | AdamW | Standard choice |
+| **Learning rate** | 3e-4 (small), 1.5e-4 (large) | Scale with size |
+| **β₁** | 0.9 | First moment |
+| **β₂** | 0.95 or 0.999 | Second moment |
+| **Weight decay** | 0.1 | Regularization |
+| **Warmup** | 2,000 steps | <1% of training |
+| **Schedule** | WSD or Cosine | WSD more flexible |
+| **Grad clip** | 1.0 | Stability |
+| **Batch size** | 4M tokens | 2-8M range |
+| **Tokens/param** | 20+ | Chinchilla: ~20 |
+
+### Workflow
+
+1. **Determine compute budget** (FLOPs or GPU-hours)
+2. **Choose model size and tokens** using Chinchilla scaling
+3. **Set batch size** based on model size
+4. **Configure optimizer** (AdamW with standard settings)
+5. **Choose LR schedule** (WSD for flexibility, Cosine for fixed runs)
+6. **Start training** with monitoring
+7. **Adjust if needed** based on loss curves and gradient norms
+
+---
+
+## References
+
+### Scaling Laws
+
+1. [Scaling Laws for Neural Language Models](https://arxiv.org/abs/2001.08361) (Kaplan et al., 2020)
+2. [Training Compute-Optimal Large Language Models](https://arxiv.org/abs/2203.15556) (Hoffmann et al., 2022) - Chinchilla
+3. [Scaling Laws for Autoregressive Generative Modeling](https://arxiv.org/abs/2010.14701) (Henighan et al., 2020)
+
+### Optimization
+
+4. [Decoupled Weight Decay Regularization](https://arxiv.org/abs/1711.05101) (Loshchilov & Hutter, 2017) - AdamW
+5. [Adam: A Method for Stochastic Optimization](https://arxiv.org/abs/1412.6980) (Kingma & Ba, 2014)
+6. [On the Convergence of Adam and Beyond](https://arxiv.org/abs/1904.09237) (Reddi et al., 2019)
+
+### Learning Rate Schedules
+
+7. [SGDR: Stochastic Gradient Descent with Warm Restarts](https://arxiv.org/abs/1608.03983) (Loshchilov & Hutter, 2016)
+8. [MiniCPM: Unveiling the Potential of Small Language Models](https://arxiv.org/abs/2404.06395) (Hu et al., 2024) - WSD schedule
+9. [Understanding Warmup-Stable-Decay Learning Rates](https://arxiv.org/abs/2410.05192) (2024)
+
+### Batch Size and Gradient Clipping
+
+10. [Accurate, Large Minibatch SGD: Training ImageNet in 1 Hour](https://arxiv.org/abs/1706.02677) (Goyal et al., 2017)
+11. [Measuring the Effects of Data Parallelism on Neural Network Training](https://arxiv.org/abs/1811.03600) (Shallue et al., 2018)
+12. [On the Difficulty of Training Recurrent Neural Networks](https://arxiv.org/abs/1211.5063) (Pascanu et al., 2012) - Gradient clipping
+
+### Model Papers (for reference)
+
+13. [Language Models are Few-Shot Learners](https://arxiv.org/abs/2005.14165) (Brown et al., 2020) - GPT-3
+14. [LLaMA: Open and Efficient Foundation Language Models](https://arxiv.org/abs/2302.13971) (Touvron et al., 2023)
+15. [Llama 2: Open Foundation and Fine-Tuned Chat Models](https://arxiv.org/abs/2307.09288) (Touvron et al., 2023)
+
+---
+
+## Exercises
+
+1. **Scaling Law Analysis**
+   - Use the Chinchilla scaling law to determine the optimal model size and training tokens for a compute budget of 1e24 FLOPs.
+   - Compare this to what Kaplan scaling would recommend.
+   - Which models from the past 2 years followed which paradigm?
+
+2. **Learning Rate Schedule Implementation**
+   - Implement a custom learning rate scheduler that combines warmup with inverse square root decay: $\eta(t) = \eta_{\max} \cdot \min(t / T_{\text{warmup}}, \sqrt{T_{\text{warmup}} / t})$
+   - Compare it to cosine and WSD schedules visually
+   - When might this schedule be preferable?
+
+3. **Gradient Clipping Experiment**
+   - Train a small transformer (e.g., 100M parameters) with different gradient clipping thresholds: 0.5, 1.0, 5.0, and no clipping
+   - Plot training loss curves
+   - At what point does clipping hurt vs. help?
+
+4. **Batch Size Optimization**
+   - Given a model with 7B parameters and access to 64 A100 GPUs (80GB each), calculate:
+     - Maximum micro batch size for sequence length 4096
+     - Gradient accumulation steps needed for effective batch size of 4M tokens
+     - Wall-clock time to train on 1T tokens
+   - How would this change with 256 GPUs?
+
+5. **Compute Estimation**
+   - Estimate the total FLOPs required to train a 70B parameter model on 2T tokens
+   - If using H100 GPUs (1,979 TFLOPS FP8), how many GPU-days would this require?
+   - What would be the cloud cost at $3/GPU-hour?
+
+6. **Optimizer Comparison**
+   - Implement SGD with momentum and compare it to AdamW on a small language modeling task
+   - Try different momentum values (0.9, 0.95, 0.99) for SGD
+   - Under what conditions does SGD match AdamW?
+
+7. **Learning Rate Scaling**
+   - Start with a baseline: LR=3e-4, batch_size=2M tokens
+   - Double the batch size to 4M tokens
+   - Compare linear scaling (LR=6e-4) vs. sqrt scaling (LR=4.24e-4) vs. no scaling
+   - Which performs best? Why?
+
+8. **Training Configuration Design**
+   - Design a complete training configuration for a 13B parameter model with:
+     - Compute budget: 5e23 FLOPs
+     - Available: 128 A100 GPUs
+     - Sequence length: 4096
+   - Specify: model size, training tokens, batch size, learning rate, schedule, and expected training time

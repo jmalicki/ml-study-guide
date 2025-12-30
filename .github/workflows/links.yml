@@ -1,0 +1,32 @@
+name: Link Validation
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  link-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install markdown-link-check
+        run: npm install -g markdown-link-check
+
+      - name: Check links in README
+        run: markdown-link-check README.md --config .markdown-link-check.json
+
+      - name: Check links in all chapters
+        run: |
+          for file in chapters/*.md; do
+            echo "Checking $file"
+            markdown-link-check "$file" --config .markdown-link-check.json || exit 1
+          done
