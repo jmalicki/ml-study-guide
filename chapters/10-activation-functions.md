@@ -457,17 +457,98 @@ $$
 When using GLU variants in the FFN, the architecture changes:
 
 **Standard FFN:**
-```
-x → Linear(d_model → d_ff) → Activation → Linear(d_ff → d_model)
-```
+
+<svg viewBox="0 0 800 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Input -->
+  <rect x="20" y="30" width="80" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="60" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">x</text>
+
+  <!-- Arrow -->
+  <path d="M 100 50 L 130 50" stroke="#4A90A4" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+
+  <!-- Linear 1 -->
+  <rect x="130" y="20" width="140" height="60" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="200" y="45" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">Linear</text>
+  <text x="200" y="62" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666">(d_model → d_ff)</text>
+
+  <!-- Arrow -->
+  <path d="M 270 50 L 300 50" stroke="#4A90A4" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+
+  <!-- Activation -->
+  <rect x="300" y="30" width="100" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="350" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">Activation</text>
+
+  <!-- Arrow -->
+  <path d="M 400 50 L 430 50" stroke="#4A90A4" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+
+  <!-- Linear 2 -->
+  <rect x="430" y="20" width="140" height="60" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="500" y="45" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">Linear</text>
+  <text x="500" y="62" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666">(d_ff → d_model)</text>
+
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#4A90A4"/>
+    </marker>
+  </defs>
+</svg>
 
 **GLU FFN:**
-```
-x → Linear(d_model → d_ff) for value
-  ↘ Linear(d_model → d_ff) for gate → Activation
-    → Element-wise multiply
-      → Linear(d_ff → d_model)
-```
+
+<svg viewBox="0 0 800 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Input -->
+  <rect x="20" y="80" width="80" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="60" y="105" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">x</text>
+
+  <!-- Arrow to value path -->
+  <path d="M 100 100 L 150 100" stroke="#4A90A4" stroke-width="2" fill="none" marker-end="url(#arrowhead2)"/>
+
+  <!-- Arrow to gate path -->
+  <path d="M 100 100 L 150 40" stroke="#4A90A4" stroke-width="2" fill="none" marker-end="url(#arrowhead2)"/>
+
+  <!-- Value Linear -->
+  <rect x="150" y="80" width="140" height="60" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="220" y="102" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">Linear (value)</text>
+  <text x="220" y="122" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666">(d_model → d_ff)</text>
+
+  <!-- Gate Linear -->
+  <rect x="150" y="10" width="140" height="60" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="220" y="32" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">Linear (gate)</text>
+  <text x="220" y="52" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666">(d_model → d_ff)</text>
+
+  <!-- Arrow from gate to activation -->
+  <path d="M 290 40 L 320 40" stroke="#4A90A4" stroke-width="2" fill="none" marker-end="url(#arrowhead2)"/>
+
+  <!-- Activation -->
+  <rect x="320" y="20" width="100" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="370" y="45" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">Activation</text>
+
+  <!-- Arrow from value to multiply -->
+  <path d="M 290 110 L 450 110" stroke="#4A90A4" stroke-width="2" fill="none" marker-end="url(#arrowhead2)"/>
+
+  <!-- Arrow from activation to multiply -->
+  <path d="M 420 40 L 480 70" stroke="#4A90A4" stroke-width="2" fill="none" marker-end="url(#arrowhead2)"/>
+
+  <!-- Element-wise multiply -->
+  <circle cx="480" cy="85" r="25" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2"/>
+  <text x="480" y="93" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="18" fill="#333">⊗</text>
+
+  <!-- Arrow to final linear -->
+  <path d="M 505 85 L 530 85" stroke="#4A90A4" stroke-width="2" fill="none" marker-end="url(#arrowhead2)"/>
+
+  <!-- Final Linear -->
+  <rect x="530" y="55" width="140" height="60" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="600" y="77" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">Linear</text>
+  <text x="600" y="97" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666">(d_ff → d_model)</text>
+
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrowhead2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#4A90A4"/>
+    </marker>
+  </defs>
+</svg>
 
 This requires **twice the parameters** in the first projection (or equivalently, if keeping parameters constant, the intermediate dimension is halved). In practice, for LLMs:
 - Standard FFN: $d_{\text{ff}} = 4 \times d_{\text{model}}$
@@ -1245,12 +1326,70 @@ Being able to explain how activation functions fit into the transformer architec
 
 Modern transformers use the **pre-norm** pattern (normalize before each sub-layer):
 
-```
-x → LayerNorm → Attention → (+) → LayerNorm → FFN → (+)
-↓                            ↑                      ↑
-└────────────────────────────┘                      │
-└──────────────────────────────────────────────────┘
-```
+<svg viewBox="0 0 800 180" xmlns="http://www.w3.org/2000/svg">
+  <!-- Input x (bottom left) -->
+  <rect x="20" y="120" width="60" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="50" y="145" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">x</text>
+
+  <!-- Vertical arrow down -->
+  <path d="M 50 120 L 50 10" stroke="#4A90A4" stroke-width="2" fill="none"/>
+
+  <!-- Arrow to LayerNorm 1 -->
+  <path d="M 80 140 L 110 140" stroke="#4A90A4" stroke-width="2" fill="none" marker-end="url(#arrowhead3)"/>
+
+  <!-- LayerNorm 1 -->
+  <rect x="110" y="120" width="100" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="160" y="145" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">LayerNorm</text>
+
+  <!-- Arrow to Attention -->
+  <path d="M 210 140 L 240 140" stroke="#4A90A4" stroke-width="2" fill="none" marker-end="url(#arrowhead3)"/>
+
+  <!-- Attention -->
+  <rect x="240" y="120" width="100" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="290" y="145" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">Attention</text>
+
+  <!-- Arrow to Add 1 -->
+  <path d="M 340 140 L 370 140" stroke="#4A90A4" stroke-width="2" fill="none" marker-end="url(#arrowhead3)"/>
+
+  <!-- Add 1 (circle with +) -->
+  <circle cx="390" cy="140" r="20" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2"/>
+  <text x="390" y="148" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="20" fill="#333">+</text>
+
+  <!-- Residual connection from input to Add 1 -->
+  <path d="M 50 10 L 390 10 L 390 120" stroke="#4A90A4" stroke-width="2" fill="none" marker-end="url(#arrowhead3)"/>
+
+  <!-- Arrow to LayerNorm 2 -->
+  <path d="M 410 140 L 440 140" stroke="#4A90A4" stroke-width="2" fill="none" marker-end="url(#arrowhead3)"/>
+
+  <!-- LayerNorm 2 -->
+  <rect x="440" y="120" width="100" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="490" y="145" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">LayerNorm</text>
+
+  <!-- Arrow to FFN -->
+  <path d="M 540 140 L 570 140" stroke="#4A90A4" stroke-width="2" fill="none" marker-end="url(#arrowhead3)"/>
+
+  <!-- FFN -->
+  <rect x="570" y="120" width="80" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="610" y="145" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">FFN</text>
+
+  <!-- Arrow to Add 2 -->
+  <path d="M 650 140 L 680 140" stroke="#4A90A4" stroke-width="2" fill="none" marker-end="url(#arrowhead3)"/>
+
+  <!-- Add 2 (circle with +) -->
+  <circle cx="700" cy="140" r="20" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2"/>
+  <text x="700" y="148" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="20" fill="#333">+</text>
+
+  <!-- Residual connection from Add 1 to Add 2 -->
+  <path d="M 390 60 L 700 60 L 700 120" stroke="#4A90A4" stroke-width="2" fill="none" marker-end="url(#arrowhead3)"/>
+  <path d="M 390 140 L 390 60" stroke="#4A90A4" stroke-width="2" fill="none"/>
+
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrowhead3" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#4A90A4"/>
+    </marker>
+  </defs>
+</svg>
 
 This differs from the original "Attention is All You Need" post-norm pattern and provides:
 - Better gradient flow in deep networks
@@ -1280,13 +1419,10 @@ class TransformerBlock(nn.Module):
     """
     Complete transformer block with configurable activation.
 
-    Architecture:
-        x → LayerNorm → Multi-Head Attention → + → LayerNorm → FFN → +
-        ↓                                        ↑                      ↑
-        └────────────────────────────────────────┘                      │
-        └──────────────────────────────────────────────────────────────┘
-
-    This is the "pre-norm" architecture used in modern LLMs.
+    This implements the "pre-norm" architecture used in modern LLMs:
+    - Input passes through LayerNorm before each sub-layer
+    - Residual connections add the input to the output of each sub-layer
+    - Two main components: Multi-Head Attention and Feed-Forward Network (FFN)
     """
     def __init__(
         self,

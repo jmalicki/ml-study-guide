@@ -35,13 +35,41 @@ Pre-trained language models (see [Language Model Training](15-lm-training.md)) a
 
 ### The SFT Pipeline
 
-```
-┌─────────────────┐      ┌──────────────┐      ┌─────────────┐
-│   Pre-trained   │ ──>  │  Supervised  │ ──>  │  Aligned    │
-│   Base Model    │      │  Fine-tuning │      │   Model     │
-│  (LLM Training) │      │    (SFT)     │      │   (RLHF)    │
-└─────────────────┘      └──────────────┘      └─────────────┘
-```
+<svg viewBox="0 0 800 150" xmlns="http://www.w3.org/2000/svg" style="max-width: 800px; width: 100%; height: auto;">
+  <!-- Pre-trained Base Model Box -->
+  <rect x="20" y="20" width="180" height="110" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="110" y="60" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#333" font-weight="600">Pre-trained</text>
+  <text x="110" y="80" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#333" font-weight="600">Base Model</text>
+  <text x="110" y="105" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#666">(LLM Training)</text>
+
+  <!-- First Arrow -->
+  <defs>
+    <marker id="arrowhead1" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#4A90A4"/>
+    </marker>
+  </defs>
+  <line x1="200" y1="75" x2="270" y2="75" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead1)"/>
+
+  <!-- Supervised Fine-tuning Box -->
+  <rect x="270" y="20" width="180" height="110" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="360" y="60" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#333" font-weight="600">Supervised</text>
+  <text x="360" y="80" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#333" font-weight="600">Fine-tuning</text>
+  <text x="360" y="105" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#666">(SFT)</text>
+
+  <!-- Second Arrow -->
+  <defs>
+    <marker id="arrowhead2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#4A90A4"/>
+    </marker>
+  </defs>
+  <line x1="450" y1="75" x2="520" y2="75" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead2)"/>
+
+  <!-- Aligned Model Box -->
+  <rect x="520" y="20" width="180" height="110" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="610" y="60" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#333" font-weight="600">Aligned</text>
+  <text x="610" y="80" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#333" font-weight="600">Model</text>
+  <text x="610" y="105" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#666">(RLHF)</text>
+</svg>
 
 SFT is typically followed by alignment techniques like RLHF (see [RLHF](20-rlhf.md)) or DPO (see [DPO](21-dpo.md)), but a well-executed SFT phase is critical for final model quality.
 
@@ -575,13 +603,48 @@ where $u_i$ is the $i$-th user message and $a_i$ is the $i$-th assistant respons
 #### Key Insight: Cumulative Masking Pattern
 
 The masking pattern for multi-turn conversations is cumulative:
-```
-[SYSTEM: instructions]     <- masked
-[USER: question 1]          <- masked
-[ASSISTANT: answer 1]       <- LEARNED
-[USER: question 2]          <- masked
-[ASSISTANT: answer 2]       <- LEARNED
-```
+
+<svg viewBox="0 0 700 260" xmlns="http://www.w3.org/2000/svg" style="max-width: 700px; width: 100%; height: auto;">
+  <!-- SYSTEM Row -->
+  <rect x="20" y="20" width="400" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="3"/>
+  <text x="30" y="45" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="600">[SYSTEM: instructions]</text>
+  <line x1="440" y1="40" x2="520" y2="40" stroke="#999" stroke-width="2" marker-end="url(#arrow-gray)"/>
+  <text x="530" y="45" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#999">masked</text>
+
+  <!-- USER 1 Row -->
+  <rect x="20" y="75" width="400" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="3"/>
+  <text x="30" y="100" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="600">[USER: question 1]</text>
+  <line x1="440" y1="95" x2="520" y2="95" stroke="#999" stroke-width="2" marker-end="url(#arrow-gray)"/>
+  <text x="530" y="100" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#999">masked</text>
+
+  <!-- ASSISTANT 1 Row -->
+  <rect x="20" y="130" width="400" height="40" fill="#e8f4f8" stroke="#4A90A4" stroke-width="3" rx="3"/>
+  <text x="30" y="155" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="600">[ASSISTANT: answer 1]</text>
+  <line x1="440" y1="150" x2="520" y2="150" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrow-blue)"/>
+  <text x="530" y="155" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#4A90A4" font-weight="600">LEARNED</text>
+
+  <!-- USER 2 Row -->
+  <rect x="20" y="185" width="400" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="3"/>
+  <text x="30" y="210" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="600">[USER: question 2]</text>
+  <line x1="440" y1="205" x2="520" y2="205" stroke="#999" stroke-width="2" marker-end="url(#arrow-gray)"/>
+  <text x="530" y="210" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#999">masked</text>
+
+  <!-- ASSISTANT 2 Row -->
+  <rect x="20" y="240" width="400" height="40" fill="#e8f4f8" stroke="#4A90A4" stroke-width="3" rx="3"/>
+  <text x="30" y="265" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="600">[ASSISTANT: answer 2]</text>
+  <line x1="440" y1="260" x2="520" y2="260" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrow-blue)"/>
+  <text x="530" y="265" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#4A90A4" font-weight="600">LEARNED</text>
+
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrow-gray" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#999"/>
+    </marker>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#4A90A4"/>
+    </marker>
+  </defs>
+</svg>
 
 Each assistant response is learned conditioned on all previous context. This teaches the model to maintain conversation state while only optimizing response generation.
 

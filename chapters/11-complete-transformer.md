@@ -2726,14 +2726,40 @@ loaded_model = load_model_for_inference(
    - **Full snapshot**: Add learning rate scheduler, RNG state for exact reproducibility
 
 3. **File Organization**:
-   ```
-   checkpoints/
-   ├── latest.pt              # Most recent checkpoint (for resuming)
-   ├── best.pt                # Best validation loss
-   ├── checkpoint_epoch_10.pt # Periodic checkpoints
-   ├── checkpoint_epoch_20.pt
-   └── final_model.pt         # Final trained model (inference only)
-   ```
+
+   <svg viewBox="0 0 700 200" xmlns="http://www.w3.org/2000/svg" style="max-width: 700px; background-color: white;">
+     <!-- Root directory -->
+     <text x="20" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="600">checkpoints/</text>
+
+     <!-- Vertical line from root -->
+     <line x1="20" y1="40" x2="20" y2="170" stroke="#4A90A4" stroke-width="2"/>
+
+     <!-- File 1: latest.pt -->
+     <line x1="20" y1="50" x2="40" y2="50" stroke="#4A90A4" stroke-width="2"/>
+     <text x="45" y="55" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">latest.pt</text>
+     <text x="140" y="55" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#666" font-style="italic"># Most recent checkpoint (for resuming)</text>
+
+     <!-- File 2: best.pt -->
+     <line x1="20" y1="75" x2="40" y2="75" stroke="#4A90A4" stroke-width="2"/>
+     <text x="45" y="80" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">best.pt</text>
+     <text x="140" y="80" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#666" font-style="italic"># Best validation loss</text>
+
+     <!-- File 3: checkpoint_epoch_10.pt -->
+     <line x1="20" y1="100" x2="40" y2="100" stroke="#4A90A4" stroke-width="2"/>
+     <text x="45" y="105" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">checkpoint_epoch_10.pt</text>
+     <text x="240" y="105" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#666" font-style="italic"># Periodic checkpoints</text>
+
+     <!-- File 4: checkpoint_epoch_20.pt -->
+     <line x1="20" y1="125" x2="40" y2="125" stroke="#4A90A4" stroke-width="2"/>
+     <text x="45" y="130" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">checkpoint_epoch_20.pt</text>
+
+     <!-- File 5: final_model.pt (last item, use corner) -->
+     <line x1="20" y1="150" x2="20" y2="150" stroke="#4A90A4" stroke-width="2"/>
+     <line x1="20" y1="150" x2="40" y2="150" stroke="#4A90A4" stroke-width="2"/>
+     <path d="M 20 150 Q 20 150, 25 150" fill="none" stroke="#4A90A4" stroke-width="2"/>
+     <text x="45" y="155" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">final_model.pt</text>
+     <text x="165" y="155" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#666" font-style="italic"># Final trained model (inference only)</text>
+   </svg>
 
 4. **Memory Considerations**:
    - Save models on CPU to free GPU memory: `model.cpu()`

@@ -63,9 +63,27 @@ Constitutional AI consists of two main stages:
 
 #### Stage 1: Supervised Learning (Critique and Revision)
 
-```
-Initial Response → AI Critique → Revised Response
-```
+<svg viewBox="0 0 700 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrowhead1" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#4A90A4" />
+    </marker>
+  </defs>
+
+  <!-- Boxes -->
+  <rect x="20" y="30" width="160" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="100" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">Initial Response</text>
+
+  <rect x="270" y="30" width="140" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="340" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">AI Critique</text>
+
+  <rect x="500" y="30" width="160" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="580" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">Revised Response</text>
+
+  <!-- Arrows -->
+  <line x1="180" y1="50" x2="270" y2="50" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead1)"/>
+  <line x1="410" y1="50" x2="500" y2="50" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead1)"/>
+</svg>
 
 1. Generate an initial response to a prompt
 2. Have the model critique its own response against constitutional principles
@@ -74,9 +92,31 @@ Initial Response → AI Critique → Revised Response
 
 #### Stage 2: Reinforcement Learning from AI Feedback (RLAIF)
 
-```
-Responses → AI Comparison → Preference Dataset → RL Training
-```
+<svg viewBox="0 0 800 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrowhead2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#4A90A4" />
+    </marker>
+  </defs>
+
+  <!-- Boxes -->
+  <rect x="20" y="30" width="140" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="90" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">Responses</text>
+
+  <rect x="240" y="30" width="160" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="320" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">AI Comparison</text>
+
+  <rect x="480" y="30" width="160" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="560" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">Preference Dataset</text>
+
+  <rect x="720" y="30" width="140" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="790" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">RL Training</text>
+
+  <!-- Arrows -->
+  <line x1="160" y1="50" x2="240" y2="50" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead2)"/>
+  <line x1="400" y1="50" x2="480" y2="50" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead2)"/>
+  <line x1="640" y1="50" x2="720" y2="50" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead2)"/>
+</svg>
 
 1. Generate multiple responses to prompts
 2. Use an AI evaluator to rank responses according to the constitution
@@ -1694,11 +1734,48 @@ The key insight is to use **multiple signals** that should correlate but may div
 
 **Multi-Stage Detection Pipeline**:
 
-```
-Response → [Pattern Check] → [Anomaly Detection] → [Gold Reward] → Classification
-            ↓ Pass            ↓ Pass                ↓ Pass
-          Suspicious         Very Suspicious      Definitely Hacked
-```
+<svg viewBox="0 0 900 150" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrowhead3" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#4A90A4" />
+    </marker>
+  </defs>
+
+  <!-- Top row boxes -->
+  <rect x="20" y="20" width="120" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="80" y="45" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">Response</text>
+
+  <rect x="200" y="20" width="140" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="270" y="45" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">Pattern Check</text>
+
+  <rect x="400" y="20" width="180" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="490" y="45" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">Anomaly Detection</text>
+
+  <rect x="640" y="20" width="140" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="710" y="45" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">Gold Reward</text>
+
+  <rect x="840" y="20" width="140" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="910" y="45" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">Classification</text>
+
+  <!-- Horizontal arrows -->
+  <line x1="140" y1="40" x2="200" y2="40" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead3)"/>
+  <line x1="340" y1="40" x2="400" y2="40" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead3)"/>
+  <line x1="580" y1="40" x2="640" y2="40" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead3)"/>
+  <line x1="780" y1="40" x2="840" y2="40" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead3)"/>
+
+  <!-- Vertical arrows and labels -->
+  <line x1="270" y1="60" x2="270" y2="85" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead3)"/>
+  <text x="270" y="75" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#4A90A4">Pass</text>
+  <text x="270" y="105" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">Suspicious</text>
+
+  <line x1="490" y1="60" x2="490" y2="85" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead3)"/>
+  <text x="490" y="75" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#4A90A4">Pass</text>
+  <text x="490" y="105" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">Very Suspicious</text>
+
+  <line x1="710" y1="60" x2="710" y2="85" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead3)"/>
+  <text x="710" y="75" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#4A90A4">Pass</text>
+  <text x="710" y="105" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">Definitely Hacked</text>
+</svg>
 
 Each stage is more expensive but more accurate.
 
@@ -2622,9 +2699,44 @@ This holds when:
 3. The evaluator can correctly assess whether responses follow principles
 
 **Bootstrapping and Self-Improvement**: RLAIF creates a feedback loop:
-```
-Initial Model → Generate Responses → AI Evaluates → Preference Data → Train Reward → RL → Improved Model
-```
+
+<svg viewBox="0 0 1100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrowhead4" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#4A90A4" />
+    </marker>
+  </defs>
+
+  <!-- Boxes -->
+  <rect x="20" y="30" width="120" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="80" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">Initial Model</text>
+
+  <rect x="190" y="30" width="160" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="270" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">Generate Responses</text>
+
+  <rect x="400" y="30" width="130" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="465" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">AI Evaluates</text>
+
+  <rect x="580" y="30" width="150" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="655" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">Preference Data</text>
+
+  <rect x="780" y="30" width="130" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="845" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">Train Reward</text>
+
+  <rect x="960" y="30" width="60" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="990" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">RL</text>
+
+  <rect x="1070" y="30" width="140" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="1140" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">Improved Model</text>
+
+  <!-- Arrows -->
+  <line x1="140" y1="50" x2="190" y2="50" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead4)"/>
+  <line x1="350" y1="50" x2="400" y2="50" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead4)"/>
+  <line x1="530" y1="50" x2="580" y2="50" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead4)"/>
+  <line x1="730" y1="50" x2="780" y2="50" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead4)"/>
+  <line x1="910" y1="50" x2="960" y2="50" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead4)"/>
+  <line x1="1020" y1="50" x2="1070" y2="50" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead4)"/>
+</svg>
 
 This can lead to:
 - **Positive feedback**: Model gets better at following principles
@@ -3061,14 +3173,63 @@ Best practice: Use diverse detection methods (pattern matching, ML classifiers, 
 
 **Pipeline Stages**:
 
-```
-User Input → [Input Filter] → [Model Generation] → [Output Filter] → Response
-                ↓                      ↓                    ↓
-             Refuse if            Safe prompt          Refuse if
-           jailbreak/toxic        augmentation        toxic/harmful
-                ↓                      ↓                    ↓
-            [Logging] ← ───────────────┴────────────────────┘
-```
+<svg viewBox="0 0 850 180" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrowhead5" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#4A90A4" />
+    </marker>
+  </defs>
+
+  <!-- Top row boxes -->
+  <rect x="20" y="20" width="100" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="70" y="45" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">User Input</text>
+
+  <rect x="170" y="20" width="110" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="225" y="45" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">Input Filter</text>
+
+  <rect x="330" y="20" width="160" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="410" y="45" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">Model Generation</text>
+
+  <rect x="540" y="20" width="120" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="600" y="45" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">Output Filter</text>
+
+  <rect x="710" y="20" width="100" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="760" y="45" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">Response</text>
+
+  <!-- Horizontal arrows -->
+  <line x1="120" y1="40" x2="170" y2="40" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead5)"/>
+  <line x1="280" y1="40" x2="330" y2="40" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead5)"/>
+  <line x1="490" y1="40" x2="540" y2="40" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead5)"/>
+  <line x1="660" y1="40" x2="710" y2="40" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead5)"/>
+
+  <!-- Vertical arrows from filters -->
+  <line x1="225" y1="60" x2="225" y2="85" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead5)"/>
+  <line x1="410" y1="60" x2="410" y2="85" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead5)"/>
+  <line x1="600" y1="60" x2="600" y2="85" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead5)"/>
+
+  <!-- Middle row text -->
+  <text x="225" y="105" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">Refuse if</text>
+  <text x="225" y="120" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">jailbreak/toxic</text>
+
+  <text x="410" y="105" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">Safe prompt</text>
+  <text x="410" y="120" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">augmentation</text>
+
+  <text x="600" y="105" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">Refuse if</text>
+  <text x="600" y="120" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">toxic/harmful</text>
+
+  <!-- Arrows to logging -->
+  <line x1="225" y1="125" x2="225" y2="145" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead5)"/>
+  <line x1="410" y1="125" x2="410" y2="145" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead5)"/>
+  <line x1="600" y1="125" x2="600" y2="145" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead5)"/>
+
+  <!-- Logging box -->
+  <rect x="340" y="145" width="100" height="30" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <text x="390" y="165" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">Logging</text>
+
+  <!-- Arrows from stages to logging -->
+  <line x1="225" y1="145" x2="340" y2="160" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead5)"/>
+  <line x1="600" y1="145" x2="440" y2="160" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead5)"/>
+</svg>
 
 **Key Design Principles**:
 

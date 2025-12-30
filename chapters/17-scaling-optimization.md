@@ -2149,30 +2149,108 @@ Training large language models is complex, and problems will arise. This section
 
 Loss spikes are common in LLM training. Use this flowchart to diagnose:
 
-```
-Loss spike detected (loss increases >0.5 in one step)
-│
-├─> Check gradient norm
-│   ├─> If grad_norm > 100: Learning rate too high
-│   │   └─> Action: Reduce LR by 2×, increase max_grad_norm
-│   │
-│   └─> If grad_norm normal (<10): Data issue
-│       └─> Action: Log the batch, check for anomalies
-│
-├─> Check if spike recovers
-│   ├─> Recovers in <100 steps: Acceptable, monitor
-│   │   └─> Action: Continue training, might be rare bad batch
-│   │
-│   └─> Doesn't recover or repeats: Serious issue
-│       └─> Action: Stop, diagnose further
-│
-└─> Check training step
-    ├─> Spike in first 1K steps: Warmup too short
-    │   └─> Action: Restart with longer warmup
-    │
-    └─> Spike mid-training: Check learning rate schedule
-        └─> Action: Ensure smooth decay, no sudden LR changes
-```
+<svg viewBox="0 0 800 650" xmlns="http://www.w3.org/2000/svg" style="max-width: 100%; height: auto;">
+  <defs>
+    <style>
+      .box { fill: #f5f5f5; stroke: #4A90A4; stroke-width: 2; }
+      .text { fill: #333; font-family: system-ui, -apple-system, sans-serif; font-size: 13px; }
+      .title { fill: #333; font-family: system-ui, -apple-system, sans-serif; font-size: 14px; font-weight: 600; }
+      .action { fill: #2d5f2e; font-family: system-ui, -apple-system, sans-serif; font-size: 12px; }
+      .line { stroke: #4A90A4; stroke-width: 2; fill: none; }
+      .arrow { fill: #4A90A4; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" class="arrow" />
+    </marker>
+  </defs>
+
+  <!-- Root node -->
+  <rect x="150" y="10" width="500" height="40" rx="5" class="box"/>
+  <text x="400" y="35" text-anchor="middle" class="title">Loss spike detected (loss increases &gt;0.5 in one step)</text>
+
+  <!-- Vertical line from root -->
+  <line x1="400" y1="50" x2="400" y2="80" class="line" marker-end="url(#arrowhead)"/>
+
+  <!-- Branch 1: Check gradient norm -->
+  <rect x="100" y="80" width="200" height="35" rx="5" class="box"/>
+  <text x="200" y="102" text-anchor="middle" class="text">Check gradient norm</text>
+  <line x1="400" y1="80" x2="300" y2="80" class="line"/>
+  <line x1="300" y1="80" x2="300" y2="97" class="line" marker-end="url(#arrowhead)"/>
+
+  <!-- Branch 1.1: High gradient norm -->
+  <rect x="50" y="130" width="280" height="35" rx="5" class="box"/>
+  <text x="190" y="152" text-anchor="middle" class="text">If grad_norm &gt; 100: Learning rate too high</text>
+  <line x1="200" y1="115" x2="200" y2="130" class="line" marker-end="url(#arrowhead)"/>
+
+  <rect x="30" y="180" width="340" height="35" rx="5" style="fill: #e8f5e9; stroke: #4A90A4; stroke-width: 2;"/>
+  <text x="200" y="202" text-anchor="middle" class="action">Action: Reduce LR by 2×, increase max_grad_norm</text>
+  <line x1="200" y1="165" x2="200" y2="180" class="line" marker-end="url(#arrowhead)"/>
+
+  <!-- Branch 1.2: Normal gradient norm -->
+  <rect x="50" y="240" width="280" height="35" rx="5" class="box"/>
+  <text x="190" y="262" text-anchor="middle" class="text">If grad_norm normal (&lt;10): Data issue</text>
+  <line x1="200" y1="115" x2="100" y2="115" class="line"/>
+  <line x1="100" y1="115" x2="100" y2="257" class="line"/>
+  <line x1="100" y1="257" x2="50" y2="257" class="line" marker-end="url(#arrowhead)"/>
+
+  <rect x="30" y="290" width="340" height="35" rx="5" style="fill: #e8f5e9; stroke: #4A90A4; stroke-width: 2;"/>
+  <text x="200" y="312" text-anchor="middle" class="action">Action: Log the batch, check for anomalies</text>
+  <line x1="190" y1="275" x2="190" y2="290" class="line" marker-end="url(#arrowhead)"/>
+
+  <!-- Branch 2: Check if spike recovers -->
+  <rect x="350" y="130" width="200" height="35" rx="5" class="box"/>
+  <text x="450" y="152" text-anchor="middle" class="text">Check if spike recovers</text>
+  <line x1="400" y1="80" x2="400" y2="115" class="line"/>
+  <line x1="400" y1="115" x2="450" y2="115" class="line"/>
+  <line x1="450" y1="115" x2="450" y2="130" class="line" marker-end="url(#arrowhead)"/>
+
+  <!-- Branch 2.1: Recovers quickly -->
+  <rect x="380" y="180" width="280" height="35" rx="5" class="box"/>
+  <text x="520" y="202" text-anchor="middle" class="text">Recovers in &lt;100 steps: Acceptable, monitor</text>
+  <line x1="450" y1="165" x2="450" y2="180" class="line" marker-end="url(#arrowhead)"/>
+
+  <rect x="370" y="230" width="320" height="35" rx="5" style="fill: #e8f5e9; stroke: #4A90A4; stroke-width: 2;"/>
+  <text x="530" y="252" text-anchor="middle" class="action">Action: Continue training, might be rare bad batch</text>
+  <line x1="520" y1="215" x2="520" y2="230" class="line" marker-end="url(#arrowhead)"/>
+
+  <!-- Branch 2.2: Doesn't recover -->
+  <rect x="380" y="290" width="280" height="35" rx="5" class="box"/>
+  <text x="520" y="312" text-anchor="middle" class="text">Doesn't recover or repeats: Serious issue</text>
+  <line x1="450" y1="165" x2="350" y2="165" class="line"/>
+  <line x1="350" y1="165" x2="350" y2="307" class="line"/>
+  <line x1="350" y1="307" x2="380" y2="307" class="line" marker-end="url(#arrowhead)"/>
+
+  <rect x="410" y="340" width="240" height="35" rx="5" style="fill: #e8f5e9; stroke: #4A90A4; stroke-width: 2;"/>
+  <text x="530" y="362" text-anchor="middle" class="action">Action: Stop, diagnose further</text>
+  <line x1="520" y1="325" x2="520" y2="340" class="line" marker-end="url(#arrowhead)"/>
+
+  <!-- Branch 3: Check training step -->
+  <rect x="500" y="400" width="200" height="35" rx="5" class="box"/>
+  <text x="600" y="422" text-anchor="middle" class="text">Check training step</text>
+  <line x1="400" y1="80" x2="500" y2="80" class="line"/>
+  <line x1="500" y1="80" x2="500" y2="417" class="line"/>
+  <line x1="500" y1="417" x2="500" y2="417" class="line" marker-end="url(#arrowhead)"/>
+
+  <!-- Branch 3.1: Early spike -->
+  <rect x="430" y="450" width="280" height="35" rx="5" class="box"/>
+  <text x="570" y="472" text-anchor="middle" class="text">Spike in first 1K steps: Warmup too short</text>
+  <line x1="600" y1="435" x2="600" y2="450" class="line" marker-end="url(#arrowhead)"/>
+
+  <rect x="470" y="500" width="260" height="35" rx="5" style="fill: #e8f5e9; stroke: #4A90A4; stroke-width: 2;"/>
+  <text x="600" y="522" text-anchor="middle" class="action">Action: Restart with longer warmup</text>
+  <line x1="570" y1="485" x2="570" y2="500" class="line" marker-end="url(#arrowhead)"/>
+
+  <!-- Branch 3.2: Mid-training spike -->
+  <rect x="400" y="560" width="340" height="35" rx="5" class="box"/>
+  <text x="570" y="582" text-anchor="middle" class="text">Spike mid-training: Check learning rate schedule</text>
+  <line x1="600" y1="435" x2="500" y2="435" class="line"/>
+  <line x1="500" y1="435" x2="500" y2="577" class="line"/>
+  <line x1="500" y1="577" x2="400" y2="577" class="line" marker-end="url(#arrowhead)"/>
+
+  <rect x="380" y="610" width="380" height="35" rx="5" style="fill: #e8f5e9; stroke: #4A90A4; stroke-width: 2;"/>
+  <text x="570" y="632" text-anchor="middle" class="action">Action: Ensure smooth decay, no sudden LR changes</text>
+  <line x1="570" y1="595" x2="570" y2="610" class="line" marker-end="url(#arrowhead)"/>
+</svg>
 
 ### Debugging Flowchart
 
