@@ -1341,21 +1341,19 @@ The critical batch size concept comes from analyzing the **noise in stochastic g
 
 2. **Batch size effect**: Larger batches reduce noise by $1/\sqrt{B}$ (Central Limit Theorem), so:
 
-
-   ```math
+```math
 \text{Effective noise} \propto \frac{\text{Var}[\mathbf{g}]}{B}
 ```
 
 3. **Learning rate interaction**: Higher LR amplifies both signal and noise. The critical batch size occurs when:
 
-
-   ```math
+```math
 \frac{\eta^2 \text{Var}[\mathbf{g}]}{B} \approx \|\mathbb{E}[\mathbf{g}]\|^2
 ```
 
-   Solving for $B$:
+Solving for $B$:
 
-   ```math
+```math
 B_{\text{crit}} \approx \frac{\eta^2 \text{Var}[\mathbf{g}]}{\|\mathbb{E}[\mathbf{g}]\|^2} = \left(\frac{G_{\text{noise}}}{\eta}\right)^2
 ```
 
@@ -1880,32 +1878,29 @@ Try adjustments in this order (one at a time):
 
 1. **If loss spikes:**
 
-
-   ```python
-   # Reduce LR (safest fix)
-   new_lr = current_lr * 0.5
-   # OR increase warmup
-   new_warmup = warmup_steps * 2
+```python
+# Reduce LR (safest fix)
+new_lr = current_lr * 0.5
+# OR increase warmup
+new_warmup = warmup_steps * 2
 ```
 
 2. **If loss too high:**
 
-
-   ```python
-   # Increase LR cautiously
-   new_lr = current_lr * 1.5
-   # Verify with small test run first
+```python
+# Increase LR cautiously
+new_lr = current_lr * 1.5
+# Verify with small test run first
 ```
 
 3. **If gradients unstable:**
 
-
-   ```python
-   # Adjust clipping
-   if clip_rate > 0.8:
-       max_grad_norm *= 1.5  # Less aggressive clipping
-   elif clip_rate < 0.1:
-       max_grad_norm *= 0.7  # More aggressive clipping
+```python
+# Adjust clipping
+if clip_rate > 0.8:
+    max_grad_norm *= 1.5  # Less aggressive clipping
+elif clip_rate < 0.1:
+    max_grad_norm *= 0.7  # More aggressive clipping
 ```
 
 ### Learning Rate Sensitivity Analysis
