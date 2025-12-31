@@ -1,0 +1,44 @@
+# ChkTeX configuration for ML Study Guide
+# This configures LaTeX linting for math extracted from markdown files
+
+# Verbosity level
+QuoteStyle = Traditional
+
+# Suppress warnings that don't apply to markdown-embedded math
+# Use CmdLine to pass command-line style options
+
+# Warning 1: Command terminated with space - often acceptable in math mode
+CmdLine { -n1 }
+
+# Warning 8: Wrong length of dash - Markdown handles dashes differently
+CmdLine { -n8 }
+
+# Warning 13: Interword spacing before punctuation - Not relevant for math
+CmdLine { -n13 }
+
+# Warning 24: Delete this space to maintain correct interword spacing - Not critical
+CmdLine { -n24 }
+
+# Warning 26: You ought to remove spaces in front of punctuation - Often false positive
+CmdLine { -n26 }
+
+# Warning 29: $$ should be \[...\] - We use $...$ from markdown which is fine
+CmdLine { -n29 }
+
+# Warning 36: You should put a space in front of parenthesis - Not applicable to math
+CmdLine { -n36 }
+
+# Warning 38: You should not use punctuation in front of quotes - Not applicable
+CmdLine { -n38 }
+
+# Warning 41: You ought to remove spaces after parenthesis - Not critical
+CmdLine { -n41 }
+
+# Warning 42: You should remove spaces before parenthesis - Not critical
+CmdLine { -n42 }
+
+# Warning 43: You should use \( ... \) instead of $...$ - markdown uses $
+CmdLine { -n43 }
+
+# Warning 44: User-Regex - Disable user regex warnings
+CmdLine { -n44 }

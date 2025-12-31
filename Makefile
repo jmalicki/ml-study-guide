@@ -1,4 +1,4 @@
-.PHONY: help lint validate check-svg validate-svg validate-activation-svg check-svg-contrast check-latex check-markdown-syntax check install-hooks install-claude-hooks clean
+.PHONY: help lint validate check-svg validate-svg validate-activation-svg check-svg-contrast check-latex lint-latex check-markdown-syntax check install-hooks install-claude-hooks clean
 
 help:
 	@echo "ML Study Guide - Development Commands"
@@ -10,7 +10,8 @@ help:
 	@echo "  make validate-svg             - Validate SVG files with SVGO"
 	@echo "  make validate-activation-svg  - Validate activation function SVG against PyTorch"
 	@echo "  make check-svg-contrast       - Check SVG text contrast accessibility"
-	@echo "  make check-latex              - Validate LaTeX syntax in markdown files"
+	@echo "  make check-latex              - Validate LaTeX syntax in markdown files (custom rules)"
+	@echo "  make lint-latex               - Lint LaTeX with ChkTeX (external linter)"
 	@echo "  make check-markdown-syntax    - Check for suspicious markdown rendering patterns"
 	@echo "  make check                    - Run all checks (lint + validate + svg + latex + contrast + markdown)"
 	@echo "  make install-hooks            - Install standard git pre-commit hooks"
@@ -54,11 +55,16 @@ check-latex:
 	@echo "Validating LaTeX syntax..."
 	python3 scripts/check_latex.py
 
+lint-latex:
+	@echo "Linting LaTeX with ChkTeX..."
+	@command -v chktex >/dev/null 2>&1 || { echo "ChkTeX not found. Install with: sudo apt install chktex (or brew install chktex)"; exit 1; }
+	python3 scripts/lint_latex.py
+
 check-markdown-syntax:
 	@echo "Checking markdown syntax..."
 	python3 scripts/check_markdown_syntax.py
 
-check: lint validate check-svg validate-svg check-svg-contrast check-latex check-markdown-syntax
+check: lint validate check-svg validate-svg check-svg-contrast check-latex lint-latex check-markdown-syntax
 	@echo ""
 	@echo "All checks passed!"
 
