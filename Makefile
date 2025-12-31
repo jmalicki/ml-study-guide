@@ -1,4 +1,4 @@
-.PHONY: help lint validate check-svg check install-hooks install-claude-hooks clean
+.PHONY: help lint validate check-svg validate-svg check install-hooks install-claude-hooks clean
 
 help:
 	@echo "ML Study Guide - Development Commands"
@@ -7,6 +7,7 @@ help:
 	@echo "  make lint                - Run markdown linting"
 	@echo "  make validate            - Run link validation"
 	@echo "  make check-svg           - Check for inline SVG (not supported on GitHub)"
+	@echo "  make validate-svg        - Validate SVG files with SVGO"
 	@echo "  make check               - Run all checks (lint + validate + svg)"
 	@echo "  make install-hooks       - Install standard git pre-commit hooks"
 	@echo "  make install-claude-hooks - Install Claude Code hooks"
@@ -26,7 +27,18 @@ check-svg:
 	@echo "Checking for inline SVG..."
 	python3 scripts/check_inline_svg.py
 
-check: lint validate check-svg
+validate-svg:
+	@echo "Validating SVG files with SVGO..."
+	@command -v svgo >/dev/null 2>&1 || { echo "Installing svgo..."; npm install -g svgo; }
+	@for f in assets/diagrams/*.svg; do \
+		if ! svgo --input "$$f" --output /dev/null 2>&1; then \
+			echo "ERROR: Invalid SVG: $$f"; \
+			exit 1; \
+		fi; \
+	done
+	@echo "All SVG files are valid!"
+
+check: lint validate check-svg validate-svg
 	@echo ""
 	@echo "All checks passed!"
 

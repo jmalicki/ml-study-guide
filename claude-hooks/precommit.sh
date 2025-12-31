@@ -31,5 +31,16 @@ if ! make check-svg; then
 fi
 
 echo ""
+
+# Validate SVG files
+echo "3. Validating SVG files..."
+if ! make validate-svg; then
+    echo ""
+    echo "ERROR: Invalid SVG files detected!"
+    echo "Please fix SVG syntax errors before committing."
+    exit 1
+fi
+
+echo ""
 echo "All pre-commit checks passed!"
 exit 0
