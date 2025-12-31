@@ -164,22 +164,22 @@
     <rect x="400" y="120" width="250" height="100" class="bg-legend" stroke="#999" stroke-width="1" rx="5" />
 
     <rect x="420" y="135" width="25" height="25" fill="#4A90A4" stroke="#333" stroke-width="1" opacity="0.8" />
-    <text x="455" y="153" font-size="12" fill="#333">Attends (within window)</text>
+    <text x="455" y="153" font-size="12" fill="#000">Attends (within window)</text>
 
     <rect x="420" y="170" width="25" height="25" fill="#e0e0e0" stroke="#333" stroke-width="1" />
-    <text x="455" y="188" font-size="12" fill="#333">Masked (outside window)</text>
+    <text x="455" y="188" font-size="12" fill="#000">Masked (outside window)</text>
   </g>
 
 
   <g id="properties">
     <rect x="400" y="240" width="250" height="110" class="bg-box" stroke="#4A90A4" stroke-width="2" rx="5" />
 
-    <text x="525" y="265" font-size="13" font-weight="bold" text-anchor="middle" fill="#333">Key Properties</text>
+    <text x="525" y="265" font-size="13" font-weight="bold" text-anchor="middle" fill="#000">Key Properties</text>
 
-    <text x="420" y="285" font-size="11" fill="#333">• Causal: Can't see future</text>
-    <text x="420" y="302" font-size="11" fill="#333">• Window size = 4 tokens</text>
-    <text x="420" y="319" font-size="11" fill="#333">• Complexity: O(n·w) not O(n²)</text>
-    <text x="420" y="336" font-size="11" fill="#333">• Fixed KV cache size</text>
+    <text x="420" y="285" font-size="11" fill="#000">• Causal: Can't see future</text>
+    <text x="420" y="302" font-size="11" fill="#000">• Window size = 4 tokens</text>
+    <text x="420" y="319" font-size="11" fill="#000">• Complexity: O(n·w) not O(n²)</text>
+    <text x="420" y="336" font-size="11" fill="#000">• Fixed KV cache size</text>
   </g>
 
   
@@ -218,9 +218,9 @@
     <rect x="145" y="495" width="110" height="20" fill="#FFB74D" stroke="#333" stroke-width="1" opacity="0.5" />
     <text x="265" y="510" font-size="10" fill="#666">Receptive field: 12 tokens</text>
 
-    
-    <text x="400" y="440" font-size="11" fill="#333">At layer L, receptive field = L × w</text>
-    <text x="400" y="457" font-size="11" fill="#333">Mistral 7B: 32 layers × 4096 window</text>
+
+    <text x="400" y="440" font-size="11" fill="#000">At layer L, receptive field = L × w</text>
+    <text x="400" y="457" font-size="11" fill="#000">Mistral 7B: 32 layers × 4096 window</text>
     <text x="400" y="474" font-size="11" font-weight="bold" fill="#4A90A4">= 131K effective context!</text>
 
     
@@ -234,7 +234,7 @@
 
   <g id="summary">
     <rect x="50" y="540" width="600" height="50" class="bg-summary" stroke="#333" stroke-width="1" rx="5" />
-    <text x="350" y="560" font-size="12" font-weight="bold" text-anchor="middle" fill="#333">
+    <text x="350" y="560" font-size="12" font-weight="bold" text-anchor="middle" fill="#000">
       Used in: Mistral 7B, Qwen, Gemma 2
     </text>
     <text x="350" y="578" font-size="10" text-anchor="middle" fill="#666">

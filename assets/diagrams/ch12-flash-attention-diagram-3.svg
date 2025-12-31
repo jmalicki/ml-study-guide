@@ -57,7 +57,7 @@
     <rect x="0" y="60" width="30" height="30" class="tile" stroke="#4A90A4" stroke-width="1.5" />
     <rect x="30" y="60" width="30" height="30" class="tile" stroke="#4A90A4" stroke-width="1.5" />
     <rect x="60" y="60" width="30" height="30" class="tile" stroke="#4A90A4" stroke-width="1.5" />
-    <text x="45" y="110" font-family="system-ui, -apple-system, sans-serif" font-size="11"  text-anchor="middle">Br×d blocks</text>
+    <text x="45" y="110" font-family="system-ui, -apple-system, sans-serif" font-size="11"  text-anchor="middle" fill="#000">Br×d blocks</text>
   </g>
 
 
@@ -73,7 +73,7 @@
     <rect x="0" y="60" width="30" height="30" fill="#fff0f0" stroke="#4A90A4" stroke-width="1.5" />
     <rect x="30" y="60" width="30" height="30" fill="#fff0f0" stroke="#4A90A4" stroke-width="1.5" />
     <rect x="60" y="60" width="30" height="30" fill="#fff0f0" stroke="#4A90A4" stroke-width="1.5" />
-    <text x="45" y="110" font-family="system-ui, -apple-system, sans-serif" font-size="11"  text-anchor="middle">Bc×d blocks</text>
+    <text x="45" y="110" font-family="system-ui, -apple-system, sans-serif" font-size="11"  text-anchor="middle" fill="#000">Bc×d blocks</text>
   </g>
 
 
@@ -89,7 +89,7 @@
     <rect x="0" y="60" width="30" height="30" fill="#f0fff0" stroke="#4A90A4" stroke-width="1.5" />
     <rect x="30" y="60" width="30" height="30" fill="#f0fff0" stroke="#4A90A4" stroke-width="1.5" />
     <rect x="60" y="60" width="30" height="30" fill="#f0fff0" stroke="#4A90A4" stroke-width="1.5" />
-    <text x="45" y="110" font-family="system-ui, -apple-system, sans-serif" font-size="11"  text-anchor="middle">Bc×d blocks</text>
+    <text x="45" y="110" font-family="system-ui, -apple-system, sans-serif" font-size="11"  text-anchor="middle" fill="#000">Bc×d blocks</text>
   </g>
 
   

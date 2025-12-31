@@ -64,7 +64,7 @@
     <rect x="52" y="15" width="50" height="40" fill="#D32F2F" stroke="#333" stroke-width="1.5" />
     <text x="77" y="40" font-family="Arial, sans-serif" font-size="11"  text-anchor="middle">T₁</text>
 
-    <text x="107" y="40" font-family="Arial, sans-serif" font-size="16" fill="#333" text-anchor="middle">...</text>
+    <text x="107" y="40" font-family="Arial, sans-serif" font-size="16" fill="#fff" text-anchor="middle">...</text>
 
     <rect x="122" y="15" width="50" height="40" fill="#D32F2F" stroke="#333" stroke-width="1.5" />
     <text x="147" y="40" font-family="Arial, sans-serif" font-size="11"  text-anchor="middle">T₁₀₀₀</text>
@@ -72,18 +72,18 @@
     <rect x="174" y="15" width="50" height="40" fill="#D32F2F" stroke="#333" stroke-width="1.5" />
     <text x="199" y="40" font-family="Arial, sans-serif" font-size="11"  text-anchor="middle">T₁₀₀₁</text>
 
-    <text x="229" y="40" font-family="Arial, sans-serif" font-size="16" fill="#333" text-anchor="middle">...</text>
+    <text x="229" y="40" font-family="Arial, sans-serif" font-size="16" text-anchor="middle">...</text>
 
     
     <path d="M 250 35 L 320 35" fill="none" stroke="#E57373" stroke-width="2" marker-end="url(#arrowhead-red)" />
     <text x="330" y="40" font-family="Arial, sans-serif" font-size="13" fill="#E57373" font-weight="bold">Grows unbounded!</text>
 
-    <text x="0" y="80" font-family="Arial, sans-serif" font-size="12" fill="#666">
+    <text x="0" y="82" font-family="Arial, sans-serif" font-size="12" fill="#666">
       ✗ Memory grows linearly with sequence length
     </text>
   </g>
 
-  
+
   <g transform="translate(50, 200)">
     <text x="250" y="0" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#333" text-anchor="middle">
       Naive Truncation (Fails: No Attention Sink)
@@ -96,12 +96,12 @@
     <rect x="92" y="15" width="50" height="40" fill="#D32F2F" stroke="#333" stroke-width="1.5" />
     <text x="117" y="40" font-family="Arial, sans-serif" font-size="11"  text-anchor="middle">T₉₉₆</text>
 
-    <text x="147" y="40" font-family="Arial, sans-serif" font-size="16" fill="#333" text-anchor="middle">...</text>
+    <text x="147" y="40" font-family="Arial, sans-serif" font-size="16" fill="#fff" text-anchor="middle">...</text>
 
     <rect x="162" y="15" width="50" height="40" fill="#D32F2F" stroke="#333" stroke-width="1.5" />
     <text x="187" y="40" font-family="Arial, sans-serif" font-size="11"  text-anchor="middle">T₂₀₄₇</text>
 
-    <text x="0" y="80" font-family="Arial, sans-serif" font-size="12" fill="#666">
+    <text x="0" y="82" font-family="Arial, sans-serif" font-size="12" fill="#666">
       ✗ Softmax has no "sink" for irrelevant attention → numerical instability
     </text>
   </g>
@@ -117,20 +117,20 @@
       Attention Sinks (4 tokens)
     </text>
     <rect x="0" y="35" width="40" height="45" fill="#2E7D8E" stroke="#333" stroke-width="2" />
-    <text x="20" y="50" font-family="Arial, sans-serif" font-size="11"  text-anchor="middle">T₀</text>
-    <text x="20" y="65" font-family="Arial, sans-serif" font-size="9"  text-anchor="middle">SINK</text>
+    <text x="20" y="50" font-family="Arial, sans-serif" font-size="11" style="fill: #fff !important" text-anchor="middle">T₀</text>
+    <text x="20" y="65" font-family="Arial, sans-serif" font-size="9" style="fill: #fff !important" text-anchor="middle">SINK</text>
 
     <rect x="42" y="35" width="40" height="45" fill="#2E7D8E" stroke="#333" stroke-width="2" />
-    <text x="62" y="50" font-family="Arial, sans-serif" font-size="11"  text-anchor="middle">T₁</text>
-    <text x="62" y="65" font-family="Arial, sans-serif" font-size="9"  text-anchor="middle">SINK</text>
+    <text x="62" y="50" font-family="Arial, sans-serif" font-size="11" style="fill: #fff !important" text-anchor="middle">T₁</text>
+    <text x="62" y="65" font-family="Arial, sans-serif" font-size="9" style="fill: #fff !important" text-anchor="middle">SINK</text>
 
     <rect x="84" y="35" width="40" height="45" fill="#2E7D8E" stroke="#333" stroke-width="2" />
-    <text x="104" y="50" font-family="Arial, sans-serif" font-size="11"  text-anchor="middle">T₂</text>
-    <text x="104" y="65" font-family="Arial, sans-serif" font-size="9"  text-anchor="middle">SINK</text>
+    <text x="104" y="50" font-family="Arial, sans-serif" font-size="11" style="fill: #fff !important" text-anchor="middle">T₂</text>
+    <text x="104" y="65" font-family="Arial, sans-serif" font-size="9" style="fill: #fff !important" text-anchor="middle">SINK</text>
 
     <rect x="126" y="35" width="40" height="45" fill="#2E7D8E" stroke="#333" stroke-width="2" />
-    <text x="146" y="50" font-family="Arial, sans-serif" font-size="11"  text-anchor="middle">T₃</text>
-    <text x="146" y="65" font-family="Arial, sans-serif" font-size="9"  text-anchor="middle">SINK</text>
+    <text x="146" y="50" font-family="Arial, sans-serif" font-size="11" style="fill: #fff !important" text-anchor="middle">T₃</text>
+    <text x="146" y="65" font-family="Arial, sans-serif" font-size="9" style="fill: #fff !important" text-anchor="middle">SINK</text>
 
     
     <rect x="178" y="35" width="150" height="45" fill="#E8E8E8" stroke="#333" stroke-width="1.5" stroke-dasharray="4,4" />
