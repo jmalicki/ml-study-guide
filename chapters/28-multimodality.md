@@ -469,6 +469,14 @@ def siglip_loss(
 
 Cross-modal attention allows the language model to attend to visual features. See [Cross-Attention](06-cross-attention.md) for the general mechanism.
 
+![Cross-Modal Attention Diagram](../assets/diagrams/ch28-cross-modal-attention.svg)
+
+The diagram above illustrates how text tokens (queries) attend to image patches (keys and values). Notice how semantic words like "cat" and "mat" have strong attention weights to their corresponding visual regions, while function words distribute attention more broadly.
+
+![Attention Heatmap](../assets/diagrams/ch28-attention-heatmap.svg)
+
+The heatmap shows the attention weight matrix between text tokens and image patches. Each cell represents how strongly a text token attends to a specific image patch. Darker colors indicate stronger attention. This visualization reveals how the model creates cross-modal semantic alignment.
+
 ```python
 class CrossModalAttention(nn.Module):
     """Cross-attention from text (query) to visual features (key, value).
@@ -647,6 +655,10 @@ LLaVA (Large Language and Vision Assistant) connects a vision encoder to an LLM 
 1. **Vision Encoder**: Pre-trained CLIP ViT
 2. **Projection**: Linear layer to map visual features to LLM embedding space
 3. **Language Model**: Pre-trained LLM (Vicuna, LLaMA)
+
+![Vision-Language Model Architecture](../assets/diagrams/ch28-vision-llm-architecture.svg)
+
+This diagram shows the complete flow from image and text inputs through the vision encoder, projection layer, concatenation, and final processing by the LLM. The key insight is that vision features are projected into the same embedding space as text, allowing the LLM to process them jointly through its transformer layers.
 
 ```python
 class LLaVA(nn.Module):
@@ -3148,6 +3160,10 @@ Where:
 Different approaches to handling multiple modalities:
 
 **The Problem:** Text is naturally discrete (words/subwords), but images, audio, and video are continuous signals. How do we represent all modalities in a way that a transformer can process them together? The tokenization strategy fundamentally affects model architecture, training requirements, and performance.
+
+![Multimodal Tokenization Process](../assets/diagrams/ch28-multimodal-tokenization.svg)
+
+The visualization above shows the complete multimodal tokenization pipeline: images are split into patches and linearly embedded, text is tokenized and embedded, both are projected to a shared dimension space, and finally concatenated into a unified sequence that the LLM can process. This late fusion approach is used by models like LLaVA and BLIP-2.
 
 **Three Main Approaches:**
 
