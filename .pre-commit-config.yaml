@@ -29,3 +29,11 @@ repos:
         pass_filenames: false
         files: '\.(md)$'
         additional_dependencies: []
+
+      - id: check-inline-svg
+        name: Check for inline SVG
+        entry: python scripts/check_inline_svg.py
+        language: python
+        pass_filenames: false
+        files: '\.(md)$'
+        additional_dependencies: []

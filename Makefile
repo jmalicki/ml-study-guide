@@ -1,15 +1,16 @@
-.PHONY: help lint validate check-svg check install-hooks clean
+.PHONY: help lint validate check-svg check install-hooks install-claude-hooks clean
 
 help:
 	@echo "ML Study Guide - Development Commands"
 	@echo ""
 	@echo "Available targets:"
-	@echo "  make lint           - Run markdown linting"
-	@echo "  make validate       - Run link validation"
-	@echo "  make check-svg      - Check for inline SVG (not supported on GitHub)"
-	@echo "  make check          - Run all checks (lint + validate + svg)"
-	@echo "  make install-hooks  - Install pre-commit hooks"
-	@echo "  make clean          - Clean temporary files"
+	@echo "  make lint                - Run markdown linting"
+	@echo "  make validate            - Run link validation"
+	@echo "  make check-svg           - Check for inline SVG (not supported on GitHub)"
+	@echo "  make check               - Run all checks (lint + validate + svg)"
+	@echo "  make install-hooks       - Install standard git pre-commit hooks"
+	@echo "  make install-claude-hooks - Install Claude Code hooks"
+	@echo "  make clean               - Clean temporary files"
 	@echo ""
 
 lint:
@@ -34,6 +35,30 @@ install-hooks:
 	@command -v pre-commit >/dev/null 2>&1 || { echo "Installing pre-commit..."; pip install pre-commit; }
 	pre-commit install
 	@echo "Pre-commit hooks installed successfully!"
+	@echo ""
+	@echo "To also enable Claude Code hooks, run: make install-claude-hooks"
+
+install-claude-hooks:
+	@echo "Installing Claude Code hooks..."
+	@echo ""
+	@echo "Claude Code hooks must be configured in .claude/settings.json"
+	@echo ""
+	@if [ -f .claude/settings.json ]; then \
+		echo "WARNING: .claude/settings.json already exists!"; \
+		echo "Please manually merge the hook configuration from:"; \
+		echo "  claude-hooks/settings.json.template"; \
+		echo ""; \
+		echo "Or add this to your .claude/settings.json:"; \
+		cat claude-hooks/settings.json.template | sed 's|PROJECT_ROOT|$(CURDIR)|g'; \
+	else \
+		echo "Creating .claude/settings.json..."; \
+		mkdir -p .claude; \
+		cat claude-hooks/settings.json.template | sed 's|PROJECT_ROOT|$(CURDIR)|g' > .claude/settings.json; \
+		echo "Claude Code hooks installed successfully!"; \
+	fi
+	@echo ""
+	@echo "Note: .claude/settings.local.json takes precedence if it exists."
+	@echo "See claude-hooks/README.md for more information."
 
 clean:
 	@echo "Cleaning temporary files..."
