@@ -143,6 +143,207 @@ def has_dark_mode_css(content: str) -> bool:
     return 'prefers-color-scheme: dark' in content
 
 
+def extract_css_from_svg(content: str) -> str:
+    """Extract CSS content from SVG style tags."""
+    css = ""
+    # Find all <style> tags
+    style_matches = re.findall(r'<style[^>]*>(.*?)</style>', content, re.DOTALL)
+    for match in style_matches:
+        css += match + "\n"
+    return css
+
+
+def parse_dark_mode_css(css: str) -> Dict[str, Dict[str, str]]:
+    """Parse dark mode CSS and extract selector properties.
+
+    Returns dict of {selector: {property: value}}
+    """
+    dark_mode_rules = {}
+
+    # Find @media (prefers-color-scheme: dark) blocks
+    # Match from @media to the closing brace, handling nested braces
+    media_pattern = r'@media\s*\([^)]*prefers-color-scheme:\s*dark[^)]*\)\s*\{((?:[^{}]|\{[^}]*\})*)\}'
+    media_matches = re.findall(media_pattern, css, re.DOTALL)
+
+    for media_content in media_matches:
+        # Parse CSS rules within the media query
+        # Match selector { property: value; ... }
+        rule_pattern = r'([^{}/]+)\{([^}]+)\}'
+        rules = re.findall(rule_pattern, media_content)
+
+        for selector, properties in rules:
+            selector = selector.strip()
+            # Skip comments
+            if selector.startswith('/*'):
+                continue
+            if selector not in dark_mode_rules:
+                dark_mode_rules[selector] = {}
+
+            # Parse properties
+            prop_pattern = r'([a-z-]+)\s*:\s*([^;!]+)(?:\s*!important)?'
+            props = re.findall(prop_pattern, properties)
+            for prop_name, prop_value in props:
+                dark_mode_rules[selector][prop_name.strip()] = prop_value.strip()
+
+    return dark_mode_rules
+
+
+def parse_regular_css(css: str) -> Dict[str, Dict[str, str]]:
+    """Parse regular (non-dark-mode) CSS rules.
+
+    Returns dict of {selector: {property: value}}
+    """
+    regular_rules = {}
+
+    # Remove @media blocks first
+    css_without_media = re.sub(r'@media[^{]*\{(?:[^{}]|\{[^}]*\})*\}', '', css, flags=re.DOTALL)
+
+    # Parse remaining CSS rules
+    rule_pattern = r'([^{}/]+)\{([^}]+)\}'
+    rules = re.findall(rule_pattern, css_without_media)
+
+    for selector, properties in rules:
+        selector = selector.strip()
+        # Skip comments
+        if selector.startswith('/*'):
+            continue
+        if selector not in regular_rules:
+            regular_rules[selector] = {}
+
+        # Parse properties
+        prop_pattern = r'([a-z-]+)\s*:\s*([^;!]+)(?:\s*!important)?'
+        props = re.findall(prop_pattern, properties)
+        for prop_name, prop_value in props:
+            regular_rules[selector][prop_name.strip()] = prop_value.strip()
+
+    return regular_rules
+
+
+def is_light_color_value(color_value: str) -> bool:
+    """Check if a color value is light (white, light gray, etc)."""
+    light_colors = ['white', '#fff', '#ffffff', '#f5f5f5', '#fafafa', '#f0f0f0',
+                    '#eeeeee', '#e0e0e0', '#e5e5e5', '#f9f9f9']
+    color_normalized = color_value.lower().strip()
+
+    # Check exact matches
+    if color_normalized in light_colors:
+        return True
+
+    # Check if it's a light hex color (high luminance)
+    if color_normalized.startswith('#'):
+        try:
+            return is_light_color(color_normalized)
+        except:
+            pass
+
+    return False
+
+
+def is_dark_color_value(color_value: str) -> bool:
+    """Check if a color value is dark."""
+    dark_colors = ['black', '#000', '#000000', '#111', '#1a1a1a', '#222', '#333']
+    color_normalized = color_value.lower().strip()
+
+    # Check exact matches
+    if color_normalized in dark_colors:
+        return True
+
+    # Check if it's a dark hex color (low luminance)
+    if color_normalized.startswith('#'):
+        try:
+            return not is_light_color(color_normalized)
+        except:
+            pass
+
+    return False
+
+
+def check_dark_mode_consistency(content: str) -> List[str]:
+    """Check for dark mode CSS consistency issues.
+
+    Specifically checks if text changes to white in dark mode but backgrounds stay light.
+    """
+    issues = []
+
+    if not has_dark_mode_css(content):
+        return issues
+
+    # Extract and parse CSS
+    css = extract_css_from_svg(content)
+    dark_mode_rules = parse_dark_mode_css(css)
+    regular_rules = parse_regular_css(css)
+
+    # Check if text color changes to white/light in dark mode
+    text_selectors_going_white = []
+    for selector, props in dark_mode_rules.items():
+        if 'fill' in props:
+            fill_value = props['fill']
+            if is_light_color_value(fill_value):
+                text_selectors_going_white.append(selector)
+
+    if not text_selectors_going_white:
+        return issues
+
+    # Now check if there are background elements that change to dark
+    # Only consider selectors that are likely backgrounds (not text)
+    background_selectors_going_dark = []
+    for selector, props in dark_mode_rules.items():
+        if 'fill' in props:
+            fill_value = props['fill']
+            # Skip text selectors - we only care about backgrounds
+            if 'text' in selector.lower():
+                continue
+            # Check for background-like selectors
+            if is_dark_color_value(fill_value):
+                background_selectors_going_dark.append(selector)
+
+    # Check for hardcoded light backgrounds in the SVG
+    # Look for rect/path/etc with fill="white" or fill="#fff" etc. in XML
+    # This matches white, #fff, #ffffff, #f5f5f5, #fafafa, #eee, #eeeeee, etc.
+    hardcoded_light_bg_pattern = r'<(?:rect|path|circle|ellipse|polygon)[^>]*fill\s*=\s*["\']?\s*(?:white|#(?:fff(?:fff)?|[ef][0-9a-f][ef][0-9a-f][ef][0-9a-f]|[ef]{3}(?:[ef]{3})?))\s*["\']?[^>]*>'
+    has_hardcoded_light_bg = bool(re.search(hardcoded_light_bg_pattern, content, re.IGNORECASE))
+
+    # Also check for light backgrounds in regular CSS
+    regular_light_backgrounds = []
+    for selector, props in regular_rules.items():
+        if 'fill' in props:
+            fill_value = props['fill']
+            if is_light_color_value(fill_value):
+                # Check if this selector changes to dark in dark mode
+                if selector not in background_selectors_going_dark:
+                    regular_light_backgrounds.append(selector)
+
+    # Report error if we have text going white but no backgrounds going dark
+    # OR if we have hardcoded light backgrounds
+    if text_selectors_going_white:
+        if not background_selectors_going_dark and (has_hardcoded_light_bg or regular_light_backgrounds):
+            issues.append(
+                f"  ERROR: Dark mode makes text white but backgrounds stay light - text will be invisible"
+            )
+            issues.append(
+                f"    Text selectors going white in dark mode: {', '.join(text_selectors_going_white)}"
+            )
+            if has_hardcoded_light_bg:
+                issues.append(
+                    f"    Found hardcoded light backgrounds in SVG elements (not using CSS)"
+                )
+            if regular_light_backgrounds:
+                issues.append(
+                    f"    Light background selectors not changing in dark mode: {', '.join(regular_light_backgrounds)}"
+                )
+        elif not background_selectors_going_dark and not has_hardcoded_light_bg and not regular_light_backgrounds:
+            # Text goes white but we can't find backgrounds - might be transparent
+            # This could be OK if the background is truly transparent, but warn anyway
+            issues.append(
+                f"  WARNING: Dark mode makes text white - ensure backgrounds also change to dark"
+            )
+            issues.append(
+                f"    Text selectors going white: {', '.join(text_selectors_going_white)}"
+            )
+
+    return issues
+
+
 def check_svg_file(svg_path: Path) -> List[str]:
     """Check a single SVG file for contrast issues.
 
@@ -150,6 +351,10 @@ def check_svg_file(svg_path: Path) -> List[str]:
     """
     issues = []
     content = svg_path.read_text()
+
+    # Check for dark mode consistency issues
+    dark_mode_issues = check_dark_mode_consistency(content)
+    issues.extend(dark_mode_issues)
 
     # Check for dark mode CSS
     has_dark_mode = has_dark_mode_css(content)
