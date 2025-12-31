@@ -4211,7 +4211,7 @@ Paper: "Flash-Decoding for long-context inference" (2023)
 
 **Paged Flash Attention: Combining Flash Attention with PagedAttention**
 
-PagedAttention (from vLLM) manages KV cache in pages (see [Hardware, Quantization, and Training Optimization](32-hardware-quantization-optimization.md))
+PagedAttention (from vLLM) manages KV cache in pages (see [Hardware, Quantization, and Training Optimization](33-hardware-quantization-optimization.md))
 
 Paged Flash Attention:
 

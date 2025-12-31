@@ -3538,7 +3538,7 @@ h = W_0 x + \frac{\alpha}{r} BAx
 
 - [Supervised Fine-tuning (SFT)](19-sft.md): What we're fine-tuning for
 - [RLHF](21-rlhf.md): LoRA can be used for RLHF as well
-- [Hardware, Quantization, and Training Optimization](32-hardware-quantization-optimization.md): Quantization details
+- [Hardware, Quantization, and Training Optimization](33-hardware-quantization-optimization.md): Quantization details
 
 ---
 

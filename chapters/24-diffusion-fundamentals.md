@@ -2022,7 +2022,7 @@ In this chapter, we covered:
 
 - [Chapter 25: Implementing Diffusion Models](25-diffusion-implementation.md): Build complete image generation models with UNet architecture
 - [Chapter 26: Advanced Diffusion Topics](26-diffusion-advanced.md): Fast sampling, conditional generation, guidance, and latent diffusion
-- [Chapter 30: Architecture Comparison: Modern LLMs](30-model-architectures.md): See how diffusion applies to language models (WeDLM)
+- [Chapter 31: Architecture Comparison: Modern LLMs](31-model-architectures.md): See how diffusion applies to language models (WeDLM)
 
 ## References
 

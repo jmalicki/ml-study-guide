@@ -4140,7 +4140,7 @@ if __name__ == "__main__":
 
 ### Architecture Comparison
 
-For production safety systems like Claude's, see [Architecture Comparison: Modern LLMs](30-model-architectures.md), which discusses:
+For production safety systems like Claude's, see [Architecture Comparison: Modern LLMs](31-model-architectures.md), which discusses:
 
 - Claude's use of Constitutional AI and RLAIF
 - How different models approach safety-capability tradeoffs
@@ -4207,7 +4207,7 @@ For production safety systems like Claude's, see [Architecture Comparison: Moder
 
 - Review [RLHF](21-rlhf.md) for the foundational RL techniques
 - See [DPO](22-dpo.md) for an alternative to RL-based alignment
-- Check [Architecture Comparison](30-model-architectures.md) for how different models implement safety
+- Check [Architecture Comparison](31-model-architectures.md) for how different models implement safety
 
 **Further Reading:**
 

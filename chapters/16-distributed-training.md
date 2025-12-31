@@ -3690,4 +3690,4 @@ This gives:
 
 **Previous Chapter**: [Language Model Training](15-lm-training.md) - Single-GPU training fundamentals.
 
-**Related**: [Hardware, Quantization, and Training Optimization](32-hardware-quantization-optimization.md) - Hardware considerations for distributed training.
+**Related**: [Hardware, Quantization, and Training Optimization](33-hardware-quantization-optimization.md) - Hardware considerations for distributed training.

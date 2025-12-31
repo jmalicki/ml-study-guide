@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 700">
+
+  <style>
+    /* Light mode (default) */
+    text { fill: #000000; font-family: system-ui, -apple-system, sans-serif; }
+    .title { fill: #333333; font-weight: bold; }
+    .subtitle { fill: #666666; font-size: 14px; }
+    .label { fill: #666666; font-size: 12px; }
+    .small-label { fill: #888888; font-size: 10px; }
+    line, path { stroke: #333333; }
+    rect.icl-box { fill: #E3F2FD; stroke: #2196F3; }
+    rect.ft-box { fill: #F3E5F5; stroke: #9C27B0; }
+    rect.data-box { fill: #FFF9C4; stroke: #FBC02D; }
+    rect.model-box { fill: #C8E6C9; stroke: #4CAF50; }
+    circle.pro { fill: #66BB6A; stroke: #388E3C; }
+    circle.con { fill: #EF5350; stroke: #C62828; }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .title { fill: #ffffff; }
+      .subtitle { fill: #cccccc; }
+      .label { fill: #cccccc; }
+      .small-label { fill: #aaaaaa; }
+      line, path { stroke: #cccccc; }
+
+      rect.icl-box { fill: #1a3a52; stroke: #42A5F5; }
+      rect.ft-box { fill: #3a1a42; stroke: #BA68C8; }
+      rect.data-box { fill: #4d4520; stroke: #FDD835; }
+      rect.model-box { fill: #1a4d1a; stroke: #66BB6A; }
+      circle.pro { fill: #4CAF50; stroke: #66BB6A; }
+      circle.con { fill: #F44336; stroke: #EF5350; }
+
+      /* Keep text on colored backgrounds readable */
+      .box-text { fill: #ffffff; }
+    }
+  </style>
+
+  <!-- Title -->
+  <text x="450" y="30" text-anchor="middle" class="title" font-size="22">
+    In-Context Learning vs Fine-Tuning
+  </text>
+
+  <text x="450" y="55" text-anchor="middle" class="subtitle">
+    Two approaches to task adaptation: which should you choose?
+  </text>
+
+  <!-- Divider line -->
+  <line x1="450" y1="80" x2="450" y2="680" stroke-width="2" stroke-dasharray="5,5" opacity="0.3"/>
+
+  <!-- LEFT SIDE: In-Context Learning -->
+  <g id="icl-side">
+    <!-- Header -->
+    <rect x="30" y="90" width="370" height="50" class="icl-box" stroke-width="3" rx="5"/>
+    <text x="215" y="115" text-anchor="middle" font-size="18" font-weight="bold" class="box-text">
+      In-Context Learning (ICL)
+    </text>
+    <text x="215" y="132" text-anchor="middle" font-size="11" class="small-label">
+      Learn from examples in prompt
+    </text>
+
+    <!-- Process diagram -->
+    <text x="50" y="170" class="label" font-weight="bold">Process:</text>
+
+    <!-- Step 1: Data -->
+    <rect x="50" y="185" width="140" height="40" class="data-box" stroke-width="2" rx="3"/>
+    <text x="120" y="202" text-anchor="middle" font-size="11" font-weight="bold" class="box-text">
+      Few Examples
+    </text>
+    <text x="120" y="217" text-anchor="middle" font-size="10" class="small-label">
+      (0-20 examples)
+    </text>
+
+    <!-- Arrow -->
+    <path d="M 120 225 L 120 250" fill="none" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+    <!-- Step 2: Formatting -->
+    <rect x="50" y="250" width="140" height="40" class="icl-box" stroke-width="2" rx="3"/>
+    <text x="120" y="267" text-anchor="middle" font-size="11" font-weight="bold" class="box-text">
+      Format as Prompt
+    </text>
+    <text x="120" y="282" text-anchor="middle" font-size="10" class="small-label">
+      No training needed
+    </text>
+
+    <!-- Arrow -->
+    <path d="M 120 290 L 120 315" fill="none" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+    <!-- Step 3: Model (unchanged) -->
+    <rect x="50" y="315" width="140" height="50" class="model-box" stroke-width="2" rx="3"/>
+    <text x="120" y="335" text-anchor="middle" font-size="11" font-weight="bold" class="box-text">
+      Base Model
+    </text>
+    <text x="120" y="350" text-anchor="middle" font-size="10" class="small-label">
+      (Parameters unchanged)
+    </text>
+    <text x="120" y="362" text-anchor="middle" font-size="9" class="small-label" font-style="italic">
+      θ = θ₀
+    </text>
+
+    <!-- Arrow -->
+    <path d="M 120 365 L 120 390" fill="none" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+    <!-- Step 4: Inference -->
+    <rect x="50" y="390" width="140" height="40" class="icl-box" stroke-width="2" rx="3"/>
+    <text x="120" y="407" text-anchor="middle" font-size="11" font-weight="bold" class="box-text">
+      Forward Pass
+    </text>
+    <text x="120" y="422" text-anchor="middle" font-size="10" class="small-label">
+      Examples + Query
+    </text>
+
+    <!-- Pros -->
+    <text x="50" y="460" class="label" font-weight="bold">Pros:</text>
+    <g id="icl-pros">
+      <circle cx="60" cy="480" r="5" class="pro" stroke-width="1.5"/>
+      <text x="75" y="483" class="small-label" font-size="11">Instant adaptation (no training)</text>
+
+      <circle cx="60" cy="502" r="5" class="pro" stroke-width="1.5"/>
+      <text x="75" y="505" class="small-label" font-size="11">Works with very few examples</text>
+
+      <circle cx="60" cy="524" r="5" class="pro" stroke-width="1.5"/>
+      <text x="75" y="527" class="small-label" font-size="11">Easy to switch between tasks</text>
+
+      <circle cx="60" cy="546" r="5" class="pro" stroke-width="1.5"/>
+      <text x="75" y="549" class="small-label" font-size="11">No risk of catastrophic forgetting</text>
+
+      <circle cx="60" cy="568" r="5" class="pro" stroke-width="1.5"/>
+      <text x="75" y="571" class="small-label" font-size="11">Rapid prototyping and iteration</text>
+    </g>
+
+    <!-- Cons -->
+    <text x="50" y="600" class="label" font-weight="bold">Cons:</text>
+    <g id="icl-cons">
+      <circle cx="60" cy="620" r="5" class="con" stroke-width="1.5"/>
+      <text x="75" y="623" class="small-label" font-size="11">Higher inference cost (longer prompts)</text>
+
+      <circle cx="60" cy="642" r="5" class="con" stroke-width="1.5"/>
+      <text x="75" y="645" class="small-label" font-size="11">Slower (more tokens to process)</text>
+
+      <circle cx="60" cy="664" r="5" class="con" stroke-width="1.5"/>
+      <text x="75" y="667" class="small-label" font-size="11">Limited by context window size</text>
+    </g>
+  </g>
+
+  <!-- RIGHT SIDE: Fine-Tuning -->
+  <g id="ft-side">
+    <!-- Header -->
+    <rect x="500" y="90" width="370" height="50" class="ft-box" stroke-width="3" rx="5"/>
+    <text x="685" y="115" text-anchor="middle" font-size="18" font-weight="bold" class="box-text">
+      Fine-Tuning
+    </text>
+    <text x="685" y="132" text-anchor="middle" font-size="11" class="small-label">
+      Update model parameters via training
+    </text>
+
+    <!-- Process diagram -->
+    <text x="520" y="170" class="label" font-weight="bold">Process:</text>
+
+    <!-- Step 1: Data -->
+    <rect x="520" y="185" width="140" height="40" class="data-box" stroke-width="2" rx="3"/>
+    <text x="590" y="202" text-anchor="middle" font-size="11" font-weight="bold" class="box-text">
+      Large Dataset
+    </text>
+    <text x="590" y="217" text-anchor="middle" font-size="10" class="small-label">
+      (100-10K+ examples)
+    </text>
+
+    <!-- Arrow -->
+    <path d="M 590 225 L 590 250" fill="none" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+    <!-- Step 2: Training -->
+    <rect x="520" y="250" width="140" height="40" class="ft-box" stroke-width="2" rx="3"/>
+    <text x="590" y="267" text-anchor="middle" font-size="11" font-weight="bold" class="box-text">
+      Gradient Descent
+    </text>
+    <text x="590" y="282" text-anchor="middle" font-size="10" class="small-label">
+      Update parameters
+    </text>
+
+    <!-- Arrow -->
+    <path d="M 590 290 L 590 315" fill="none" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+    <!-- Step 3: Model (updated) -->
+    <rect x="520" y="315" width="140" height="50" class="model-box" stroke-width="2" rx="3"/>
+    <text x="590" y="335" text-anchor="middle" font-size="11" font-weight="bold" class="box-text">
+      Fine-Tuned Model
+    </text>
+    <text x="590" y="350" text-anchor="middle" font-size="10" class="small-label">
+      (Parameters updated)
+    </text>
+    <text x="590" y="362" text-anchor="middle" font-size="9" class="small-label" font-style="italic">
+      θ = θ₀ - η∇L(θ₀)
+    </text>
+
+    <!-- Arrow -->
+    <path d="M 590 365 L 590 390" fill="none" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+    <!-- Step 4: Inference -->
+    <rect x="520" y="390" width="140" height="40" class="ft-box" stroke-width="2" rx="3"/>
+    <text x="590" y="407" text-anchor="middle" font-size="11" font-weight="bold" class="box-text">
+      Forward Pass
+    </text>
+    <text x="590" y="422" text-anchor="middle" font-size="10" class="small-label">
+      Query only (no examples)
+    </text>
+
+    <!-- Pros -->
+    <text x="520" y="460" class="label" font-weight="bold">Pros:</text>
+    <g id="ft-pros">
+      <circle cx="530" cy="480" r="5" class="pro" stroke-width="1.5"/>
+      <text x="545" y="483" class="small-label" font-size="11">Better performance with enough data</text>
+
+      <circle cx="530" cy="502" r="5" class="pro" stroke-width="1.5"/>
+      <text x="545" y="505" class="small-label" font-size="11">Lower inference cost (no examples)</text>
+
+      <circle cx="530" cy="524" r="5" class="pro" stroke-width="1.5"/>
+      <text x="545" y="527" class="small-label" font-size="11">Faster inference (shorter prompts)</text>
+
+      <circle cx="530" cy="546" r="5" class="pro" stroke-width="1.5"/>
+      <text x="545" y="549" class="small-label" font-size="11">Can compress knowledge into weights</text>
+
+      <circle cx="530" cy="568" r="5" class="pro" stroke-width="1.5"/>
+      <text x="545" y="571" class="small-label" font-size="11">Better for high-volume production</text>
+    </g>
+
+    <!-- Cons -->
+    <text x="520" y="600" class="label" font-weight="bold">Cons:</text>
+    <g id="ft-cons">
+      <circle cx="530" cy="620" r="5" class="con" stroke-width="1.5"/>
+      <text x="545" y="623" class="small-label" font-size="11">Requires significant training data</text>
+
+      <circle cx="530" cy="642" r="5" class="con" stroke-width="1.5"/>
+      <text x="545" y="645" class="small-label" font-size="11">Time and compute for training</text>
+
+      <circle cx="530" cy="664" r="5" class="con" stroke-width="1.5"/>
+      <text x="545" y="667" class="small-label" font-size="11">Harder to switch tasks (need separate models)</text>
+    </g>
+  </g>
+
+  <!-- Bottom recommendation box -->
+  <rect x="100" y="690" width="700" height="0" fill="none"/>  <!-- Spacer -->
+
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#333333"/>
+    </marker>
+  </defs>
+</svg>

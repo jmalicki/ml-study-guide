@@ -1,4 +1,4 @@
-# Chapter 29: Reasoning and Chain-of-Thought
+# Chapter 30: Reasoning and Chain-of-Thought
 
 Reasoning is a critical capability for large language models to solve complex problems, especially in domains like mathematics, programming, and logical inference. This chapter explores how LLMs can be prompted or trained to exhibit improved reasoning through explicit intermediate steps, verification mechanisms, and test-time compute scaling.
 
@@ -1485,7 +1485,7 @@ Tree-of-Thought (ToT), proposed by Yao et al. (2023), generalizes CoT by explori
 
 ### Algorithm Structure
 
-![Chapter 29 reasoning diagram](../assets/diagrams/ch29-reasoning-diagram.svg)
+![Chapter 30 reasoning diagram](../assets/diagrams/ch30-reasoning-diagram.svg)
 
 At each level, the model:
 
@@ -2701,7 +2701,7 @@ Choosing the right reasoning strategy depends on your task requirements, constra
 
 ### Decision Framework
 
-![Chapter 29 reasoning diagram 2](../assets/diagrams/ch29-reasoning-diagram-2.svg)
+![Chapter 30 reasoning diagram 2](../assets/diagrams/ch30-reasoning-diagram-2.svg)
 
 ### Method Comparison Table
 
@@ -4021,7 +4021,7 @@ Key takeaways:
 
 For training reasoning models, see [Chapter 20: RLHF](21-rlhf.md) for reward modeling techniques.
 
-For evaluating reasoning capabilities, see [Chapter 33: Evaluation and Benchmarks](33-evaluation-benchmarks.md).
+For evaluating reasoning capabilities, see [Chapter 34: Evaluation and Benchmarks](34-evaluation-benchmarks.md).
 
 ## Additional Resources
 

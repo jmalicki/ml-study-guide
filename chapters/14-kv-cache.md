@@ -705,7 +705,7 @@ def compare_cache_sizes():
 
 Quantizing the KV cache to lower precision (INT8, FP8, or INT4) provides significant memory savings with minimal quality loss.
 
-See [Hardware, Quantization, and Training Optimization](32-hardware-quantization-optimization.md) for more quantization details.
+See [Hardware, Quantization, and Training Optimization](33-hardware-quantization-optimization.md) for more quantization details.
 
 ### Why Quantization Works for KV Cache
 
@@ -1090,7 +1090,7 @@ class PagedAttention(nn.Module):
     Model Serving with PagedAttention" (SOSP 2023)
     https://arxiv.org/abs/2309.06180
 
-    See also: [Hardware and Optimization](32-hardware-quantization-optimization.md)
+    See also: [Hardware and Optimization](33-hardware-quantization-optimization.md)
     for integration with quantization and other optimizations.
     """
 
@@ -1660,7 +1660,7 @@ From most to least impactful for reducing KV cache memory:
 - [Chapter 8: RoPE](08-rope.md) - Position encoding interaction with cache
 - [Chapter 13: Efficient Attention](13-efficient-attention.md) - Linear attention, sparse attention, sliding window
 - [Chapter 27: Long Context Techniques](27-long-context.md) - Streaming and attention sinks
-- [Chapter 32: Hardware and Quantization](32-hardware-quantization-optimization.md) - Cache quantization
+- [Chapter 33: Hardware and Quantization](33-hardware-quantization-optimization.md) - Cache quantization
 
 ---
 

@@ -719,7 +719,7 @@ class SlidingWindowAttention(nn.Module):
     Reference: Jiang et al., "Mistral 7B" (2023)
     https://arxiv.org/abs/2310.06825
 
-    See also: [Architecture Comparison](30-model-architectures.md) for usage
+    See also: [Architecture Comparison](31-model-architectures.md) for usage
     in production models.
     """
 
@@ -1088,7 +1088,7 @@ class GroupedQueryAttention(nn.Module):
     Transformer Models from Multi-Head Checkpoints" (2023)
     https://arxiv.org/abs/2305.13245
 
-    See [Architecture Comparison](30-model-architectures.md) for usage in
+    See [Architecture Comparison](31-model-architectures.md) for usage in
     modern LLMs.
     """
 
@@ -1265,7 +1265,7 @@ class MultiHeadLatentAttention(nn.Module):
     Efficient Mixture-of-Experts Language Model" (2024)
     https://arxiv.org/abs/2405.04434
 
-    See [Architecture Comparison](30-model-architectures.md) for details.
+    See [Architecture Comparison](31-model-architectures.md) for details.
     """
 
     def __init__(
@@ -1718,7 +1718,7 @@ class QuantizedKVCache:
 
     Used in production serving systems for extreme efficiency.
 
-    See [Hardware and Optimization](32-hardware-quantization-optimization.md)
+    See [Hardware and Optimization](33-hardware-quantization-optimization.md)
     for detailed quantization techniques.
 
     Reference: "KIVI: A Tuning-Free Asymmetric 2bit Quantization for KV Cache"
@@ -1862,7 +1862,7 @@ Quality impact is task-dependent. For production serving:
 - **TensorRT-LLM**: Flash Attention + INT8/FP8 KV cache
 - **Text Generation Inference**: Flash Attention + PagedAttention (see [Chapter 14](14-kv-cache.md))
 
-See [Architecture Comparison](30-model-architectures.md) for detailed model specifications.
+See [Architecture Comparison](31-model-architectures.md) for detailed model specifications.
 
 ---
 
@@ -1984,4 +1984,4 @@ See [Architecture Comparison](30-model-architectures.md) for detailed model spec
 
 **Previous Chapter**: [Flash Attention](12-flash-attention.md)
 **Next Chapter**: Check the main study guide outline
-**Related**: [Multi-Head Attention](04-multi-head-attention.md) | [Architecture Comparison](30-model-architectures.md) | [Hardware and Optimization](32-hardware-quantization-optimization.md)
+**Related**: [Multi-Head Attention](04-multi-head-attention.md) | [Architecture Comparison](31-model-architectures.md) | [Hardware and Optimization](33-hardware-quantization-optimization.md)

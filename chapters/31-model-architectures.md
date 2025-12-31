@@ -1,4 +1,4 @@
-# Chapter 30: Architecture Comparison - Modern LLMs
+# Chapter 31: Architecture Comparison - Modern LLMs
 
 This chapter provides a comprehensive comparison of architectural choices across major Large Language Models. Understanding these differences is crucial for ML interviews, as it demonstrates knowledge of the practical trade-offs that shape production systems.
 
@@ -1785,7 +1785,7 @@ class DiffusionLanguageModel(nn.Module):
     diffusion models start with noise/masks and iteratively denoise.
 
     WeDLM's key insight: Use causal attention so that KV cache,
-    FlashAttention (see [Hardware, Quantization, and Training Optimization](32-hardware-quantization-optimization.md)),
+    FlashAttention (see [Hardware, Quantization, and Training Optimization](33-hardware-quantization-optimization.md)),
     and other optimizations still work.
 
     See [Diffusion Model Fundamentals](24-diffusion-fundamentals.md) for diffusion model details.
@@ -1953,7 +1953,7 @@ class DiffusionLanguageModel(nn.Module):
 
 ## Key Architectural Innovations Timeline
 
-![Chapter 30 model arChapter itectures diagram](../assets/diagrams/ch30-model-architectures-diagram.svg)
+![Chapter 30 model arChapter itectures diagram](../assets/diagrams/ch31-model-architectures-diagram.svg)
 
 ---
 

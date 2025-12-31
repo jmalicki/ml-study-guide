@@ -3124,7 +3124,7 @@ class GroupedQueryAttention(nn.Module):
 class SwiGLU(nn.Module):
     """SwiGLU activation for FFN.
 
-    See [Architecture Comparison](30-model-architectures.md) for details.
+    See [Architecture Comparison](31-model-architectures.md) for details.
     """
     def __init__(self, d_model: int, d_ff: int):
         super().__init__()
@@ -3346,7 +3346,7 @@ class RMSNorm(nn.Module):
 - [Rotary Position Embeddings (RoPE)](08-rope.md) - Base RoPE mechanism
 - [Flash Attention](12-flash-attention.md) - Memory-efficient attention
 - [Other Efficient Attention Variants](13-efficient-attention.md) - Sparse and linear attention
-- [Architecture Comparison: Modern LLMs](30-model-architectures.md) - Context lengths in production models
+- [Architecture Comparison: Modern LLMs](31-model-architectures.md) - Context lengths in production models
 - [Distributed Training and Parallelism](16-distributed-training.md) - Parallelism strategies
 
 ### Additional Resources

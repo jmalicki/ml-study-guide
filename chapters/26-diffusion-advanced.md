@@ -3944,7 +3944,7 @@ class GumbelSoftmaxDiffusion:
 
 As of 2024/2025, autoregressive models (GPT-style) still dominate for text generation. Diffusion for language is an active research area but not yet production-ready for most applications.
 
-However, some recent work like **WeDLM** (see [Architecture Comparison: Modern LLMs](30-model-architectures.md)) shows promise by using causal attention in diffusion models, making them compatible with standard LLM infrastructure.
+However, some recent work like **WeDLM** (see [Architecture Comparison: Modern LLMs](31-model-architectures.md)) shows promise by using causal attention in diffusion models, making them compatible with standard LLM infrastructure.
 
 **Key Papers:**
 

@@ -599,7 +599,7 @@ SwiGLU has become the activation of choice for many state-of-the-art models:
 - **Mistral** (Mistral AI, 2023): Uses SwiGLU
 - **Mixtral** (Mistral AI, 2024): Uses SwiGLU (MoE version)
 
-See [Architecture Comparison: Modern LLMs](30-model-architectures.md) for a comprehensive comparison.
+See [Architecture Comparison: Modern LLMs](31-model-architectures.md) for a comprehensive comparison.
 
 ### Implementation
 
@@ -900,7 +900,7 @@ Here's a summary of which activation functions are used in major LLMs:
 2. **2022+**: Shift to SwiGLU for large models
 3. **Current**: SwiGLU is the default choice for new LLMs
 
-For more details, see [Architecture Comparison: Modern LLMs](30-model-architectures.md).
+For more details, see [Architecture Comparison: Modern LLMs](31-model-architectures.md).
 
 ---
 
@@ -1756,7 +1756,7 @@ In this chapter, we explored activation functions used in Large Language Models:
 **Next Steps:**
 
 - [Building a Complete Transformer](11-complete-transformer.md): Putting it all together
-- [Architecture Comparison: Modern LLMs](30-model-architectures.md): See how activation functions are used in production models
+- [Architecture Comparison: Modern LLMs](31-model-architectures.md): See how activation functions are used in production models
 
 ---
 

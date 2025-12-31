@@ -498,7 +498,7 @@ While AdamW is the standard baseline for LLM training, several alternatives addr
 - Extreme scale where small improvements compound significantly
 - Research settings exploring optimization frontiers
 
-See [Hardware, Quantization, and Training Optimization](32-hardware-quantization-optimization.md) for detailed coverage of Muon, Shampoo, and SOAP optimizers.
+See [Hardware, Quantization, and Training Optimization](33-hardware-quantization-optimization.md) for detailed coverage of Muon, Shampoo, and SOAP optimizers.
 
 #### Muon Optimizer
 
@@ -2482,7 +2482,7 @@ For guidance on choosing model size and compute budgets, see [Chapter 18: Scalin
 ### Alternative Optimizers
 
 10. [Shampoo: Preconditioned Stochastic Tensor Optimization](https://arxiv.org/abs/1802.09568) (Gupta et al., 2018)
-11. See [Chapter 32: Hardware, Quantization, and Training Optimization](32-hardware-quantization-optimization.md) for Muon and SOAP
+11. See [Chapter 33: Hardware, Quantization, and Training Optimization](33-hardware-quantization-optimization.md) for Muon and SOAP
 
 ### Model Papers (for training details)
 

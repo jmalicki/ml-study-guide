@@ -1742,7 +1742,7 @@ def generate_batch(model, batch_size=64):
 - Solutions:
   - Use DDIM instead of DDPM
   - Reduce ddim_steps (25-50 is usually enough)
-  - Consider distillation (see [Model Merging and Distillation](31-merging-distillation.md))
+  - Consider distillation (see [Model Merging and Distillation](32-merging-distillation.md))
 
 ---
 
@@ -2333,7 +2333,7 @@ Which schedule works best for your dataset?
 - [Diffusion Model Fundamentals](24-diffusion-fundamentals.md) - Theoretical foundations
 - [Advanced Diffusion Topics](26-diffusion-advanced.md) - Classifier-free guidance, latent diffusion
 - [Distributed Training and Parallelism](16-distributed-training.md) - Scaling to larger models
-- [Hardware, Quantization, and Training Optimization](32-hardware-quantization-optimization.md) - Optimization techniques
+- [Hardware, Quantization, and Training Optimization](33-hardware-quantization-optimization.md) - Optimization techniques
 
 ---
 

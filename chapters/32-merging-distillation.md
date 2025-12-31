@@ -1,4 +1,4 @@
-# Chapter 31: Model Merging and Distillation
+# Chapter 32: Model Merging and Distillation
 
 This chapter covers techniques for combining and compressing models: knowledge distillation transfers knowledge from large "teacher" models to smaller "student" models, while model merging combines multiple fine-tuned models into a single model without additional training. These techniques are essential for creating efficient, specialized models from general-purpose ones.
 
@@ -2444,7 +2444,7 @@ When faced with model compression or combination tasks, selecting the right appr
 
 ### Decision Guide: Technique Selection
 
-![Chapter 31 merging distillation diagram](../assets/diagrams/ch31-merging-distillation-diagram.svg)
+![Chapter 31 merging distillation diagram](../assets/diagrams/ch32-merging-distillation-diagram.svg)
 
 ### Detailed Comparison Table
 
@@ -2478,7 +2478,7 @@ When faced with model compression or combination tasks, selecting the right appr
 
 **Example**: Deploy GPT-4 level capability on mobile
 
-![Chapter 31 merging distillation diagram 2](../assets/diagrams/ch31-merging-distillation-diagram-2.svg)
+![Chapter 31 merging distillation diagram 2](../assets/diagrams/ch32-merging-distillation-diagram-2.svg)
 
 #### Multi-Task Learning
 **Best Approach**: Specialize-then-merge
@@ -2489,7 +2489,7 @@ When faced with model compression or combination tasks, selecting the right appr
 
 **Example**: Create generalist assistant
 
-![Chapter 31 merging distillation diagram 3](../assets/diagrams/ch31-merging-distillation-diagram-3.svg)
+![Chapter 31 merging distillation diagram 3](../assets/diagrams/ch32-merging-distillation-diagram-3.svg)
 
 #### Research/Safety
 **Best Approach**: Task arithmetic with ablation
@@ -2501,7 +2501,7 @@ When faced with model compression or combination tasks, selecting the right appr
 
 **Example**: Remove harmful capabilities
 
-![Chapter 31 merging distillation diagram 4](../assets/diagrams/ch31-merging-distillation-diagram-4.svg)
+![Chapter 31 merging distillation diagram 4](../assets/diagrams/ch32-merging-distillation-diagram-4.svg)
 
 #### Domain Adaptation
 **Best Approach**: LoRA specialization + merging
@@ -2512,7 +2512,7 @@ When faced with model compression or combination tasks, selecting the right appr
 
 **Example**: Medical domain expert
 
-![Chapter 31 merging distillation diagram 5](../assets/diagrams/ch31-merging-distillation-diagram-5.svg)
+![Chapter 31 merging distillation diagram 5](../assets/diagrams/ch32-merging-distillation-diagram-5.svg)
 
 ### Hyperparameter Guidelines
 
@@ -2911,10 +2911,10 @@ This chapter covered:
 - Combining techniques creates efficient specialized models
 
 **Next Chapter:**
-[Hardware, Quantization, and Training Optimization](32-hardware-quantization-optimization.md) - Learn about efficient deployment and training.
+[Hardware, Quantization, and Training Optimization](33-hardware-quantization-optimization.md) - Learn about efficient deployment and training.
 
 **Related Chapters:**
 
 - [Supervised Fine-tuning (SFT)](19-sft.md) - Creating models to merge
 - [LoRA and Parameter-Efficient Fine-tuning](20-peft.md) - Efficient adaptation
-- [Architecture Comparison: Modern LLMs](30-model-architectures.md) - Understanding distilled models
+- [Architecture Comparison: Modern LLMs](31-model-architectures.md) - Understanding distilled models

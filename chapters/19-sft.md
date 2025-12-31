@@ -2032,7 +2032,7 @@ def evaluate_model(model, dataloader, device):
 
 **2. Benchmark Performance**
 
-Test on standard benchmarks (see [Evaluation and Benchmarks](33-evaluation-benchmarks.md)):
+Test on standard benchmarks (see [Evaluation and Benchmarks](34-evaluation-benchmarks.md)):
 
 - **MMLU**: Multi-task language understanding
 - **HellaSwag**: Commonsense reasoning

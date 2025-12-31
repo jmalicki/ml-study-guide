@@ -197,7 +197,16 @@
    - Audio and speech integration
    - Multimodal tokenization strategies
 
-3. [Reasoning and Chain-of-Thought](chapters/29-reasoning.md)
+3. [In-Context Learning](chapters/29-in-context-learning.md)
+   - Zero-shot, one-shot, and few-shot learning
+   - Induction heads and mechanistic interpretability
+   - Theoretical frameworks (meta-learning, Bayesian inference, implicit gradient descent)
+   - How ICL emerges during training
+   - ICL vs fine-tuning tradeoffs
+   - Advanced ICL techniques
+   - Connection to reasoning
+
+4. [Reasoning and Chain-of-Thought](chapters/30-reasoning.md)
    - Chain-of-thought prompting
    - Self-consistency and voting
    - Tree-of-thought reasoning
@@ -207,7 +216,7 @@
 
 ## Part 10: Model Architectures in Practice
 
-1. [Architecture Comparison: Modern LLMs](chapters/30-model-architectures.md)
+1. [Architecture Comparison: Modern LLMs](chapters/31-model-architectures.md)
    - GPT series (GPT-2, GPT-3, GPT-4)
    - Claude (Anthropic)
    - Gemini (Google DeepMind)
@@ -229,7 +238,7 @@
      - Mixture of Experts (MoE) vs dense
      - Autoregressive vs diffusion-based generation
 
-2. [Model Merging and Distillation](chapters/31-merging-distillation.md)
+2. [Model Merging and Distillation](chapters/32-merging-distillation.md)
    - Knowledge distillation techniques
    - Model merging (TIES, DARE, SLERP)
    - Pruning and sparsification
@@ -238,7 +247,7 @@
 
 ## Part 11: Hardware and Optimization
 
-1. [Hardware, Quantization, and Training Optimization](chapters/32-hardware-quantization-optimization.md)
+1. [Hardware, Quantization, and Training Optimization](chapters/33-hardware-quantization-optimization.md)
    - **Hardware**
      - NVIDIA GPUs (Ampere, Hopper, Blackwell)
      - Google TPUs (v5, v6 Trillium, v7 Ironwood)
@@ -269,7 +278,7 @@
 
 ## Part 12: Evaluation and Deployment
 
-1. [Evaluation and Benchmarks](chapters/33-evaluation-benchmarks.md)
+1. [Evaluation and Benchmarks](chapters/34-evaluation-benchmarks.md)
    - Perplexity and language modeling metrics
    - Common benchmarks (MMLU, HellaSwag, GSM8K, HumanEval)
    - Reasoning benchmarks (ARC, MATH, BigBench)

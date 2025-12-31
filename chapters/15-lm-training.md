@@ -1070,7 +1070,7 @@ Mixed precision training uses FP16 or BF16 for most operations while keeping FP3
 - ~40% less memory usage
 - Minimal accuracy loss
 
-See [Hardware, Quantization, and Training Optimization](32-hardware-quantization-optimization.md) for detailed coverage of mixed precision training, including FP8.
+See [Hardware, Quantization, and Training Optimization](33-hardware-quantization-optimization.md) for detailed coverage of mixed precision training, including FP8.
 
 ![Mixed Precision Training Flow](../assets/diagrams/ch15-mixed-precision-flow.svg)
 
@@ -1093,7 +1093,7 @@ class MixedPrecisionTrainer(LanguageModelTrainer):
 
     Uses PyTorch's built-in AMP for efficient training.
 
-    See [Hardware, Quantization, and Training Optimization](32-hardware-quantization-optimization.md)
+    See [Hardware, Quantization, and Training Optimization](33-hardware-quantization-optimization.md)
     for more details on mixed precision training.
     """
 
@@ -1177,7 +1177,7 @@ def compare_precision_formats():
     - Simpler training pipeline
     - Supported on modern hardware (Ampere+, TPU, etc.)
 
-    See [Hardware, Quantization, and Training Optimization](32-hardware-quantization-optimization.md)
+    See [Hardware, Quantization, and Training Optimization](33-hardware-quantization-optimization.md)
     for more details.
     """
 
