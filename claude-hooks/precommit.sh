@@ -42,5 +42,16 @@ if ! make validate-svg; then
 fi
 
 echo ""
+
+# Validate LaTeX syntax
+echo "4. Validating LaTeX syntax..."
+if ! make check-latex; then
+    echo ""
+    echo "ERROR: LaTeX syntax errors detected!"
+    echo "Please fix LaTeX errors before committing."
+    exit 1
+fi
+
+echo ""
 echo "All pre-commit checks passed!"
 exit 0

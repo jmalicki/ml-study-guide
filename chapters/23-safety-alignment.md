@@ -2425,7 +2425,7 @@ The reward model's accuracy directly impacts RL performance. If the reward model
 **Propagation to Policy**: Errors accumulate during RL. A policy optimized for a noisy reward will be suboptimal:
 
 ```math
-\mathbb{E}[R_{\text{true}}(\pi_{\text{trained})]} \leq \mathbb{E}[R_{\text{true}}(\pi^*)] - O(\epsilon \cdot T)
+\mathbb{E}[R_{\text{true}}(\pi_{\text{trained}})] \leq \mathbb{E}[R_{\text{true}}(\pi^*)] - O(\epsilon \cdot T)
 ```
 
 where $T$ is the number of RL steps.
