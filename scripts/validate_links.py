@@ -100,13 +100,18 @@ class LinkValidator:
             )
 
     def validate_readme_references(self) -> None:
-        """Validate that all chapter references in README.md exist."""
+        """Validate that all chapter references in README.md and TABLE_OF_CONTENTS.md exist."""
         readme_path = self.root_dir / "README.md"
         if not readme_path.exists():
             self.errors.append("README.md not found")
-            return
+        else:
+            self.validate_file_links(readme_path)
 
-        self.validate_file_links(readme_path)
+        toc_path = self.root_dir / "TABLE_OF_CONTENTS.md"
+        if not toc_path.exists():
+            self.errors.append("TABLE_OF_CONTENTS.md not found")
+        else:
+            self.validate_file_links(toc_path)
 
     def validate_all_chapters(self) -> None:
         """Validate links in all chapter files."""
