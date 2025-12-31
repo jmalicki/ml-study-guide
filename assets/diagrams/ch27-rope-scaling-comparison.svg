@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 750">
   
   <style>
     /* Light mode (default) */
@@ -55,8 +55,8 @@
     </text>
   </g>
 
-  
-  <g transform="translate(50, 180)">
+
+  <g transform="translate(50, 200)">
     <text x="0" y="0" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#333">
       Linear Scaling
     </text>
@@ -74,8 +74,8 @@
     </text>
   </g>
 
-  
-  <g transform="translate(50, 280)">
+
+  <g transform="translate(50, 330)">
     <text x="0" y="0" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#333">
       NTK-Aware Scaling
     </text>
@@ -95,8 +95,8 @@
     </text>
   </g>
 
-  
-  <g transform="translate(50, 390)">
+
+  <g transform="translate(50, 470)">
     <text x="0" y="0" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#333">
       Dynamic NTK Scaling
     </text>
@@ -113,8 +113,8 @@
     </text>
   </g>
 
-  
-  <g transform="translate(50, 480)">
+
+  <g transform="translate(50, 570)">
     <text x="0" y="0" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#333">
       YaRN (Frequency-aware)
     </text>

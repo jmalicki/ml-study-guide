@@ -27,6 +27,9 @@
       text[fill="#81C784"] { fill: #66bb6a; }
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
+
+      /* Keep dark text dark on light-colored backgrounds */
+      text[style*="fill: #333"] { fill: #333333; }
     }
   </style><text x="400" y="30" text-anchor="middle" font-size="18" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#333">
     BPE Merge Process: Building Subwords from Characters
@@ -122,7 +125,7 @@
       <text x="120" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#333">w</text>
 
       <rect x="150" y="0" width="60" height="30" fill="#FFB74D" stroke="#FF9800" stroke-width="2" rx="3" />
-      <text x="180" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#fff" font-weight="bold">est</text>
+      <text x="180" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#333" font-weight="bold" style="fill: #333 !important;">est</text>
     </g>
 
     <text x="450" y="35" font-size="11" font-family="system-ui, -apple-system, sans-serif" fill="#666">
@@ -146,7 +149,7 @@
       <text x="25" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#fff" font-weight="bold">low</text>
 
       <rect x="60" y="0" width="60" height="30" fill="#FFB74D" stroke="#FF9800" stroke-width="2" rx="3" />
-      <text x="90" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#fff" font-weight="bold">est</text>
+      <text x="90" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#333" font-weight="bold" style="fill: #333 !important;">est</text>
     </g>
 
     <text x="450" y="35" font-size="11" font-family="system-ui, -apple-system, sans-serif" fill="#666">
