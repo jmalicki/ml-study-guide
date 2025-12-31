@@ -148,7 +148,7 @@
    - Could also mention geometric spacing as alternative
 
 8. **Device Handling**: Code sometimes assumes data is on correct device
-   - Line 559: `x_t = torch.randn(shape, device=device)` is good
+   - Line 559: `$x_t$ = torch.randn(shape, device=device)` is good
    - But line 570-571 accesses `self.diffusion.alphas_cumprod[t]` without ensuring it's on the same device
    - Should add `.to(device)` calls or move all diffusion parameters to device in `__init__`
 

@@ -213,13 +213,13 @@ The exercises (lines 2063-2074) are good but limited. Additional exercises could
 max_val = (2 - 2**(-m)) * 2**(2**e - 1 - bias)
 ```
 
-This formula has issues. For FP32 (e=8, m=23, bias=127), the max should be approximately `3.4e38`, but `2**e - 1 - bias = 2^8 - 1 - 127 = 128`, giving `2^128` which is way too large.
+This formula has issues. For FP32 (e=8, m=23, bias=127), the max should be approximately `3.4e38`, but `2**e - 1 - bias = $2^8$ - 1 - 127 = 128`, giving `$2^{128}$` which is way too large.
 
 **Correction needed**: The actual formula is:
 
 ```python
 max_exponent = 2**e - 2 - bias  # Reserve all-1s for inf/nan
-max_val = (2 - 2**(-m)) * 2**max_exponent
+max_val = (2 - 2**(-m)) * $2^{\text{max\_exponent}}$
 ```
 
 **Line 394**: The `ctx.save_for_backward` usage is incorrect:

@@ -246,8 +246,8 @@ For example, Exercise 1 asks to calculate memory but doesn't specify whether to 
 
 #### Minor Typos/Formatting:
 
-1. **Line 36**: "32{,}768^2" - unusual comma formatting
-   - Better: "32,768²" or "32768²"
+1. **Line 36**: "32,768²" - unusual comma formatting
+   - Better: "$32768^2$" or "32768²"
 
 2. **Line 132**: "~100s of cycles"
    - Ambiguous: "hundreds of cycles" is clearer

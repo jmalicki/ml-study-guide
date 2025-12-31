@@ -88,7 +88,7 @@ Line 364: The function has a return type hint `tuple[torch.Tensor, torch.Tensor]
 While the chapter references "Bidirectional vs Causal Attention" for the next chapter, a brief mention of why masking is important (beyond padding) would help. A one-sentence preview like "Masking is also used for causal/autoregressive models to prevent attending to future tokens" would connect better.
 
 **Missing Topic: Attention Temperature**
-The scaling by √d_k is well-covered, but attention temperature (scaling by arbitrary T) is sometimes used and could be mentioned as a variant, especially since it's occasionally asked in interviews.
+The scaling by $\sqrt{d_k}$ is well-covered, but attention temperature (scaling by arbitrary T) is sometimes used and could be mentioned as a variant, especially since it's occasionally asked in interviews.
 
 **Example Enhancement: Real tokenized text**
 The `attention_example_with_words()` function (line 510) uses simulated embeddings. While this is fine, a comment suggesting how to use actual embeddings from a tokenizer would make it more practical:

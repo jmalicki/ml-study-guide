@@ -161,7 +161,7 @@ Tested key code patterns mentally:
 
 5. **GroupedQueryAttention**: Most critical implementation
    - `repeat_interleave` for KV head expansion is correct
-   - Caching logic (`k[:, ::self.n_rep]`) properly extracts un-expanded heads
+   - Caching logic (`k[:, ::self.$n_{rep}$]`) properly extracts un-expanded heads
 
 6. **MultiHeadLatentAttention**: Novel implementation
    - Compress-decompress pattern is correct

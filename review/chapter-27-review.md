@@ -213,9 +213,7 @@ return 0.1 * math.log(self.scaling_factor) + 1.0
 
 This is a simplified formula. The actual YaRN paper uses a more complex formula based on attention entropy:
 
-$$
-m = 0.1 \times \log_e(s) + 1.0 \times \left(\frac{2}{\pi} \times \arctan\left(\frac{s - 1}{2}\right)\right)
-$$
+$$m = 0.1 \times \log_e(s) + 1.0 \times \left(\frac{2}{\pi} \times \arctan\left(\frac{s - 1}{2}\right)\right)$$
 
 While the simplified version is reasonable for demonstration, a comment noting this would be good.
 

@@ -111,7 +111,7 @@ Uses modern Python 3.9+ `tuple[...]` syntax, but should verify this is consisten
 \text{CrossAttention}(X, Y) = \text{softmax}\left(\frac{Q(K^T)}{\sqrt{d_k}}\right)V
 ```
 
-Should be `QK^T` not `Q(K^T)` - the parentheses suggest function application rather than matrix multiplication.
+Should be `$QK^T$` not `Q($K^T$)` - the parentheses suggest function application rather than matrix multiplication.
 
 #### 2. **Missing Explanations**
 
@@ -201,7 +201,7 @@ The exercises are good but could include:
 
 #### Technical Errors
 
-1. **Line 61**: Math notation `Q(K^T)` should be `QK^T`
+1. **Line 61**: Math notation `Q($K^T$)` should be `$QK^T$`
 2. **Lines 729-777**: Misleading use of `MultiHeadCrossAttention` for encoder self-attention
 
 #### Code Errors
@@ -353,7 +353,7 @@ The few issues mentioned are minor and easily fixable. The core content is techn
 **High Priority:**
 
 1. Fix encoder implementation naming confusion (lines 729-777)
-2. Fix math notation `Q(K^T)` → `QK^T` (line 61)
+2. Fix math notation `Q($K^T$)` → `$QK^T$` (line 61)
 
 **Medium Priority:**
 

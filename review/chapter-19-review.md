@@ -134,7 +134,7 @@
 
 1. **Technical Issues**
 
-   - **Line 683**: The scheduler is created with `CosineAnnealingLR` but the calculation for `T_max` is incorrect:
+   - **Line 683**: The scheduler is created with `CosineAnnealingLR` but the calculation for `$T_{\max}$` is incorrect:
 
      ```python
      scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(

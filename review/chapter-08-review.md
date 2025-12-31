@@ -182,12 +182,11 @@ Include:
 #### 3. **Add Derivation Sidebar**
 
 For line 124, the property $\mathbf{R}^T(\alpha)\mathbf{R}(\beta) = \mathbf{R}(\beta - \alpha)$ is stated but not proven. A sidebar showing:
-$$
-\mathbf{R}^T(\alpha) = \mathbf{R}(-\alpha)
-$$
-$$
-\mathbf{R}(-\alpha)\mathbf{R}(\beta) = \mathbf{R}(\beta - \alpha)
-$$
+
+$$\mathbf{R}^T(\alpha) = \mathbf{R}(-\alpha)$$
+
+$$\mathbf{R}(-\alpha)\mathbf{R}(\beta) = \mathbf{R}(\beta - \alpha)$$
+
 would help solidify understanding.
 
 #### 4. **Clarify the `repeat_interleave` Operation**

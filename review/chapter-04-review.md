@@ -24,7 +24,7 @@
 2. **Outstanding Code Quality**
    - All three implementations (MHA, MQA, GQA) are correct and complete
    - Excellent docstrings with clear parameter descriptions
-   - Shape comments throughout the code (e.g., `# (batch_size, num_heads, seq_len_q, d_k)`)
+   - Shape comments throughout the code (e.g., `# (batch_size, num_heads, seq_len_q, $d_k$)`)
    - The `split_heads` method is clean and well-documented
    - Test functions demonstrate actual usage patterns
 
@@ -158,10 +158,10 @@ I verified the following and found them all correct:
    - ✓ GQA mapping function $j(i) = \lfloor i / (h/g) \rfloor$
 
 2. **Code Correctness**:
-   - ✓ `split_heads` reshaping: `view(batch_size, -1, num_heads, d_k)` then `transpose(1, 2)`
-   - ✓ Attention score computation: `torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.d_k)`
+   - ✓ `split_heads` reshaping: `view(batch_size, -1, num_heads, $d_k$)` then `transpose(1, 2)`
+   - ✓ Attention score computation: `torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.$d_k$)`
    - ✓ Concatenation: `transpose(1, 2).contiguous().view(batch_size, -1, d_model)`
-   - ✓ MQA K,V projections: `nn.Linear(d_model, self.d_k)` (not `d_model`)
+   - ✓ MQA K,V projections: `nn.Linear(d_model, self.$d_k$)` (not `d_model`)
    - ✓ GQA `repeat_interleave`: correct usage for expanding KV heads
 
 3. **Complexity Analysis** (lines 842-850):

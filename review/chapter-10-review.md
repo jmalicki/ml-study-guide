@@ -121,8 +121,8 @@
 
 ```
 
-   - The second line could be clearer: should be `d_model * d_ff + d_model * d_ff + d_ff * d_model = 3 * d_model * d_ff`
-   - Then to match standard FFN: `2 * d_model * (4 * d_model) = 3 * d_model * d_ff` → `d_ff = 8/3 * d_model`
+   - The second line could be clearer: should be `d_model * $d_{ff}$ + d_model * $d_{ff}$ + $d_{ff}$ * d_model = 3 * d_model * $d_{ff}$`
+   - Then to match standard FFN: `2 * d_model * (4 * d_model) = 3 * d_model * $d_{ff}$` → `$d_{ff}$ = 8/3 * d_model`
    - This is what's intended but the algebra formatting could be clearer
 
 3. **Line 1084-1088**: Causal mask creation
