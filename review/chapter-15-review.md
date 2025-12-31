@@ -70,6 +70,7 @@
    - Missing: how to prepare text data for language modeling (shifting inputs to create labels in a dataloader)
    - Missing: discussion of packing/padding strategies for variable-length sequences
    - Suggestion: Add a small section or example showing:
+
      ```python
      class TextDataset(Dataset):
          """Example dataset for language modeling."""
@@ -83,7 +84,7 @@
              input_ids = chunk[:-1]
              labels = chunk[1:]
              return {'input_ids': input_ids, 'labels': labels}
-     ```
+```
 
 3. **Troubleshooting and Common Issues**
    - Would benefit from a "Common Issues and Solutions" section covering:
@@ -125,6 +126,7 @@
 ### Technical Accuracy
 
 **No errors found.** The chapter is technically sound:
+
 - Mathematical formulas are correct
 - PyTorch code appears to work correctly
 - Hyperparameter recommendations align with published research
@@ -135,17 +137,21 @@
 1. **Line 56**: Comment says "See [Building a Complete Transformer](11-complete-transformer.md)" but the `CausalLanguageModel` class is incomplete. This is fine for a conceptual example, but could clarify that this is a simplified interface.
 
 2. **Lines 478, 740**: References to `train_dataloader` and `val_dataloader` that aren't defined in the example. Should add a comment like:
+
    ```python
+
    # Assume train_dataloader and val_dataloader are defined
    # See [Data Curation and Preprocessing](14-data-curation.md)
-   ```
+
+```
 
 3. **Line 1000**: Reference to Chapter 31 uses a different title format. Should check consistency: "Hardware, Quantization, and Training Optimization" vs "hardware-quantization-optimization"
 
 4. **Line 1232**: In `gradient_clipping_methods()`, the code references `model` which isn't defined in the function. Should add:
+
    ```python
    def gradient_clipping_methods(model: nn.Module):
-   ```
+```
 
 5. **Lines 1658, 1660**: References to `train_dataset` and `val_dataset` without definition. Should add a comment or brief example.
 
@@ -154,6 +160,7 @@
 ### Code Quality Observations
 
 **Strengths:**
+
 - Consistent style throughout
 - Good use of inheritance to build up functionality
 - Type hints are excellent
@@ -161,6 +168,7 @@
 - Error handling is implied (PyTorch will handle most cases)
 
 **Minor Improvements:**
+
 1. Some functions reference variables not in scope (noted above)
 2. Could add more assertions/validation in production code examples
 3. Could show how to handle edge cases (e.g., last batch in gradient accumulation)
@@ -168,6 +176,7 @@
 ### Specific Suggestions for Improvement
 
 1. **Add Learning Rate Schedules Section** (High Priority)
+
    ```python
    def get_cosine_schedule_with_warmup(
        optimizer, warmup_steps, total_steps, min_lr=0.0, max_lr=3e-4
@@ -180,7 +189,7 @@
            return min_lr + 0.5 * (max_lr - min_lr) * (1 + math.cos(math.pi * progress))
 
        return torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda)
-   ```
+```
 
 2. **Add Troubleshooting Section** (Medium Priority)
    - Common symptoms and solutions
@@ -203,11 +212,13 @@
 ### Cross-Reference Quality
 
 **Excellent:**
+
 - Links to Chapter 11 (Complete Transformer) - appropriate
 - Links to Chapter 14 (Data Curation) - appropriate
 - Links to Chapter 31 (Hardware/Quantization) - appropriate
 
 **Suggestions:**
+
 - Could link to Chapter 16 (Distributed Training) when discussing multi-GPU setups
 - Could link to Chapter 18 (SFT) when discussing fine-tuning differences
 - Could link to Chapter 32 (Evaluation) when discussing validation metrics
@@ -215,12 +226,14 @@
 ### Interview Preparation Value
 
 **Strengths:**
+
 - Covers all commonly asked questions about LLM training
 - Provides specific numbers and configurations
 - Includes practical exercises
 - "Key Takeaways" section is perfect for quick review
 
 **What Would Make It Even Better:**
+
 - "Common Interview Questions" subsection with example Q&A:
   - "What's the difference between gradient accumulation and larger batch sizes?" → Mathematically equivalent but different memory/time trade-offs
   - "Why use BF16 over FP16?" → Dynamic range, no loss scaling needed
@@ -230,6 +243,7 @@
 ### Comparison to Best Practices
 
 The chapter aligns excellently with industry best practices:
+
 - AdamW over Adam ✓
 - BF16 over FP16 ✓
 - Gradient clipping ✓
@@ -249,15 +263,18 @@ The chapter successfully builds from fundamentals to a complete, production-read
 ### Recommended Priority for Improvements
 
 **High Priority:**
+
 1. Add comprehensive learning rate schedules section with code examples
 2. Fix minor code issues (undefined variables in examples)
 
 **Medium Priority:**
+
 3. Add troubleshooting section
 4. Add gradient checkpointing explanation
 5. Expand on evaluation best practices
 
 **Low Priority:**
+
 6. Add common interview Q&A
 7. Show complete data loading pipeline
 8. Add model size-specific hyperparameter recommendations

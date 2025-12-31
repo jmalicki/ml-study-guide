@@ -61,10 +61,12 @@ make install-hooks
 ```
 
 This will:
+
 1. Install the `pre-commit` Python package (if not already installed)
 2. Install git hooks based on `.pre-commit-config.yaml`
 
 The standard git hooks include:
+
 - Trailing whitespace check
 - End of file fixer
 - YAML validation
@@ -79,6 +81,7 @@ The standard git hooks include:
 ### Link Validation
 
 The `scripts/validate_links.py` script checks:
+
 - All internal markdown links are valid
 - Referenced files exist
 - Anchors point to valid headers
@@ -86,6 +89,7 @@ The `scripts/validate_links.py` script checks:
 ### SVG Check
 
 The `scripts/check_inline_svg.py` script checks:
+
 - No inline SVG elements in markdown files
 - GitHub doesn't render inline SVG, so we require image references instead
 
@@ -114,6 +118,7 @@ All scripts in this directory should be reviewed before use.
 ### Validation Failing
 
 Run checks manually:
+
 ```bash
 make validate    # Check links
 make check-svg   # Check for inline SVG
@@ -123,6 +128,7 @@ make check       # Run all checks
 ### Bypassing Hooks (Not Recommended)
 
 For emergency commits only:
+
 ```bash
 git commit --no-verify -m "Emergency commit message"
 ```

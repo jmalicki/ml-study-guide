@@ -46,6 +46,7 @@ During autoregressive generation, we cache key and value tensors for all previou
 ```
 
 For a 70B model with 100K context:
+
 - 80 layers, 64 heads, 128 head dim, FP16
 - Memory: $2 \times 80 \times 64 \times 100000 \times 128 \times 2 \approx 260$ GB!
 
@@ -59,8 +60,10 @@ def analyze_attention_complexity():
     Compare complexity of different attention variants.
 
     Standard attention: O(n^2 * d)
+
     - n: sequence length
     - d: hidden dimension
+
     """
 
     configs = [
@@ -104,6 +107,7 @@ Before diving into solutions, it's crucial to understand the practical impact of
 **Theoretical justification**: The $O(n^2)$ term dominates all other operations in transformers once $n > d$. For typical models where $d \approx 4096$, any sequence longer than 4K tokens means attention is the primary bottleneck.
 
 **Key insight**: Doubling context length quadruples compute. This superlinear scaling means we must either:
+
 1. Reduce the sequence length (chunking, summarization)
 2. Change the attention mechanism itself (this chapter's solutions)
 3. Accept impractical training costs
@@ -274,6 +278,7 @@ def compare_linear_vs_standard():
 **Theoretical justification**: Random Fourier Features (RFF) provide a provably better approximation to the Gaussian/softmax kernel through Bochner's theorem:
 
 Any shift-invariant kernel $k(x-y)$ can be expressed as:
+
 ```math
 k(x-y) = \mathbb{E}_{\omega}[\phi_{\omega}(x)^* \phi_{\omega}(y)]
 ```
@@ -406,11 +411,13 @@ Key Takeaway for Causal Linear Attention:
 2. Parallel prefix sum: O(n) work, O(log n) depth - achieves true speedup
 3. Production: Requires custom kernels, not in standard PyTorch
 4. Alternative: Use RNN formulation for autoregressive generation
+
    (sequential by nature anyway)
 """)
 ```
 
 **Key Papers:**
+
 - [Transformers are RNNs: Fast Autoregressive Transformers with Linear Attention](https://arxiv.org/abs/2006.16236) (Katharopoulos et al., 2020)
 - [Rethinking Attention with Performers](https://arxiv.org/abs/2009.14794) (Choromanski et al., 2021)
 - [Linear Transformers are Secretly Fast Weight Programmers](https://arxiv.org/abs/2102.11174) (Schlag et al., 2021)
@@ -424,6 +431,7 @@ Instead of attending to all positions, only attend to a sparse subset. Complexit
 ### BigBird
 
 BigBird combines three types of attention:
+
 1. **Global tokens**: A few tokens attend to everything
 2. **Local (sliding) window**: Each token attends to nearby tokens
 3. **Random**: Each token attends to a few random positions
@@ -434,6 +442,7 @@ class BigBirdAttention(nn.Module):
     BigBird sparse attention pattern.
 
     Combines:
+
     - Global attention (first g tokens attend to all, all attend to first g)
     - Local sliding window (w tokens on each side)
     - Random attention (r random tokens per query)
@@ -572,6 +581,7 @@ class LongformerAttention(nn.Module):
     Longformer attention with dilated sliding windows.
 
     Features:
+
     - Sliding window attention (local context)
     - Dilated attention (multi-scale, exponentially increasing gaps)
     - Global attention for task-specific tokens (e.g., [CLS])
@@ -676,6 +686,7 @@ class LongformerAttention(nn.Module):
 ```
 
 **Key Papers:**
+
 - [Big Bird: Transformers for Longer Sequences](https://arxiv.org/abs/2007.14062) (Zaheer et al., 2020)
 - [Longformer: The Long-Document Transformer](https://arxiv.org/abs/2004.05150) (Beltagy et al., 2020)
 
@@ -700,6 +711,7 @@ class SlidingWindowAttention(nn.Module):
     Mistral 7B: 32 layers, 4096 window -> effective 131K receptive field!
 
     Benefits:
+
     - O(n * w) complexity instead of O(n^2)
     - Enables rolling buffer KV cache (fixed size)
     - Quality degradation minimal for most tasks
@@ -815,9 +827,11 @@ class RollingBufferCache:
     Saves memory when generating long sequences.
 
     Memory savings example (Mistral 7B):
+
     - Window size: 4096
     - Without rolling: 32K context = 8x memory
     - With rolling: Fixed 4096 tokens regardless of context length
+
     """
 
     def __init__(
@@ -875,6 +889,7 @@ class RollingBufferCache:
 ```
 
 **Key Paper:**
+
 - [Mistral 7B](https://arxiv.org/abs/2310.06825) (Jiang et al., 2023)
 
 ---
@@ -904,6 +919,7 @@ class MultiQueryAttention(nn.Module):
     Memory savings: n_heads × reduction in KV cache
 
     Trade-off:
+
     + Much smaller KV cache (critical for long context inference)
     + Faster inference (less memory bandwidth)
     - Slight quality degradation (~1-2% on benchmarks)
@@ -1040,6 +1056,7 @@ def compare_mqa_memory():
 ```
 
 **Key Paper:**
+
 - [Fast Transformer Decoding: One Write-Head is All You Need](https://arxiv.org/abs/1911.02150) (Shazeer, 2019)
 
 ---
@@ -1054,6 +1071,7 @@ class GroupedQueryAttention(nn.Module):
     Grouped-Query Attention (GQA).
 
     Middle ground between MHA and MQA:
+
     - MHA: n_kv_heads = n_heads (each Q head has own K,V)
     - MQA: n_kv_heads = 1 (all Q heads share K,V)
     - GQA: 1 < n_kv_heads < n_heads (groups share K,V)
@@ -1061,6 +1079,7 @@ class GroupedQueryAttention(nn.Module):
     Example: 32 query heads, 8 KV heads -> 4 query heads per KV head
 
     Benefits:
+
     - 4-8x KV cache reduction (vs MHA)
     - Better quality than MQA (~0.5% improvement)
     - Used in: LLaMA 2, LLaMA 3, Qwen, Mistral
@@ -1158,6 +1177,7 @@ class GroupedQueryAttention(nn.Module):
 **Solution**: The GQA paper demonstrates a clever **uptraining** technique that converts MHA checkpoints to GQA with minimal additional training.
 
 **Why this works**:
+
 - **Information preservation**: Multiple heads within a group often learn similar features (redundancy in MHA)
 - **Smooth initialization**: Averaging heads provides a sensible starting point, not random initialization
 - **Fast recovery**: The model only needs to fine-tune, not learn from scratch
@@ -1173,6 +1193,7 @@ def uptraining_mha_to_gqa():
     Convert pretrained MHA checkpoint to GQA (uptraining).
 
     GQA paper shows you can convert an MHA checkpoint to GQA by:
+
     1. Average corresponding K, V heads into groups
     2. Continue training for ~5% of original steps
     3. Recover most of original quality
@@ -1210,6 +1231,7 @@ def uptraining_mha_to_gqa():
 ```
 
 **Key Paper:**
+
 - [GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints](https://arxiv.org/abs/2305.13245) (Ainslie et al., 2023)
 
 ---
@@ -1389,6 +1411,7 @@ def mla_memory_analysis():
 ```
 
 **Key Papers:**
+
 - [DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model](https://arxiv.org/abs/2405.04434) (DeepSeek-AI, 2024)
 - [DeepSeek-V3 Technical Report](https://arxiv.org/abs/2412.19437) (DeepSeek-AI, 2024)
 
@@ -1410,6 +1433,7 @@ def mla_memory_analysis():
 | **MLA** | $O(n^2 d)$ | $O(n^2)$ | $O(ld)$ per layer |
 
 Where:
+
 - $n$: sequence length
 - $d$: hidden dimension
 - $h$: number of heads
@@ -1552,10 +1576,12 @@ def combining_techniques_example():
     Real-world models combine multiple attention optimizations.
 
     Key insight: Different techniques address different bottlenecks:
+
     - Flash Attention: Memory hierarchy optimization (speeds up training)
     - GQA/MQA: Reduces KV cache size (speeds up inference)
     - Sliding Window: Reduces computational complexity
     - KV-Cache Management: Optimizes memory allocation (see Chapter 14)
+
     """
 
     combinations = [
@@ -1612,6 +1638,7 @@ class FlashAttentionGQANote:
     Flash Attention 2 has native GQA support.
 
     Flash Attention 2 kernels are optimized for:
+
     - Variable sequence lengths (no padding needed)
     - GQA (efficiently handles different number of Q vs KV heads)
     - Causal and bidirectional attention
@@ -1620,6 +1647,7 @@ class FlashAttentionGQANote:
     This means you get Flash's speed + GQA's memory savings with zero overhead!
 
     Example from LLaMA 3 70B:
+
     - 64 query heads, 8 KV heads (GQA with 8 groups)
     - Flash Attention 2 handles this natively
     - Result: 2-3x training speedup + 8x inference cache reduction
@@ -1641,6 +1669,7 @@ Flash Attention 2 + Sliding Window:
 
 The Flash Attention 2 CUDA kernel accepts a window_size parameter.
 When set, it:
+
 1. Only computes attention within the sliding window
 2. Still uses the tiling/recomputation strategy for memory efficiency
 3. Combines O(n*w) complexity with O(1) memory overhead
@@ -1653,6 +1682,7 @@ Example (Mistral-style):
     )
 
 Result: Get both benefits simultaneously!
+
 - Sliding window: O(n*w) instead of O(n^2)
 - Flash: 2-3x speedup from memory hierarchy optimization
 
@@ -1674,12 +1704,14 @@ class QuantizedKVCache:
     FP8: 1 byte per element with better dynamic range
 
     Trade-off:
+
     + 2x memory reduction (stacks with GQA/MLA!)
     + Higher throughput (more memory bandwidth)
     - Small quality degradation (~0.5% on most tasks)
     - Requires careful calibration
 
     Can be combined with:
+
     - GQA: 8x from GQA × 2x from INT8 = 16x total!
     - MLA: 20x from MLA × 2x from INT8 = 40x total!
     - Memory management: Works with any allocation scheme (see Chapter 14)
@@ -1799,11 +1831,13 @@ def kv_cache_quantization_analysis():
 **Note on Quality Impact:**
 
 Empirical results show:
+
 - **INT8 KV cache**: ~0.5-1% quality degradation on most benchmarks
 - **FP8 KV cache**: ~0.2-0.5% degradation (better than INT8)
 - **INT4 KV cache**: 1-3% degradation (more aggressive, still viable)
 
 Quality impact is task-dependent. For production serving:
+
 - High-stakes applications (medical, legal): Use FP16 or FP8
 - General chat/completion: INT8 is safe
 - Extreme throughput needs: INT4 can be acceptable
@@ -1823,6 +1857,7 @@ Quality impact is task-dependent. For production serving:
 | **Gemma 2** | GQA + Interleaved local/global + Flash 2 | Hybrid approach |
 
 **Serving Systems** (orthogonal to model choice):
+
 - **vLLM**: PagedAttention (see [Chapter 14](14-kv-cache.md)) + optional INT8 KV cache
 - **TensorRT-LLM**: Flash Attention + INT8/FP8 KV cache
 - **Text Generation Inference**: Flash Attention + PagedAttention (see [Chapter 14](14-kv-cache.md))
@@ -1899,6 +1934,7 @@ See [Architecture Comparison](30-model-architectures.md) for detailed model spec
    - Sliding + global?
    - GQA alone?
    - MLA?
+
    Justify your choice considering code's local and global structure.
 
 ---
@@ -1906,33 +1942,41 @@ See [Architecture Comparison](30-model-architectures.md) for detailed model spec
 ## References
 
 ### Linear Attention
+
 1. [Transformers are RNNs: Fast Autoregressive Transformers with Linear Attention](https://arxiv.org/abs/2006.16236) (Katharopoulos et al., 2020)
 2. [Rethinking Attention with Performers](https://arxiv.org/abs/2009.14794) (Choromanski et al., 2021)
 3. [Linear Transformers are Secretly Fast Weight Programmers](https://arxiv.org/abs/2102.11174) (Schlag et al., 2021)
 
 ### Sparse Attention
+
 4. [Big Bird: Transformers for Longer Sequences](https://arxiv.org/abs/2007.14062) (Zaheer et al., 2020)
 5. [Longformer: The Long-Document Transformer](https://arxiv.org/abs/2004.05150) (Beltagy et al., 2020)
 6. [Generating Long Sequences with Sparse Transformers](https://arxiv.org/abs/1904.10509) (Child et al., 2019)
 
 ### Sliding Window
+
 7. [Mistral 7B](https://arxiv.org/abs/2310.06825) (Jiang et al., 2023)
 
 ### KV-Cache Memory Management
+
 8. PagedAttention and related techniques are covered in [Chapter 14: KV-Cache](14-kv-cache.md)
 
 ### MQA/GQA
+
 9. [Fast Transformer Decoding: One Write-Head is All You Need](https://arxiv.org/abs/1911.02150) (Shazeer, 2019)
 10. [GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints](https://arxiv.org/abs/2305.13245) (Ainslie et al., 2023)
 
 ### MLA
+
 11. [DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model](https://arxiv.org/abs/2405.04434) (DeepSeek-AI, 2024)
 12. [DeepSeek-V3 Technical Report](https://arxiv.org/abs/2412.19437) (DeepSeek-AI, 2024)
 
 ### Flash Attention
+
 13. [FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning](https://arxiv.org/abs/2307.08691) (Dao, 2023)
 
 ### Comprehensive Surveys
+
 14. [Efficient Transformers: A Survey](https://arxiv.org/abs/2009.06732) (Tay et al., 2020)
 15. [A Survey on Long-Context Large Language Models](https://arxiv.org/abs/2402.02283) (2024)
 

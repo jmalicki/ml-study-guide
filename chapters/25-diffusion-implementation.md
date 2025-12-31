@@ -35,6 +35,7 @@ The core training objective from [Diffusion Model Fundamentals](24-diffusion-fun
 ```
 
 where:
+
 - $\mathbf{x}_0$ is the original data
 - $t$ is the timestep sampled uniformly from $\{1, \ldots, T\}$
 - $\epsilon \sim \mathcal{N}(0, \mathbf{I})$ is random noise
@@ -62,6 +63,7 @@ The U-Net architecture is the most popular choice for diffusion models. It featu
 #### Problem and Motivation
 
 The core challenge in diffusion models is building a neural network that can denoise images at different noise levels. We need a network that can:
+
 1. Process images at the same resolution throughout (preserving spatial details)
 2. Incorporate information about the current noise level (timestep)
 3. Learn complex denoising patterns through multiple layers
@@ -70,11 +72,13 @@ The core challenge in diffusion models is building a neural network that can den
 #### Theoretical Justification
 
 Residual connections solve the vanishing gradient problem in deep networks by allowing gradients to flow directly through skip connections. For diffusion models, this is critical because:
+
 - The denoising function is complex and requires deep networks
 - Without residuals, gradients vanish and the network can't learn fine-grained denoising
 - The identity mapping baseline helps the network learn incremental refinements
 
 Time conditioning is injected through additive embeddings because:
+
 - Addition preserves spatial structure while modulating features
 - It allows the network to learn time-dependent denoising strategies
 - The broadcast operation applies the same time information across all spatial locations
@@ -82,6 +86,7 @@ Time conditioning is injected through additive embeddings because:
 #### Comparison to Alternatives
 
 Alternative approaches include:
+
 - **Plain CNNs**: Suffer from vanishing gradients and can't scale to the depth needed
 - **Concatenating time**: Wastes parameters and breaks spatial structure
 - **Gating mechanisms**: More complex than needed; addition works well
@@ -90,6 +95,7 @@ Alternative approaches include:
 #### Key Insights
 
 The ResidualBlock design is elegant because:
+
 1. **GroupNorm** normalizes activations for stable training regardless of batch size
 2. **SiLU** (Swish) activation provides smooth, non-monotonic gradients
 3. **Time embedding injection** between conv layers allows the network to modulate features based on noise level
@@ -329,8 +335,10 @@ class UNet(nn.Module):
     """U-Net architecture for diffusion models.
 
     References:
+
         - [U-Net: Convolutional Networks for Biomedical Image Segmentation](https://arxiv.org/abs/1505.04597)
         - [Denoising Diffusion Probabilistic Models](https://arxiv.org/abs/2006.11239) (Ho et al., 2020)
+
     """
     def __init__(
         self,
@@ -523,6 +531,7 @@ class LearnedTimeEmbedding(nn.Module):
 ### Why Sinusoidal Works
 
 The sinusoidal encoding creates smooth, continuous representations where:
+
 - Nearby timesteps have similar embeddings
 - The network can interpolate between timesteps
 - No learned parameters are needed
@@ -548,6 +557,7 @@ The noise schedule $\{\beta_t\}_{t=1}^T$ controls how quickly noise is added dur
 ### Key Concepts
 
 From [Diffusion Model Fundamentals](24-diffusion-fundamentals.md), recall:
+
 - $\alpha_t = 1 - \beta_t$ (how much signal to keep)
 - $\bar{\alpha}_t = \prod_{s=1}^t \alpha_s$ (cumulative signal retention)
 - We can sample $\mathbf{x}_t$ directly: $\mathbf{x}_t = \sqrt{\bar{\alpha}_t} \mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_t} \epsilon$
@@ -581,6 +591,7 @@ def linear_beta_schedule(timesteps: int, beta_start: float = 0.0001, beta_end: f
 ### Cosine Schedule
 
 The cosine schedule from [Improved Denoising Diffusion Probabilistic Models](https://arxiv.org/abs/2102.09672) (Nichol & Dhariwal, 2021) provides better results by:
+
 - Adding noise more gradually at the start
 - Preventing too much noise at the end
 - Maintaining more signal throughout
@@ -596,6 +607,7 @@ def cosine_beta_schedule(timesteps: int, s: float = 0.008):
     """Cosine noise schedule from Improved DDPM.
 
     Benefits over linear:
+
     - Smoother noise addition
     - Better preservation of structure early
     - Improved sample quality
@@ -641,6 +653,7 @@ def sigmoid_beta_schedule(timesteps: int, beta_start: float = 0.0001, beta_end: 
 #### Problem and Motivation
 
 Computing noise schedule values on-the-fly during training would be inefficient and error-prone. We need:
+
 1. Fast access to schedule-dependent constants during training
 2. Consistent noise application across forward and reverse processes
 3. Efficient memory usage by precomputing derived quantities
@@ -655,6 +668,7 @@ The forward diffusion process requires several derived quantities from the base 
 - The posterior variance $\tilde{\beta}_t = \frac{\beta_t(1-\bar{\alpha}_{t-1})}{1-\bar{\alpha}_t}$ is needed for sampling
 
 Precomputing these allows us to use the closed-form sampling equation:
+
 ```math
 \mathbf{x}_t = \sqrt{\bar{\alpha}_t}\mathbf{x}_0 + \sqrt{1-\bar{\alpha}_t}\epsilon
 ```
@@ -664,6 +678,7 @@ This O(1) sampling replaces O(t) iterative forward diffusion, making training pr
 #### Comparison to Alternatives
 
 Alternative approaches:
+
 - **On-the-fly computation**: Too slow, recomputes values millions of times during training
 - **Separate schedule classes**: Code duplication, harder to maintain
 - **Dictionary-based storage**: Slower indexing, no type safety
@@ -672,6 +687,7 @@ Alternative approaches:
 #### Key Insights
 
 The NoiseSchedule class is efficient because:
+
 1. **Precomputation**: All constants computed once in `__init__`
 2. **Vectorization**: Batch indexing with `[t]` enables efficient GPU operations
 3. **Unified interface**: All schedules expose the same methods
@@ -770,6 +786,7 @@ class NoiseSchedule:
 #### Problem and Motivation
 
 Choosing the right noise schedule is critical but non-intuitive. Without visualization, we can't:
+
 1. Understand how different schedules add noise over time
 2. Compare signal retention ($\bar{\alpha}_t$) across methods
 3. Debug training issues related to too much/too little noise
@@ -780,16 +797,19 @@ Visual comparison reveals subtle differences that impact sample quality.
 #### Theoretical Justification
 
 The noise schedule determines the forward process dynamics. Key quantities to visualize:
+
 - $\beta_t$: Instantaneous noise addition rate at step $t$
 - $\bar{\alpha}_t$: Cumulative signal retention from $\mathbf{x}_0$ to $\mathbf{x}_t$
 
 The relationship $\bar{\alpha}_t = \prod_{s=1}^t (1-\beta_s)$ shows how small differences in $\beta_t$ compound over timesteps. For instance:
+
 - Linear schedule: $\bar{\alpha}_t$ decreases linearly, may destroy signal too quickly
 - Cosine schedule: $\bar{\alpha}_t$ decreases slowly at first, preserves structure longer
 
 #### Comparison to Alternatives
 
 Other schedule selection methods:
+
 - **Trial and error**: Expensive, requires full training runs
 - **Literature values**: May not transfer to your data distribution
 - **Theoretical analysis**: Complex, requires deep mathematical knowledge
@@ -798,6 +818,7 @@ Other schedule selection methods:
 #### Key Insights
 
 Visualization reveals:
+
 1. **Cosine preserves more signal early**: $\bar{\alpha}_t$ stays high longer, better for images
 2. **Linear is aggressive**: Signal drops faster, can work for simple data
 3. **Sigmoid is smooth**: Continuous derivatives, can help training stability
@@ -964,6 +985,7 @@ def train_diffusion_model(
 #### EMA: Problem and Motivation
 
 Neural network weights during training fluctuate due to stochastic gradient descent, but we want stable, high-quality samples. The problem is:
+
 1. Training weights are optimized for low loss, not necessarily best samples
 2. Recent weight updates may be noisy or suboptimal
 3. We need a stable version of the model for evaluation
@@ -972,11 +994,13 @@ Neural network weights during training fluctuate due to stochastic gradient desc
 #### Theoretical Justification
 
 Exponential Moving Average (EMA) computes a weighted average of past model parameters:
+
 ```math
 \theta_{\text{EMA},t} = \beta \cdot \theta_{\text{EMA},t-1} + (1-\beta) \cdot \theta_t
 ```
 
 With decay $\beta \approx 0.9999$, the EMA weights represent roughly the average of the last 10,000 training steps. This smoothing:
+
 - Reduces variance from stochastic gradients
 - Captures the trajectory rather than individual points
 - Provides implicit regularization by averaging away spurious updates
@@ -986,6 +1010,7 @@ Theoretically, this is related to Polyak averaging from convex optimization, ada
 #### Comparison to Alternatives
 
 Alternative stabilization methods:
+
 - **Checkpointing best loss**: Only captures one snapshot, misses overall trajectory
 - **Weight averaging**: Simple mean loses recent information; EMA weighs recent steps more
 - **Snapshot ensembling**: Requires storing multiple models, expensive
@@ -994,6 +1019,7 @@ Alternative stabilization methods:
 #### Key Insights
 
 EMA works exceptionally well for diffusion models because:
+
 1. **Denoising is sensitive**: Small parameter changes significantly affect sample quality
 2. **Decay rate matters**: 0.9999 balances stability (high decay) and adaptability (low decay)
 3. **Negligible cost**: Only adds a parameter copy and lightweight update per step
@@ -1130,12 +1156,14 @@ def sample_ddpm_with_variance(
     When to use this version vs simple sample_ddpm():
 
     Use sample_ddpm_with_variance when:
+
     - You need better sample quality at the cost of slightly more computation
     - You've trained with learned variance prediction
     - You want to use the theoretically correct posterior variance
     - You're working on high-fidelity generation tasks
 
     Use simple sample_ddpm when:
+
     - You want faster sampling with minimal quality difference
     - Fixed variance (sqrt(beta_t)) works well enough for your use case
     - You're prototyping or need quick iterations
@@ -1183,6 +1211,7 @@ def sample_ddpm_with_variance(
 ### DDIM Sampling
 
 DDIM (Denoising Diffusion Implicit Models) enables:
+
 - **Deterministic** sampling (reproducible results)
 - **Faster** sampling (skip timesteps)
 - **Interpolation** in latent space
@@ -1209,6 +1238,7 @@ def sample_ddim(
     """Generate samples using DDIM sampling.
 
     DDIM allows:
+
     - Deterministic sampling (eta=0)
     - Faster sampling by skipping timesteps
     - Meaningful latent space interpolation
@@ -1293,9 +1323,10 @@ def sample_ddim(
 
 ## Complete Working Example
 
-#### Problem and Motivation
+### Problem and Motivation
 
 After presenting individual components (U-Net, noise schedule, training, sampling), readers need:
+
 1. A concrete, runnable example tying everything together
 2. Proof that the components actually work end-to-end
 3. A starting point they can modify for their own projects
@@ -1306,6 +1337,7 @@ MNIST provides an ideal testbed: small, fast, well-understood, visually interpre
 #### Theoretical Justification
 
 This example demonstrates the complete diffusion training pipeline:
+
 1. **Data preparation**: Normalize to $[-1, 1]$ so the model learns a zero-mean distribution
 2. **Model instantiation**: Smaller U-Net for 28×28 images (fewer parameters than needed for high-res)
 3. **Training loop**: Implements the simplified loss $\mathcal{L} = \mathbb{E}[\|\epsilon - \epsilon_\theta(\mathbf{x}_t, t)\|^2]$
@@ -1317,6 +1349,7 @@ The complete pipeline validates that theory translates to practice.
 #### Comparison to Alternatives
 
 Example dataset choices:
+
 - **Random noise**: Can't verify quality, no ground truth
 - **Simple synthetic**: (circles, gaussians) Too simple, doesn't test real capabilities
 - **CIFAR-10**: Larger, slower, harder to debug
@@ -1326,6 +1359,7 @@ Example dataset choices:
 #### Key Insights
 
 This example shows:
+
 1. **Simplicity**: Only ~100 lines of training code for a working diffusion model
 2. **MNIST-specific sizing**: Channel mult (1,2,4) and smaller model_channels (64) fit the task
 3. **Normalization matters**: [-1,1] range matches the model's output range
@@ -1481,6 +1515,7 @@ For high-resolution images, memory becomes a bottleneck:
 #### Problem and Motivation
 
 Training diffusion models on high-resolution images (512x512 or larger) requires enormous GPU memory because:
+
 1. U-Net stores activations at multiple resolutions for backpropagation
 2. Batch sizes must be large for stable training
 3. Skip connections duplicate feature maps in memory
@@ -1491,10 +1526,12 @@ A single forward pass can consume 16GB+ of memory, making training infeasible on
 #### Theoretical Justification
 
 The backpropagation algorithm stores intermediate activations during the forward pass to compute gradients. For a network with $L$ layers, standard backprop has:
+
 - **Memory**: $O(L)$ - stores all activations
 - **Compute**: $O(L)$ - one forward, one backward pass
 
 Gradient checkpointing selectively saves activations and recomputes others during backprop:
+
 - **Memory**: $O(\sqrt{L})$ - only stores checkpoints
 - **Compute**: $O(L \sqrt{L})$ - recomputes segments between checkpoints
 
@@ -1503,6 +1540,7 @@ This trades ~30% more computation for 5-10x less memory, making the training fea
 #### Comparison to Alternatives
 
 Memory reduction techniques:
+
 - **Smaller batch size**: Hurts training stability and convergence
 - **Lower resolution**: Defeats the purpose of high-res generation
 - **Smaller model**: Reduces quality significantly
@@ -1512,6 +1550,7 @@ Memory reduction techniques:
 #### Key Insights
 
 Gradient checkpointing is ideal for U-Net because:
+
 1. **Layered structure**: Natural checkpointing boundaries (down/up blocks)
 2. **Repeated blocks**: Same computation pattern, easy to recompute
 3. **Memory-bound**: U-Net's bottleneck is memory, not compute
@@ -1606,6 +1645,7 @@ def train_with_mixed_precision(model, dataloader, optimizer):
 #### Problem and Motivation
 
 Training diffusion models is slow but happens once. Inference (sampling) happens repeatedly for every user request, so we need:
+
 1. Faster sample generation (reduce latency)
 2. Higher throughput (more samples per second)
 3. Lower memory usage (fit more concurrent requests)
@@ -1632,6 +1672,7 @@ Inference optimization exploits three key observations:
 #### Comparison to Alternatives
 
 Inference speedup techniques:
+
 - **Distillation**: 4-8× faster but requires retraining student models
 - **Pruning/Quantization**: Modest speedups (1.5-2×), can degrade quality
 - **Custom CUDA kernels**: Significant engineering effort, maintenance burden
@@ -1641,6 +1682,7 @@ Inference speedup techniques:
 #### Key Insights
 
 Practical inference optimization:
+
 1. **DDIM is free**: No retraining needed, just change sampling code
 2. **Compile once**: First inference is slow (compilation), subsequent ones are fast
 3. **Sweet spot**: 20-50 DDIM steps balances speed and quality for most applications
@@ -1648,6 +1690,7 @@ Practical inference optimization:
 5. **Quality monitoring**: Always compare samples before/after optimization
 
 Recommended stack for production:
+
 - DDIM with 25-50 steps (20-50× speedup)
 - `torch.compile` (1.3-2× speedup)
 - Batch generation (near-linear scaling)
@@ -1669,6 +1712,7 @@ def generate_batch(model, batch_size=64):
 ### Common Issues and Solutions
 
 **Issue 1: Mode Collapse**
+
 - Symptoms: Model generates similar images
 - Solutions:
   - Use cosine schedule instead of linear
@@ -1676,6 +1720,7 @@ def generate_batch(model, batch_size=64):
   - Train longer
 
 **Issue 2: Blurry Samples**
+
 - Symptoms: Samples lack fine details
 - Solutions:
   - Use more timesteps during training
@@ -1683,6 +1728,7 @@ def generate_batch(model, batch_size=64):
   - Add attention at multiple resolutions
 
 **Issue 3: Training Instability**
+
 - Symptoms: Loss spikes, NaN values
 - Solutions:
   - Reduce learning rate
@@ -1691,6 +1737,7 @@ def generate_batch(model, batch_size=64):
   - Use EMA
 
 **Issue 4: Slow Sampling**
+
 - Symptoms: Takes too long to generate
 - Solutions:
   - Use DDIM instead of DDPM
@@ -1712,6 +1759,7 @@ The simplest form of conditioning is on discrete class labels (e.g., generating 
 #### Problem and Motivation
 
 Unconditional generation produces random samples, but we often want control over what we generate. For class-conditional generation, we need:
+
 1. A way to encode discrete class labels (e.g., "cat" vs "dog")
 2. Integration of class information throughout the denoising process
 3. The ability to learn class-specific denoising patterns
@@ -1720,11 +1768,13 @@ Unconditional generation produces random samples, but we often want control over
 #### Theoretical Justification
 
 Class conditioning modifies the denoising distribution to be class-aware:
+
 ```math
 p_\theta(\mathbf{x}_{t-1}|\mathbf{x}_t, y) = \mathcal{N}(\mathbf{x}_{t-1}; \mu_\theta(\mathbf{x}_t, t, y), \Sigma_\theta(\mathbf{x}_t, t, y))
 ```
 
 where $y$ is the class label. We implement this by conditioning the noise prediction:
+
 ```math
 \epsilon_\theta(\mathbf{x}_t, t, y)
 ```
@@ -1734,6 +1784,7 @@ Learned embeddings map discrete labels to continuous representations that can be
 #### Comparison to Alternatives
 
 Other conditioning approaches:
+
 - **Concatenation**: Wastes parameters, requires architectural changes
 - **Adaptive normalization (AdaIN/AdaGN)**: More complex, marginal quality gains
 - **Separate networks per class**: Not scalable, can't generalize
@@ -1743,6 +1794,7 @@ Other conditioning approaches:
 #### Key Insights
 
 Embedding-based conditioning works because:
+
 1. **Learned semantics**: Embeddings learn meaningful class representations
 2. **Shared computation**: Same network for all classes, efficient parameter use
 3. **Gradient flow**: Class information flows through the entire network via conditioning
@@ -1927,6 +1979,7 @@ def generate_mnist_digits():
 #### Problem and Motivation
 
 Embedding-based conditioning gives us some control, but samples often don't strongly adhere to the specified class. We want:
+
 1. Stronger alignment between samples and conditions
 2. No separate classifier network (simpler architecture)
 3. Ability to trade off between sample quality and diversity
@@ -1943,11 +1996,13 @@ Classifier-free guidance (CFG) uses implicit guidance through the difference bet
 ```
 
 where $s$ is the guidance scale. This can be rewritten as:
+
 ```math
 \tilde{\epsilon}_\theta = (1-s)\epsilon_\theta(\mathbf{x}_t, \emptyset) + s\cdot\epsilon_\theta(\mathbf{x}_t, y)
 ```
 
 The guidance amplifies the conditional prediction while suppressing the unconditional one. Theoretically, this approximates sampling from:
+
 ```math
 p(\mathbf{x}_t|y) \propto p(\mathbf{x}_t)^{1-s} \cdot p(\mathbf{x}_t|y)^s
 ```
@@ -1957,6 +2012,7 @@ For $s > 1$, this overemphasizes the conditional distribution, leading to sample
 #### Comparison to Alternatives
 
 Alternative guidance methods:
+
 - **Classifier guidance**: Requires training a separate classifier on noisy images, computationally expensive
 - **CLIP guidance**: Uses a pretrained model but requires gradients through CLIP at sampling time (slow)
 - **Embedding scaling**: Simply scales embeddings, doesn't separate conditional/unconditional
@@ -1966,6 +2022,7 @@ Alternative guidance methods:
 #### Key Insights
 
 Classifier-free guidance is revolutionary because:
+
 1. **Single model**: One network learns both $p(\mathbf{x})$ and $p(\mathbf{x}|y)$ by randomly dropping conditions
 2. **No gradients at inference**: Unlike classifier guidance, CFG only requires forward passes
 3. **Tunable strength**: Guidance scale $s$ controls condition adherence at sampling time
@@ -2174,6 +2231,7 @@ Modify the training loop and sampling to use v-prediction. This is used in Stabl
 ### Exercise 2: Progressive Distillation
 
 Implement progressive distillation to reduce sampling steps:
+
 1. Train a student model to predict 2 teacher steps in 1 step
 2. Repeat to get 4x, 8x, 16x speedup
 
@@ -2202,6 +2260,7 @@ Implement FID (Fréchet Inception Distance) to quantitatively evaluate sample qu
 ### Exercise 5: Latent Diffusion
 
 Implement a simple latent diffusion model:
+
 1. Train an autoencoder (VAE or VQ-VAE)
 2. Train diffusion model in latent space
 3. Decode samples to pixel space
@@ -2211,6 +2270,7 @@ This is the foundation of Stable Diffusion.
 ### Exercise 6: Noise Schedule Ablation
 
 Train models with different noise schedules and compare:
+
 - Sample quality (visual inspection)
 - FID scores
 - Training convergence speed
@@ -2288,6 +2348,7 @@ In this chapter, we implemented a complete diffusion model from scratch:
 5. **Sampling**: DDPM (slow, high quality) and DDIM (fast, deterministic)
 
 Key takeaways:
+
 - Training is simple: predict the noise added to an image
 - Sampling is iterative: gradually denoise from pure noise
 - U-Net with skip connections preserves spatial information

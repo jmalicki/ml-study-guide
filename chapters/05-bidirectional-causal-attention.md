@@ -52,10 +52,12 @@ Bidirectional attention allows each token to attend to **all** tokens in the seq
 **Example:** Consider the sentence "The bank by the river was steep."
 
 With bidirectional attention:
+
 - "bank" can attend to both "river" (right) and "the" (left)
 - This helps disambiguate "bank" (riverbank vs financial institution)
 
 **Use Cases:**
+
 1. **Text Classification**: Sentiment analysis, topic classification
 2. **Named Entity Recognition (NER)**: Identifying entities in text
 3. **Question Answering**: Understanding context to extract answers
@@ -87,6 +89,7 @@ When applying masks to attention, we formally define masked attention as:
 ```
 
 where:
+
 - $M$ is a binary mask matrix with shape $(n, n)$
 - $M_{ij} = 1$ if position $i$ can attend to position $j$, and $0$ otherwise
 - $\odot$ denotes element-wise multiplication
@@ -121,6 +124,7 @@ For a sequence of length 4, all positions can attend to all positions:
 ![Bidirectional vs Causal Attention Masks](../assets/diagrams/ch05-attention-mask-comparison.svg)
 
 The figure above shows the key difference between bidirectional and causal attention masks:
+
 - **Left (Bidirectional)**: Full matrix with all 1s - each token can attend to all tokens
 - **Right (Causal)**: Lower triangular matrix - each token can only attend to previous tokens and itself
 
@@ -247,6 +251,7 @@ if __name__ == "__main__":
 ```
 
 **Key Points:**
+
 - No masking means all positions can attend to all other positions
 - Each row of the attention matrix sums to 1 (after softmax)
 - Padding masks can still be applied to ignore padding tokens
@@ -263,7 +268,7 @@ Causal attention is essential for autoregressive models, where we generate one t
 
 When training a language model to predict the next token, we must ensure the model cannot see future tokens:
 
-```
+```text
 Input:     "The cat sat on the"
 Target:    "cat sat on the mat"
            ↑   ↑   ↑   ↑   ↑
@@ -276,7 +281,7 @@ If we allowed the model to see "mat" when predicting "cat", it would cheat and l
 
 During generation, we produce tokens sequentially:
 
-```
+```text
 Step 1: "The" → predict "cat"
 Step 2: "The cat" → predict "sat"
 Step 3: "The cat sat" → predict "on"
@@ -313,7 +318,8 @@ print(mask.int())
 ```
 
 Output:
-```
+
+```text
 Causal mask (1 = can attend, 0 = masked):
 tensor([[1, 0, 0, 0],
         [1, 1, 0, 0],
@@ -326,6 +332,7 @@ tensor([[1, 0, 0, 0],
 ![Token Visibility in Attention Types](../assets/diagrams/ch05-token-visibility.svg)
 
 The figure above illustrates what each token can "see" in different attention mechanisms:
+
 - **Bidirectional**: Token "brown" (position 2) can attend to all tokens in both directions
 - **Causal**: Token "brown" (position 2) can only attend to previous tokens ("The", "quick") and itself; future tokens ("fox", "jumps") are masked out
 
@@ -576,6 +583,7 @@ def block_diagonal_mask(seq_len: int, block_size: int) -> torch.Tensor:
 **Problem Being Solved:**
 
 In real-world applications, we often face multiple masking requirements simultaneously. For example, in a batch of variable-length sequences for language modeling, we need both:
+
 1. **Causal masking** to prevent attending to future tokens (for autoregressive modeling)
 2. **Padding masking** to prevent attending to padding tokens (for computational efficiency in batched processing)
 
@@ -584,6 +592,7 @@ These constraints must be applied together correctly, or the model will either c
 **Theoretical Justification:**
 
 Mathematically, combining masks is a logical conjunction operation. A position $i$ can attend to position $j$ if and only if:
+
 - The causal constraint is satisfied: $i \geq j$ (for autoregressive models)
 - The padding constraint is satisfied: position $j$ is not a padding token
 
@@ -857,6 +866,7 @@ Use bidirectional attention when:
 4. **Fixed-length outputs**: Like classification labels
 
 **Example Tasks:**
+
 - Sentiment classification: "This movie is great!" → Positive
 - Named Entity Recognition: "Apple is in Cupertino" → [ORG] [LOC]
 - Question Answering: Extract answer span from context
@@ -871,6 +881,7 @@ Use causal attention when:
 4. **Streaming applications**: Processing text incrementally
 
 **Example Tasks:**
+
 - Text generation: "Once upon a time" → continue the story
 - Code completion: "def fibonacci(" → complete the function
 - Language modeling: Evaluate likelihood of sequences
@@ -880,10 +891,12 @@ Use causal attention when:
 Some models use both:
 
 **T5 (Encoder-Decoder):**
+
 - Encoder: Bidirectional attention on input
 - Decoder: Causal self-attention + cross-attention to encoder
 
 **Prefix LM:**
+
 - Bidirectional attention on prefix (prompt)
 - Causal attention on generated tokens
 
@@ -904,6 +917,7 @@ Prefix language modeling creates a hybrid attention pattern:
 ```
 
 This allows the model to:
+
 1. Fully understand the prefix using bidirectional context
 2. Generate coherently using causal attention
 3. Attend from generated tokens back to the prefix
@@ -964,6 +978,7 @@ print(prefix_mask.int())
 ![Prefix Language Modeling Attention Pattern](../assets/diagrams/ch05-prefix-lm-mask.svg)
 
 This hybrid attention pattern shows:
+
 - **Green cells (top-left)**: Prefix tokens (0-2) use bidirectional attention within the prefix
 - **Blue cells (lower-left)**: Generated tokens (3+) use causal attention to all previous tokens including the prefix
 - **Gray cells**: Masked positions that cannot be attended to
@@ -1114,6 +1129,7 @@ This is why GPT-style models (causal) can generate efficiently, while BERT-style
 Understanding KV cache memory requirements is crucial for deploying large language models. Let's work through a detailed example.
 
 **Setup:** Consider a 7B parameter GPT-style model with:
+
 - Number of layers: 32
 - Number of attention heads: 32
 - Head dimension: 128
@@ -1125,11 +1141,13 @@ Understanding KV cache memory requirements is crucial for deploying large langua
 **Memory Calculation:**
 
 For each layer, we cache both K and V matrices. Each has shape:
+
 ```math
 (batch\_size, num\_heads, seq\_len, head\_dim)
 ```
 
 Memory per layer (in bytes):
+
 ```math
 \begin{align}
 \text{Memory}_{\text{layer}} &= 2 \times batch \times heads \times seq\_len \times head\_dim \times bytes \\
@@ -1141,6 +1159,7 @@ Memory per layer (in bytes):
 ```
 
 Total KV cache memory across all layers:
+
 ```math
 \begin{align}
 \text{Total KV Cache} &= \text{Memory}_{\text{layer}} \times num\_layers \\
@@ -1153,6 +1172,7 @@ Total KV cache memory across all layers:
 **Compare to Model Weights:**
 
 Model weights in FP16:
+
 ```math
 \begin{align}
 \text{Model Size} &= 7{,}000{,}000{,}000 \times 2 \text{ bytes} \\
@@ -1166,6 +1186,7 @@ Model weights in FP16:
 **Scaling Analysis:**
 
 Memory scales linearly with:
+
 1. **Batch size**: Doubling batch size → doubles KV cache
 2. **Sequence length**: Doubling context → doubles KV cache
 3. **Number of layers**: More layers → more cache
@@ -1183,6 +1204,7 @@ The KV cache memory requirement is determined by the storage needed for key and 
 ```
 
 where:
+
 - $B$ = batch size (number of concurrent sequences)
 - $H$ = number of attention heads
 - $L$ = sequence length (context window)
@@ -1345,7 +1367,7 @@ if __name__ == "__main__":
 
 **Sample Output:**
 
-```
+```text
 ======================================================================
 KV Cache Memory Analysis for 7B Model
 ======================================================================
@@ -1397,10 +1419,12 @@ Key Takeaways:
 ### Memory Considerations
 
 **Training:**
+
 - Both require $O(n^2)$ memory for attention matrices
 - Causal attention can use Flash Attention optimizations (see [Chapter 12: Flash Attention](12-flash-attention.md))
 
 **Inference:**
+
 - Bidirectional: Always computes full $O(n^2)$ attention
 - Causal: Can use KV caching to reduce compute (not memory of cache itself)
 
@@ -1754,6 +1778,7 @@ if __name__ == "__main__":
 ### References
 
 **Key Papers:**
+
 1. Vaswani et al. (2017). [Attention Is All You Need](https://arxiv.org/abs/1706.03762)
    - Original transformer with both encoder (bidirectional) and decoder (causal)
 
@@ -1770,6 +1795,7 @@ if __name__ == "__main__":
    - Improved bidirectional pre-training
 
 **Related Chapters:**
+
 - [Chapter 3: Basic Attention](03-basic-attention.md) - Foundation
 - [Chapter 4: Multi-Head Attention](04-multi-head-attention.md) - Multi-head with masking
 - [Chapter 6: Cross-Attention](06-cross-attention.md) - Attention between sequences
@@ -1789,6 +1815,7 @@ def future_window_mask(seq_len: int, window_size: int) -> torch.Tensor:
     """Create a mask allowing limited future attention.
 
     Each position can attend to:
+
     - All previous positions
     - Itself
     - The next window_size positions
@@ -1811,6 +1838,7 @@ print(mask.int())
 ### Exercise 2: Analyze Attention Patterns
 
 Given a sequence "The quick brown fox jumps over the lazy dog", implement code to:
+
 1. Compute attention weights using bidirectional attention
 2. Compute attention weights using causal attention
 3. Identify which words "fox" attends to most in each case
@@ -1819,6 +1847,7 @@ Given a sequence "The quick brown fox jumps over the lazy dog", implement code t
 ### Exercise 3: KV Cache Memory Calculation
 
 Calculate the memory required for KV caching for a GPT-style model:
+
 - Parameters: 7B total
 - Layers: 32
 - Heads: 32
@@ -1838,6 +1867,7 @@ def sliding_window_mask(seq_len: int, window_size: int) -> torch.Tensor:
     """Create sliding window attention mask.
 
     Each position can attend to:
+
     - Itself
     - Previous window_size positions
 
@@ -1861,6 +1891,7 @@ print(mask.int())
 ### Exercise 5: Prefix Language Modeling
 
 Implement a complete attention module that supports prefix language modeling:
+
 - Given a prefix length, apply bidirectional attention within the prefix
 - Apply causal attention to the rest of the sequence (attending to prefix + previous tokens)
 - Test with a concrete example
@@ -1894,10 +1925,12 @@ Extend the `CausalAttention` class to support multi-head attention as shown in [
 ### Exercise 8: Compare Training Efficiency
 
 Implement a simple training loop for both:
+
 1. Bidirectional attention (BERT-style with masked tokens)
 2. Causal attention (GPT-style with next token prediction)
 
 Measure and compare:
+
 - Time per batch
 - Memory usage
 - Convergence speed (loss decrease)

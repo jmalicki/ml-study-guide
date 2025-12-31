@@ -24,6 +24,7 @@ Extending the context window of Large Language Models is one of the most active 
 ### Why Long Context Matters
 
 Long context capabilities enable models to:
+
 - Process entire books or codebases in a single forward pass
 - Maintain coherent conversations over many turns
 - Retrieve information from large documents
@@ -32,6 +33,7 @@ Long context capabilities enable models to:
 ### Computational Challenges
 
 For a sequence of length $n$, standard attention has:
+
 - **Time complexity**: $O(n^2 d)$ where $d$ is the hidden dimension
 - **Memory complexity**: $O(n^2)$ for attention scores + $O(n d)$ for KV cache
 - **Position encoding**: May not extrapolate beyond training length
@@ -75,6 +77,7 @@ The simplest approach: scale positions linearly.
 where $s$ is the scaling factor. If trained on 2K context and want 8K, use $s = 4$.
 
 **Issues**:
+
 - Compresses all positions into trained range
 - Changes relative distances between tokens
 - Often requires fine-tuning to recover performance
@@ -86,6 +89,7 @@ where $s$ is the scaling factor. If trained on 2K context and want 8K, use $s = 
 **The Solution**: Map long positions back into the trained range. If we trained on positions [0, 2047] and want to handle [0, 8191], we linearly compress by factor 4, so position 8000 maps to position 2000.
 
 **Why This Approach?**:
+
 - **Pros**: Simple to implement, no architecture changes needed, keeps rotation angles within trained distribution
 - **Cons**: Compresses relative distances (tokens 100 positions apart now appear 25 positions apart), which can confuse the model about temporal relationships
 - **Tradeoff vs Extrapolation**: Better to interpolate within known ranges than extrapolate to unknown ones
@@ -187,6 +191,7 @@ def apply_rotary_emb(
 where $s$ is the target scaling factor.
 
 **Why it works**:
+
 - Preserves relative position information better
 - Smoothly extends to longer contexts
 - Often works **without fine-tuning**
@@ -200,6 +205,7 @@ where $s$ is the target scaling factor.
 **Theoretical Justification**: This approach is inspired by the Neural Tangent Kernel (NTK) theory, which suggests that scaling the frequency base maintains the model's learned kernel structure better than position scaling. The formula $\text{base}' = \text{base} \cdot s^{d/(d-2)}$ is derived from NTK scaling laws for infinite-width networks.
 
 **Comparison to Alternatives**:
+
 - **vs Linear Scaling**: Preserves relative position relationships better because we're changing the encoding function, not compressing the space
 - **vs No Scaling**: Allows extrapolation beyond training length with minimal degradation
 - **vs Fine-tuning**: Often works zero-shot, saving compute
@@ -264,6 +270,7 @@ Then use base frequency: $\theta_{i'} = \theta_i \cdot \alpha(L)$
 **The Solution**: Apply scaling only when needed. For sequences within training length, use original RoPE. For longer sequences, dynamically compute the scaling factor based on actual length.
 
 **Why This Matters**:
+
 - **Preserves Original Behavior**: No degradation on standard-length sequences
 - **Adaptive Scaling**: Uses minimal scaling needed for current sequence
 - **Best of Both Worlds**: Original RoPE for short contexts, NTK scaling for long ones
@@ -329,6 +336,7 @@ YaRN combines multiple techniques for optimal long-context performance:
 ```
 
 where:
+
 - $i_{\text{low}}$, $i_{\text{high}}$ are frequency band boundaries
 - $s$ is the scaling factor
 - Low frequencies (encoding long-range info) are scaled more
@@ -343,11 +351,13 @@ where:
 **Theoretical Foundation**: Based on Fourier analysis of attention patterns. The attention mechanism decomposes into different wavelength components. Local attention is dominated by high-frequency components, while cross-sentence attention uses low frequencies. By scaling frequencies non-uniformly, we preserve the model's ability to handle local syntax while extending its long-range semantic capabilities.
 
 **Comparison to Other Methods**:
+
 - **vs Uniform NTK**: Better preserves local pattern recognition while extending long-range capabilities
 - **vs Linear Scaling**: Doesn't compress relative distances; instead adapts the encoding to handle both scales
 - **vs Position Interpolation**: YaRN adds frequency-aware scaling on top of interpolation
 
 **Additional YaRN Components**:
+
 1. **Attention Temperature Scaling (mscale)**: Prevents attention entropy collapse at long contexts
 2. **Targeted Fine-tuning**: Short fine-tuning (≈400 steps) on long sequences to adapt
 
@@ -358,6 +368,7 @@ class YaRNScalingRoPE(nn.Module):
     """YaRN (Yet another RoPE extensioN) scaling.
 
     Applies different scaling to different frequency bands:
+
     - Low frequencies (long-range): More scaling
     - High frequencies (local): Less scaling
 
@@ -456,11 +467,13 @@ This is essentially NTK scaling with a larger base adjustment.
 **The ABF Approach**: Instead of retrofitting a short-context model, adjust the base frequency dramatically during initial training. For example, Qwen changes the base from 10,000 to 1,000,000 (a 100x increase), which allows the model to naturally learn positional relationships at much longer ranges.
 
 **Why This Works**:
+
 - **Training from Scratch**: The model learns to use the modified frequencies from the beginning
 - **Larger Wavelengths**: Higher base frequency means longer wavelengths, which naturally encode longer-range positions
 - **No Extrapolation Needed**: Since the model trains on these frequencies, there's no distribution shift at inference
 
 **Comparison to Other Approaches**:
+
 - **vs NTK Scaling**: ABF is more aggressive and applied during pre-training, not as a post-hoc fix
 - **vs Position Interpolation**: ABF doesn't compress positions; it trains with frequencies designed for long context
 - **vs YaRN**: Simpler—uniform scaling rather than frequency-dependent, but requires full retraining
@@ -510,6 +523,7 @@ class ABFScalingRoPE(nn.Module):
 **Paper**: [Extending Context Window of Large Language Models via Position Interpolation](https://arxiv.org/abs/2306.15595) (Chen et al., 2023)
 
 **Key difference from linear scaling**:
+
 - Linear scaling: Divide positions by scale factor directly
 - Position Interpolation: Interpolate into the trained position range using a specific interpolation strategy
 
@@ -522,6 +536,7 @@ m' = m \cdot \frac{L}{L'}
 where $L$ is the original training length and $m$ is the current position.
 
 **Fine-tuning strategy**:
+
 - Continue pre-training on sequences of length $L'$
 - Only 1000 training steps needed (much less than original pre-training)
 - Uses same data distribution as pre-training
@@ -533,6 +548,7 @@ where $L$ is the original training length and $m$ is the current position.
 **Position Interpolation's Insight**: Instead of extrapolating beyond the training range (which causes distribution shift) or naively compressing (which distorts distances), we interpolate positions into the trained range AND fine-tune briefly to help the model adapt to the slightly compressed space.
 
 **Why This Works**:
+
 - **Interpolation vs Extrapolation**: The model has seen all the rotation angles before (just now corresponding to different relative positions), so we're not introducing completely novel inputs
 - **Minimal Fine-tuning**: Only 1000 steps needed because we're fine-tuning the attention patterns, not relearning positional encodings from scratch
 - **Continuity**: The interpolation is smooth and continuous, minimizing the adaptation burden
@@ -540,6 +556,7 @@ where $L$ is the original training length and $m$ is the current position.
 **Theoretical Justification**: The paper shows that attention scores degrade gracefully under interpolation (smooth function of position), whereas extrapolation causes sharp performance cliffs (model encounters unseen rotation angles). Brief fine-tuning allows attention patterns to recalibrate to the compressed position space.
 
 **Comparison to Alternatives**:
+
 - **vs Linear Scaling**: Same position mapping, but PI adds targeted fine-tuning to recover performance
 - **vs NTK**: PI uses position scaling (simpler), NTK uses frequency scaling (no fine-tuning needed)
 - **vs Full Retraining**: 1000 steps vs millions—drastically cheaper
@@ -599,6 +616,7 @@ class PositionInterpolationRoPE(nn.Module):
 ```
 
 **Results from paper**:
+
 - Extended Llama 2 7B from 4K to 32K context (8x extension)
 - Only 1000 training steps needed
 - Minimal performance degradation on standard benchmarks
@@ -618,6 +636,7 @@ class PositionInterpolationRoPE(nn.Module):
 | ABF | Yes | Used in production (Qwen) | Requires retraining |
 
 **Best practices**:
+
 - For quick extension without training: **Dynamic NTK**
 - For efficient fine-tuning with proven results: **Position Interpolation**
 - For production deployment: **YaRN** with short fine-tuning
@@ -656,6 +675,7 @@ StreamingLLM enables LLMs to handle **infinite-length** sequences by:
 3. **Discard middle tokens**: Remove old, irrelevant history
 
 **Algorithm**:
+
 - Cache size: $N$ tokens
 - Keep first $k$ tokens (attention sinks)
 - Keep most recent $N - k$ tokens
@@ -668,6 +688,7 @@ StreamingLLM enables LLMs to handle **infinite-length** sequences by:
 **Why Naive Truncation Fails**: Removing the first tokens breaks the attention sink mechanism. Without the sink, softmax has nowhere to dump irrelevant attention mass, causing numerical instability and degraded predictions.
 
 **StreamingLLM's Solution**: Keep the attention sink tokens (typically the first 4) permanently in cache, along with the most recent tokens. This maintains:
+
 1. **Numerical Stability**: Attention sink always available for softmax normalization
 2. **Recent Context**: Most recent tokens contain immediately relevant information
 3. **Bounded Memory**: Fixed cache size regardless of total sequence length
@@ -675,6 +696,7 @@ StreamingLLM enables LLMs to handle **infinite-length** sequences by:
 **Theoretical Justification**: The attention sink phenomenon occurs because causal masks prevent attending to future tokens. When current tokens aren't relevant, attention weights must go somewhere—they accumulate on early tokens. By preserving these sink tokens, we maintain the model's learned attention distribution pattern.
 
 **Comparison to Alternatives**:
+
 - **vs Full Cache**: Constant memory instead of linear growth; enables infinite streaming
 - **vs Simple Truncation**: Maintains performance by preserving attention sinks
 - **vs Window Attention**: No architecture change needed; works with pretrained models
@@ -686,6 +708,7 @@ class StreamingLLMCache:
     """Streaming KV cache with attention sinks.
 
     Maintains:
+
     - First k tokens (attention sinks)
     - Most recent (cache_size - k) tokens
     - Discards everything in between
@@ -807,11 +830,13 @@ class StreamingLLMCache:
 ### Practical Considerations
 
 **When to use StreamingLLM**:
+
 - Chatbots with very long conversations
 - Document processing where full context isn't needed
 - Streaming applications (video captioning, live transcription)
 
 **Limitations**:
+
 - Loses information in the middle of context
 - Best for tasks where recent + initial context matter most
 - Not suitable for retrieval tasks requiring full document access
@@ -827,11 +852,13 @@ class StreamingLLMCache:
 ### The Key Insight
 
 **Problem**: Fine-tuning on long contexts requires massive memory for:
+
 1. Full attention computation: $O(n^2)$
 2. KV cache during training
 3. Gradient computation and storage
 
 **LongLoRA's solution**:
+
 - Use **shift sparse attention** during training (cheaper)
 - Keep full attention at inference (no degradation)
 - Add **LoRA** (Low-Rank Adaptation) for parameter-efficient fine-tuning
@@ -850,6 +877,7 @@ By shifting different heads, we maintain some cross-position communication while
 ### Implementing Shifted Sparse Attention
 
 **The Problem**: Fine-tuning on long contexts (32K-100K tokens) with full attention requires:
+
 - $O(n^2)$ memory for attention scores
 - $O(n^{2}d)$ computation
 - For 100K tokens: ~40GB just for attention matrix in FP32
@@ -859,6 +887,7 @@ This makes long-context fine-tuning impossible on consumer hardware.
 **The Shifted Sparse Attention Solution**: During training only, use a sparse attention pattern where different attention heads attend to different strided positions. Head group 1 might attend to positions [i, i-2, i-4, ...], while head group 2 attends to [i-1, i-3, i-5, ...]. This maintains coverage across all positions through different heads.
 
 **Why This Works**:
+
 - **Preserved Coverage**: Even though each head is sparse, collectively they cover all positions
 - **Reduced Memory**: Instead of $O(n^2)$ per head, we get $O(n \cdot s)$ where $s$ is the stride
 - **Training-Only**: Can switch to full attention at inference (model learns to work with both)
@@ -866,6 +895,7 @@ This makes long-context fine-tuning impossible on consumer hardware.
 **Theoretical Justification**: Research shows transformers are over-parameterized—not all attention heads need full context all the time. During training, sparse patterns provide enough signal for gradient flow. The key insight is that different heads can specialize in different ranges through the shift pattern.
 
 **Comparison to Other Sparse Attention Methods**:
+
 - **vs Fixed Window**: Shifting ensures all positions can communicate (albeit through multiple hops)
 - **vs Random Sparse**: Deterministic pattern is reproducible and easier to implement efficiently
 - **vs Dilated Attention**: Similar idea, but LongLoRA adds the shift between head groups for better coverage
@@ -877,11 +907,13 @@ class ShiftedSparseAttention(nn.Module):
     """Shifted Sparse Attention for efficient long-context training.
 
     During training:
+
     - Uses sparse attention with shifted patterns
     - Different heads attend to different strided positions
     - Reduces memory from O(n^2) to O(n*s) where s is stride
 
     During inference:
+
     - Can switch to full attention (model trained to handle both)
 
     Paper: https://arxiv.org/abs/2309.12307
@@ -1015,6 +1047,7 @@ class LongLoRAAttention(nn.Module):
     """LongLoRA: Shifted sparse attention + LoRA for efficient fine-tuning.
 
     Key benefits:
+
     1. Sparse attention reduces training memory
     2. LoRA reduces trainable parameters
     3. Can use full attention at inference
@@ -1078,6 +1111,7 @@ class LongLoRAAttention(nn.Module):
 4. **Switch to full attention** at inference
 
 **Memory savings**:
+
 - Full attention training on 32K: ~80GB per GPU
 - LongLoRA training on 32K: ~24GB per GPU
 - **3.3x reduction** in memory
@@ -1108,6 +1142,7 @@ Instead of fitting everything in context, augment the model with external memory
 Split long context into chunks, retrieve relevant ones, feed to model.
 
 **Architecture**:
+
 1. Embed document chunks with embedding model
 2. Store in vector database
 3. At query time, retrieve top-k relevant chunks
@@ -1120,6 +1155,7 @@ Split long context into chunks, retrieve relevant ones, feed to model.
 **RAG's Core Insight**: Instead of fitting everything in context, use retrieval to select only relevant information. This shifts the problem from "how do we process everything?" to "how do we find what matters?"
 
 **Why This Approach Works**:
+
 - **Selective Attention**: Only relevant chunks consume context window
 - **Scalable**: Can "handle" documents far exceeding model capacity
 - **Efficient**: Retrieval is cheaper than full attention over millions of tokens
@@ -1128,11 +1164,13 @@ Split long context into chunks, retrieve relevant ones, feed to model.
 **The Tradeoff**: RAG trades comprehensiveness for efficiency. Full context sees everything (potentially catching subtle cross-document patterns), while RAG sees only retrieved chunks (might miss relevant information not captured by embedding similarity).
 
 **Comparison to Full Long Context**:
+
 - **vs 100K Context Window**: RAG can handle 10M+ token corpora; long context limited by GPU memory
 - **vs Attention Mechanisms**: RAG is $O(k)$ where $k$ is retrieved chunks; attention is $O(n^2)$ over full context
 - **Complementary Use**: Can combine RAG (for corpus-scale retrieval) with long context (for processing retrieved chunks)
 
 **Practical Considerations**:
+
 - **Chunking Strategy**: How to split documents affects retrieval quality
 - **Embedding Model**: Better embeddings = better retrieval = better final quality
 - **Chunk Size**: Trade-off between granularity and context
@@ -1144,6 +1182,7 @@ class SimpleRAG:
     """Simple Retrieval-Augmented Generation system.
 
     Instead of fitting 100K tokens in context, we:
+
     1. Chunk and embed documents
     2. Retrieve most relevant chunks for query
     3. Use only those chunks (e.g., 4K tokens) as context
@@ -1221,6 +1260,7 @@ class SimpleRAG:
 **Paper**: [Memorizing Transformers](https://arxiv.org/abs/2203.08913) (Wu et al., 2022)
 
 At each layer:
+
 1. Standard attention over recent context (e.g., 2K tokens)
 2. kNN retrieval from long-term memory of past (key, value) pairs
 3. Combine both sources of information
@@ -1236,6 +1276,7 @@ where $\mathcal{M}$ is the external memory of past activations.
 **The Core Problem**: Standard attention is limited to the current context window. Even with long context (100K tokens), we can't remember everything from a book-length conversation or codebase. Yet we need to occasionally recall distant information.
 
 **Memorizing Transformers' Solution**: Augment standard attention with external memory storing past (key, value) pairs. At each step:
+
 1. Attend to recent context (standard attention)
 2. Retrieve relevant memories via k-nearest neighbors search
 3. Combine both sources
@@ -1243,6 +1284,7 @@ where $\mathcal{M}$ is the external memory of past activations.
 This creates a two-tier memory system: recent context (fast, full attention) + long-term memory (slower, retrieved as needed).
 
 **Why This Works**:
+
 - **Unbounded Memory**: External memory can grow indefinitely (stored on disk/distributed)
 - **Selective Retrieval**: Only retrieve what's relevant via kNN, avoiding quadratic cost
 - **Learned Gating**: Model learns when to rely on local context vs distant memories
@@ -1250,11 +1292,13 @@ This creates a two-tier memory system: recent context (fast, full attention) + l
 **Theoretical Foundation**: Inspired by human memory systems—working memory (recent context) + long-term memory (retrieved via associative recall). The kNN retrieval mimics how we recall related past experiences based on similarity to current situation.
 
 **Comparison to Other Approaches**:
+
 - **vs Full Long Context**: Memorizing Attention can access potentially unlimited history; long context bounded by GPU memory
 - **vs RAG**: RAG retrieves external documents; Memorizing Attention retrieves past activations from this conversation/session
 - **vs StreamingLLM**: StreamingLLM discards middle tokens; Memorizing Attention stores them in external memory
 
 **Implementation Challenges**:
+
 - **kNN Efficiency**: Need fast approximate nearest neighbor search (FAISS, ScaNN)
 - **Memory Management**: Deciding what to keep, when to evict old memories
 - **Gating**: Learning how much to trust retrieved memories vs local attention
@@ -1266,6 +1310,7 @@ class MemorizingAttention(nn.Module):
     """Attention augmented with kNN memory lookup.
 
     Combines:
+
     - Local attention over recent context
     - kNN retrieval from long-term memory
 
@@ -1396,6 +1441,7 @@ class MemorizingAttention(nn.Module):
 **Paper**: [Landmark Attention: Random-Access Infinite Context Length for Transformers](https://arxiv.org/abs/2305.16300) (Mohtashami & Jaggi, 2023)
 
 **Architecture**:
+
 - Divide sequence into blocks (e.g., 50 tokens each)
 - Create a landmark token for each block (via pooling or learned compression)
 - Full attention over landmarks (cheap since few landmarks)
@@ -1407,12 +1453,14 @@ class MemorizingAttention(nn.Module):
 **The Core Problem**: Full attention over long sequences is $O(n^2)$. We need global information flow, but can't afford quadratic computation. Simply using local windows loses global coherence.
 
 **Landmark Attention's Solution**: Create a hierarchical attention structure:
+
 1. **Compress blocks into landmarks**: Each block (e.g., 50 tokens) gets summarized into one landmark token
 2. **Local attention within blocks**: Tokens attend to neighbors (cheap)
 3. **Global attention via landmarks**: All tokens can attend to all landmarks (cheap since few landmarks)
 4. **Landmark-to-landmark attention**: Landmarks attend to each other (ultra cheap)
 
 **Why This Works**:
+
 - **Reduced Complexity**: For sequence length $n$ with block size $b$:
   - Local attention: $O(b^2 \cdot \frac{n}{b}) = O(bn)$
   - Landmark attention: $O(n \cdot \frac{n}{b}) = O(\frac{n^2}{b})$
@@ -1423,11 +1471,13 @@ class MemorizingAttention(nn.Module):
 **Theoretical Justification**: Information theory shows we can compress blocks without losing critical information if we choose the right pooling strategy. Max pooling captures salient features, mean pooling captures average context, learned compression can be optimized end-to-end.
 
 **Comparison to Other Approaches**:
+
 - **vs Local Windows**: Landmark adds global connectivity; pure windows can't see beyond neighbors
 - **vs Sparse Attention**: Landmark is structured/hierarchical; sparse is typically unstructured
 - **vs Routing/Clustering**: Landmark uses fixed spatial blocks; routing uses learned groupings
 
 **Pooling Strategies**:
+
 - **Max Pooling**: Captures most salient feature in block (good for keywords)
 - **Mean Pooling**: Captures average semantic (good for general context)
 - **Learned Compression**: Neural network learns optimal summarization
@@ -1500,9 +1550,11 @@ class LandmarkAttention(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Applies:
+
         1. Local attention within blocks
         2. Cross-attention to landmarks
         3. Attention among landmarks
+
         """
         batch, seq_len, dim = x.shape
 
@@ -1556,11 +1608,13 @@ class LandmarkAttention(nn.Module):
 ```
 
 **Benefits**:
+
 - Reduces complexity from $O(n^2)$ to $O(n \cdot \frac{n}{b} + (\frac{n}{b})^2) = O(\frac{n^2}{b})$
 - Can handle very long sequences
 - Preserves global information via landmarks
 
 **Tradeoffs**:
+
 - Information loss in compression
 - Requires tuning block size
 
@@ -1582,6 +1636,7 @@ Instead of splitting the attention computation across sequence length (which req
 4. Each device sees all KV pairs eventually, but one block at a time
 
 **Complexity**:
+
 - Communication: $O(n \cdot d)$ instead of $O(n^2)$
 - Enables context lengths in the millions
 
@@ -1601,6 +1656,7 @@ For $N$ devices, each holding sequence chunk of length $\frac{L}{N}$:
 **Naive Sequence Parallelism Fails**: If we split a sequence across GPUs and compute attention naively, each GPU needs the full attention matrix for its queries—requiring all-to-all communication of $O(n^2)$ data. This is prohibitively expensive.
 
 **Ring Attention's Breakthrough**: Instead of gathering all KV pairs at once, process them in blocks via ring communication:
+
 1. Each GPU holds its chunk of the sequence (Q, K, V)
 2. Compute attention between local Q and local K, V
 3. Pass KV to the next GPU in a ring (like a relay race)
@@ -1608,6 +1664,7 @@ For $N$ devices, each holding sequence chunk of length $\frac{L}{N}$:
 5. Repeat until all GPUs have seen all KV pairs
 
 **Why This Works**:
+
 - **Communication**: Only $O(nd)$ instead of $O(n^2)$—we pass KV tensors, not attention matrices
 - **Computation**: Same as full attention (still $O(n^{2}d)$), but distributed
 - **Memory**: Each GPU stores $1/N$ of the sequence, enabling million-token contexts
@@ -1615,11 +1672,13 @@ For $N$ devices, each holding sequence chunk of length $\frac{L}{N}$:
 **Theoretical Justification**: Attention can be computed blockwise and accumulated using numerically stable online softmax (see Flash Attention). This allows us to process KV blocks incrementally without storing the full attention matrix.
 
 **Comparison to Other Parallelism**:
+
 - **vs Data Parallel**: Ring Attention parallelizes sequence length, not batch size
 - **vs Tensor Parallel**: Ring Attention doesn't split the model, only the sequence
 - **vs Model Parallel**: Can be combined with model parallelism for even longer contexts
 
 **Technical Challenges**:
+
 - **Causal Masking**: Need to track which KV blocks are "in the future" for causal attention
 - **Online Normalization**: Must use Flash Attention-style incremental softmax
 - **Communication Overhead**: Ring passes require fast GPU interconnect (NVLink, InfiniBand)
@@ -1738,6 +1797,7 @@ class RingAttention(nn.Module):
 | **Ring Attention** | Sequence (ring) | KV blocks ($O(nd)$) | **Millions** |
 
 **Use cases**:
+
 - Training on extremely long documents
 - Genomic sequences (millions of base pairs)
 - Video understanding (thousands of frames)
@@ -1753,6 +1813,7 @@ When deploying long-context models in production, several practical challenges e
 Long-context inference has two distinct phases with different performance characteristics:
 
 **Prefill Phase**: Processing the initial context (prompt)
+
 - Processes all tokens at once: $n$ tokens in parallel
 - Compute-bound for short contexts, memory-bound for long ones
 - Attention matrix: $O(n^2)$ memory if not using Flash Attention
@@ -1760,6 +1821,7 @@ Long-context inference has two distinct phases with different performance charac
 - **Example**: Processing 100K token document before generation
 
 **Decode Phase**: Generating new tokens one at a time
+
 - Processes 1 token at a time
 - Compute-bound (small compute per token)
 - Only needs to attend to KV cache (no new KV computation for old tokens)
@@ -1837,6 +1899,7 @@ def analyze_inference_phases(
 ```
 
 **Key insights**:
+
 - **Prefill is parallelizable**: Can use full GPU for batch processing
 - **Decode is sequential**: Limited parallelism per sequence
 - **Different bottlenecks**: Prefill → memory bandwidth, Decode → compute/latency
@@ -1855,6 +1918,7 @@ For 100K+ context, the KV cache becomes the memory bottleneck.
 ```
 
 **Example** (Llama 2 70B):
+
 - Layers: 80
 - Heads: 64 (8 KV heads with GQA)
 - Head dim: 128
@@ -1878,6 +1942,7 @@ Reduce memory by quantizing the KV cache to lower precision:
 **The Quantization Solution**: Store KV cache in reduced precision (INT8 or INT4) instead of FP16/FP32. This provides 2-4x memory reduction with minimal accuracy loss.
 
 **Why This Works**:
+
 - **Activation Distributions**: KV activations tend to have limited range, making them amenable to quantization
 - **Per-Token Scaling**: By computing scale factors per token/head, we preserve precision where it matters
 - **Inference Only**: Quantization only affects storage and retrieval, not forward pass computation (we dequantize before attention)
@@ -1885,6 +1950,7 @@ Reduce memory by quantizing the KV cache to lower precision:
 **Theoretical Justification**: Research shows attention is robust to small perturbations in K and V. The dot-product attention operation is inherently a "fuzzy" matching process—exact precision isn't critical. Quantization introduces noise, but below a threshold, this noise is in the tolerance range of the attention mechanism.
 
 **Quantization Strategies**:
+
 - **INT8 (8-bit)**: 2x memory reduction, near-zero accuracy loss
 - **INT4 (4-bit)**: 4x memory reduction, small accuracy degradation
 - **Per-Tensor vs Per-Channel**: Per-channel (per-head) scaling gives better accuracy at slight complexity cost
@@ -1893,6 +1959,7 @@ Reduce memory by quantizing the KV cache to lower precision:
 **Mixed-Precision Strategy**: Recent research shows we can quantize older tokens more aggressively than recent ones (older tokens matter less), creating a tiered memory system.
 
 **Comparison to Other Memory Optimizations**:
+
 - **vs FlashAttention**: Flash reduces peak memory during computation; quantization reduces storage memory
 - **vs Sparse Attention**: Sparse reduces compute; quantization reduces memory
 - **Complementary**: Can combine quantization with other techniques
@@ -1906,9 +1973,11 @@ class QuantizedKVCache:
     Reduces memory by 2-4x with minimal accuracy loss.
 
     Key techniques:
+
     - Per-tensor or per-channel quantization
     - Dynamic quantization (compute scales on the fly)
     - Mixed precision (quantize older tokens more aggressively)
+
     """
     def __init__(
         self,
@@ -2045,6 +2114,7 @@ class QuantizedKVCache:
 ```
 
 **Memory Savings**:
+
 - **INT8**: 2x reduction (FP16 → INT8)
 - **INT4**: 4x reduction (FP16 → INT4)
 - **Accuracy**: Minimal degradation (typically <1% perplexity increase)
@@ -2056,6 +2126,7 @@ class QuantizedKVCache:
 **Paper**: [Lost in the Middle: How Language Models Use Long Contexts](https://arxiv.org/abs/2307.03172) (Liu et al., 2023)
 
 **Key observations**:
+
 1. Models trained on 128K context may start degrading at 32K
 2. Performance varies by position: beginning and end are best, middle is worst
 3. Not all tokens are equally accessible, even if "in context"
@@ -2067,17 +2138,20 @@ class QuantizedKVCache:
 **Why We Need to Measure This**: Before deploying long-context models, we need to verify they actually retrieve information throughout the context window, not just at the edges. This "needle in a haystack" test is critical for understanding real-world performance.
 
 **The Measurement Approach**:
+
 1. Create a long document (the "haystack")
 2. Insert a fact to retrieve (the "needle") at various positions
 3. Ask the model to retrieve the fact
 4. Measure accuracy across different lengths and positions
 
 **Why Context Collapse Happens**:
+
 - **Attention Dilution**: With 100K positions, each position gets less attention weight
 - **Training Distribution**: Models see shorter contexts more during training
 - **Middle Bias**: Attention sink (early tokens) and recency bias (late tokens) starve middle positions
 
 **Practical Implications**:
+
 - Don't assume long context means uniform access
 - Critical information should be placed at beginning or end
 - Consider retrieval-augmented approaches for guaranteed access
@@ -2174,11 +2248,13 @@ def plot_context_collapse(results: dict):
 ```
 
 **Common patterns**:
+
 - **U-shaped performance**: Best at beginning and end, worst in middle
 - **Degradation with length**: Even within training window, longer = harder
 - **Task-dependent**: Retrieval tasks show collapse more than generation
 
 **Mitigation strategies**:
+
 1. **Prioritize important info**: Put key facts at beginning or end
 2. **Explicit position markers**: Add "Document 1:", "Document 2:" headers
 3. **Retrieval-augmented**: Don't rely solely on in-context retrieval
@@ -2191,6 +2267,7 @@ Batching variable-length sequences with large KV caches is complex.
 #### The Problem
 
 **Traditional batching**: Pad all sequences to max length in batch
+
 - Sequence 1: 1000 tokens → pad to 50,000
 - Sequence 2: 50,000 tokens → no padding
 - **Wasted memory**: 49,000 tokens of padding for sequence 1!
@@ -2200,11 +2277,13 @@ For long contexts, this is prohibitive.
 #### Solution: Continuous Batching and Paged Attention
 
 **Continuous Batching** (also called "dynamic batching"):
+
 - Don't wait for all sequences to finish
 - Add new requests as soon as GPU has capacity
 - Each sequence has its own KV cache, variable length
 
 **Paged Attention** (vLLM):
+
 - Treat KV cache like virtual memory with pages
 - Allocate cache in blocks (e.g., 128 tokens per block)
 - Non-contiguous memory for each sequence
@@ -2212,18 +2291,21 @@ For long contexts, this is prohibitive.
 ### Implementing Paged KV Cache
 
 **The Problem with Traditional Batching**: When batching variable-length sequences with KV cache:
+
 - Must allocate cache for maximum sequence length in batch
 - Short sequences waste memory (e.g., 1K sequence in batch with 50K sequence wastes 49K of cache)
 - Memory fragmentation: gaps between allocations can't be reused
 - Low GPU utilization due to memory constraints
 
 **vLLM's Paged Attention Insight**: Treat KV cache like operating system virtual memory:
+
 - Allocate in fixed-size blocks (pages), not entire sequences
 - Each sequence has a page table mapping logical positions to physical memory blocks
 - Can allocate non-contiguously (no fragmentation)
 - Can share blocks between sequences (for common prompts)
 
 **Why This Works**:
+
 - **Eliminates Fragmentation**: All blocks same size, any free block can be used
 - **Flexible Allocation**: Allocate only what each sequence needs
 - **Memory Sharing**: Multiple sequences with identical prompts share blocks (copy-on-write)
@@ -2232,11 +2314,13 @@ For long contexts, this is prohibitive.
 **Theoretical Foundation**: This is virtual memory paging applied to GPU memory. The attention computation accesses KV cache through a page table, allowing the illusion of contiguous memory while physically being scattered.
 
 **Comparison to Alternatives**:
+
 - **vs Padding**: Paged attention uses only needed memory; padding wastes memory
 - **vs Continuous Batching Alone**: Continuous batching removes iteration-level padding; paged attention removes sequence-level padding
 - **vs Quantization**: Orthogonal—can combine paged attention with quantization for even greater efficiency
 
 **Implementation Challenges**:
+
 - **Kernel Modifications**: Standard attention kernels assume contiguous memory; need custom kernels with page table lookups
 - **Block Management**: Need allocator for managing free blocks, similar to OS memory management
 - **Sharing Logic**: Detecting and managing shared blocks (copy-on-write) adds complexity
@@ -2250,6 +2334,7 @@ class PagedKVCache:
     """Paged KV cache for efficient variable-length batching.
 
     Key ideas from vLLM paper:
+
     1. Allocate KV cache in fixed-size blocks (pages)
     2. Each sequence has a page table mapping logical to physical blocks
     3. Can share blocks between sequences (for prompts)
@@ -2390,12 +2475,14 @@ class PagedKVCache:
 ```
 
 **Benefits of Paged Attention**:
+
 1. **Reduced fragmentation**: Can use nearly all allocated memory
 2. **Flexible batching**: Mix sequences of any length
 3. **Sharing**: Multiple sequences can share prompt blocks (for same prompt)
 4. **Higher throughput**: Better GPU utilization
 
 **Results from vLLM paper**:
+
 - **2-4x higher throughput** than HuggingFace Transformers
 - **Near-zero memory waste** (vs 30-50% waste with padding)
 - Enables serving 100K context models in production
@@ -2411,7 +2498,8 @@ How do we know if long-context techniques actually work?
 **Setup**: Hide a "needle" (specific fact) in a "haystack" (long irrelevant text), ask model to retrieve it.
 
 **Example**:
-```
+
+```text
 [10,000 words of Paul Graham essays]
 The secret password is "strawberry".
 [10,000 more words of Paul Graham essays]
@@ -2420,6 +2508,7 @@ Question: What is the secret password?
 ```
 
 **Metrics**:
+
 - Accuracy at different needle positions (beginning, middle, end)
 - Accuracy vs. context length
 - Degradation beyond training length
@@ -2429,12 +2518,14 @@ Question: What is the secret password?
 **Why This Test Matters**: This is the most fundamental test for long-context models. If a model can't retrieve a simple fact from a long document, it can't handle more complex long-context tasks. This test validates that the context window is actually usable, not just theoretically supported.
 
 **What This Reveals**:
+
 - **Effective Context Length**: Where performance drops off
 - **Position Bias**: Whether middle tokens are accessible
 - **Extrapolation Capability**: Performance beyond training length
 - **Practical Usability**: Whether the model can serve as a "document store"
 
 **How to Interpret Results**:
+
 - **100% accuracy across all positions**: Model truly supports claimed context length
 - **U-shaped curve (good at edges, poor in middle)**: Attention sink + recency bias issue
 - **Degradation with length**: Context collapse or insufficient scaling
@@ -2517,22 +2608,26 @@ RULER tests 4 task categories across different lengths:
 **The Problem with Single-Task Evaluation**: A model might excel at retrieval but fail at reasoning across distant information. RULER's multi-task approach reveals these capability gaps.
 
 **What Each Task Category Tests**:
+
 1. **Retrieval**: Basic long-context access (necessary but not sufficient)
 2. **Multi-hop Reasoning**: Can the model connect information scattered across the context?
 3. **Aggregation**: Can the model combine information from the entire context?
 4. **Length Extrapolation**: Does the scaling method actually work beyond training length?
 
 **Why This Benchmark Design**:
+
 - **Synthetic but Meaningful**: Controlled tasks with clear metrics, yet representative of real-world needs
 - **Scalable**: Can test at any length (unlike human-annotated benchmarks limited to short contexts)
 - **Diagnostic**: Failures point to specific capability gaps (retrieval vs reasoning vs aggregation)
 
 **Comparison to Other Benchmarks**:
+
 - **vs Needle-in-Haystack**: RULER includes needle tests but adds reasoning and aggregation
 - **vs Real-World Tasks**: More controlled, easier to diagnose, but may not capture all nuances
 - **vs Perplexity**: Perplexity doesn't test retrieval or reasoning; it's a different dimension
 
 **How to Use RULER Results**:
+
 - **Pre-deployment Validation**: Verify your long-context technique actually works
 - **Technique Comparison**: Compare RoPE scaling methods, attention variants
 - **Length Selection**: Find where performance degrades to choose deployment context length
@@ -2624,8 +2719,10 @@ def evaluate_perplexity_vs_context(
     """Measure perplexity with different amounts of context.
 
     A model that uses long context well should show:
+
     - Decreasing perplexity as context increases
     - Continued improvement beyond training length (if extended properly)
+
     """
     results = {}
 
@@ -2666,7 +2763,7 @@ def evaluate_perplexity_vs_context(
 
 Similar to needle-in-haystack but tests specific formatting:
 
-```
+```text
 There is an important info hidden inside a lot of irrelevant text.
 Find it and memorize it. I will quiz you about the important
 information there.
@@ -2691,12 +2788,14 @@ Let's build a complete transformer with multiple long-context techniques:
 **Why This Implementation Matters**: Throughout this chapter, we've explored individual techniques. Now we combine them into a cohesive system that demonstrates how these pieces fit together in practice.
 
 **Design Philosophy**: This implementation prioritizes:
+
 1. **Modularity**: Each technique can be toggled on/off
 2. **Production-Ready**: Includes optimizations needed for real deployment
 3. **Educational**: Clear structure showing how components interact
 4. **Flexible**: Can be adapted for different context length requirements
 
 **Techniques Combined**:
+
 - **YaRN RoPE Scaling**: Handles position encoding for extended contexts
 - **Grouped Query Attention (GQA)**: Reduces KV cache size without sacrificing quality
 - **Sliding Window Attention**: Optional memory efficiency for very long sequences
@@ -2704,18 +2803,21 @@ Let's build a complete transformer with multiple long-context techniques:
 - **Streaming Support**: For unbounded-length inference
 
 **Why These Specific Combinations**:
+
 - **RoPE + YaRN**: Best-in-class position encoding extension with minimal fine-tuning
 - **GQA**: Reduces KV cache memory by 4x (with 4 KV heads vs 16 query heads) while maintaining quality
 - **Sliding Window**: Provides fallback for extremely long contexts where even optimized attention struggles
 - **Flash Attention**: Essential for avoiding $O(n^2)$ memory usage during computation
 
 **How This Relates to Production Models**:
+
 - **Llama 3**: Uses RoPE + GQA
 - **Mistral/Mixtral**: Adds sliding window attention
 - **Qwen**: Uses ABF RoPE scaling
 - **This Implementation**: Combines best practices from all of them
 
 **Key Architectural Decisions**:
+
 1. **Tied Embeddings**: Share input and output embeddings (saves parameters, often improves quality)
 2. **RMSNorm**: Simpler, faster than LayerNorm; used in modern LLMs
 3. **Optional Caching**: Support both training (no cache) and inference (with cache) modes
@@ -2728,10 +2830,12 @@ class LongContextTransformer(nn.Module):
     """Complete transformer with long-context techniques.
 
     Combines:
+
     - YaRN RoPE scaling for position encoding
     - Flash Attention for memory efficiency (see [Flash Attention](12-flash-attention.md))
     - Sliding window + global attention (Gemma-style)
     - Optional StreamingLLM for inference
+
     """
     def __init__(
         self,
@@ -3071,12 +3175,14 @@ class RMSNorm(nn.Module):
 ### When to Use Each Technique
 
 **Extending existing model (minimal resources)**:
+
 1. Start with **Dynamic NTK** (zero-shot, no training)
 2. If insufficient, try **Position Interpolation** (1K steps) or **YaRN** (short fine-tuning)
 3. If memory-constrained, use **LongLoRA** (enables 100K on single GPU)
 4. For streaming: add **StreamingLLM**
 
 **Training new model**:
+
 1. Use **ABF** or **YaRN** RoPE from start
 2. Consider **sliding window** attention for efficiency
 3. Alternate global and local layers (Gemma-style)
@@ -3084,6 +3190,7 @@ class RMSNorm(nn.Module):
 5. If limited compute, use **LongLoRA** during fine-tuning
 
 **Production deployment**:
+
 1. **Prefill optimization**: Use Flash Attention, sparse attention for long prompts
 2. **Decode optimization**: KV cache quantization (INT8), speculative decoding
 3. **Batching**: Implement Paged Attention for variable-length sequences
@@ -3091,6 +3198,7 @@ class RMSNorm(nn.Module):
 5. **Monitoring**: Watch for context collapse at different positions/lengths
 
 **Extreme length** (1M+ tokens):
+
 1. **Ring Attention** for distributed training
 2. **RAG** for inference (don't fit everything in context)
 3. **Landmark attention** for hierarchical processing

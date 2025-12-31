@@ -39,6 +39,7 @@ A transformer block processes input sequences through two main sub-layers:
 2. **Feed-Forward Network (FFN)**: Processes each position independently
 
 Each sub-layer is wrapped with:
+
 - **Residual connections**: Enable gradient flow in deep networks
 - **Layer normalization**: Stabilize training
 
@@ -61,12 +62,14 @@ For input $\mathbf{x} \in \mathbb{R}^d$:
 ```
 
 where:
+
 - $\mu = \frac{1}{d}\sum_{i=1}^d x_i$ (mean)
 - $\sigma^2 = \frac{1}{d}\sum_{i=1}^d (x_i - \mu)^2$ (variance)
 - $\gamma, \beta \in \mathbb{R}^d$ are learned scale and shift parameters
 - $\epsilon$ is a small constant for numerical stability (typically $10^{-5}$ or $10^{-6}$)
 
 **Key properties:**
+
 - Normalizes across features (d), not batch dimension
 - Each example normalized independently
 - Invariant to scale and shift transformations
@@ -86,12 +89,14 @@ where:
 ```
 
 **Differences from LayerNorm:**
+
 - No mean centering (removes $\mu$)
 - No bias term ($\beta$)
 - ~10-15% faster computation
 - Empirically similar or better performance
 
 **Why RMSNorm works:**
+
 - Re-centering contributes little to training stability
 - Scale normalization is the key factor
 - Simpler computation, fewer parameters
@@ -273,6 +278,7 @@ if __name__ == "__main__":
 ```
 
 **Output interpretation:**
+
 - LayerNorm produces outputs with mean ≈ 0 (due to centering)
 - RMSNorm preserves the mean but normalizes scale
 - RMSNorm is 10-15% faster
@@ -298,16 +304,19 @@ Standard FFN consists of two linear transformations with a non-linear activation
 ```
 
 where:
+
 - $\mathbf{x} \in \mathbb{R}^{d_{\text{model}}}$ is the input
 - $\mathbf{W}_1 \in \mathbb{R}^{d_{\text{ff}} \times d_{\text{model}}}$, $\mathbf{W}_2 \in \mathbb{R}^{d_{\text{model}} \times d_{\text{ff}}}$
 - $d_{\text{ff}}$ is the intermediate dimension (typically $4 \times d_{\text{model}}$)
 - $\sigma$ is the activation function (see [Activation Functions](10-activation-functions.md))
 
 **Standard choices:**
+
 - Original Transformer: $d_{\text{ff}} = 4 \times d_{\text{model}}$, activation = ReLU
 - Modern LLMs: $d_{\text{ff}} = \frac{8}{3} \times d_{\text{model}}$ or $3.5 \times d_{\text{model}}$, activation = SwiGLU/GeGLU
 
 **Why is FFN needed?**
+
 - Attention is linear (weighted sum), FFN adds non-linearity
 - FFN processes each position independently (position-wise)
 - Provides additional capacity and expressiveness
@@ -416,6 +425,7 @@ if __name__ == "__main__":
 ```
 
 **Parameter count:**
+
 - FFN has ~$2 \times d_{\text{model}} \times d_{\text{ff}}$ parameters
 - With $d_{\text{ff}} = 4 \times d_{\text{model}}$, FFN has $8 \times d_{\text{model}}^2$ parameters
 - This is typically 2/3 of all transformer block parameters
@@ -434,10 +444,12 @@ Residual connections (skip connections) add the input of a sub-layer to its outp
 
 **Training deep networks:**
 Without residual connections, deep networks suffer from:
+
 1. **Vanishing gradients**: Gradients shrink exponentially with depth
 2. **Degradation**: Deeper networks perform worse than shallower ones
 
 **How residuals help:**
+
 - Create identity mappings for gradient flow
 - Allow each layer to learn refinements rather than full transformations
 - Enable training of 100+ layer transformers
@@ -447,11 +459,13 @@ Without residual connections, deep networks suffer from:
 Consider a network with $L$ layers. During backpropagation:
 
 Without residuals:
+
 ```math
 \frac{\partial \mathcal{L}}{\partial \mathbf{x}_1} = \frac{\partial \mathcal{L}}{\partial \mathbf{x}_{L}} \prod_{i=1}^{L-1} \frac{\partial \mathbf{x}_{i+1}}{\partial \mathbf{x}_i}
 ```
 
 With residuals ($\mathbf{x}_{i+1} = \mathbf{x}_i + F_i(\mathbf{x}_i)$):
+
 ```math
 \frac{\partial \mathbf{x}_{i+1}}{\partial \mathbf{x}_i} = \mathbf{I} + \frac{\partial F_i(\mathbf{x}_i)}{\partial \mathbf{x}_i}
 ```
@@ -473,6 +487,7 @@ Consider backpropagation through $L$ layers. The gradient at layer $\ell$ is:
 ```
 
 If any Jacobian $\frac{\partial \mathbf{x}_{i+1}}{\partial \mathbf{x}_i}$ has:
+
 - Eigenvalues < 1: gradients shrink exponentially (vanishing gradients)
 - Eigenvalues > 1: gradients grow exponentially (exploding gradients)
 
@@ -569,6 +584,7 @@ if __name__ == "__main__":
 ```
 
 **Typical output:**
+
 - Without residuals: gradients become very small (vanishing)
 - With residuals: gradients remain stable across layers
 
@@ -588,12 +604,13 @@ The arrangement of layer normalization relative to sub-layers significantly impa
 
 **Original Transformer** ([Vaswani et al., 2017](https://arxiv.org/abs/1706.03762)):
 
-```
+```text
 x → [Self-Attention] → [Add & Norm] → [FFN] → [Add & Norm] → output
      ↑_______________↓                 ↑_______↓
 ```
 
 Mathematically:
+
 ```math
 \begin{align}
 \mathbf{y}_1 &= \text{LayerNorm}(\mathbf{x} + \text{Attention}(\mathbf{x})) \\
@@ -602,6 +619,7 @@ Mathematically:
 ```
 
 **Issues:**
+
 - Gradients flow through normalization layers during backprop
 - Harder to train very deep models (>12 layers)
 - Often requires careful learning rate warmup
@@ -610,12 +628,13 @@ Mathematically:
 
 **Modern standard** ([Xiong et al., 2020](https://arxiv.org/abs/2002.04745)):
 
-```
+```text
 x → [Norm] → [Self-Attention] → [Add] → [Norm] → [FFN] → [Add] → output
      ↑_________________________↓          ↑_______________↓
 ```
 
 Mathematically:
+
 ```math
 \begin{align}
 \mathbf{y}_1 &= \mathbf{x} + \text{Attention}(\text{LayerNorm}(\mathbf{x})) \\
@@ -624,6 +643,7 @@ Mathematically:
 ```
 
 **Advantages:**
+
 - Gradients flow directly through residual connections
 - More stable training for deep models (100+ layers)
 - Less sensitive to learning rate and initialization
@@ -653,6 +673,7 @@ The diagram compares the two architectural choices. In post-norm (left), normali
    - Pre-norm: gradient norm stays bounded
 
 **Trade-offs:**
+
 - Pre-norm: Better training, slightly worse representation power
 - Post-norm: Theoretically stronger, harder to optimize
 - Modern practice: Pre-norm + final norm after all blocks
@@ -909,12 +930,17 @@ In many sequence modeling tasks, we need to control the information flow between
 Attention masks implement two critical constraints:
 
 1. **Causality (autoregressive property)**: For language modeling, the probability of token $i$ must depend only on tokens $1, ..., i-1$:
+
+
    ```math
 P(x_i | x_1, ..., x_{i-1}, x_{i+1}, ..., x_n) = P(x_i | x_1, ..., x_{i-1})
 ```
+
    Violating this makes training and inference inconsistent—the model trains with future information but can't access it during generation.
 
 2. **Padding invariance**: Padding tokens should not influence the representation of real tokens. Mathematically, for any padding position $p$:
+
+
    ```math
 \text{Attention}(\mathbf{q}_i, \mathbf{k}_p, \mathbf{v}_p) = 0
 ```
@@ -1142,6 +1168,7 @@ Poor weight initialization can make deep neural networks untrainable. If weights
 Good initialization maintains signal propagation through both forward and backward passes. For a layer with input dimension $d_{in}$ and output dimension $d_{out}$:
 
 **Xavier/Glorot initialization** assumes linear activations and derives the variance:
+
 ```math
 \text{Var}(W_{ij}) = \frac{2}{d_{in} + d_{out}}
 ```
@@ -1149,11 +1176,13 @@ Good initialization maintains signal propagation through both forward and backwa
 This ensures that variance of activations and gradients remains roughly constant across layers. The symmetric form considers both forward (depends on $d_{in}$) and backward (depends on $d_{out}$) passes.
 
 **Kaiming/He initialization** accounts for ReLU activations which zero out half the neurons:
+
 ```math
 \text{Var}(W_{ij}) = \frac{2}{d_{in}}
 ```
 
 For very deep transformers, **scaled initialization** prevents residual path signals from growing:
+
 ```math
 W \gets W \cdot \frac{1}{\sqrt{2L}}
 ```
@@ -1221,10 +1250,12 @@ class TransformerBlockWithInit(nn.Module):
         Initialize weights following best practices for deep transformers.
 
         Strategy:
+
         1. LayerNorm/RMSNorm: gamma=1, beta=0 (already done by PyTorch)
         2. Attention: Xavier/Glorot uniform initialization
         3. FFN: Xavier/Glorot with optional depth scaling
         4. Residual path scaling (optional, for very deep models)
+
         """
         # Attention weights - Xavier/Glorot initialization
         # PyTorch's MultiheadAttention already uses reasonable init, but we can override
@@ -1360,17 +1391,28 @@ if __name__ == "__main__":
 
 2. **Linear layers**:
    - **Xavier/Glorot**: Standard for transformers
+
+
      ```math
 W \sim U\left[-\sqrt{\frac{6}{d_{\text{in}} + d_{\text{out}}}}, \sqrt{\frac{6}{d_{\text{in}} + d_{\text{out}}}}\right]
 ```
+
+
    - **Kaiming/He**: Better for ReLU activations
+
+
      ```math
 W \sim U\left[-\sqrt{\frac{6}{d_{\text{in}}}}, \sqrt{\frac{6}{d_{\text{in}}}}\right]
 ```
+
+
    - **Scaled initialization**: For very deep models (>24 layers)
+
+
      ```math
 W \gets W / \sqrt{2L}
 ```
+
      where $L$ is the number of layers
 
 3. **Bias terms**: Initialized to 0
@@ -1520,6 +1562,7 @@ if __name__ == "__main__":
 ```
 
 **Key insights:**
+
 - FFN typically contains 60-70% of parameters
 - Attention contains 30-40% of parameters
 - Normalization is negligible (<1%)
@@ -1531,6 +1574,7 @@ if __name__ == "__main__":
 ### LLaMA Architecture
 
 [LLaMA](https://arxiv.org/abs/2302.13971) and [LLaMA 2](https://arxiv.org/abs/2307.09288) use:
+
 - **RMSNorm** instead of LayerNorm
 - **SwiGLU** activation (see [Activation Functions](10-activation-functions.md))
 - **Pre-normalization**
@@ -1573,6 +1617,7 @@ class LLaMABlock(nn.Module):
 ### GPT-3 Architecture
 
 GPT-3 uses:
+
 - **LayerNorm** (not RMSNorm)
 - **GELU** activation
 - **Pre-normalization**
@@ -1596,12 +1641,16 @@ The parallel architecture is based on several observations:
 
 1. **Independence of operations**: Attention captures token relationships; FFN processes individual positions. These operations are conceptually independent and both take the same input
 2. **Additive combination**: Since both paths connect via residual additions, we can mathematically regroup:
+
+
    ```math
 \begin{align}
    \text{Sequential: } & \mathbf{y} = \mathbf{x} + \text{FFN}(\mathbf{x} + \text{Attn}(\mathbf{x})) \\
    \text{Parallel: } & \mathbf{y} = \mathbf{x} + \text{Attn}(\mathbf{x}) + \text{FFN}(\mathbf{x})
    \end{align}
 ```
+
+
 3. **Shared normalization**: Both paths can normalize the same input, reducing parameters and computation
 
 **Relationship to Alternatives:**
@@ -1621,6 +1670,7 @@ The parallel architecture is based on several observations:
 Some modern models (GPT-J, PaLM) compute attention and FFN in parallel rather than sequentially for improved efficiency:
 
 **Standard (sequential) architecture:**
+
 ```python
 # Sequential: attention, then FFN
 h1 = x + attention(norm1(x))
@@ -1628,6 +1678,7 @@ h2 = h1 + ffn(norm2(h1))
 ```
 
 **Parallel architecture:**
+
 ```python
 # Parallel: attention and FFN computed simultaneously
 x_norm = norm(x)
@@ -1780,6 +1831,7 @@ if __name__ == "__main__":
 | **Gradient flow** | Two residual paths | Single combined path |
 
 **When to use:**
+
 - **Sequential**: When model quality is paramount, standard in most LLMs
 - **Parallel**: When speed/efficiency is critical, used in GPT-J (6B params), PaLM
 
@@ -1800,23 +1852,32 @@ Standard multi-head attention uses $n$ independent KV heads, which is expensive.
 Grouped Query Attention balances between MHA and MQA:
 
 **Standard MHA**: Each query head $i$ attends using its own keys and values:
+
 ```math
 \text{head}_i = \text{Attention}(Q_i, K_i, V_i)
 ```
+
+
 - Maximum expressiveness: each head can learn different patterns
 - Maximum memory: $2 \times n_{\text{heads}} \times d_{\text{head}} \times L$ KV cache
 
 **Multi-Query Attention (MQA)**: All query heads share a single KV head:
+
 ```math
 \text{head}_i = \text{Attention}(Q_i, K_{\text{shared}}, V_{\text{shared}})
 ```
+
+
 - Minimum memory: $2 \times 1 \times d_{\text{head}} \times L$ KV cache
 - Reduced expressiveness: all queries must use same keys/values
 
 **GQA**: Groups of query heads share KV heads:
+
 ```math
 \text{head}_i = \text{Attention}(Q_i, K_{\lfloor i / g \rfloor}, V_{\lfloor i / g \rfloor})
 ```
+
+
 - Balanced memory: $2 \times g \times d_{\text{head}} \times L$ KV cache
 - Balanced expressiveness: multiple KV patterns, but shared within groups
 
@@ -1837,15 +1898,18 @@ Grouped Query Attention balances between MHA and MQA:
 Modern LLMs (LLaMA 2, Mistral, Gemma) use **Grouped Query Attention** to reduce memory and computation:
 
 **Standard Multi-Head Attention:**
+
 - $n$ heads, each with its own Q, K, V projections
 - KV cache size: $2 \times n_{\text{heads}} \times d_{\text{head}} \times \text{seq\_len}$
 
 **Multi-Query Attention (MQA):**
+
 - $n$ query heads, but only 1 shared K, V head
 - Reduces KV cache by $n_{\text{heads}}$ times
 - Used in PaLM, Falcon
 
 **Grouped Query Attention (GQA):**
+
 - $n$ query heads, grouped into $g$ groups
 - Each group shares K, V heads
 - Example: 32 query heads, 8 KV heads → 4 queries per KV group
@@ -1965,6 +2029,7 @@ if __name__ == "__main__":
 ```
 
 **Benefits of GQA:**
+
 - **Reduced KV cache**: Critical for long-context inference
 - **Better quality than MQA**: More KV capacity than single shared head
 - **Used in production**: LLaMA 2 (70B), Mistral 7B, Gemma
@@ -1993,14 +2058,17 @@ def exercise1():
     TODO: Implement PostNormTransformerBlock
 
     Requirements:
+
     - Use post-norm architecture (norm after residual)
     - Compare gradient flow with pre-norm version
     - Train a small model and observe convergence
+
     """
     pass
 ```
 
 **Solution approach:**
+
 - Swap order: apply sub-layer, add residual, then normalize
 - Compare gradient norms at different depths
 - Try training with and without learning rate warmup
@@ -2008,6 +2076,7 @@ def exercise1():
 ### Exercise 2: Analyze FFN Expansion Ratio
 
 Experiment with different $d_{ff}/d_{model}$ ratios and measure:
+
 - Parameter count
 - Training speed
 - Model performance
@@ -2024,6 +2093,7 @@ def exercise2():
 ```
 
 **Expected findings:**
+
 - Higher ratios: more parameters, slower, potentially better performance
 - Diminishing returns beyond 4x
 - Trade-off between capacity and efficiency
@@ -2044,9 +2114,11 @@ def exercise3():
         output = x + attn_out + ffn_out
 
     Compare:
+
     - Speed vs sequential
     - Memory usage
     - Performance
+
     """
     pass
 ```
@@ -2056,6 +2128,7 @@ def exercise3():
 ### Exercise 4: Add Dropout Variations
 
 Implement different dropout strategies:
+
 - Standard dropout
 - DropPath/Stochastic depth
 - Attention dropout vs FFN dropout
@@ -2066,9 +2139,11 @@ def exercise4():
     TODO: Implement and compare dropout strategies
 
     Compare:
+
     - No dropout
     - Standard dropout
     - Stochastic depth (drop entire blocks)
+
     """
     pass
 ```
@@ -2076,6 +2151,7 @@ def exercise4():
 ### Exercise 5: Gradient Norm Analysis
 
 Track and visualize gradient norms through training:
+
 - Per-layer gradient norms
 - How they change with depth
 - Effect of normalization type
@@ -2086,9 +2162,11 @@ def exercise5():
     TODO: Track gradient norms during training
 
     Plot:
+
     - Gradient norm vs layer depth
     - Gradient norm over training steps
     - Compare pre-norm vs post-norm
+
     """
     pass
 ```
@@ -2111,6 +2189,7 @@ Pre-norm provides better training stability for deep transformers:
 4. **Empirical performance**: Matches or exceeds post-norm on most tasks
 
 **Mathematical insight:**
+
 ```math
 \frac{\partial L}{\partial x} = \frac{\partial L}{\partial \text{output}} \cdot \left(\mathbf{I} + \frac{\partial F(x)}{\partial x}\right)
 ```
@@ -2135,11 +2214,13 @@ RMSNorm offers similar performance with better efficiency:
 **Mathematical comparison:**
 
 LayerNorm:
+
 ```math
 \text{LN}(x) = \gamma \odot \frac{x - \mu}{\sqrt{\sigma^2 + \epsilon}} + \beta
 ```
 
 RMSNorm:
+
 ```math
 \text{RMS}(x) = \gamma \odot \frac{x}{\sqrt{\frac{1}{d}\sum x_i^2 + \epsilon}}
 ```
@@ -2164,6 +2245,7 @@ Residual connections solve the vanishing gradient and degradation problems:
 **Mathematical proof**:
 
 Without residuals:
+
 ```math
 \frac{\partial L}{\partial x_0} = \frac{\partial L}{\partial x_{L}} \prod_{i=0}^{L-1} \frac{\partial x_{i+1}}{\partial x_i}
 ```
@@ -2171,6 +2253,7 @@ Without residuals:
 If any Jacobian $\frac{\partial x_{i+1}}{\partial x_i}$ has norm < 1, gradients vanish exponentially.
 
 With residuals ($x_{i+1} = x_i + F_i(x_i)$):
+
 ```math
 \frac{\partial x_{i+1}}{\partial x_i} = \mathbf{I} + \frac{\partial F_i(x_i)}{\partial x_i}
 ```
@@ -2211,6 +2294,7 @@ Approximately **60-70%** of transformer block parameters are in the feed-forward
 **Standard ratio**: $d_{ff} = 4 \times d_{model}$ (original Transformer)
 
 **Modern ratios**:
+
 - **SwiGLU/GeGLU activations**: $d_{ff} = \frac{8}{3} \times d_{model} \approx 2.67 \times d_{model}$
 - **Reason**: Gated activations use 2 weight matrices in parallel, so reducing $d_{ff}$ keeps parameter count similar
 
@@ -2222,10 +2306,12 @@ Approximately **60-70%** of transformer block parameters are in the feed-forward
 4. **Diminishing returns**: Beyond 8x shows little improvement
 
 **Trade-off**:
+
 - Larger ratio → more parameters, slower, potentially better performance
 - Smaller ratio → faster, fewer parameters, may underfit
 
 **Modern practice**:
+
 - Standard transformers: 4x
 - Gated activations (SwiGLU): 8/3x to 3.5x
 - LLaMA, PaLM: 8/3x with SwiGLU
@@ -2250,7 +2336,8 @@ def create_causal_mask(seq_len):
 ```
 
 **Visualization** (seq_len=5):
-```
+
+```text
      0   1   2   3   4
 0 [  0  -∞  -∞  -∞  -∞ ]
 1 [  0   0  -∞  -∞  -∞ ]
@@ -2262,6 +2349,7 @@ def create_causal_mask(seq_len):
 Position 2 can attend to positions 0, 1, 2 but not 3, 4.
 
 **Key points**:
+
 - Applied before softmax in attention computation
 - `-inf` values become 0 after softmax
 - Essential for GPT-style decoder-only models
@@ -2288,10 +2376,12 @@ Position 2 can attend to positions 0, 1, 2 but not 3, 4.
    - Used in GPT-2/3: Scale residual path outputs
 
 **Why it matters**:
+
 - Poor init → vanishing/exploding gradients
 - Proper init → stable training, faster convergence, higher learning rates
 
 **Alternatives**:
+
 - **Kaiming/He**: Better for ReLU activations
 - **T5**: Fan-in scaling
 - **BERT**: Truncated normal with std=0.02
@@ -2303,10 +2393,12 @@ Position 2 can attend to positions 0, 1, 2 but not 3, 4.
 **Answer:**
 
 **Multi-Head Attention (MHA)**:
+
 - Each of $n$ heads has its own Q, K, V projections
 - KV cache size: $2 \times n_{heads} \times d_{head} \times seq\_len$
 
 **Grouped Query Attention (GQA)**:
+
 - $n$ query heads, but only $g$ key/value heads (where $g < n$)
 - Multiple query heads share each K, V head
 - KV cache size: $2 \times g \times d_{head} \times seq\_len$
@@ -2314,11 +2406,13 @@ Position 2 can attend to positions 0, 1, 2 but not 3, 4.
 **Example**: 32 query heads, 8 KV heads → 4 queries share each KV head
 
 **Benefits**:
+
 1. **Reduced KV cache**: $\frac{n}{g}$ times smaller (critical for long-context inference)
 2. **Better than MQA**: Multi-Query Attention ($g=1$) can hurt quality; GQA balances quality vs efficiency
 3. **Faster inference**: Less memory bandwidth for KV cache access
 
 **Trade-offs**:
+
 - Slightly reduced model quality vs full MHA
 - Better quality than MQA (single shared KV head)
 - Memory/speed sweet spot
@@ -2332,28 +2426,33 @@ Position 2 can attend to positions 0, 1, 2 but not 3, 4.
 **Answer:**
 
 **Sequential** (standard):
-```
+
+```text
 x = x + attention(norm(x))
 x = x + ffn(norm(x))
 ```
 
 **Parallel** (GPT-J, PaLM):
-```
+
+```text
 x_norm = norm(x)
 x = x + attention(x_norm) + ffn(x_norm)
 ```
 
 **Benefits of parallel**:
+
 1. **Speed**: 15-20% faster (single normalization, parallel computation)
 2. **Memory**: Lower activation memory (one norm instead of two)
 3. **Parameters**: Fewer parameters (one norm layer)
 
 **Trade-offs**:
+
 - Slightly worse model quality (empirically)
 - Single residual path instead of two
 - Less flexible gradient flow
 
 **When to use**:
+
 - **Sequential**: Standard choice, better quality (GPT-3, LLaMA, BERT)
 - **Parallel**: When efficiency is critical (GPT-J, PaLM)
 
@@ -2387,6 +2486,7 @@ Four key architectural choices enable very deep transformers:
    - RMSNorm variant is faster for very deep models
 
 **Examples of deep transformers**:
+
 - GPT-3: 96 layers (175B parameters)
 - PaLM: 118 layers (540B parameters)
 - Megatron-Turing NLG: 105 layers (530B parameters)
@@ -2400,24 +2500,28 @@ Four key architectural choices enable very deep transformers:
 The transformer block is the fundamental building unit of modern LLMs:
 
 **Key components:**
+
 1. **Layer Normalization**: RMSNorm is standard (faster, similar performance)
 2. **Feed-Forward Network**: Typically 4x expansion with non-linear activation
 3. **Residual Connections**: Essential for gradient flow in deep networks
 4. **Pre-Norm**: Standard in modern LLMs for training stability
 
 **Important insights:**
+
 - Pre-norm enables training very deep models (100+ layers)
 - FFN contains ~2/3 of transformer parameters
 - Residual connections create direct gradient paths
 - RMSNorm is 10-15% faster than LayerNorm with similar performance
 
 **Modern best practices:**
+
 - Use pre-norm architecture
 - Use RMSNorm for efficiency
 - FFN expansion ratio of 4x (or 8/3x with SwiGLU)
 - GELU or SwiGLU activation (see [Activation Functions](10-activation-functions.md))
 
 In the next chapters, we'll explore:
+
 - [Activation Functions](10-activation-functions.md): SwiGLU, GeGLU, and modern activations
 - [Building a Complete Transformer](11-complete-transformer.md): Stacking blocks into full models
 
@@ -2426,37 +2530,46 @@ In the next chapters, we'll explore:
 ## References
 
 1. **Attention is All You Need** - Vaswani et al., 2017
+
    [https://arxiv.org/abs/1706.03762](https://arxiv.org/abs/1706.03762)
    Original transformer with post-norm architecture
 
 2. **Layer Normalization** - Ba et al., 2016
+
    [https://arxiv.org/abs/1607.06450](https://arxiv.org/abs/1607.06450)
    Introduction of layer normalization
 
 3. **Root Mean Square Layer Normalization** - Zhang & Sennrich, 2019
+
    [https://arxiv.org/abs/1910.07467](https://arxiv.org/abs/1910.07467)
    RMSNorm formulation
 
 4. **On Layer Normalization in the Transformer Architecture** - Xiong et al., 2020
+
    [https://arxiv.org/abs/2002.04745](https://arxiv.org/abs/2002.04745)
    Analysis of pre-norm vs post-norm
 
 5. **Deep Residual Learning for Image Recognition** - He et al., 2015
+
    [https://arxiv.org/abs/1512.03385](https://arxiv.org/abs/1512.03385)
    Introduction of residual connections
 
 6. **LLaMA: Open and Efficient Foundation Language Models** - Touvron et al., 2023
+
    [https://arxiv.org/abs/2302.13971](https://arxiv.org/abs/2302.13971)
    LLaMA architecture with RMSNorm and SwiGLU
 
 7. **LLaMA 2: Open Foundation and Fine-Tuned Chat Models** - Touvron et al., 2023
+
    [https://arxiv.org/abs/2307.09288](https://arxiv.org/abs/2307.09288)
    LLaMA 2 improvements and training details
 
 8. **GLU Variants Improve Transformer** - Shazeer, 2020
+
    [https://arxiv.org/abs/2002.05202](https://arxiv.org/abs/2002.05202)
    SwiGLU and gated linear units
 
 9. **PaLM: Scaling Language Modeling with Pathways** - Chowdhery et al., 2022
+
    [https://arxiv.org/abs/2204.02311](https://arxiv.org/abs/2204.02311)
    PaLM architecture choices

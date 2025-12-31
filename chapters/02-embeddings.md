@@ -30,6 +30,7 @@ Embeddings are the foundation of modern NLP and LLMs. They transform discrete to
 After tokenization (see [Tokenization](01-tokenization.md)), we have a sequence of discrete token IDs. But neural networks operate on continuous values. **Embeddings** bridge this gap by mapping each discrete token to a dense, continuous vector.
 
 For example, with a vocabulary of 50,000 tokens and an embedding dimension of 768:
+
 - Token ID `42` → Vector of shape `(768,)` with learnable values
 - Token ID `1337` → Different vector of shape `(768,)` with learnable values
 
@@ -158,6 +159,7 @@ Negative sampling is based on **Noise Contrastive Estimation (NCE)**: if we can 
 **Why This Preserves the Distributional Hypothesis**:
 
 Words with similar contexts will:
+
 - Have similar positive training examples (similar context words)
 - Require similar decision boundaries to separate from negative samples
 - Therefore, learn similar embedding vectors
@@ -261,6 +263,7 @@ GloVe (Global Vectors, Pennington et al., 2014) takes a different approach: dire
 **Key Idea**: The ratio of co-occurrence probabilities encodes semantic relationships.
 
 **Example**:
+
 - $P(\text{solid} | \text{ice})$ is high, $P(\text{solid} | \text{steam})$ is low
 - $P(\text{gas} | \text{ice})$ is low, $P(\text{gas} | \text{steam})$ is high
 - The ratio $\frac{P(\text{solid} | \text{ice})}{P(\text{solid} | \text{steam})}$ is large
@@ -298,6 +301,7 @@ While Word2Vec processes text sequentially (one context window at a time), GloVe
 **Problem Being Solved**:
 
 Word2Vec's local training windows may miss global patterns. For example:
+
 - "ice" and "solid" may co-occur rarely in any single document
 - But across the entire corpus, their co-occurrence is statistically significant
 - GloVe captures this by aggregating all co-occurrences first
@@ -427,6 +431,7 @@ One of the most remarkable properties of word embeddings is that mathematical op
 **The Theoretical Foundation**:
 
 When embeddings are trained on co-occurrence data, they learn to encode relationships as vector offsets. Consider:
+
 - Words like "king" and "queen" share many contexts (royalty, castle, throne, crown)
 - They differ systematically in gender-related contexts (he/she, his/her, prince/princess)
 - This creates a consistent "gender" direction in embedding space
@@ -485,8 +490,10 @@ def demonstrate_word_arithmetic():
 
     # king - man + woman = ?
     result_emb = (embeddings[vocab['king']]
+
                   - embeddings[vocab['man']]
                   + embeddings[vocab['woman']])
+
     result_emb = F.normalize(result_emb, p=2, dim=0)
 
     closest, similarity = find_closest(
@@ -524,6 +531,7 @@ An embedding layer is simply a **lookup table**:
 ```
 
 where:
+
 - Input: Token ID $t \in \{0, 1, \ldots, V-1\}$
 - Output: Dense vector $\mathbf{e}_t \in \mathbb{R}^d$
 
@@ -557,6 +565,7 @@ Unlike typical neural network layers where all parameters receive gradients in e
 **Why Sparse Updates Occur**:
 
 Mathematically, an embedding lookup can be viewed as:
+
 ```math
 \mathbf{e}_t = \mathbf{E} \cdot \text{one\_hot}(t)
 ```
@@ -585,6 +594,7 @@ Since one-hot encoding is zero everywhere except position $t$, gradients only fl
 **Why This Works**:
 
 Despite sparse updates, embeddings learn effectively because:
+
 1. **Frequent tokens** get many updates across batches (see the word "the" thousands of times)
 2. **Rare tokens** get fewer but more concentrated signal (specialized contexts)
 3. **Shared gradients** from downstream layers provide consistent learning signal
@@ -682,6 +692,7 @@ Different initialization strategies affect training dynamics:
 **The Problem**:
 
 Poor initialization can lead to:
+
 1. **Slow convergence**: Embeddings start too far from useful regions of space
 2. **Vanishing/exploding gradients**: Initial values too small/large → numerical issues
 3. **Breaking symmetry**: Need diversity among initial embeddings
@@ -722,6 +733,7 @@ If $\mathbf{e}$ has variance $\sigma_e^2$ and $\mathbf{W}$ has variance $\sigma_
 **Impact on Downstream Components**:
 
 When embeddings are combined with positional encodings, their scales must be compatible:
+
 - If embeddings are too large: positional info gets drowned out
 - If embeddings are too small: position dominates, losing token information
 - Solution: Either normalize both, or use compatible initialization schemes
@@ -760,6 +772,7 @@ compare_initializations()
 ```
 
 **Common Initialization in Transformers**:
+
 - GPT-2, GPT-3: $\mathcal{N}(0, 0.02)$
 - BERT: $\mathcal{N}(0, 0.02)$
 - Many others: $\mathcal{N}(0, d^{-0.5})$ where $d$ is embedding dimension
@@ -896,6 +909,7 @@ class LanguageModel(nn.Module):
     """Language model with tied embeddings.
 
     The same weight matrix is used for:
+
     1. Input: token ID → embedding
     2. Output: hidden state → logits over vocabulary
 
@@ -1040,6 +1054,7 @@ print(f"Output shape: {output.shape}")  # (2, 5, 768)
 ```
 
 **Modern variants**:
+
 - **Learned positions** (GPT, BERT): As shown above
 - **Sinusoidal positions** (original Transformer): Fixed, deterministic patterns
 - **Rotary embeddings (RoPE)** (LLaMA, GPT-Neo): Applied in attention, not added to embeddings
@@ -1059,6 +1074,7 @@ Some modern models like BLOOM use **ALiBi** (Attention with Linear Biases), whic
 where $m$ is a head-specific slope.
 
 **Advantages**:
+
 1. **No position embeddings needed**: Saves parameters
 2. **Better length extrapolation**: Can handle sequences longer than seen during training
 3. **Simpler**: One less component to worry about
@@ -1203,11 +1219,13 @@ plt.show()
 ![ALiBi Attention Bias Pattern](../assets/diagrams/ch02-alibi-bias.svg)
 
 **Models using ALiBi**:
+
 - BLOOM (BigScience)
 - MPT (MosaicML)
 - Some variants of LLaMA
 
 **Trade-offs**:
+
 - **Pro**: Better extrapolation to longer sequences
 - **Pro**: Fewer parameters (no position embeddings)
 - **Con**: Slightly different training dynamics
@@ -1245,6 +1263,7 @@ print(f"Output magnitude: {output.norm().item():.2f}")
 ```
 
 **Who uses scaling**:
+
 - Original Transformer (Vaswani et al., 2017): Yes
 - BERT: No
 - GPT-2/3: No
@@ -1265,6 +1284,7 @@ When adapting pre-trained models to new domains, you often need to add new token
 **Why This Matters**:
 
 Pre-trained language models are powerful, but their vocabularies are fixed during pre-training. When adapting to new domains, you encounter:
+
 - **Domain-specific terms**: Medical (ventilator, triage), legal (tort, plaintiff), scientific (chromatography)
 - **New languages**: Multilingual expansion of monolingual models
 - **Special tokens**: Task-specific markers ([CITATION], [CODE_START])
@@ -1273,6 +1293,7 @@ Pre-trained language models are powerful, but their vocabularies are fixed durin
 **The Catastrophic Forgetting Risk**:
 
 Simply retraining the model with random initialization for new tokens can cause:
+
 1. **Gradient instability**: New tokens have random embeddings → large gradients → destabilize pre-trained embeddings
 2. **Distribution shift**: New tokens in random regions of embedding space → model needs to adapt entire space
 3. **Slow adaptation**: Random embeddings need many updates to become useful
@@ -1280,6 +1301,7 @@ Simply retraining the model with random initialization for new tokens can cause:
 **Key Insight**:
 
 The embedding space learned during pre-training has structure:
+
 - Similar words cluster together
 - Semantic relationships form linear subspaces
 - Magnitude and variance follow learned distributions
@@ -1307,6 +1329,7 @@ New token embeddings should respect this structure from initialization, allowing
 **The Learning Rate Strategy**:
 
 After initialization, use differential learning rates:
+
 - **Pre-trained embeddings**: Low learning rate (1e-5) to preserve knowledge
 - **New embeddings**: Higher learning rate (1e-3) to adapt quickly
 - **Other layers**: Medium learning rate based on how much adaptation needed
@@ -1489,8 +1512,10 @@ def train_with_expanded_vocabulary(
     Use different learning rates for original vs new embeddings.
 
     Common pattern when expanding vocabulary:
+
     - Small LR for pre-trained embeddings (preserve knowledge)
     - Larger LR for new embeddings (learn quickly)
+
     """
     # Separate parameter groups
     original_params = model.embedding.weight[:original_vocab_size]
@@ -1555,6 +1580,7 @@ Embeddings have unique properties that make them amenable to compression:
 - **Significant loss** (10x+): Aggressive quantization or hashing, noticeable degradation
 
 The acceptable tradeoff depends on:
+
 - Task sensitivity (translation very sensitive, sentiment analysis more robust)
 - Model size (small models can't afford quality loss; large models more robust)
 - Deployment constraints (mobile/edge require aggressive compression)
@@ -1637,11 +1663,13 @@ The key insight is that embedding matrices often have **low intrinsic dimensiona
 3. **SVD principle**: Most variance captured by top singular values
 
 Mathematically, if we perform SVD on the embedding matrix:
+
 ```math
 \mathbf{E} = \mathbf{U} \mathbf{\Sigma} \mathbf{V}^\top
 ```
 
 We often find that the singular values decay rapidly, meaning we can approximate $\mathbf{E}$ with only the top $r$ singular values:
+
 ```math
 \mathbf{E} \approx \mathbf{U}_{:r} \mathbf{\Sigma}_{r} \mathbf{V}_{:r}^\top
 ```
@@ -1657,6 +1685,7 @@ Setting $\mathbf{A} = \mathbf{U}_{:r} \mathbf{\Sigma}_{r}^{1/2}$ and $\mathbf{B}
 **Compression Ratio**:
 
 For vocabulary $V = 50000$, embedding dimension $d = 768$, rank $r = 256$:
+
 - Original: $50000 \times 768 = 38.4M$ parameters
 - Factorized: $50000 \times 256 + 256 \times 768 = 13.0M$ parameters
 - Compression: $\frac{38.4M}{13.0M} \approx 3x$
@@ -1670,6 +1699,7 @@ For vocabulary $V = 50000$, embedding dimension $d = 768$, rank $r = 256$:
 **Relationship to ALBERT**:
 
 ALBERT (A Lite BERT) uses factorized embeddings to reduce parameters:
+
 - Embedding dimension $E = 128$ (small)
 - Hidden dimension $H = 4096$ (large)
 - Factorization: $V \rightarrow E \rightarrow H$
@@ -1774,17 +1804,20 @@ Most neural network weights don't require full 32-bit precision. Quantization ma
 **Mathematical Framework**:
 
 Quantization maps floating-point values to integers via:
+
 ```math
 q = \text{round}\left(\frac{x - z}{s}\right)
 ```
 
 where:
+
 - $x$ is the original float value
 - $q$ is the quantized integer
 - $s$ is the scale factor (step size)
 - $z$ is the zero-point (offset)
 
 Dequantization recovers approximate values:
+
 ```math
 \hat{x} = s \cdot q + z
 ```
@@ -1835,6 +1868,7 @@ Dequantization recovers approximate values:
 **Calibration Strategy**:
 
 For best results, choose scale and zero-point based on actual embedding statistics:
+
 1. **Min-Max**: $s = (\max(x) - \min(x)) / 255$ (simple, sensitive to outliers)
 2. **Percentile**: Use 99th percentile instead of max (robust to outliers)
 3. **MSE optimal**: Choose $(s, z)$ minimizing $\sum (x_i - \hat{x}_i)^2$ (best quality, slower)
@@ -1990,6 +2024,7 @@ Instead of storing one embedding per vocabulary item, store a fixed number of em
 **Theoretical Foundation**:
 
 The **hashing trick** (Weinberger et al., 2009) from feature hashing:
+
 - Map high-dimensional sparse features to lower-dimensional dense space
 - Collisions average out with enough dimensions
 - Works because most tokens are approximately independent
@@ -1997,6 +2032,7 @@ The **hashing trick** (Weinberger et al., 2009) from feature hashing:
 **Why Collisions Are Acceptable**:
 
 Consider vocabulary of 1M tokens, hash to 100K buckets:
+
 - Average 10 tokens per bucket
 - If tokens are unrelated (e.g., "apple" and "zebra" hash to same bucket):
   - They appear in completely different contexts
@@ -2007,6 +2043,7 @@ Consider vocabulary of 1M tokens, hash to 100K buckets:
 **Multi-Hash Ensembling**:
 
 Use multiple hash functions and average their embeddings:
+
 ```math
 \mathbf{e}_t = \frac{1}{k} \sum_{i=1}^{k} \mathbf{E}^{(i)}[h_i(t)]
 ```
@@ -2022,12 +2059,14 @@ where $h_i$ is the $i$-th hash function and $\mathbf{E}^{(i)}$ is the $i$-th emb
 **Hash Function Design**:
 
 Good hash functions for embeddings should:
+
 1. **Distribute uniformly**: Avoid clustering in few buckets
 2. **Be deterministic**: Same token always maps to same bucket(s)
 3. **Be fast**: Hashing happens at every lookup
 4. **Be independent**: Multiple hash functions should be uncorrelated
 
 Common choices:
+
 - **Murmur hash**, **CityHash**: Fast, good distribution
 - **Simple modulo**: $h(x) = (ax + b) \bmod m$ for prime $m$ and random $a, b$
 
@@ -2044,6 +2083,7 @@ Common choices:
 **Compression Ratio**:
 
 For vocabulary $V = 1000000$, $m = 100000$ buckets, $k = 2$ hash functions, $d = 256$:
+
 - Standard: $1000000 \times 256 = 256M$ parameters
 - Hash: $2 \times 100000 \times 256 = 51.2M$ parameters
 - Compression: 5x
@@ -2317,6 +2357,7 @@ Embeddings solve three critical problems with one-hot encoding:
    - Enables the model to learn and leverage semantic similarities
 
 **Code example**:
+
 ```python
 # One-hot: O(V) space, no semantics
 one_hot = torch.zeros(50000)
@@ -2328,6 +2369,7 @@ emb_vector = embedding(torch.tensor([42]))  # (768,)
 ```
 
 **Follow-up**: What about memory?
+
 - One-hot: $O(V)$ per token in memory
 - Embedding lookup: $O(d)$ per token in memory
 - Embedding table itself: $O(V \times d)$ parameters (shared across all tokens)
@@ -2339,15 +2381,18 @@ emb_vector = embedding(torch.tensor([42]))  # (768,)
 **Weight tying** means sharing the same weight matrix for input embeddings and output projection in language models.
 
 **How it works**:
+
 - Input: Token ID → Embedding (via weight matrix $\mathbf{W}$)
 - Output: Hidden state → Logits over vocabulary (via weight matrix $\mathbf{W}^T$)
 - With tying: Use same $\mathbf{W}$ for both
 
 **Mathematical formulation**:
+
 - Input embedding: $\mathbf{e}_t = \mathbf{W}[t, :]$ (row lookup)
 - Output logits: $\mathbf{logits} = \mathbf{h} \mathbf{W}^T$ (matrix multiplication)
 
 **Benefits**:
+
 1. **Parameter reduction**: Save $V \times d$ parameters
    - Example: GPT-2 (50K vocab, 768 dim) saves 38.6M parameters
    - Percentage saved depends on model size (more significant in smaller models)
@@ -2358,15 +2403,18 @@ emb_vector = embedding(torch.tensor([42]))  # (768,)
    - Can improve generalization
 
 **Requirements**:
+
 - Hidden dimension must equal embedding dimension: $d_{\text{hidden}} = d_{\text{embedding}}$
 - If they differ, you need a projection layer
 
 **When NOT to tie**:
+
 1. **Different input/output vocabularies**: E.g., translation models where source and target languages differ
 2. **Different optimal dimensions**: Sometimes you want different capacities
 3. **Very large models**: Parameter savings become less significant
 
 **Code example**:
+
 ```python
 class LMWithTying(nn.Module):
     def __init__(self, vocab_size, d_model, tie_weights=True):
@@ -2387,11 +2435,13 @@ class LMWithTying(nn.Module):
 **Answer**:
 
 **Static embeddings** (Word2Vec, GloVe):
+
 - Each word has exactly **one** embedding vector
 - Same vector regardless of context
 - Learned from co-occurrence statistics
 
 **Contextualized embeddings** (BERT, GPT, transformers):
+
 - Each word has **different** embedding based on context
 - Embedding depends on entire sequence
 - Learned end-to-end with the model
@@ -2419,16 +2469,19 @@ bank_emb2 = emb2[4]  # Different embedding for "bank"!
 ```
 
 **How transformers create contextualization**:
+
 1. **Initial embedding**: Static (same for all contexts)
 2. **Self-attention layers**: Mix information from all positions
 3. **Output embedding**: Contextualized (depends on full sequence)
 
 **Technical detail**:
+
 - Layer 0 (input): Static embeddings
 - Layer 1-N: Each layer makes embeddings more contextualized
 - Layer N (output): Fully contextualized embeddings
 
 **Why it matters**:
+
 - Polysemy: Words with multiple meanings (bank, rock, set)
 - Syntax: Same word, different roles ("The **bear** ran" vs "I can't **bear** it")
 - Semantic disambiguation: "Apple" (fruit) vs "Apple" (company)
@@ -2440,6 +2493,7 @@ bank_emb2 = emb2[4]  # Different embedding for "bank"!
 There are several strategies, each with trade-offs:
 
 **1. Subword tokenization** (most common in modern LLMs):
+
 ```python
 # BPE/WordPiece breaks unknown words into known pieces
 # "unhappiness" → ["un", "happiness"]
@@ -2454,6 +2508,7 @@ tokens = tokenizer.encode("supercalifragilisticexpialidocious")
 **Cons**: Long words → many tokens, no single embedding for the word
 
 **2. Character-level fallback**:
+
 ```python
 class HybridEmbedding(nn.Module):
     """Use word embeddings when possible, character CNN for OOV."""
@@ -2481,6 +2536,7 @@ class HybridEmbedding(nn.Module):
 **Cons**: Increased complexity, character-based representations may be weaker
 
 **3. UNK token with frequency-based replacement**:
+
 ```python
 # Map rare words to [UNK] during training
 # At inference, map OOV words to [UNK]
@@ -2494,6 +2550,7 @@ def tokenize(text, vocab):
 **Cons**: All OOV words get same embedding (loses information)
 
 **4. Hash embeddings** (for very large vocabularies):
+
 ```python
 # Map words to buckets via hashing
 # Multiple words may share embeddings (controlled collision)
@@ -2508,6 +2565,7 @@ hash_emb = HashEmbedding(
 **Cons**: Collisions (different words share embeddings)
 
 **Modern best practice**: Subword tokenization (BPE, WordPiece, SentencePiece)
+
 - Used by: GPT, BERT, LLaMA, T5, etc.
 - Vocabulary size: 30K-256K
 - Can represent any text in any language
@@ -2520,6 +2578,7 @@ hash_emb = HashEmbedding(
 Embedding dimension $d$ is a critical hyperparameter with several trade-offs:
 
 **Small dimensions (50-300)**:
+
 - **Pros**:
   - Fewer parameters (less memory)
   - Faster computation
@@ -2532,11 +2591,13 @@ Embedding dimension $d$ is a critical hyperparameter with several trade-offs:
   - Bottleneck for downstream tasks
 
 **Medium dimensions (512-1024)**:
+
 - **Balanced choice for many tasks**
 - Common in medium-sized transformers
 - Good trade-off between capacity and efficiency
 
 **Large dimensions (2048-16384)**:
+
 - **Pros**:
   - High expressiveness
   - Can capture nuanced relationships
@@ -2550,6 +2611,7 @@ Embedding dimension $d$ is a critical hyperparameter with several trade-offs:
   - May need regularization
 
 **Concrete example**:
+
 ```python
 # Parameter count scales linearly with dimension
 vocab_size = 50000
@@ -2563,6 +2625,7 @@ d_llama = 4096  # 524M parameters just for embeddings!
 ```
 
 **Rules of thumb**:
+
 1. **Match model capacity**: Embedding dim should match or exceed hidden dim
 2. **Scale with data**: Larger datasets can support larger embeddings
 3. **Consider downstream tasks**: Some tasks need richer representations
@@ -2585,33 +2648,39 @@ d_llama = 4096  # 524M parameters just for embeddings!
 **Core idea**: Words that appear in similar contexts have similar meanings.
 
 **Examples**:
-```
+
+```text
 "The cat sat on the mat"
 "The dog sat on the mat"
 ```
+
 → "cat" and "dog" appear in similar contexts → likely have similar meanings (both animals, pets, etc.)
 
-```
+```text
 "I love pizza"
 "I love pasta"
 "I love sushi"
 ```
+
 → "pizza", "pasta", "sushi" appear in similar contexts → all are foods
 
 **How embeddings implement this**:
 
 **Word2Vec (Skip-gram)**:
+
 - Objective: Predict context words from center word
 - Words with similar contexts get similar embeddings
 - Training pushes embeddings of co-occurring words closer
 
 **GloVe**:
+
 - Objective: Embeddings' dot product ≈ log co-occurrence count
 - If words co-occur frequently, their embeddings will be similar
 
 **Mathematical formulation**:
 
 Skip-gram maximizes:
+
 ```math
 \mathcal{L} = \sum_{t=1}^{T} \sum_{-k \leq j \leq k, j \neq 0} \log p(w_{t+j} | w_t)
 ```
@@ -2621,16 +2690,19 @@ where $p(w_{O} | w_{I}) = \frac{\exp(\mathbf{v}_{w_{O}}^\top \mathbf{v}_{w_{I}})
 **Key insight**: The model can only predict context from embedding, so it's forced to encode contextual information in the embedding.
 
 **Why it works**:
+
 1. **Substitutability**: Semantically similar words are often interchangeable
 2. **Co-occurrence patterns**: Context reveals meaning
 3. **Statistical learning**: Patterns emerge from large-scale data
 
 **Limitations**:
+
 1. **Doesn't capture all meaning**: Antonyms may have similar contexts ("hot" vs "cold")
 2. **Static**: Same embedding regardless of specific usage
 3. **Domain-dependent**: "bank" in finance corpus vs geography corpus
 
 **Modern transformers**:
+
 - Still based on distributional hypothesis
 - But learn **contextualized** distributions
 - Each layer refines understanding of "context"
@@ -2644,35 +2716,47 @@ Initialization affects training dynamics, convergence speed, and final performan
 **Common strategies**:
 
 **1. Random Uniform**:
+
 ```python
 embedding = nn.Embedding(vocab_size, d)
 # PyTorch default: Uniform(-1/sqrt(vocab_size), 1/sqrt(vocab_size))
 ```
+
+
 - **Pros**: Simple, symmetry breaking
 - **Cons**: May not be optimal scale
 
 **2. Random Normal** (most common for transformers):
+
 ```python
 embedding = nn.Embedding(vocab_size, d)
 nn.init.normal_(embedding.weight, mean=0.0, std=0.02)
 # Used by: GPT-2, BERT, LLaMA
 ```
+
+
 - **Pros**: Well-studied, stable training
 - **Std = 0.02**: Common choice, keeps initial activations reasonable
 
 **3. Scaled Normal**:
+
 ```python
 embedding = nn.Embedding(vocab_size, d)
 nn.init.normal_(embedding.weight, mean=0.0, std=d**-0.5)
 ```
+
+
 - **Pros**: Scale-invariant, mathematically principled
 - **Cons**: Very small values for large $d$
 
 **4. Xavier/Glorot**:
+
 ```python
 embedding = nn.Embedding(vocab_size, d)
 nn.init.xavier_uniform_(embedding.weight)
 ```
+
+
 - **Pros**: Maintains variance across layers
 - **Cons**: Designed for linear layers, less common for embeddings
 
@@ -2696,6 +2780,7 @@ nn.init.normal_(embedding.weight, std=0.0001)
 ```
 
 **Pre-trained embeddings**:
+
 ```python
 # Load pre-trained (Word2Vec, GloVe)
 pretrained = load_word2vec("path/to/embeddings")
@@ -2708,6 +2793,7 @@ embedding.weight.data = pretrained
 ```
 
 **Best practices**:
+
 1. **For random initialization**: Use $\mathcal{N}(0, 0.02)$ (works well empirically)
 2. **For transfer learning**: Load pre-trained, then fine-tune with lower LR
 3. **For new tokens**: Initialize similar to existing vocabulary (mean pooling)
@@ -2847,10 +2933,12 @@ def train_skipgram(text, vocab, embedding_dim=128, epochs=5, lr=0.01):
     Train Skip-Gram model.
 
     Your task:
+
     1. Create dataset and dataloader
     2. Initialize model and optimizer
     3. Implement training loop
     4. Return trained embeddings
+
     """
     # Your code here
     pass
@@ -2910,6 +2998,7 @@ def test_initialization_impact():
     Test how initialization affects training.
 
     TODO:
+
     1. Create a simple language model
     2. Train with different embedding initializations:
        - Random uniform
@@ -2918,6 +3007,7 @@ def test_initialization_impact():
        - Xavier/Glorot
     3. Compare convergence speed and final loss
     4. Plot results
+
     """
     # Your code here
     pass
@@ -2938,10 +3028,12 @@ def visualize_embeddings(embeddings, vocab, method='tsne'):
         method: 'tsne' or 'pca'
 
     TODO:
+
     1. Reduce dimensionality to 2D
     2. Plot points
     3. Label with words
     4. Observe clustering (e.g., similar words nearby)
+
     """
     import matplotlib.pyplot as plt
     from sklearn.manifold import TSNE
@@ -2961,12 +3053,14 @@ class SimpleLM(nn.Module):
     Simple language model to test tied vs untied embeddings.
 
     TODO:
+
     1. Implement forward pass
     2. Support both tied and untied weights
     3. Compare:
        - Number of parameters
        - Training speed
        - Final perplexity
+
     """
 
     def __init__(
@@ -2994,6 +3088,7 @@ class SimpleLM(nn.Module):
 ### Challenge Exercise
 
 **Build a complete embedding + positional encoding module** that:
+
 1. Supports both learned and sinusoidal positional encodings
 2. Handles padding correctly
 3. Includes dropout

@@ -64,16 +64,19 @@ ViT applies the transformer architecture directly to image patches, treating the
 **Theoretical Justification:** The key insight is that images can be treated as sequences of patches, analogous to how text is a sequence of tokens. By flattening 2D spatial structure into a 1D sequence, we can apply standard transformer architectures without modification. The self-attention mechanism can learn spatial relationships without built-in locality assumptions.
 
 **Relation to Alternatives:**
+
 - **vs CNNs**: CNNs use local receptive fields and build up global understanding through stacking. ViT uses global self-attention from the start, allowing each patch to attend to all other patches.
 - **vs Hybrid Models**: Some approaches combine CNN feature extractors with transformers. Pure ViT is simpler and more scalable to large datasets.
 
 **Key Insights:**
+
 1. **Patch Embedding**: Using convolution with kernel_size = stride = patch_size is mathematically equivalent to splitting into patches and linear projection, but more efficient
 2. **Positional Embeddings**: Since transformers are permutation-invariant, we must explicitly encode spatial position (unlike CNNs where position is implicit in the architecture)
 3. **CLS Token**: Borrowed from BERT, this learnable token aggregates global image information through self-attention
 4. **Scaling**: ViT requires large datasets (ImageNet-21K or JFT-300M) to outperform CNNs, as it has fewer inductive biases
 
 **Architecture:**
+
 1. Split image into fixed-size patches (e.g., 16x16 pixels)
 2. Linearly embed each patch
 3. Add positional embeddings
@@ -89,8 +92,10 @@ class PatchEmbedding(nn.Module):
     """Convert image into sequence of patch embeddings.
 
     For a 224x224 image with 16x16 patches:
+
     - Number of patches: (224/16)^2 = 196
     - Each patch: 16*16*3 = 768 values (for RGB)
+
     """
     def __init__(
         self,
@@ -138,10 +143,12 @@ class VisionTransformer(nn.Module):
     just like text is a sequence of tokens.
 
     Architecture:
+
     1. Patch embedding
     2. Position embedding
     3. Transformer encoder
     4. Classification head (or use as encoder)
+
     """
     def __init__(
         self,
@@ -253,6 +260,7 @@ class TransformerBlock(nn.Module):
 ```
 
 **Key Papers:**
+
 - [An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale](https://arxiv.org/abs/2010.11929) (Dosovitskiy et al., 2020)
 
 ### CLIP
@@ -260,6 +268,7 @@ class TransformerBlock(nn.Module):
 CLIP (Contrastive Language-Image Pre-training) learns aligned representations of images and text through contrastive learning.
 
 **Architecture:**
+
 - **Image Encoder**: ViT or ResNet
 - **Text Encoder**: Transformer
 - **Training**: Contrastive loss on image-text pairs
@@ -398,11 +407,13 @@ def train_clip_step(model: CLIP, images: torch.Tensor, texts: torch.Tensor):
 ```
 
 **Key Capabilities:**
+
 - Zero-shot image classification by comparing image embeddings with text embeddings of class names
 - Image retrieval from text queries
 - Foundation for vision-language models
 
 **Key Papers:**
+
 - [Learning Transferable Visual Models From Natural Language Supervision](https://arxiv.org/abs/2103.00020) (Radford et al., 2021)
 
 ### SigLIP
@@ -414,16 +425,19 @@ SigLIP (Sigmoid Loss for Language Image Pre-training) improves upon CLIP by usin
 **Theoretical Justification:** Instead of normalizing over the entire batch with softmax, SigLIP treats each image-text pair independently as a binary classification problem. For matching pairs, the model should output high similarity; for non-matching pairs, low similarity. This formulation is more aligned with the fundamental task and doesn't require global normalization.
 
 **Relation to Alternatives:**
+
 - **vs CLIP Softmax**: CLIP's loss couples all examples in a batch through the softmax normalization. SigLIP's sigmoid loss makes each pair independent, allowing gradient updates to be more stable and less sensitive to batch composition.
 - **vs Triplet Loss**: Triplet loss requires careful mining of hard negatives. SigLIP automatically handles all positive and negative pairs without mining.
 
 **Key Insights:**
+
 1. **Batch Size Independence**: Works well with smaller batches (e.g., 1K vs 32K), making it more accessible
 2. **Label Smoothing**: The sigmoid formulation naturally incorporates uncertainty about negative pairs
 3. **Better Performance**: Often achieves better zero-shot performance than CLIP with the same model size
 4. **Training Stability**: Gradients are more stable because they don't depend on the hardest negatives in a large batch
 
 **Key Difference:**
+
 - **CLIP**: Uses softmax over all pairs in batch (requires large batches)
 - **SigLIP**: Uses sigmoid on individual pairs (more stable, smaller batches)
 
@@ -442,9 +456,11 @@ def siglip_loss(
     """SigLIP loss using sigmoid instead of softmax.
 
     Benefits:
+
     - More stable training
     - Works with smaller batch sizes
     - Better performance on some tasks
+
     """
     batch_size = image_features.shape[0]
 
@@ -461,6 +477,7 @@ def siglip_loss(
 ```
 
 **Key Papers:**
+
 - [Sigmoid Loss for Language Image Pre-Training](https://arxiv.org/abs/2303.15343) (Zhai et al., 2023)
 
 ---
@@ -564,19 +581,30 @@ class PerceiverResampler(nn.Module):
     fixed-size representation. The queries learn to "ask" for task-relevant features.
 
     **Relation to Alternatives:**
+
     - **vs Direct Concatenation (LLaVA)**: LLaVA concatenates all visual tokens, making sequence length
+
       proportional to image resolution. Perceiver uses fixed tokens regardless of input size.
+
     - **vs Simple Pooling**: Average/max pooling loses fine-grained information. Perceiver learns
+
       what to extract via attention.
+
     - **vs Convolutional Downsampling**: Preserves spatial structure but uses fixed patterns.
+
       Perceiver learns task-specific compression.
 
     **Key Insights:**
+
     1. **Fixed Computational Cost**: Always outputs n_queries tokens (typically 64-256), making LLM
+
        attention cost predictable and manageable
+
     2. **Learned Compression**: Queries learn to extract task-relevant features through training
     3. **Iterative Refinement**: Multiple layers of cross-attention + self-attention allow queries
+
        to refine their representations
+
     4. **Flexibility**: Handles arbitrary input resolutions and video without architecture changes
 
     Compresses variable-length visual features into fixed number of tokens.
@@ -652,6 +680,7 @@ class PerceiverResampler(nn.Module):
 LLaVA (Large Language and Vision Assistant) connects a vision encoder to an LLM using a simple projection layer.
 
 **Architecture Components:**
+
 1. **Vision Encoder**: Pre-trained CLIP ViT
 2. **Projection**: Linear layer to map visual features to LLM embedding space
 3. **Language Model**: Pre-trained LLM (Vicuna, LLaMA)
@@ -665,14 +694,17 @@ class LLaVA(nn.Module):
     """LLaVA: Large Language and Vision Assistant.
 
     Simple but effective architecture:
+
     1. Encode image with CLIP
     2. Project visual features to LLM embedding space
     3. Concatenate with text embeddings
     4. Process with LLM
 
     Training stages:
+
     1. Pre-training: Align vision and language (projection layer only)
     2. Instruction tuning: Fine-tune on visual instruction data
+
     """
     def __init__(
         self,
@@ -864,8 +896,10 @@ def compute_instruction_loss(
 
     Example:
         For input "USER: What's in the image? ASSISTANT: A cat"
+
         - instruction_mask is False for "USER: What's in the image? ASSISTANT:"
         - instruction_mask is True for "A cat"
+
     """
     import torch.nn.functional as F
 
@@ -888,10 +922,12 @@ def compute_instruction_loss(
 ```
 
 **LLaVA Training Data:**
+
 - **Stage 1**: 595K image-caption pairs from COCO (filtered for quality)
 - **Stage 2**: 158K visual instruction-following samples (GPT-4 generated)
 
 **Key Papers:**
+
 - [Visual Instruction Tuning](https://arxiv.org/abs/2304.08485) (Liu et al., 2023)
 - [Improved Baselines with Visual Instruction Tuning](https://arxiv.org/abs/2310.03744) (Liu et al., 2023)
 
@@ -907,6 +943,7 @@ GPT-4V (GPT-4 with Vision) and Gemini are proprietary multimodal models with unp
 | **Gemini** | Native multimodal | 1M+ tokens | Video, audio, text, images |
 
 **Gemini Architecture (from papers):**
+
 - Trained multimodally from scratch (not vision encoder + LLM)
 - Sparse Mixture of Experts
 - Native support for images, video, and audio
@@ -977,6 +1014,7 @@ class MultimodalTokenizer:
 **GIT** (Generative Image-to-Text) uses a simpler architecture similar to early LLaVA.
 
 **Key Papers:**
+
 - [Flamingo: a Visual Language Model for Few-Shot Learning](https://arxiv.org/abs/2204.14198) (Alayrac et al., 2022)
 - [GIT: A Generative Image-to-text Transformer for Vision and Language](https://arxiv.org/abs/2205.14100) (Wang et al., 2022)
 
@@ -987,12 +1025,14 @@ class MultimodalTokenizer:
 Llama 3.2 Vision (Meta, 2024) brings multimodal capabilities to the Llama family.
 
 **Architecture:**
+
 - **Vision Encoder**: Pre-trained vision transformer (similar to CLIP)
 - **Adapter**: Cross-attention adapter layers inserted into Llama
 - **Language Model**: Llama 3.2 (11B or 90B parameters)
 - **Image Resolution**: Supports high-resolution images via tiling
 
 **Key Features:**
+
 1. **High-Resolution Support**: Splits images into tiles for detailed understanding
 2. **Cross-Attention Adapter**: Lightweight adapter layers instead of full fine-tuning
 3. **Instruction Following**: Strong instruction-following capabilities inherited from Llama
@@ -1077,9 +1117,11 @@ class Llama32Vision(nn.Module):
     Llama 3.2 Vision model architecture.
 
     Combines:
+
     1. Vision encoder for images
     2. Image tiling for high resolution
     3. Cross-attention adapters in Llama layers
+
     """
     def __init__(
         self,
@@ -1113,6 +1155,7 @@ class Llama32Vision(nn.Module):
         Process high-resolution image by tiling.
 
         For a 448x448 image with 224x224 tiles:
+
         - Split into 4 tiles (2x2 grid)
         - Encode each tile separately
         - Combine with positional embeddings
@@ -1192,11 +1235,13 @@ class Llama32Vision(nn.Module):
 ```
 
 **Training Strategy:**
+
 1. **Phase 1**: Train vision encoder and projection layers
 2. **Phase 2**: Train adapter layers with Llama frozen
 3. **Phase 3**: (Optional) Fine-tune everything with LoRA
 
 **Key Papers:**
+
 - [Llama 3.2: Revolutionizing edge AI and vision with open, customizable models](https://ai.meta.com/blog/llama-3-2-connect-2024-vision-edge-mobile-devices/) (Meta, 2024)
 
 #### Qwen2-VL
@@ -1204,6 +1249,7 @@ class Llama32Vision(nn.Module):
 Qwen2-VL (Alibaba, 2024) is a state-of-the-art open vision-language model with strong performance.
 
 **Key Innovations:**
+
 1. **Dynamic Resolution**: Handles arbitrary image resolutions without fixed tiling
 2. **Multimodal Rotary Position Embedding (M-RoPE)**: Extends RoPE to 2D spatial positions
 3. **Native Video Support**: Treats video as 3D input (time + spatial)
@@ -1225,21 +1271,35 @@ class MultimodalRoPE(nn.Module):
     This preserves the relative position benefits of RoPE while respecting the structure of the data.
 
     **Relation to Alternatives:**
+
     - **vs Learned 2D Positional Embeddings**: Learned embeddings are fixed to specific resolutions.
+
       M-RoPE generalizes to arbitrary resolutions like standard RoPE.
+
     - **vs Absolute Positional Embeddings**: Absolute embeddings don't capture relative relationships
+
       as naturally. RoPE-style embeddings make relative position explicit in the attention mechanism.
+
     - **vs Concatenating Coordinates**: Simply adding (x,y) coordinates loses the beneficial properties
+
       of rotary embeddings (length preservation, relative position encoding).
 
     **Key Insights:**
+
     1. **Dimension Factorization**: Split the embedding dimension into 3 parts for (t, h, w), applying
+
        RoPE independently to each. This allows the model to learn separate importance for each axis.
+
     2. **Resolution Invariance**: Like 1D RoPE, M-RoPE generalizes to resolutions not seen during training
+
        because it's based on continuous functions (sin/cos), not lookup tables.
+
     3. **Temporal Extension**: By adding a temporal dimension, the same mechanism handles both images
+
        (t=0 for all patches) and videos (t varies across frames) in a unified way.
+
     4. **Relative Position Preservation**: The dot product between rotated embeddings still encodes
+
        relative position, now in multi-dimensional space.
 
     Extends standard RoPE to handle 2D spatial positions for images.
@@ -1248,8 +1308,10 @@ class MultimodalRoPE(nn.Module):
     M-RoPE: Applies rotation based on (temporal, height, width) position
 
     For a patch at position (t, h, w):
+
     - Apply RoPE separately for each dimension
     - Combine rotations
+
     """
     def __init__(self, dim: int, max_seq_len: int = 8192):
         super().__init__()
@@ -1286,8 +1348,10 @@ class MultimodalRoPE(nn.Module):
         Args:
             x: (batch, seq_len, dim) - input features
             positions: Position indices
+
               - For text: (batch, seq_len) - 1D positions
               - For images: (batch, seq_len, 3) - (t, h, w) positions
+
             position_type: 'text' or 'image'
 
         Returns:
@@ -1332,9 +1396,11 @@ class Qwen2VL(nn.Module):
     Qwen2-VL architecture.
 
     Key features:
+
     1. Dynamic resolution handling
     2. M-RoPE for spatial positions
     3. Unified vision-language processing
+
     """
     def __init__(
         self,
@@ -1438,12 +1504,14 @@ class Qwen2VL(nn.Module):
 ```
 
 **Performance Highlights:**
+
 - **Competitive with GPT-4V** on many vision-language benchmarks
 - **Strong OCR capabilities**: Can read and understand text in images
 - **Video understanding**: Native support for video inputs
 - **Open source**: Fully open weights and code
 
 **Key Papers:**
+
 - [Qwen2-VL: Enhancing Vision-Language Model's Perception of the World at Any Resolution](https://arxiv.org/abs/2409.12191) (Alibaba, 2024)
 
 ---
@@ -1569,6 +1637,7 @@ def calculate_attention_flops(
     Calculate FLOPs for single attention layer.
 
     Attention computation:
+
     1. QKV projection: 3 * seq_len * hidden_dim * hidden_dim
     2. Attention scores: seq_len * seq_len * hidden_dim
     3. Attention output: seq_len * seq_len * hidden_dim
@@ -1651,10 +1720,12 @@ compare_multimodal_efficiency()
 class OptimizedMultimodalModel(nn.Module):
     """
     Production-optimized multimodal model with:
+
     1. Gradient checkpointing
     2. Flash attention
     3. Mixed precision training
     4. Efficient image encoding
+
     """
     def __init__(
         self,
@@ -1746,10 +1817,12 @@ class ProductionMultimodalModel:
     Production-ready multimodal model with optimizations.
 
     Features:
+
     - Model quantization
     - Batched inference
     - Caching
     - Error handling
+
     """
     def __init__(
         self,
@@ -2054,11 +2127,13 @@ Whisper is an encoder-decoder model for speech recognition and translation.
 **Theoretical Justification:** By training on 680,000 hours of diverse audio from the web (multiple languages, accents, noise conditions), the model learns robust representations through sheer scale and variety. The multi-task setup (transcription, translation, language ID, timestamp prediction) acts as a strong regularizer, forcing the model to learn generalizable features rather than overfitting to any single task.
 
 **Relation to Alternatives:**
+
 - **vs Traditional ASR (HMM-based)**: Traditional systems use hand-crafted features (MFCCs) and language models. Whisper is end-to-end learned and doesn't require linguistic expertise.
 - **vs Supervised-only Models**: Models trained on clean datasets (LibriSpeech) fail on noisy/accented speech. Whisper's diverse training data provides robustness.
 - **vs Wav2Vec 2.0**: Wav2Vec uses self-supervised pre-training then fine-tuning. Whisper uses weakly supervised learning at scale, which is simpler and more direct.
 
 **Key Insights:**
+
 1. **Mel Spectrogram Input**: Converting audio to mel spectrograms provides a time-frequency representation that transformers can process like 2D images
 2. **Convolutional Front-End**: Two conv layers downsample the temporal dimension before the transformer, reducing computational cost
 3. **Multi-Task Learning**: Training on transcription, translation, and language ID simultaneously improves generalization
@@ -2066,6 +2141,7 @@ Whisper is an encoder-decoder model for speech recognition and translation.
 5. **Zero-Shot Transfer**: The model generalizes to new domains and accents without fine-tuning
 
 **Architecture:**
+
 1. **Audio Encoder**: Convolutional layers + Transformer encoder
 2. **Decoder**: Transformer decoder for text generation
 3. **Multi-task Training**: Transcription, translation, language ID
@@ -2270,10 +2346,12 @@ def audio_to_mel(audio: torch.Tensor, n_mels: int = 80) -> torch.Tensor:
 ```
 
 **Whisper Training:**
+
 - 680,000 hours of multilingual and multitask data
 - Trained on: transcription, translation, language identification, voice activity detection
 
 **Key Papers:**
+
 - [Robust Speech Recognition via Large-Scale Weak Supervision](https://arxiv.org/abs/2212.04356) (Radford et al., 2022)
 
 ### Speech-Language Models
@@ -2281,6 +2359,7 @@ def audio_to_mel(audio: torch.Tensor, n_mels: int = 80) -> torch.Tensor:
 Modern speech-language models combine speech encoding with LLMs.
 
 **Approaches:**
+
 1. **Cascaded**: Whisper → LLM (simple but loses paralinguistic info)
 2. **End-to-End**: Direct audio encoder → LLM (preserves tone, emotion)
 
@@ -2349,11 +2428,13 @@ The simplest approach: sample N frames uniformly from the video and treat each a
 **Theoretical Justification:** Uniform sampling ensures coverage across the entire video duration. By sampling at regular intervals, we avoid bias toward any temporal region and have a higher chance of capturing important events regardless of when they occur. This is the video equivalent of patch sampling in images.
 
 **Relation to Alternatives:**
+
 - **vs Random Sampling**: Uniform sampling is deterministic and ensures temporal coverage. Random sampling might cluster samples in one region.
 - **vs Keyframe Detection**: Keyframe methods try to identify "interesting" frames but require additional processing and may miss context.
 - **vs Dense Sampling**: Processing all frames is too expensive and redundant (adjacent frames are often nearly identical).
 
 **Key Insights:**
+
 1. **Temporal Coverage**: Uniform spacing ensures we don't miss entire segments of the video
 2. **Simplicity**: No additional computation needed beyond indexing
 3. **Works for Variable Lengths**: Automatically adapts to videos of any duration
@@ -2380,10 +2461,12 @@ class VideoLLM(nn.Module):
     """Simple video-language model using frame sampling.
 
     Process:
+
     1. Sample N frames from video
     2. Encode each frame with vision encoder
     3. Concatenate or pool frame features
     4. Feed to LLM along with text
+
     """
     def __init__(
         self,
@@ -2526,6 +2609,7 @@ class TemporalTransformer(nn.Module):
     Temporal transformer for video understanding.
 
     Architecture:
+
     1. Encode each frame with ViT (spatial attention)
     2. Apply temporal attention across frames
     3. Optionally use factorized space-time attention
@@ -2615,11 +2699,13 @@ Separate spatial and temporal attention for efficiency (used in TimeSformer, ViV
 **Theoretical Justification:** The key insight is that spatial and temporal dependencies can be modeled separately. Objects typically have strong spatial coherence within a frame (nearby patches relate to the same object) and temporal coherence across frames (the same patch position tracks object motion). By factorizing attention into spatial-then-temporal (or vice versa), we capture both types of relationships with much lower computational cost.
 
 **Relation to Alternatives:**
+
 - **vs Joint Space-Time**: Joint attention is more expressive but O((n_frames × n_patches)²). Factorized is O(n_frames × n_patches² + n_patches × n_frames²), often 5-10× faster.
 - **vs 3D Convolutions**: 3D CNNs have fixed receptive fields. Factorized attention is adaptive and can model long-range dependencies.
 - **vs Temporal Pooling**: Pooling loses fine-grained temporal information. Factorized attention preserves it while being efficient.
 
 **Key Insights:**
+
 1. **Computational Savings**: For typical videos, factorized attention reduces operations by 5-10× with minimal accuracy loss
 2. **Independence Assumption**: Assumes spatial and temporal features can be separated, which holds well for most natural videos
 3. **Order Matters**: Spatial-first or temporal-first can give different results; spatial-first is more common
@@ -2632,16 +2718,20 @@ class SpaceTimeAttentionBlock(nn.Module):
 
     Instead of joint attention over (n_frames * n_patches) tokens,
     separate into:
+
     1. Spatial attention within each frame
     2. Temporal attention across frames for each patch
 
     Complexity:
+
     - Joint: O((n_frames * n_patches)^2)
     - Factorized: O(n_frames * n_patches^2 + n_patches * n_frames^2)
 
     For n_frames=8, n_patches=196:
+
     - Joint: ~2.5M operations
     - Factorized: ~316K operations (8x reduction)
+
     """
     def __init__(self, dim: int, n_heads: int = 8):
         super().__init__()
@@ -2722,9 +2812,11 @@ def video_temporal_contrastive_loss(
         temporal_order_labels: (batch,) - indicates if video is in correct order
 
     Training data can include:
+
     - Correct order videos
     - Reversed videos
     - Shuffled frame videos
+
     """
     # Pool video features
     video_pooled = video_features.mean(dim=1)  # (batch, dim)
@@ -2757,9 +2849,11 @@ def efficient_video_encoding(
     Efficiently process videos for multimodal models.
 
     Strategies:
+
     1. Decode only needed frames (not entire video)
     2. Resize during decoding
     3. Use hardware decoding when available
+
     """
     import cv2
     import numpy as np
@@ -2805,6 +2899,7 @@ def get_video_memory_usage(
     Calculate memory usage for video processing.
 
     For 8 frames at 224x224 with 16x16 patches:
+
     - Each frame: 196 patches
     - Total patches: 8 * 196 = 1568 patches
     - With vision_dim=1024, fp16: 1568 * 1024 * 2 bytes = 3.2 MB per sample
@@ -2826,6 +2921,7 @@ def get_video_memory_usage(
 ```
 
 **Key Papers on Video Understanding:**
+
 - [TimeSformer: Is Space-Time Attention All You Need for Video Understanding?](https://arxiv.org/abs/2102.05095) (Bertasius et al., 2021)
 - [ViViT: A Video Vision Transformer](https://arxiv.org/abs/2103.15691) (Arnab et al., 2021)
 - [Video-LLaMA: An Instruction-tuned Audio-Visual Language Model for Video Understanding](https://arxiv.org/abs/2306.02858) (Zhang et al., 2023)
@@ -2845,11 +2941,13 @@ Given a text description, predict the bounding box of the referred object.
 **Theoretical Justification:** Visual grounding combines language understanding with spatial localization. By using cross-attention from text to image patches, the model learns to weight image regions based on textual relevance. The attention weights naturally highlight which patches correspond to the referring expression. A regression head can then convert these attended features into precise bounding box coordinates.
 
 **Relation to Alternatives:**
+
 - **vs Object Detection + Matching**: Traditional two-stage approaches detect all objects, then match to text. Grounding models are end-to-end and handle complex referring expressions better.
 - **vs Segmentation Models**: Segmentation gives pixel-level masks but is computationally expensive. Bounding boxes are often sufficient and much faster.
 - **vs Heatmap Prediction**: Some models predict heatmaps over image regions. Direct box regression is more efficient and easier to train.
 
 **Key Insights:**
+
 1. **Cross-Attention is Key**: Allows the model to dynamically focus on relevant image regions based on the text query
 2. **Normalized Coordinates**: Predicting [x, y, w, h] in [0, 1] makes the model resolution-invariant
 3. **GIoU Loss**: Generalized IoU handles scale differences better than L1 loss alone—it penalizes both location and size errors
@@ -2863,9 +2961,11 @@ class VisualGroundingHead(nn.Module):
     Task: Given "the dog on the right", predict bounding box [x, y, w, h]
 
     Architecture:
+
     1. Encode image and text together
     2. Use cross-attention to find relevant regions
     3. Predict normalized bounding box coordinates
+
     """
     def __init__(
         self,
@@ -2980,6 +3080,7 @@ def grounding_loss(
     Loss for visual grounding.
 
     Typically uses:
+
     1. L1 loss for box coordinates
     2. GIoU (Generalized Intersection over Union) loss
 
@@ -3106,8 +3207,10 @@ def train_grounding_llm(
     Train multimodal LLM with grounding capabilities.
 
     Training data format:
+
     - Text includes special box tokens
     - Location tokens can be binned (e.g., 0.24 -> token for "0.2-0.3")
+
     """
     outputs = model(images, text_with_boxes, box_targets)
 
@@ -3133,6 +3236,7 @@ B = f_{\text{ground}}(\text{CrossAttn}(f_{\text{text}}(T), f_{\text{vision}}(I))
 ```
 
 Where:
+
 - $f_{\text{vision}}(I) \in \mathbb{R}^{N \times d}$ encodes image into $N$ patch features
 - $f_{\text{text}}(T) \in \mathbb{R}^{n \times d}$ encodes text
 - $\text{CrossAttn}$ allows text to attend to relevant image regions
@@ -3145,10 +3249,12 @@ Where:
 ```
 
 Where:
+
 - $\mathcal{L}_{\text{L1}}$ is L1 distance between predicted and ground truth boxes
 - $\mathcal{L}_{\text{GIoU}}$ is Generalized IoU loss (handles scale/size better)
 
 **Key Papers:**
+
 - [MDETR: Modulated Detection for End-to-End Multi-Modal Understanding](https://arxiv.org/abs/2104.12763) (Kamath et al., 2021)
 - [Kosmos-2: Grounding Multimodal Large Language Models to the World](https://arxiv.org/abs/2306.14824) (Peng et al., 2023)
 - [Shikra: Unleashing Multimodal LLM's Referential Dialogue Magic](https://arxiv.org/abs/2306.15195) (Chen et al., 2023)
@@ -3174,6 +3280,7 @@ Encode each modality separately with specialized encoders, then concatenate the 
 **Theoretical Justification:** Leverage existing high-quality pre-trained encoders (CLIP for vision, Whisper for audio) and pre-trained LLMs. The encoders provide rich semantic representations in their native spaces, and a simple projection layer aligns them to the LLM's embedding space. Cross-modal reasoning happens in the LLM's transformer layers.
 
 **Relation to Alternatives:**
+
 - **Pros**: Can use powerful pre-trained components; requires minimal training (often just the projection layer); modular (swap encoders independently)
 - **Cons**: Limited interaction between modalities until after encoding; vision encoder doesn't benefit from language supervision during inference
 
@@ -3193,6 +3300,7 @@ Use a unified tokenizer that converts all modalities to discrete tokens in the s
 **Theoretical Justification:** If we can discretize all modalities (via VQ-VAE for images, codec models for audio), we can treat everything uniformly as token sequences. The model learns cross-modal relationships from the ground up, enabling richer interaction. This is conceptually similar to how humans process multiple senses in an integrated way.
 
 **Relation to Alternatives:**
+
 - **Pros**: Deepest cross-modal interaction; no architectural asymmetry between modalities; can generate non-text modalities more naturally
 - **Cons**: Requires massive training from scratch; loses benefits of pre-trained encoders; discrete tokenization can lose information
 
@@ -3214,6 +3322,7 @@ Use Perceiver Resampler to compress visual tokens into a fixed set, then inject 
 **Theoretical Justification:** Combine the best of both worlds: use pre-trained vision encoders for strong visual representations, but allow cross-modal interaction within transformer layers via cross-attention. The Perceiver compression makes this efficient, and gating lets the model learn when to use visual information.
 
 **Relation to Alternatives:**
+
 - **Pros**: Efficient with variable visual input sizes; pre-trained components; richer fusion than late fusion via cross-attention in every layer
 - **Cons**: More complex architecture; requires careful initialization and training; gating adds parameters
 
@@ -3280,9 +3389,11 @@ def create_instruction_data_from_gpt4(images, captions):
     LLaVA approach: Use GPT-4 to generate diverse instructions.
 
     Given image captions, GPT-4 generates:
+
     - Detailed descriptions
     - Questions and answers
     - Reasoning tasks
+
     """
     instruction_data = []
 
@@ -3292,9 +3403,11 @@ def create_instruction_data_from_gpt4(images, captions):
         Given an image with caption: "{caption}"
 
         Generate:
+
         1. A detailed description instruction
         2. Three question-answer pairs
         3. A reasoning task
+
         """
 
         gpt4_response = call_gpt4(prompt)
@@ -3319,11 +3432,13 @@ def create_instruction_data_from_gpt4(images, captions):
 **Theoretical Justification:** The key insight is that all modalities can be represented as sequences of embeddings in a shared semantic space. By using modality-specific encoders to convert inputs to this common representation, we can leverage a single transformer-based LLM to reason across modalities. Perceiver Resamplers normalize the sequence length from each modality, making the architecture scalable and predictable.
 
 **Relation to Alternatives:**
+
 - **vs Modality-Specific Models**: Separate models for image QA, audio transcription, etc. require complex routing logic. A unified model handles all tasks with one forward pass.
 - **vs Early Fusion Transformers**: Models trained from scratch on all modalities (like Gemini) require enormous datasets and compute. This approach leverages pre-trained components.
 - **vs Late Fusion Ensembles**: Simply averaging predictions from separate models loses cross-modal interactions. True multimodal fusion happens in the transformer layers.
 
 **Key Insights:**
+
 1. **Modular Design**: Each encoder can be swapped independently (e.g., upgrade vision encoder without retraining audio components)
 2. **Fixed-Size Bottleneck**: Perceiver Resamplers ensure consistent computational cost regardless of input resolution/duration
 3. **Shared Semantic Space**: All modalities project to the same embedding dimension, enabling natural cross-modal attention
@@ -3335,10 +3450,12 @@ class CompleteMultimodalModel(nn.Module):
     Production-ready multimodal model combining best practices.
 
     Components:
+
     1. Vision encoder (CLIP or SigLIP)
     2. Audio encoder (Whisper)
     3. Perceiver resampler for each modality
     4. LLM with cross-modal attention
+
     """
     def __init__(
         self,

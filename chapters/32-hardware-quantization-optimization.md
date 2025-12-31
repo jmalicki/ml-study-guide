@@ -66,16 +66,19 @@ Matrix multiplications dominate LLM computation (attention's QK^T, attention out
 
 **Theoretical Justification:**
 Tensor Cores implement fused multiply-accumulate (FMA) operations on matrix tiles (e.g., 16×16 elements) in a single clock cycle. This provides:
+
 - **10-20x throughput** compared to CUDA cores for matrix operations
 - **Mixed precision computation**: FP16/BF16/FP8 input with FP32 accumulation prevents numerical errors
 - **Memory bandwidth optimization**: Tiles fit in on-chip memory, reducing HBM access
 
 **Relation to Alternatives:**
+
 - CUDA cores: General purpose, flexible, but 10-20x slower for matrix ops
 - TPU Matrix Units: Similar concept but systolic array architecture vs. NVIDIA's approach
 - CPU SIMD: 4-8x parallelism vs. 256x for Tensor Cores
 
 **Key Insights:**
+
 1. Tensor Cores are automatically utilized when tensors are FP16/BF16/FP8 and dimensions are multiples of 8
 2. The performance gain comes from processing entire matrix tiles atomically rather than element-wise
 3. Mixed precision (FP16 compute, FP32 accumulate) maintains numerical stability while maximizing throughput
@@ -132,6 +135,7 @@ Blackwell introduces FP4 (4-bit floating point) for inference, using a format ca
 ```
 
 **Key Papers:**
+
 - [Introducing NVFP4 for Efficient and Accurate Low-Precision Inference](https://developer.nvidia.com/blog/introducing-nvfp4-for-efficient-and-accurate-low-precision-inference/)
 
 ### Google TPUs
@@ -179,6 +183,7 @@ class TPUMXUConceptual:
         3. Inter-chip interconnect (ICI): High-bandwidth mesh
         4. Deterministic execution: Easier debugging
         5. XLA compilation: Graph-level optimization
+
         """
         pass
 ```
@@ -195,6 +200,7 @@ class TPUMXUConceptual:
 | **Sparsity** | Structured sparsity support | SparseCore (v6+) |
 
 **Key Resources:**
+
 - [TPU v6e Documentation](https://docs.cloud.google.com/tpu/docs/v6e)
 - [Introducing Trillium](https://cloud.google.com/blog/products/compute/introducing-trillium-6th-gen-tpus)
 
@@ -272,8 +278,10 @@ def bf16_vs_fp16():
        - NVIDIA Ampere+, Google TPUs, Intel, AMD
 
     Disadvantage:
+
     - Lower precision (7 vs 10 mantissa bits)
     - Can affect tasks requiring high numerical precision
+
     """
 
     # FP32 to BF16 conversion is simple truncation
@@ -303,6 +311,7 @@ Modern LLMs require hundreds of gigabytes of memory (70B model = ~140GB in FP16)
 
 **Theoretical Justification:**
 Neural network weights often follow a Gaussian-like distribution with most values near zero. Quantization maps continuous floating-point values to discrete integers:
+
 ```math
 q = \text{round}\left(\frac{x}{\text{scale}}\right), \quad \hat{x} = q \times \text{scale}
 ```
@@ -310,11 +319,13 @@ q = \text{round}\left(\frac{x}{\text{scale}}\right), \quad \hat{x} = q \times \t
 The quantization error $\epsilon = x - \hat{x}$ is bounded by $\pm \frac{\text{scale}}{2}$. With appropriate scale factors (per-tensor or per-channel), this error is negligible for inference.
 
 **Relation to Alternatives:**
+
 - **PTQ vs QAT**: PTQ is fast (no retraining) but less accurate; QAT requires full retraining but adapts weights to quantization
 - **Symmetric vs Asymmetric**: Symmetric quantization (zero-point = 0) is faster; asymmetric handles biased distributions better
 - **Per-tensor vs Per-channel**: Per-channel uses different scales for each output channel, reducing error at minimal cost
 
 **Key Insights:**
+
 1. **Block-wise quantization** (used by GPTQ, AWQ) captures local statistics better than global quantization
 2. **Outlier handling** is critical - a few large values can dominate the scale factor
 3. **Calibration data quality** matters more than quantity - representative samples suffice
@@ -433,11 +444,13 @@ QAT uses "fake quantization" - applying quantization in forward pass but using s
 The model learns to represent information within quantization constraints. Weights shift to values that minimize quantization error, and the model becomes robust to precision loss.
 
 **Relation to Alternatives:**
+
 - **QAT vs PTQ**: QAT achieves better accuracy (especially <8-bit) but requires full training cycle
 - **Full QAT vs Partial QAT**: Full QAT quantizes all layers; partial quantizes only weights (activations stay FP16)
 - **Static vs Dynamic**: Static uses fixed scales; dynamic computes scales at runtime (more accurate, slower)
 
 **Key Insights:**
+
 1. **Straight-through estimator** is crucial - gradients "pass through" the non-differentiable quantization
 2. **Learned scales** (vs. fixed) allow the model to optimize quantization ranges
 3. **Batch normalization** helps by normalizing activations to quantization-friendly ranges
@@ -510,6 +523,7 @@ class GPTQQuantizer:
     Simplified GPTQ implementation.
 
     GPTQ key insights:
+
     1. Quantize weights layer by layer
     2. Use calibration data to compute Hessian (H = X^T X)
     3. Inverse Hessian tells us which weights are "safe" to quantize
@@ -534,9 +548,11 @@ class GPTQQuantizer:
 
         The algorithm processes columns in order of Hessian diagonal
         (inverse of "importance"). For each column:
+
         1. Quantize the weight
         2. Compute quantization error
         3. Update remaining columns to compensate
+
         """
         out_features, in_features = weight.shape
         W = weight.clone()
@@ -584,6 +600,7 @@ class GPTQQuantizer:
 ```
 
 **Key Paper:**
+
 - [GPTQ: Accurate Post-Training Quantization for Generative Pre-trained Transformers](https://arxiv.org/abs/2210.17323) (Frantar et al., 2022)
 
 ### AWQ
@@ -596,12 +613,14 @@ class AWQQuantizer:
     Simplified AWQ implementation.
 
     AWQ key insights:
+
     1. Not all weights are equally important
     2. ~1% of weights have disproportionate impact on output
     3. Identify these by looking at activation magnitudes
     4. Protect salient weights with higher precision or scaling
 
     AWQ advantages over GPTQ:
+
     - Less calibration data needed (10x less)
     - Better generalization (less overfitting to calibration)
     - Slightly better accuracy on average
@@ -696,6 +715,7 @@ class AWQQuantizer:
 ```
 
 **Key Paper:**
+
 - [AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration](https://arxiv.org/abs/2306.00978) (Lin et al., 2023)
 
 ### GGUF and CPU Inference
@@ -708,6 +728,7 @@ class GGUFQuantizationTypes:
     GGUF quantization types available in llama.cpp.
 
     Naming convention: Q{bits}_{type}_{size}
+
     - bits: number of bits (2-8)
     - type: 0 (simple), 1 (with min), K (k-quant)
     - size: S (small), M (medium), L (large)
@@ -753,6 +774,7 @@ def gguf_k_quant_explained():
     Different parts of the tensor get different bit widths:
 
     Super-block (256 values):
+
     - 16 sub-blocks of 16 values each
     - Each sub-block has its own 6-bit scale
     - Super-block has one FP16 scale and min
@@ -804,6 +826,7 @@ def importance_matrix_quantization():
 ```
 
 **Key Resources:**
+
 - [llama.cpp GitHub](https://github.com/ggml-org/llama.cpp)
 - [GGUF Quantization Guide](https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize/README.md)
 
@@ -824,8 +847,10 @@ class MixedPrecisionTrainer:
     Mixed precision training with automatic loss scaling.
 
     Key components:
+
     1. autocast: Automatically use FP16/BF16 for eligible ops
     2. GradScaler: Scale loss to prevent gradient underflow (FP16 only)
+
     """
 
     def __init__(self, model, optimizer, use_bf16: bool = True):
@@ -866,14 +891,17 @@ def why_bf16_no_scaling():
     BF16 range: ~1×10^-38 to 3.4×10^38 (same as FP32!)
 
     Gradients often have very small values (10^-6 or smaller).
+
     - FP16: Underflows to zero -> training fails
     - BF16: Keeps small values -> training works
 
     Loss scaling for FP16:
+
     1. Multiply loss by large scale (e.g., 1024)
     2. Backward pass computes scaled gradients
     3. Divide gradients by scale before optimizer step
     4. If overflow detected, skip update and reduce scale
+
     """
     pass
 ```
@@ -888,18 +916,22 @@ class FP8TrainingConfig:
     FP8 training configuration and considerations.
 
     FP8 formats:
+
     - E4M3: 4 exponent, 3 mantissa (range ±448, precision 1/8)
     - E5M2: 5 exponent, 2 mantissa (range ±57344, precision 1/4)
 
     Typical usage:
+
     - Forward: E4M3 (more precision for activations)
     - Backward: E5M2 (more range for gradients)
 
     DeepSeek V3 approach:
+
     - Store weights in FP8
     - All matrix multiplies in FP8
     - Accumulate in FP32
     - Block-wise scaling (128×128 for weights, 1×128 for activations)
+
     """
 
     def __init__(self):
@@ -915,6 +947,7 @@ class DeepSeekFP8Strategy:
     DeepSeek's FP8 training innovations.
 
     Key discoveries:
+
     1. Tensor Core accumulation issue:
        - H100 FP8 Tensor Cores use ~14-bit fixed-point accumulation
        - Causes accuracy loss for large models
@@ -928,6 +961,7 @@ class DeepSeekFP8Strategy:
        - Each 128×128 weight block has its own scale
        - Each 1×128 activation vector has its own scale
        - Handles outliers much better than per-tensor scaling
+
     """
 
     @staticmethod
@@ -974,6 +1008,7 @@ def transformer_engine_usage():
     NVIDIA Transformer Engine for FP8 training.
 
     Transformer Engine provides:
+
     1. Drop-in replacements for linear layers
     2. Automatic scale management
     3. FP8 recipe configuration
@@ -1000,6 +1035,7 @@ def transformer_engine_usage():
 ```
 
 **Key Resources:**
+
 - [NVIDIA Transformer Engine](https://github.com/NVIDIA/TransformerEngine)
 - [DeepSeek V3 Technical Report](https://arxiv.org/abs/2412.19437)
 - [DeepSeek FP8 Training Analysis](https://research.colfax-intl.com/deepseek-r1-and-fp8-mixed-precision-training/)
@@ -1021,6 +1057,7 @@ class FlashAttentionConcept:
 
     Key insight: Standard attention is memory-bound, not compute-bound.
     The N×N attention matrix must be:
+
     1. Written to HBM (slow)
     2. Read back for softmax (slow)
     3. Written again after softmax (slow)
@@ -1038,6 +1075,7 @@ class FlashAttentionConcept:
         Standard attention: O(N²) memory.
 
         Memory accesses:
+
         1. Load Q, K -> Compute QK^T -> Store N×N matrix to HBM
         2. Load N×N matrix -> Softmax -> Store back
         3. Load attention weights, V -> Compute output
@@ -1055,6 +1093,7 @@ class FlashAttentionConcept:
         Flash Attention (simplified tiled version).
 
         Key techniques:
+
         1. Tiling: Process Q, K, V in blocks that fit in SRAM
         2. Online softmax: Compute softmax incrementally
         3. Recomputation: Recompute in backward instead of storing
@@ -1096,25 +1135,30 @@ def flash_attention_versions():
     Flash Attention version comparison.
 
     Flash Attention 1 (2022):
+
     - Original algorithm
     - 2-4x speedup over PyTorch
     - O(N) memory
 
     Flash Attention 2 (2023):
+
     - Better parallelism (across sequence length)
     - Non-matmul FLOPs reduction
     - ~2x faster than FA1
     - Support for head dim up to 256
 
     Flash Attention 3 (2024):
+
     - Optimized for Hopper (H100)
     - Uses asynchronous operations (warp specialization)
     - FP8 support
     - ~75% Tensor Core utilization (vs 35% for FA2 on H100)
 
     Hardware requirements:
+
     - FA2: Ampere+ (A100, RTX 3090, RTX 4090, H100)
     - FA3: Hopper (H100, H200)
+
     """
     pass
 ```
@@ -1156,6 +1200,7 @@ def use_flash_attention():
 ```
 
 **Key Papers:**
+
 - [FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness](https://arxiv.org/abs/2205.14135) (Dao et al., 2022)
 - [FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning](https://arxiv.org/abs/2307.08691) (Dao, 2023)
 - [FlashAttention-3: Fast and Accurate Attention with Asynchrony and Low-precision](https://arxiv.org/abs/2407.08608) (Shah et al., 2024)
@@ -1175,14 +1220,17 @@ class GradientCheckpointingAnalysis:
 
     Problem: During training, we must store all intermediate activations
     for the backward pass. For a transformer with N layers:
+
     - Memory for activations: O(N) per layer = O(N²) total
     - For 70B models, activations can exceed 100 GB
 
     Solution: Don't store all activations. Instead:
+
     - Store activations only at checkpoints (e.g., every k layers)
     - During backward, recompute missing activations from checkpoints
 
     Memory-Compute Trade-off:
+
     - Memory: O(N) → O(√N) with optimal checkpointing
     - Compute: 1 forward pass → ~1.3-1.5 forward passes (30-50% overhead)
 
@@ -1268,9 +1316,11 @@ class CheckpointedTransformerBlock(nn.Module):
         Forward pass with optional gradient checkpointing.
 
         When use_checkpoint=True, PyTorch will:
+
         1. Run forward normally
         2. NOT store intermediate activations
         3. During backward, recompute forward to get activations
+
         """
         if use_checkpoint and self.training:
             # Use gradient checkpointing
@@ -1285,21 +1335,26 @@ class SelectiveCheckpointing:
     Advanced: Selective gradient checkpointing strategies.
 
     Different layers have different memory/compute trade-offs:
+
     - Attention: High memory, moderate compute → checkpoint
     - MLP: Moderate memory, high compute → maybe skip
     - Small layers (norm, residual): Low memory → skip
 
     Strategy 1: Checkpoint every k layers
+
     - Simple, predictable overhead
     - k = √N for optimal memory reduction
 
     Strategy 2: Checkpoint only attention
+
     - Attention often dominates memory
     - Lower recomputation overhead
 
     Strategy 3: Adaptive checkpointing
+
     - Profile memory usage per layer
     - Checkpoint high-memory layers
+
     """
 
     @staticmethod
@@ -1348,11 +1403,13 @@ def gradient_checkpointing_example():
     Complete example: Training with gradient checkpointing.
 
     Practical guidelines:
+
     1. Enable for large models where memory is constrained
     2. Checkpoint every √N layers for optimal memory/compute trade-off
     3. Consider checkpointing only attention for lower overhead
     4. Disable during inference (no backward pass needed)
     5. Use use_reentrant=False for better compatibility with autograd
+
     """
     import torch
     import torch.nn as nn
@@ -1486,6 +1543,7 @@ For a model with $N$ layers and $M$ memory units:
 ```
 
 **Key Papers:**
+
 - [Training Deep Nets with Sublinear Memory Cost](https://arxiv.org/abs/1604.06174) (Chen et al., 2016)
 - [Gradient Checkpointing for Transformers](https://github.com/cybertronai/gradient-checkpointing) (Implementation guide)
 
@@ -1498,11 +1556,13 @@ During autoregressive generation, each new token attends to all previous tokens.
 
 **Theoretical Justification:**
 The key observation is that K and V projections are deterministic given the input tokens:
+
 ```math
 K_i = W_{K} x_i, \quad V_i = W_{V} x_i
 ```
 
 Once computed, they never change. We cache them and only compute K,V for the new token:
+
 ```math
 \text{Attention}(Q_{\text{new}}, [K_1, \ldots, K_n, K_{\text{new}}], [V_1, \ldots, V_n, V_{\text{new}}])
 ```
@@ -1510,12 +1570,14 @@ Once computed, they never change. We cache them and only compute K,V for the new
 This reduces computation from O(N²) to O(N) per token, but requires storing all historical K,V.
 
 **Relation to Alternatives:**
+
 - **No cache**: O(N²) time, O(1) memory - impractical for long contexts
 - **Full cache**: O(N) time, O(N) memory - standard approach
 - **Quantized cache**: O(N) time, O(N/2 to N/4) memory - FP8/INT8 quantization
 - **PagedAttention**: O(N) time, O(N) memory but better utilization through paging
 
 **Key Insights:**
+
 1. **KV cache size scales with sequence length**, not batch size - long contexts are memory-critical
 2. **Grouped Query Attention (GQA)** reduces KV heads, directly reducing cache size (e.g., 8x reduction)
 3. **Multi-Query Attention (MQA)** uses single KV head - maximum cache reduction but may hurt quality
@@ -1531,6 +1593,7 @@ class KVCacheAnalysis:
     Memory per token = 2 (K and V) × n_layers × n_heads × head_dim × dtype_size
 
     Example: LLaMA 70B
+
     - 80 layers, 64 heads, 128 head_dim, FP16
     - Per token: 2 × 80 × 64 × 128 × 2 = 2.6 MB
     - 100K context: 260 GB (!!)
@@ -1558,6 +1621,7 @@ class KVCacheQuantization:
     Quantizing KV cache to reduce memory.
 
     Options:
+
     - FP8: ~2x memory reduction, minimal quality loss
     - INT8: ~2x reduction, slightly more quality loss
     - INT4: ~4x reduction, noticeable quality loss
@@ -1599,6 +1663,7 @@ Traditional KV cache allocation pre-allocates contiguous memory for maximum sequ
 
 **Theoretical Justification:**
 PagedAttention applies virtual memory concepts from operating systems to KV cache management. The key idea:
+
 1. Divide KV cache into fixed-size blocks (e.g., 16 tokens)
 2. Allocate blocks on-demand as sequences grow
 3. Use a block table to map logical positions to physical blocks
@@ -1606,12 +1671,14 @@ PagedAttention applies virtual memory concepts from operating systems to KV cach
 This provides O(1) block access while eliminating internal fragmentation. Memory utilization approaches 100% vs. ~40% with traditional allocation.
 
 **Relation to Alternatives:**
+
 - **Contiguous allocation**: Simple but 60-80% memory waste
 - **Dynamic reallocation**: Avoids waste but requires expensive memory copies
 - **PagedAttention**: Near-zero waste, no copying, enables sharing (for beam search, multi-turn chat)
 - **FlashAttention**: Orthogonal - reduces memory for attention computation, not KV cache storage
 
 **Key Insights:**
+
 1. **Block tables** enable non-contiguous memory access with minimal overhead
 2. **Copy-on-write** allows prefix sharing across sequences (crucial for chat applications)
 3. **Memory sharing** enables efficient beam search and parallel sampling
@@ -1623,18 +1690,22 @@ class PagedAttentionConcept:
     PagedAttention (vLLM) - Virtual memory for KV cache.
 
     Problem: Different sequences have different lengths.
+
     - Pre-allocating max length wastes memory
     - Dynamic allocation causes fragmentation
 
     Solution: Divide KV cache into fixed-size "pages" (blocks).
+
     - Each block holds KV for a fixed number of tokens
     - Blocks allocated on-demand
     - Non-contiguous blocks linked via block table
 
     Benefits:
+
     - Near-zero memory waste
     - Memory sharing across requests (for prefix caching)
     - Dynamic batch size adjustment
+
     """
 
     def __init__(
@@ -1690,6 +1761,7 @@ class PagedAttentionConcept:
 ```
 
 **Key Paper:**
+
 - [Efficient Memory Management for Large Language Model Serving with PagedAttention](https://arxiv.org/abs/2309.06180) (Kwon et al., 2023)
 
 ---
@@ -1705,10 +1777,12 @@ Autoregressive generation is inherently sequential - each token depends on previ
 
 **Theoretical Justification:**
 Speculative decoding exploits two observations:
+
 1. **Small models are fast** (10-50x faster than large models)
 2. **Verification is parallelizable** - checking K tokens takes the same time as generating 1 token
 
 The algorithm:
+
 1. Draft model generates k tokens autoregressively: $x_1, \ldots, x_k$ (fast)
 2. Target model verifies all k in one forward pass (parallel)
 3. Accept tokens where $p_{\text{target}}(x_i|x_{<i}) \geq p_{\text{draft}}(x_i|x_{<i})$
@@ -1716,12 +1790,14 @@ The algorithm:
 Expected speedup: $\mathbb{E}[\text{tokens}] = 1 + \alpha + \alpha^2 + \ldots + \alpha^k$ where $\alpha$ is acceptance rate.
 
 **Relation to Alternatives:**
+
 - **Standard decoding**: Memory-bound, sequential, predictable latency
 - **Speculative decoding**: Compute-bound, variable latency (but faster average)
 - **Parallel sampling**: Generates multiple sequences independently (different use case)
 - **Early exit**: Uses same model with adaptive depth (simpler but less effective)
 
 **Key Insights:**
+
 1. **No quality degradation** - mathematically equivalent to standard sampling when done correctly
 2. **Acceptance rate critical** - draft model must be reasonably aligned (typically 60-90%)
 3. **Model size ratio** - draft should be 10-50x smaller; too small = low acceptance, too large = not fast enough
@@ -1733,11 +1809,13 @@ class SpeculativeDecoder:
     Speculative decoding implementation.
 
     Key insight: Verification is parallelizable.
+
     - Draft model generates k tokens autoregressively (fast)
     - Target model verifies all k tokens in one forward pass
     - If token i is rejected, discard tokens i+1..k
 
     Speedup depends on:
+
     1. Draft model speed (should be 10-50x smaller)
     2. Acceptance rate (how often draft matches target)
 
@@ -1820,6 +1898,7 @@ class SelfSpeculativeDecoding:
     Verify phase: Run full model
 
     Benefits:
+
     - No need to train/maintain separate draft model
     - Same tokenizer guaranteed
     - No additional memory for draft model
@@ -1839,6 +1918,7 @@ class SelfSpeculativeDecoding:
 ```
 
 **Key Papers:**
+
 - [Fast Inference from Transformers via Speculative Decoding](https://arxiv.org/abs/2211.17192) (Leviathan et al., 2022)
 - [Draft & Verify: Lossless Large Language Model Acceleration via Self-Speculative Decoding](https://aclanthology.org/2024.acl-long.607/) (Zhang et al., 2024)
 
@@ -1849,6 +1929,7 @@ Traditional static batching processes a fixed batch of sequences together. All s
 
 **Theoretical Justification:**
 Continuous batching (also called iteration-level batching or dynamic batching) operates at the token level rather than sequence level:
+
 - After generating each token, check which sequences are complete
 - Remove completed sequences from the batch immediately
 - Add new sequences from the waiting queue to fill available slots
@@ -1856,12 +1937,14 @@ Continuous batching (also called iteration-level batching or dynamic batching) o
 This maximizes GPU utilization by ensuring the batch is always full. If batch size is B and sequences complete uniformly, we process B sequences concurrently instead of sequentially.
 
 **Relation to Alternatives:**
+
 - **Static batching**: Process batch → wait for all to finish → process next batch (low utilization)
 - **Continuous batching**: Add/remove sequences every iteration (high utilization)
 - **Batching without KV cache management**: Would fragment memory and fail
 - **PagedAttention + Continuous batching**: Synergistic - paging enables efficient add/remove
 
 **Key Insights:**
+
 1. **Throughput improvement**: vLLM shows 23x higher throughput vs. static batching baselines
 2. **Latency trade-off**: Individual requests may have slightly higher latency, but overall system throughput is much higher
 3. **Requires efficient memory management**: PagedAttention makes this practical by avoiding memory fragmentation
@@ -1873,11 +1956,13 @@ class ContinuousBatching:
     Continuous batching for inference servers.
 
     Problem with static batching:
+
     - All sequences in batch must finish before new ones start
     - Short sequences wait for long ones
     - Low GPU utilization
 
     Solution: Continuous batching (iteration-level batching)
+
     - Check for completion after each token
     - Remove completed sequences immediately
     - Add new sequences to available slots
@@ -1935,6 +2020,7 @@ class DataParallelismExplained:
     Data Parallelism (DP) vs Distributed Data Parallelism (DDP).
 
     Data Parallelism (nn.DataParallel):
+
     - Single-process, multi-GPU
     - Master GPU broadcasts model to workers
     - Workers compute forward/backward on their data splits
@@ -1942,22 +2028,26 @@ class DataParallelismExplained:
     - Bottleneck: Master GPU communication overhead
 
     Distributed Data Parallelism (nn.parallel.DistributedDataParallel):
+
     - Multi-process (one process per GPU)
     - All-reduce gradient synchronization
     - More efficient communication (ring all-reduce)
     - Better scaling to many GPUs
 
     Memory per GPU:
+
     - Model parameters: Full model on each GPU
     - Gradients: Full gradients (synchronized)
     - Optimizer states: Full optimizer state
     - Activations: 1/N of batch (N = num GPUs)
 
     Example: 70B model, 8 GPUs
+
     - Parameters: 70B × 2 bytes = 140 GB per GPU
     - Gradients: 140 GB per GPU
     - Optimizer (AdamW): 2× params = 280 GB per GPU
     - Total: ~560 GB per GPU (doesn't fit in 80GB!)
+
     → Need model parallelism or ZeRO
     """
 
@@ -1993,6 +2083,7 @@ class DataParallelismExplained:
         PyTorch DDP does this automatically during backward().
 
         Ring All-Reduce algorithm:
+
         - N GPUs arranged in a ring
         - Each GPU sends to next, receives from previous
         - N-1 steps to reduce, N-1 steps to broadcast
@@ -2010,10 +2101,12 @@ def ddp_training_example():
     Complete DDP training example.
 
     Key points:
+
     1. Use torchrun to launch (replaces torch.distributed.launch)
     2. One process per GPU
     3. Use DistributedSampler for data loading
     4. Model automatically syncs gradients during backward()
+
     """
     import os
     import torch.multiprocessing as mp
@@ -2087,6 +2180,7 @@ class PipelineParallelism:
     Pipeline parallelism with micro-batching.
 
     Key concept: GPipe algorithm
+
     1. Divide model into stages (sequential layer groups)
     2. Divide batch into micro-batches
     3. Pipeline micro-batches through stages
@@ -2152,6 +2246,7 @@ class TensorParallelism:
     All-reduce to sum: Y = sum(Y_i)
 
     Megatron-LM pattern for transformer:
+
     - QKV projection: column parallel
     - Attention output: row parallel
     - MLP first layer: column parallel
@@ -2214,12 +2309,14 @@ class MegatronLMParallelism:
     Megatron-LM: Combined tensor + pipeline + data parallelism.
 
     Configuration example (GPT-3 scale):
+
     - Tensor parallel: 8 GPUs (split within layer)
     - Pipeline parallel: 16 stages (split across layers)
     - Data parallel: 32 replicas
     - Total: 8 × 16 × 32 = 4096 GPUs
 
     Key optimizations:
+
     1. Sequence parallelism: Split activations in sequence dim
     2. Selective activation recomputation: Checkpoint some layers
     3. Interleaved pipeline scheduling: Better GPU utilization
@@ -2241,26 +2338,31 @@ Standard data parallelism replicates the entire model, gradients, and optimizer 
 ZeRO eliminates redundancy by partitioning instead of replicating. The key insight: each GPU only needs the full model state during its local computation. We can partition memory and gather on-demand via communication:
 
 **Stage 1**: Partition optimizer states → 4x memory reduction (for AdamW)
+
 - Each GPU stores 1/N of optimizer states
 - Before optimizer step, gather relevant states
 
 **Stage 2**: Partition gradients + optimizer → 8x reduction
+
 - Each GPU only stores gradients for its parameter partition
 - Reduce-scatter during backward instead of all-reduce
 
 **Stage 3**: Partition everything → Linear scaling (Nx reduction for N GPUs)
+
 - Each GPU stores 1/N of parameters, gradients, and optimizer states
 - Gather parameters for forward, scatter results after backward
 
 Memory per GPU: $\frac{M_{\text{total}}}{N} + M_{\text{activations}}$ where $M_{\text{total}}$ is total model memory.
 
 **Relation to Alternatives:**
+
 - **Data Parallelism (DDP)**: Simple but doesn't reduce memory per GPU
 - **Model Parallelism**: Reduces memory but has pipeline bubbles and communication overhead
 - **ZeRO Stage 1-3**: Progressive memory reduction with increasing communication
 - **FSDP**: PyTorch's native implementation of ZeRO-3 with similar performance
 
 **Key Insights:**
+
 1. **Communication overhead** is acceptable - modern interconnects (NVLink, InfiniBand) have sufficient bandwidth
 2. **Stage selection**: Use Stage 3 for models that don't fit; Stage 2 if they fit (lower communication)
 3. **Activation checkpointing synergy**: Combine with ZeRO for maximum memory efficiency
@@ -2272,6 +2374,7 @@ class ZeROOptimizer:
     ZeRO: Zero Redundancy Optimizer.
 
     Problem with data parallelism:
+
     - Each GPU stores full model, gradients, and optimizer states
     - For 70B model with AdamW: ~560 GB per GPU
     - Highly redundant across GPUs
@@ -2279,22 +2382,26 @@ class ZeROOptimizer:
     ZeRO solution: Partition and communicate on-demand
 
     ZeRO Stage 1: Partition optimizer states
+
     - Memory: Optimizer / N
     - Communication: Same as standard DP
     - Savings: 4x for AdamW
 
     ZeRO Stage 2: Partition optimizer states + gradients
+
     - Memory: (Optimizer + Gradients) / N
     - Communication: Slightly more than DP
     - Savings: 8x for AdamW
 
     ZeRO Stage 3: Partition optimizer states + gradients + parameters
+
     - Memory: (Optimizer + Gradients + Parameters) / N
     - Communication: More than Stage 2 (gather params for forward)
     - Savings: Up to 64x (depends on model)
     - Enables training 100B+ models on consumer GPUs
 
     Example: 70B model, 8× A100 80GB
+
     - Standard DP: 560 GB per GPU (OOM!)
     - ZeRO Stage 1: 280 GB per GPU (OOM!)
     - ZeRO Stage 2: 140 GB per GPU (OOM!)
@@ -2339,6 +2446,7 @@ class ZeROOptimizer:
 
         1. Each GPU updates its parameter partition
         2. Broadcast updated parameters to all GPUs (for next forward)
+
         """
         # Update my partition
         for param in self.param_partition:
@@ -2357,30 +2465,36 @@ class ZeROConfiguration:
     Choosing the right ZeRO stage.
 
     Stage 1: Use when
+
     - Model fits in GPU memory but optimizer states don't
     - Minimal communication overhead acceptable
     - 4x memory reduction sufficient
 
     Stage 2: Use when
+
     - Model + gradients fit but optimizer states don't
     - Can tolerate gradient communication overhead
     - 8x memory reduction needed
 
     Stage 3: Use when
+
     - Even model parameters don't fit
     - Training very large models (>13B on consumer GPUs)
     - Can tolerate parameter communication overhead
     - Need maximum memory efficiency
 
     DeepSpeed ZeRO-Offload:
+
     - Offload optimizer states to CPU
     - Train even larger models
     - Slower but enables 100B+ on single GPU
 
     DeepSpeed ZeRO-Infinity:
+
     - Offload everything (params, grads, optimizer) to NVMe
     - Train trillion-parameter models
     - Much slower but unprecedented scale
+
     """
 
     # Memory breakdown for 70B model (FP16/BF16)
@@ -2448,6 +2562,7 @@ class FSDPExplained:
     FSDP: PyTorch's native ZeRO implementation.
 
     Key features:
+
     - Integrated into PyTorch (no external dependencies)
     - Similar to DeepSpeed ZeRO Stage 3
     - Automatic mixed precision support
@@ -2455,15 +2570,18 @@ class FSDPExplained:
     - CPU offloading support
 
     Sharding strategies:
+
     - FULL_SHARD: ZeRO Stage 3 (shard params, grads, optimizer)
     - SHARD_GRAD_OP: ZeRO Stage 2 (shard grads, optimizer)
     - NO_SHARD: Standard DDP (no sharding)
     - HYBRID_SHARD: Shard within node, replicate across nodes
 
     Auto-wrapping:
+
     - Automatically wrap transformer layers
     - Fine-grained control over communication
     - Better memory/communication trade-off
+
     """
 
     @staticmethod
@@ -2472,10 +2590,12 @@ class FSDPExplained:
         Setup FSDP with best practices for LLMs.
 
         Key settings:
+
         1. ShardingStrategy.FULL_SHARD: Maximum memory savings
         2. Mixed precision: BF16 for compute, FP32 for params
         3. Auto-wrap: Wrap each transformer layer
         4. CPU offload: Optional for very large models
+
         """
         from functools import partial
 
@@ -2510,15 +2630,18 @@ def fsdp_training_example():
     Complete FSDP training example.
 
     Advantages over DeepSpeed:
+
     - Native PyTorch (no external dependencies)
     - Simpler API
     - Better integration with PyTorch features
 
     Advantages of DeepSpeed:
+
     - More mature
     - More optimization options
     - Better support for very large models (>100B)
     - ZeRO-Offload and ZeRO-Infinity
+
     """
     import torch
     from torch.distributed.fsdp import FullyShardedDataParallel as FSDP
@@ -2563,17 +2686,20 @@ class DistributedTrainingComparison:
     | Megatron | Low | High | High | Maximum efficiency |
 
     Recommendations:
+
     - <7B models: DDP (simple, efficient)
     - 7B-30B: FSDP/ZeRO-2 (good balance)
     - 30B-100B: FSDP/ZeRO-3 (memory critical)
     - >100B: Megatron or ZeRO-3 + offload
     - Research/prototyping: FSDP (easier)
     - Production: Megatron (more control)
+
     """
     pass
 ```
 
 **Key Resources:**
+
 - [PyTorch FSDP Tutorial](https://pytorch.org/tutorials/intermediate/FSDP_tutorial.html)
 - [DeepSpeed ZeRO Documentation](https://www.deepspeed.ai/tutorials/zero/)
 - [Megatron-LM GitHub](https://github.com/NVIDIA/Megatron-LM)
@@ -2594,10 +2720,12 @@ class AdamW:
     AdamW optimizer implementation.
 
     AdamW fixes weight decay handling in Adam:
+
     - Original Adam: decay is part of gradient -> scaled by adaptive LR
     - AdamW: decay applied directly to weights -> consistent regularization
 
     Hyperparameters for LLMs (typical):
+
     - lr: 1e-4 to 3e-4 (peak)
     - betas: (0.9, 0.95) or (0.9, 0.999)
     - eps: 1e-8
@@ -2665,6 +2793,7 @@ G_{\text{orth}} = \arg\min_{Q: Q^{T} Q = I} \|G - Q\|_{F}
 ```
 
 This is computed efficiently via Newton-Schulz iteration:
+
 ```math
 X_{k+1} = X_k \frac{3I - X_k^T X_k}{2}
 ```
@@ -2672,12 +2801,14 @@ X_{k+1} = X_k \frac{3I - X_k^T X_k}{2}
 The orthogonalized gradient provides better conditioning and faster convergence. Theoretically, this relates to natural gradient descent on the manifold of orthogonal matrices.
 
 **Relation to Alternatives:**
+
 - **SGD with momentum**: First-order only, no adaptation
 - **Adam/AdamW**: Per-parameter adaptation, high memory (2x params for moments)
 - **Muon**: Matrix-level adaptation, low memory (1x params for momentum), 2x faster convergence
 - **Shampoo**: Full second-order, even better but much more expensive
 
 **Key Insights:**
+
 1. **Orthogonalization as preconditioner**: Finding nearest orthogonal matrix provides optimal conditioning
 2. **Memory efficient**: Only stores momentum (vs. Adam's momentum + variance)
 3. **Limited applicability**: Works for 2D weight matrices only - use AdamW for embeddings, biases, norms
@@ -2691,11 +2822,13 @@ class Muon:
     Key insight: Use matrix orthogonalization instead of per-parameter scaling.
 
     Benefits:
+
     - ~2x compute efficiency vs AdamW (same loss with half the steps)
     - Lower memory than AdamW (only first moment, no second moment)
     - Best for hidden weight matrices
 
     Limitations:
+
     - Only for 2D weight matrices (hidden layers)
     - Use AdamW for embeddings, biases, layer norms
 
@@ -2769,6 +2902,7 @@ class Muon:
 ```
 
 **Key Resource:**
+
 - [Muon GitHub](https://github.com/KellerJordan/Muon)
 
 ### Shampoo and SOAP
@@ -2789,12 +2923,14 @@ This approximates Newton's method: $W \leftarrow W - \eta \cdot H^{-1} g$ where 
 Computing $L^{-1/4}$ requires eigendecomposition (O(m³)), expensive but done infrequently (every 100 steps).
 
 **Relation to Alternatives:**
+
 - **Adam**: Diagonal preconditioning (per-parameter), O(N) memory, fast but ignores correlations
 - **BFGS/L-BFGS**: Full approximation, O(N²) memory, impractical for LLMs
 - **Shampoo**: Kronecker factored, O(m² + n²) memory, captures row/column correlations
 - **SOAP**: Shampoo + Adam in eigenbasis, more stable and faster
 
 **Key Insights:**
+
 1. **Kronecker factorization** reduces O(N²) Hessian to O(m² + n²) statistics while capturing important correlations
 2. **Matrix fourth root** ($L^{-1/4}$) provides better conditioning than square root while being more stable
 3. **Infrequent updates** (every 100 steps) amortize the O(m³) eigendecomposition cost
@@ -2807,16 +2943,19 @@ class ShampooSimplified:
 
     Shampoo uses second-order information via Kronecker-factored
     preconditioners. For a weight matrix W, it maintains:
+
     - L: Left preconditioner (row-wise statistics)
     - R: Right preconditioner (column-wise statistics)
 
     Update: W -= lr * L^{-1/4} @ G @ R^{-1/4}
 
     Benefits:
+
     - 28% faster wall-clock time than Adam (AlgoPerf benchmark)
     - Better conditioning of optimization landscape
 
     Drawbacks:
+
     - High memory cost (store L, R matrices)
     - Expensive inverse root computation
 
@@ -2896,6 +3035,7 @@ class SOAP:
     Shampoo's preconditioner eigenvectors.
 
     Benefits over Shampoo:
+
     - 40% fewer iterations in large batch regime
     - 35% less wall-clock time
     - More stable (combines Shampoo's preconditioning with Adam's adaptivity)
@@ -2907,6 +3047,7 @@ class SOAP:
 ```
 
 **Key Papers:**
+
 - [Shampoo: Preconditioned Stochastic Tensor Optimization](https://arxiv.org/abs/1802.09568) (Gupta et al., 2018)
 - [SOAP: Improving and Stabilizing Shampoo Using Adam](https://arxiv.org/abs/2409.11321) (Vyas et al., 2024)
 - [Muon is Scalable for LLM Training](https://arxiv.org/abs/2502.16982) (Liu et al., 2025)
@@ -2929,6 +3070,7 @@ class CosineSchedule:
     Used by: GPT-3, Chinchilla, LLaMA, and most major LLMs.
 
     Schedule:
+
     1. Warmup: Linear increase from 0 to max_lr
     2. Decay: Cosine decay to min_lr
 
@@ -3012,12 +3154,14 @@ WSD separates training into three distinct phases with different learning dynami
 Empirically, WSD achieves lower final loss than cosine with equal compute, suggesting the constant-LR phase enables better exploration.
 
 **Relation to Alternatives:**
+
 - **Cosine schedule**: Fixed duration, smooth decay, widely used (GPT-3, LLaMA)
 - **WSD**: Flexible duration, distinct phases, better continuation (MiniCPM, newer models)
 - **Constant LR**: No decay, continues forever but doesn't fully converge
 - **Step decay**: Abrupt changes can cause instability
 
 **Key Insights:**
+
 1. **Checkpoint flexibility**: Can resume from any point in stable phase without loss penalty
 2. **Decay ratio**: 10% decay phase is optimal - more wastes training, less hurts final quality
 3. **Decay profile**: Sqrt decay (1 - √t) works slightly better than linear for LLMs
@@ -3029,16 +3173,19 @@ class WSDSchedule:
     Warmup-Stable-Decay learning rate schedule.
 
     Three phases:
+
     1. Warmup: Linear increase to max_lr
     2. Stable: Constant at max_lr (majority of training)
     3. Decay: Linear/sqrt/cosine decay to min_lr
 
     Advantages over cosine:
+
     - Continue training from stable phase checkpoint
     - Don't need to know total training duration upfront
     - Empirically achieves lower loss than cosine
 
     Typical config:
+
     - Decay phase = 10% of total training
     - Decay shape: sqrt or "lowered linear" (0.7) works best
 
@@ -3107,6 +3254,7 @@ class WSMSchedule:
     3. Merge checkpoints using exponential moving average
 
     Benefits:
+
     - Completely decay-free training
     - More flexible checkpoint utilization
     - Competitive with WSD
@@ -3118,6 +3266,7 @@ class WSMSchedule:
 ```
 
 **Key Papers:**
+
 - [Chinchilla: Training Compute-Optimal Large Language Models](https://arxiv.org/abs/2203.15556) (Hoffmann et al., 2022)
 - [MiniCPM: Unveiling the Potential of Small Language Models](https://arxiv.org/abs/2404.06395) (Hu et al., 2024)
 - [Understanding Warmup-Stable-Decay Learning Rates](https://arxiv.org/abs/2410.05192) (2024)
@@ -3290,33 +3439,39 @@ def full_training_loop():
 ## References
 
 ### Hardware
+
 1. [NVIDIA Blackwell Architecture](https://www.nvidia.com/en-us/data-center/technologies/blackwell-architecture/)
 2. [Introducing NVFP4](https://developer.nvidia.com/blog/introducing-nvfp4-for-efficient-and-accurate-low-precision-inference/)
 3. [Google TPU v6 Documentation](https://docs.cloud.google.com/tpu/docs/v6e)
 4. [Introducing Trillium](https://cloud.google.com/blog/products/compute/introducing-trillium-6th-gen-tpus)
 
 ### Quantization
+
 5. [GPTQ: Accurate Post-Training Quantization](https://arxiv.org/abs/2210.17323) (Frantar et al., 2022)
 6. [AWQ: Activation-aware Weight Quantization](https://arxiv.org/abs/2306.00978) (Lin et al., 2023)
 7. [llama.cpp Quantization Guide](https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize/README.md)
 
 ### Mixed Precision
+
 8. [DeepSeek-V3 Technical Report](https://arxiv.org/abs/2412.19437) (FP8 training)
 9. [NVIDIA Transformer Engine](https://github.com/NVIDIA/TransformerEngine)
 10. [DeepL FP8 Training](https://www.deepl.com/en/blog/tech/next-generation-llm-fp8-training)
 
 ### Memory Optimization
+
 11. [FlashAttention](https://arxiv.org/abs/2205.14135) (Dao et al., 2022)
 12. [FlashAttention-2](https://arxiv.org/abs/2307.08691) (Dao, 2023)
 13. [FlashAttention-3](https://arxiv.org/abs/2407.08608) (Shah et al., 2024)
 14. [PagedAttention (vLLM)](https://arxiv.org/abs/2309.06180) (Kwon et al., 2023)
 
 ### Inference
+
 15. [Speculative Decoding](https://arxiv.org/abs/2211.17192) (Leviathan et al., 2022)
 16. [Self-Speculative Decoding](https://aclanthology.org/2024.acl-long.607/) (Zhang et al., 2024)
 17. [vLLM GitHub](https://github.com/vllm-project/vllm)
 
 ### Optimizers
+
 18. [AdamW: Decoupled Weight Decay Regularization](https://arxiv.org/abs/1711.05101) (Loshchilov & Hutter, 2017)
 19. [Muon GitHub](https://github.com/KellerJordan/Muon)
 20. [Shampoo](https://arxiv.org/abs/1802.09568) (Gupta et al., 2018)
@@ -3324,15 +3479,18 @@ def full_training_loop():
 22. [Practical Efficiency of Muon for Pretraining](https://arxiv.org/abs/2505.02222) (2025)
 
 ### Learning Rate Schedules
+
 23. [Chinchilla: Training Compute-Optimal LLMs](https://arxiv.org/abs/2203.15556) (Hoffmann et al., 2022)
 24. [MiniCPM (WSD Schedule)](https://arxiv.org/abs/2404.06395) (Hu et al., 2024)
 25. [Understanding Warmup-Stable-Decay](https://arxiv.org/abs/2410.05192) (2024)
 
 ### Gradient Checkpointing
+
 26. [Training Deep Nets with Sublinear Memory Cost](https://arxiv.org/abs/1604.06174) (Chen et al., 2016)
 27. [Memory-Efficient Backpropagation Through Time](https://arxiv.org/abs/1606.03401) (Gruslys et al., 2016)
 
 ### Distributed Training
+
 28. [PyTorch FSDP: Experiences on Scaling Fully Sharded Data Parallel](https://arxiv.org/abs/2304.11277) (Zhao et al., 2023)
 29. [ZeRO: Memory Optimizations Toward Training Trillion Parameter Models](https://arxiv.org/abs/1910.02054) (Rajbhandari et al., 2020)
 30. [Megatron-LM: Training Multi-Billion Parameter Language Models Using Model Parallelism](https://arxiv.org/abs/1909.08053) (Shoeybi et al., 2019)
@@ -3355,11 +3513,13 @@ def full_training_loop():
    How does this change with gradient checkpointing enabled (every 4 layers)?
 
 2. **Quantization Comparison**: Implement a simple 4-bit quantization function and compare the output quality (cosine similarity) with the original FP16 weights for a small matrix.
+
+
    ```python
    # Implement symmetric 4-bit quantization
    # Compare with block-wise quantization (block size = 32)
    # Measure reconstruction error (MSE and cosine similarity)
-   ```
+```
 
 3. **Flash Attention Complexity**: Explain why Flash Attention's memory complexity is O(N) instead of O(N²). What are the key data structures that enable this? Draw a diagram showing memory access patterns for standard attention vs Flash Attention.
 

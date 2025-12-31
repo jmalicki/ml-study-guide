@@ -22,6 +22,7 @@ Diffusion models have emerged as one of the most powerful classes of generative 
 This chapter covers the mathematical foundations and core concepts behind diffusion models, preparing you for implementation in [Chapter 25: Implementing Diffusion Models](25-diffusion-implementation.md) and advanced techniques in [Chapter 26: Advanced Diffusion Topics](26-diffusion-advanced.md).
 
 **Key Papers:**
+
 - [Denoising Diffusion Probabilistic Models (DDPM)](https://arxiv.org/abs/2006.11239) - Ho et al., 2020
 - [Score-Based Generative Modeling through SDEs](https://arxiv.org/abs/2011.13456) - Song et al., 2021
 - [Improved Denoising Diffusion Probabilistic Models](https://arxiv.org/abs/2102.09672) - Nichol & Dhariwal, 2021
@@ -40,6 +41,7 @@ Before diving into diffusion models, let's briefly compare them to other generat
 | **Diffusion Models** | Denoising objective | Iterative refinement | Tractable |
 
 Diffusion models offer several advantages:
+
 - **Stable training**: Unlike GANs, no adversarial dynamics
 - **High-quality samples**: State-of-the-art image generation
 - **Flexible architectures**: Can use various neural network backbones
@@ -53,6 +55,7 @@ The core idea behind diffusion models is beautifully simple:
 2. **Reverse Process**: Learn to reverse this process, starting from noise and recovering data
 
 This is analogous to:
+
 - Watching a drop of ink diffuse in water (forward)
 - Learning to reverse time and reconstitute the original drop (reverse)
 
@@ -61,6 +64,7 @@ This is analogous to:
 **The Problem:** Understanding diffusion intuitively requires seeing how data progressively degrades into noise. Without visualization, it's hard to grasp what "gradually adding Gaussian noise" actually means at each timestep.
 
 **Theoretical Foundation:** The forward process follows a noise schedule where at each step $t$, we can sample $\mathbf{x}_t$ directly using:
+
 ```math
 \mathbf{x}_t = \sqrt{\bar{\alpha}_t} \mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_t} \boldsymbol{\epsilon}
 ```
@@ -119,6 +123,7 @@ q(\mathbf{x}_t | \mathbf{x}_{t-1}) = \mathcal{N}(\mathbf{x}_{t}; \sqrt{1 - \beta
 ```
 
 where:
+
 - $\beta_t \in (0, 1)$ is the **variance schedule** (controls how much noise to add at step $t$)
 - $t \in \{1, ..., T\}$ is the timestep
 - $\mathbf{x}_0$ is the original data
@@ -152,16 +157,19 @@ Starting from $q(\mathbf{x}_t | \mathbf{x}_{t-1}) = \mathcal{N}(\sqrt{\alpha_t} 
 **The Problem:** We need an efficient way to add noise to images during training. Naively, we would need to iterate through all timesteps 1 to $t$ to get $\mathbf{x}_t$, which would be computationally expensive.
 
 **Theoretical Justification:** The closed-form sampling property allows us to compute $\mathbf{x}_t$ directly from $\mathbf{x}_0$ without any iteration. This is possible because:
+
 1. Each step of Gaussian noise addition is a linear transformation
 2. Compositions of linear Gaussian transformations yield another Gaussian
 3. The cumulative product $\bar{\alpha}_t$ captures the effect of all previous steps
 
 **How This Relates to Alternatives:**
+
 - **Compared to VAEs:** VAEs sample latent $z$ once; diffusion samples at multiple noise levels
 - **Compared to normalizing flows:** Flows require invertible transformations; diffusion forward process is non-invertible (information-destroying)
 - **Compared to autoregressive models:** Autoregressive generates sequentially; diffusion adds noise in parallel but denoises iteratively
 
 **Key Insights:**
+
 1. **Precomputation is crucial:** We precompute $\sqrt{\bar{\alpha}_t}$, $\sqrt{1-\bar{\alpha}_t}$, etc., to avoid redundant calculations
 2. **Broadcasting:** Using `_extract()` method ensures proper broadcasting across batch and spatial dimensions
 3. **Reparameterization trick:** Sampling $\mathbf{x}_t$ uses the same trick as VAEs: deterministic function + external randomness
@@ -265,16 +273,22 @@ print(f"Noise shape: {noise.shape}")
 The choice of $\beta_t$ (variance schedule) significantly impacts training and sampling. Common schedules include:
 
 1. **Linear Schedule** (DDPM):
+
+
    ```math
 \beta_t = \beta_1 + \frac{t-1}{T-1}(\beta_T - \beta_1)
 ```
 
 2. **Cosine Schedule** (Improved DDPM):
+
+
    ```math
 \bar{\alpha}_t = \frac{f(t)}{f(0)}, \quad f(t) = \cos\left(\frac{t/T + s}{1 + s} \cdot \frac{\pi}{2}\right)^2
 ```
 
 3. **Quadratic Schedule**:
+
+
    ```math
 \beta_t = \beta_1 + \left(\frac{t-1}{T-1}\right)^2 (\beta_T - \beta_1)
 ```
@@ -286,16 +300,19 @@ The choice of $\beta_t$ (variance schedule) significantly impacts training and s
 **The Problem:** Different data types (images vs audio) and resolutions require different rates of noise addition. A schedule that's too aggressive destroys information too quickly; too conservative wastes timesteps.
 
 **Theoretical Justification:**
+
 - **Linear schedule:** Simple and works well for low-resolution images (32×32, 64×64). It provides uniform noise increase, which matches the uniform importance of timesteps in the simplified objective.
 - **Cosine schedule:** Better for high-resolution images because it adds noise more slowly at the beginning and end, preserving fine details longer. The cosine shape ensures $\bar{\alpha}_t$ doesn't drop too quickly near $t=0$.
 - **Quadratic schedule:** Aggressive noise addition, useful when you want faster convergence to pure noise.
 
 **How Schedules Relate to Each Other:**
+
 - All schedules must ensure $\bar{\alpha}_0 \approx 1$ (minimal noise) and $\bar{\alpha}_T \approx 0$ (pure noise)
 - The rate of change $\frac{d\bar{\alpha}_t}{dt}$ determines how quickly information is destroyed
 - Cosine schedule has slower changes at boundaries, better for high-frequency details
 
 **Key Insights:**
+
 1. **The schedule affects both training and sampling:** A good schedule makes the model's job easier at each timestep
 2. **Clipping is important:** For cosine schedule, we clip betas to prevent numerical instability
 3. **Empirical tuning matters:** Despite theory, the best schedule is often found experimentally
@@ -419,6 +436,7 @@ The **score function** is the gradient of the log-probability density:
 ```
 
 The score function points in the direction of increasing probability density. If we know the score at any point, we can:
+
 1. Move toward higher-density regions (sampling)
 2. Estimate the underlying distribution
 
@@ -458,6 +476,7 @@ This is closely related to DDPM's formulation, and both frameworks can be unifie
 
 **Theoretical Justification:**
 The **denoising score matching** objective trains a model to predict the score without knowing the normalizing constant. For perturbed data $\tilde{\mathbf{x}} = \mathbf{x} + \sigma \boldsymbol{\epsilon}$, the true score is:
+
 ```math
 \nabla_{\tilde{\mathbf{x}}} \log p(\tilde{\mathbf{x}} | \mathbf{x}) = -\frac{\boldsymbol{\epsilon}}{\sigma}
 ```
@@ -465,11 +484,13 @@ The **denoising score matching** objective trains a model to predict the score w
 This is tractable! We can train by minimizing $\|\mathbf{s}_\theta(\tilde{\mathbf{x}}, \sigma) - (-\boldsymbol{\epsilon}/\sigma)\|^2$, which is exactly what diffusion models do when predicting noise.
 
 **Relationship to Alternatives:**
+
 - **Compared to GAN discriminator:** Score function provides gradients toward data, not just real/fake classification
 - **Compared to VAE:** VAEs maximize ELBO; score matching directly estimates density gradients
 - **Compared to normalizing flows:** Flows need invertibility; scores only need gradients
 
 **Key Insights:**
+
 1. **Score = Direction to data:** The score points toward higher probability regions, naturally guiding sampling
 2. **Multi-scale is crucial:** Training at multiple noise levels $\sigma$ helps capture both coarse and fine structure
 3. **Equivalence to diffusion:** DDPM's noise prediction is mathematically equivalent to score prediction with scaling $-\sqrt{1-\bar{\alpha}_t}$
@@ -553,6 +574,7 @@ d\mathbf{x} = \mathbf{f}(\mathbf{x}, t) dt + g(t) d\mathbf{w}
 ```
 
 where:
+
 - $t \in [0, T]$ is continuous time
 - $\mathbf{f}(\mathbf{x}, t)$ is the **drift coefficient** (deterministic evolution)
 - $g(t)$ is the **diffusion coefficient** (noise scale)
@@ -567,6 +589,7 @@ d\mathbf{x} = -\frac{1}{2}\beta(t) \mathbf{x} dt + \sqrt{\beta(t)} d\mathbf{w}
 ```
 
 where $\beta(t)$ is the continuous-time noise schedule. This SDE:
+
 - Gradually adds noise while "pulling" toward zero (drift term)
 - Preserves the overall variance of the distribution
 - Has the solution: $\mathbf{x}_t \sim \mathcal{N}(\sqrt{\bar{\alpha}_t} \mathbf{x}_0, (1 - \bar{\alpha}_t)\mathbf{I})$ (same as discrete DDPM)
@@ -580,6 +603,7 @@ d\mathbf{x} = \sqrt{\frac{d[\sigma^2(t)]}{dt}} d\mathbf{w}
 ```
 
 This SDE:
+
 - Has no drift term ($\mathbf{f} = 0$)
 - Only adds noise with increasing variance $\sigma^2(t)$
 - Has the solution: $\mathbf{x}_t \sim \mathcal{N}(\mathbf{x}_0, \sigma^2(t)\mathbf{I})$
@@ -595,6 +619,7 @@ d\mathbf{x} = \left[\mathbf{f}(\mathbf{x}, t) - g(t)^2 \nabla_\mathbf{x} \log p_
 ```
 
 where:
+
 - $d\bar{\mathbf{w}}$ is a reverse-time Wiener process
 - $\nabla_\mathbf{x} \log p_t(\mathbf{x})$ is the **score function** at time $t$
 
@@ -613,11 +638,13 @@ Since we know that $\nabla_\mathbf{x} \log p_t(\mathbf{x}) = -\frac{\boldsymbol{
 ### Why Care About the SDE View?
 
 **Theoretical Benefits:**
+
 1. **Unified framework**: DDPM, score-based models, and their variants are all special cases
 2. **Flexible sampling**: Can use different SDE solvers (Euler-Maruyama, predictor-corrector, etc.)
 3. **Continuous control**: Can choose any time discretization, not limited to training schedule
 
 **Practical Benefits:**
+
 1. **Better samplers**: Probability flow ODE (deterministic sampling)
 2. **Likelihood computation**: Can compute exact likelihoods using continuous normalizing flows
 3. **Interpolation**: Easy to interpolate between different noise schedules
@@ -631,6 +658,7 @@ d\mathbf{x} = \left[\mathbf{f}(\mathbf{x}, t) - \frac{1}{2} g(t)^2 \nabla_\mathb
 ```
 
 This ODE:
+
 - Is **deterministic** (no stochastic term)
 - Generates the same distribution as the SDE
 - Enables exact likelihood computation
@@ -648,22 +676,26 @@ d\mathbf{x} = -\frac{1}{2}\beta(t) \left[\mathbf{x} + \nabla_\mathbf{x} \log p_t
 
 **Theoretical Justification:**
 The **Euler-Maruyama method** is the simplest discretization of an SDE:
+
 ```math
 \mathbf{x}_{t+\Delta t} = \mathbf{x}_t + f(\mathbf{x}_t, t)\Delta t + g(t)\sqrt{\Delta t}\boldsymbol{\epsilon}_t
 ```
 
 This is essentially a first-order approximation where we:
+
 1. Apply the drift (deterministic) for duration $\Delta t$
 2. Add diffusion (stochastic) scaled by $\sqrt{\Delta t}$ (from Brownian motion properties)
 
 For the **probability flow ODE**, we can use standard ODE solvers (like RK45) because there's no stochastic term. This gives deterministic sampling with the same marginal distributions as the SDE.
 
 **Relationship to Alternatives:**
+
 - **Compared to DDPM sampling:** DDPM is a discretized VP-SDE with specific step size
 - **Compared to DDIM:** DDIM approximates the probability flow ODE
 - **Compared to predictor-corrector:** P-C methods alternate SDE steps with Langevin dynamics corrections
 
 **Key Insights:**
+
 1. **Continuous formulation enables flexibility:** Can change discretization without retraining
 2. **ODE sampling is deterministic:** Same noise input → same output (useful for interpolation)
 3. **SDE vs ODE trade-off:** SDE gives better diversity; ODE gives better consistency
@@ -889,6 +921,7 @@ However, Ho et al. showed that a **simplified objective** works better in practi
 ```
 
 where:
+
 - $t \sim \text{Uniform}(\{1, ..., T\})$
 - $\mathbf{x}_0 \sim q(\mathbf{x}_0)$
 - $\boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$
@@ -899,6 +932,7 @@ This is simply **mean squared error** between the true noise and predicted noise
 ### Why Does the Simplified Objective Work?
 
 The simplified objective can be seen as a weighted version of the VLB where certain terms are reweighted. Empirically, it leads to:
+
 - Better sample quality
 - Faster training
 - Simpler implementation
@@ -908,6 +942,7 @@ The connection to score matching also provides theoretical justification: we're 
 ### DDPM Algorithm
 
 **Training:**
+
 1. Sample $\mathbf{x}_0 \sim q(\mathbf{x}_0)$
 2. Sample $t \sim \text{Uniform}(\{1, ..., T\})$
 3. Sample $\boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$
@@ -916,6 +951,7 @@ The connection to score matching also provides theoretical justification: we're 
 6. Update $\theta$ using gradient descent
 
 **Sampling:**
+
 1. Sample $\mathbf{x}_T \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$
 2. For $t = T, ..., 1$:
    - Predict $\boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t)$
@@ -930,21 +966,25 @@ The connection to score matching also provides theoretical justification: we're 
 
 **Theoretical Justification:**
 The algorithm implements the simplified training objective:
+
 ```math
 \mathcal{L}_{\text{simple}} = \mathbb{E}_{t, \mathbf{x}_0, \boldsymbol{\epsilon}} \|\boldsymbol{\epsilon} - \boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t)\|^2
 ```
 
 This is remarkably simple: just predict the noise that was added. The key mathematical insight is that this simple objective is equivalent to a weighted version of the full variational bound where we:
+
 1. Ignore the weighting factors from the KL divergences
 2. Focus purely on noise prediction quality
 3. Sample timesteps uniformly (giving equal importance to all noise levels)
 
 **Relationship to Alternatives:**
+
 - **Compared to VAE training:** VAEs optimize reconstruction + KL; DDPM only optimizes "reconstruction" of noise
 - **Compared to GAN training:** GANs need adversarial balance; DDPM is pure supervised regression
 - **Compared to score matching:** Identical objective with different parameterization (noise vs score)
 
 **Key Insights:**
+
 1. **Training is embarrassingly parallel:** Each sample can use different $t$ independently
 2. **Sampling requires sequential steps:** Can't parallelize the denoising trajectory (except with special methods)
 3. **Mean computation is critical:** The formula for $\boldsymbol{\mu}_\theta$ carefully combines predicted $\mathbf{x}_0$ and current $\mathbf{x}_t$ to match the true posterior
@@ -1097,6 +1137,7 @@ For images, the DDPM paper uses a UNet architecture with time embeddings. Here's
 
 **Theoretical Justification:**
 The timestep $t$ controls which noise level we're dealing with, and the denoising task is fundamentally different at $t=1$ (barely noisy) vs $t=999$ (almost pure noise). We use **sinusoidal time embeddings** because:
+
 1. They're continuous and smooth (neighboring timesteps get similar embeddings)
 2. They're positionally unique (each $t$ has a distinct embedding)
 3. They generalize to unseen timesteps (can interpolate)
@@ -1104,11 +1145,13 @@ The timestep $t$ controls which noise level we're dealing with, and the denoisin
 This is the same principle as positional encodings in Transformers, extended from position to time.
 
 **Relationship to Alternatives:**
+
 - **Compared to learned embeddings:** Sinusoidal embeddings generalize better and don't need to be learned
 - **Compared to concatenating $t$ directly:** High-dimensional embeddings give the network more expressiveness
 - **Compared to FiLM conditioning:** Time embeddings are added/concatenated; FiLM uses affine transformations (both work, FiLM slightly better)
 
 **Key Insights:**
+
 1. **Time embedding dimensionality matters:** Typically 128-512 dimensions; too low loses information, too high wastes capacity
 2. **Injection at multiple layers:** Adding time info at each layer (not just input) helps the network adapt processing based on noise level
 3. **UNet architecture is crucial:** Skip connections preserve spatial information while allowing semantic processing in the bottleneck
@@ -1249,6 +1292,7 @@ The variance is typically parameterized to interpolate between two extremes:
 ```
 
 where:
+
 - $v_\theta \in [0, 1]$ is a learned interpolation coefficient
 - $\beta_t$ is the forward process variance (upper bound)
 - $\tilde{\beta}_t = \frac{1 - \bar{\alpha}_{t-1}}{1 - \bar{\alpha}_t} \beta_t$ is the posterior variance (lower bound)
@@ -1262,11 +1306,13 @@ Alternatively, the model can directly output $v_\theta$:
 ### Why Learn Variance?
 
 **Benefits:**
+
 1. **Better log-likelihood**: Improved DDPM achieves better NLL scores
 2. **Faster sampling**: Can use fewer timesteps with learned variance
 3. **Adaptive uncertainty**: Model learns when to be more/less certain
 
 **Trade-offs:**
+
 - More complex training (need to predict both $\boldsymbol{\epsilon}$ and $v$)
 - Sample quality improvements are often marginal
 - Most practical applications stick with fixed variance
@@ -1422,11 +1468,13 @@ class DDPMWithLearnedVariance:
 ### Fixed vs Learned Variance: Practical Guidance
 
 **Use Fixed Variance When:**
+
 - You prioritize sample quality over likelihood
 - Training time/complexity is a concern
 - You're working with standard image generation tasks
 
 **Use Learned Variance When:**
+
 - You need good log-likelihood scores (e.g., for model comparison)
 - You want to minimize the number of sampling steps
 - You're working on research comparing to likelihood-based models
@@ -1439,20 +1487,24 @@ class DDPMWithLearnedVariance:
 
 **Theoretical Justification:**
 The true posterior $q(\mathbf{x}_{t-1}|\mathbf{x}_t, \mathbf{x}_0)$ has variance $\tilde{\beta}_t$, but this assumes we know $\mathbf{x}_0$. Since we only have an estimate $\hat{\mathbf{x}}_0$, there's uncertainty. The learned variance can interpolate between:
+
 - **Lower bound $\tilde{\beta}_t$:** Minimum uncertainty (if $\mathbf{x}_0$ were known exactly)
 - **Upper bound $\beta_t$:** Maximum uncertainty (forward process variance)
 
 By learning where in this range to be, the model can:
+
 1. Express uncertainty when predictions are less confident
 2. Be more certain when predictions are reliable
 3. Optimize the full VLB (not just the simplified objective)
 
 **Relationship to Alternatives:**
+
 - **Compared to fixed variance:** More flexible but requires more complex training
 - **Compared to predicting variance directly:** Parameterizing as interpolation prevents instability
 - **Compared to variance scheduling:** Learned variance adapts per-sample, not just per-timestep
 
 **Key Insights:**
+
 1. **Better likelihood ≠ better samples:** Models with learned variance often get better NLL but similar visual quality
 2. **Numerical stability matters:** Direct variance prediction can become unstable; interpolation with sigmoid constrains the range
 3. **VLB vs simplified objective:** Need both losses (noise MSE + variance KL) for proper training
@@ -1464,11 +1516,13 @@ By learning where in this range to be, the model can:
 Both VAEs and diffusion models optimize a variational lower bound (ELBO/VLB) on the log-likelihood:
 
 **VAE:**
+
 ```math
 \log p(x) \geq \mathbb{E}_{q_\phi(z|x)}[\log p_\theta(x|z)] - D_{KL}(q_\phi(z|x) \| p(z))
 ```
 
 **Diffusion:**
+
 ```math
 \log p(x_0) \geq \mathbb{E}_q[-D_{KL}(q(x_T|x_0) \| p(x_T))] - \sum_{t=2}^T \mathbb{E}_q[D_{KL}(q(x_{t-1}|x_t, x_0) \| p_\theta(x_{t-1}|x_t))] + \mathbb{E}_q[\log p_\theta(x_0|x_1)]
 ```
@@ -1487,6 +1541,7 @@ Both VAEs and diffusion models optimize a variational lower bound (ELBO/VLB) on 
 ### Hierarchical VAE Connection
 
 Diffusion models can be viewed as a **hierarchical VAE** where:
+
 - The encoder $q(x_{1:T} | x_0) = \prod_{t=1}^T q(x_t | x_{t-1})$ is fixed (not learned)
 - All latents $x_1, ..., x_T$ have the same dimensionality as the data
 - The prior $p(x_T)$ is a simple Gaussian
@@ -1509,11 +1564,13 @@ All these models solve the same core problem—learning $p(\mathbf{x})$—but wi
 3. **Diffusion:** Hierarchical VAE with fixed encoder and same-dimensional latents. Trains by denoising at multiple noise levels.
 
 **Relationship Insights:**
+
 - **Diffusion vs VAE:** Diffusion uses many latent variables (all same size as data) instead of one small latent. The "encoder" (forward process) is fixed, not learned.
 - **Diffusion vs GAN:** Both generate high-quality samples, but diffusion has stable training and computes likelihoods; GANs are faster to sample but unstable to train.
 - **Diffusion vs Flow:** Flows use invertible functions (expensive); diffusion uses non-invertible noise addition (cheaper per step) but requires many steps.
 
 **Key Insights:**
+
 1. **Sampling speed hierarchy:** Flow/VAE (1 step) > GAN (1 step) > Diffusion (1000 steps) > Autoregressive (N steps)
 2. **Training stability hierarchy:** Diffusion > VAE/Flow > GAN > Autoregressive
 3. **Sample quality hierarchy:** Diffusion ≈ GAN > Flow > VAE (though this gap is narrowing)
@@ -1594,6 +1651,7 @@ To give you a sense of what to expect when training and deploying diffusion mode
 | **Sampling (50 steps, DDIM)** | 256x256 | 64 | ~8-10 GB | Fast sampling |
 
 **Memory-efficient training tips:**
+
 - Use gradient checkpointing: 2-3x memory reduction, 20% slower
 - Mixed precision (FP16): ~40% memory reduction
 - Smaller batch sizes with gradient accumulation
@@ -1626,6 +1684,7 @@ These are typical FID scores (lower is better) you should expect after training:
 | **ImageNet** | 256x256 | 10-20 | 15-30 | More diverse, harder dataset |
 
 **Debugging tips using FID:**
+
 - FID > 50: Model is broken, check implementation
 - FID 20-50: Training issues, check hyperparameters
 - FID 10-20: Reasonable but not great, may need more training
@@ -1634,6 +1693,7 @@ These are typical FID scores (lower is better) you should expect after training:
 #### Learning Curves: What to Expect
 
 **Typical loss behavior during training:**
+
 ```python
 # Approximate MSE loss values at different stages
 Initial loss:      ~0.8-1.2  # Random initialization
@@ -1644,6 +1704,7 @@ Well-trained:      ~0.03-0.08 # State-of-the-art range
 ```
 
 **Warning signs:**
+
 - Loss not decreasing after 10k steps → check learning rate, data normalization
 - Loss increasing → learning rate too high, check for NaNs
 - Loss plateaus early (>0.2) → model capacity too small or data issues
@@ -1710,12 +1771,14 @@ print(f"Estimated memory for 256x256: {memory_highres:.1f} GB")
 ### Hyperparameter Sensitivity
 
 Key hyperparameters to tune:
+
 1. **Variance schedule** ($\beta_1$, $\beta_T$, schedule type)
 2. **Number of timesteps** $T$ (typically 1000, but can be reduced)
 3. **Model architecture** (UNet depth, channels, attention)
 4. **Learning rate** (typically 1e-4 to 2e-4)
 
 **Recommended starting points:**
+
 ```python
 # Good default configuration for CIFAR-10 / 32x32 images
 config_small = {
@@ -1758,11 +1821,13 @@ config_large = {
 
 **Theoretical Context:**
 These benchmarks reflect fundamental trade-offs:
+
 1. **Training time vs convergence:** Diffusion models need many gradient steps because they learn a complex multi-scale denoising task
 2. **Memory vs resolution:** Quadratic scaling with resolution (256×256 needs 64× more memory than 32×32)
 3. **Steps vs quality:** More sampling steps → better quality, but diminishing returns after 50-100 steps
 
 **Practical Insights:**
+
 - **FID scores are noisy:** Same model can vary ±2 FID points across runs
 - **Loss doesn't directly predict quality:** MSE loss of 0.05 vs 0.03 can look similar visually
 - **Hardware matters significantly:** Batch size affects convergence; larger batches can train faster but need careful LR tuning
@@ -1775,11 +1840,13 @@ These benchmarks reflect fundamental trade-offs:
 
 **Answer:**
 The forward process adds Gaussian noise over $T$ steps:
+
 ```math
 q(\mathbf{x}_t | \mathbf{x}_{t-1}) = \mathcal{N}(\mathbf{x}_{t}; \sqrt{1-\beta_t}\mathbf{x}_{t-1}, \beta_t\mathbf{I})
 ```
 
 The key insight is we can sample any $\mathbf{x}_t$ directly from $\mathbf{x}_0$ using:
+
 ```math
 \mathbf{x}_t = \sqrt{\bar{\alpha}_t}\mathbf{x}_0 + \sqrt{1-\bar{\alpha}_t}\boldsymbol{\epsilon}
 ```
@@ -1803,14 +1870,17 @@ Several reasons:
 **Answer:**
 
 **vs GANs:**
+
 - **Pros**: More stable training (no adversarial dynamics), better mode coverage, explicit likelihood
 - **Cons**: Much slower sampling (1000 steps vs 1 step)
 
 **vs VAEs:**
+
 - **Pros**: Better sample quality, no posterior collapse issues
 - **Cons**: Slower sampling, higher computational cost
 
 **Unique advantages:**
+
 - Iterative refinement allows trading off quality vs speed
 - Strong theoretical foundations
 - Flexible architectures
@@ -1831,15 +1901,18 @@ The main difference is the parameterization and how they're presented, but mathe
 
 **Answer:**
 The VLB contains multiple KL divergence terms. For $L_{t-1}$, we compare:
+
 - $q(\mathbf{x}_{t-1}|\mathbf{x}_t, \mathbf{x}_0)$ (known, Gaussian)
 - $p_\theta(\mathbf{x}_{t-1}|\mathbf{x}_t)$ (learned, Gaussian)
 
 Both are Gaussians, so the KL divergence reduces to comparing means:
+
 ```math
 L_{t-1} = \mathbb{E}_q\left[\frac{1}{2\sigma_t^2}\|\tilde{\boldsymbol{\mu}}_t - \boldsymbol{\mu}_\theta\|^2\right]
 ```
 
 Substituting the reparameterization $\boldsymbol{\mu}_\theta = f(\boldsymbol{\epsilon}_\theta)$ and simplifying (ignoring constant factors):
+
 ```math
 L_{t-1} \propto \mathbb{E}_{t,\mathbf{x}_0,\boldsymbol{\epsilon}}\left[\|\boldsymbol{\epsilon} - \boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t)\|^2\right]
 ```
@@ -1874,6 +1947,7 @@ for schedule in ['linear', 'cosine', 'quadratic']:
     plt.suptitle(f'{schedule} schedule')
     plt.show()
 ```
+
 </details>
 
 ### Exercise 2: Train on 2D Data
@@ -1904,6 +1978,7 @@ class Simple2DModel(nn.Module):
 # Train model
 # Visualize sampling process
 ```
+
 </details>
 
 ### Exercise 3: Implement DDIM Sampling
@@ -1912,6 +1987,7 @@ Implement the DDIM (Denoising Diffusion Implicit Models) deterministic sampling 
 <details>
 <summary>Hint</summary>
 DDIM uses the same model but different sampling:
+
 ```math
 \mathbf{x}_{t-1} = \sqrt{\bar{\alpha}_{t-1}}\mathbf{x}_0^{pred} + \sqrt{1-\bar{\alpha}_{t-1}}\boldsymbol{\epsilon}_\theta
 ```
@@ -1936,12 +2012,14 @@ In this chapter, we covered:
 5. **Connections**: Relationship to VAEs and other generative models
 
 **Key Takeaways:**
+
 - Diffusion models learn to reverse a noise-adding process
 - The simplified objective (predict noise) is just MSE, making training stable
 - Score matching provides theoretical foundations
 - Iterative sampling trades speed for quality
 
 **Next Steps:**
+
 - [Chapter 25: Implementing Diffusion Models](25-diffusion-implementation.md): Build complete image generation models with UNet architecture
 - [Chapter 26: Advanced Diffusion Topics](26-diffusion-advanced.md): Fast sampling, conditional generation, guidance, and latent diffusion
 - [Chapter 30: Architecture Comparison: Modern LLMs](30-model-architectures.md): See how diffusion applies to language models (WeDLM)

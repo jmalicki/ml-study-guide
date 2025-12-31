@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 550">
+
+  <style>
+    /* Light mode (default) */
+    text { fill: #000000; }
+    .axis-text { fill: #000000; }
+    .label-text { fill: #666666; }
+    line[stroke="#333"] { stroke: #333333; }
+    .grid-line { stroke: #999999; }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .axis-text { fill: #ffffff; }
+      .label-text { fill: #cccccc; }
+      line[stroke="#333"] { stroke: #cccccc; }
+      .grid-line { stroke: #555555; }
+
+      /* Override dark inline text colors */
+      text[fill="#000"],
+      text[fill="#000000"],
+      text[fill="#333"],
+      text[fill="#666"] {
+        fill: #ffffff;
+      }
+
+      /* Keep white text white in dark mode (for colored backgrounds) */
+      text[fill="#fff"],
+      text[fill="#ffffff"],
+      text[fill="white"] {
+        fill: #ffffff;
+      }
+
+      /* Keep colored backgrounds visible in dark mode */
+      rect[fill="#e3f2fd"] { fill: #1e3a5f; }
+      rect[fill="#fff3e0"] { fill: #5f4620; }
+      rect[fill="#e8f5e9"] { fill: #1e4620; }
+      rect[fill="#ffebee"] { fill: #5f1e1e; }
+    }
+  </style>
+
+  <text x="400" y="30" font-size="22" font-weight="bold" fill="#000" text-anchor="middle">
+    Flash Attention Tiling Strategy
+  </text>
+  <text x="400" y="55" font-size="14" fill="#666" text-anchor="middle">
+    Divide Q, K, V into blocks that fit in SRAM
+  </text>
+
+  <!-- Q matrix on left -->
+  <g transform="translate(80, 100)">
+    <text x="50" y="-10" font-size="16" font-weight="bold" fill="#333" text-anchor="middle">Q (N × d)</text>
+
+    <!-- Draw grid for Q -->
+    <rect x="0" y="0" width="100" height="300" fill="none" stroke="#333" stroke-width="2" />
+
+    <!-- Horizontal divisions (row blocks) -->
+    <line x1="0" y1="75" x2="100" y2="75" class="grid-line" stroke-width="1" stroke-dasharray="3,3" />
+    <line x1="0" y1="150" x2="100" y2="150" class="grid-line" stroke-width="1" stroke-dasharray="3,3" />
+    <line x1="0" y1="225" x2="100" y2="225" class="grid-line" stroke-width="1" stroke-dasharray="3,3" />
+
+    <!-- Highlight one Q block -->
+    <rect x="0" y="0" width="100" height="75" fill="#e3f2fd" stroke="#1976d2" stroke-width="2" />
+    <text x="50" y="42" font-size="12" fill="#333" text-anchor="middle">Q block</text>
+    <text x="50" y="58" font-size="10" fill="#666" text-anchor="middle">(Br × d)</text>
+
+    <!-- Label dimensions -->
+    <text x="-10" y="150" font-size="12" fill="#666" text-anchor="end">N</text>
+    <text x="50" y="320" font-size="12" fill="#666" text-anchor="middle">d</text>
+  </g>
+
+  <!-- K^T matrix at top -->
+  <g transform="translate(230, 100)">
+    <text x="150" y="-10" font-size="16" font-weight="bold" fill="#333" text-anchor="middle">K^T (d × N)</text>
+
+    <!-- Draw grid for K^T -->
+    <rect x="0" y="0" width="300" height="100" fill="none" stroke="#333" stroke-width="2" />
+
+    <!-- Vertical divisions (column blocks) -->
+    <line x1="75" y1="0" x2="75" y2="100" class="grid-line" stroke-width="1" stroke-dasharray="3,3" />
+    <line x1="150" y1="0" x2="150" y2="100" class="grid-line" stroke-width="1" stroke-dasharray="3,3" />
+    <line x1="225" y1="0" x2="225" y2="100" class="grid-line" stroke-width="1" stroke-dasharray="3,3" />
+
+    <!-- Highlight one K block -->
+    <rect x="0" y="0" width="75" height="100" fill="#fff3e0" stroke="#f57c00" stroke-width="2" />
+    <text x="37.5" y="50" font-size="12" fill="#333" text-anchor="middle">K block</text>
+    <text x="37.5" y="66" font-size="10" fill="#666" text-anchor="middle">(d × Bc)</text>
+
+    <!-- Label dimensions -->
+    <text x="-10" y="50" font-size="12" fill="#666" text-anchor="end">d</text>
+    <text x="150" y="120" font-size="12" fill="#666" text-anchor="middle">N</text>
+  </g>
+
+  <!-- Attention matrix result -->
+  <g transform="translate(230, 100)">
+    <text x="150" y="150" font-size="16" font-weight="bold" fill="#333" text-anchor="middle">× =</text>
+
+    <text x="150" y="250" font-size="16" font-weight="bold" fill="#333" text-anchor="middle">Attention (Br × Bc)</text>
+
+    <!-- Draw grid for attention -->
+    <g transform="translate(0, 180)">
+      <rect x="0" y="0" width="300" height="300" fill="none" stroke="#333" stroke-width="2" />
+
+      <!-- Grid lines -->
+      <line x1="75" y1="0" x2="75" y2="300" class="grid-line" stroke-width="1" stroke-dasharray="3,3" />
+      <line x1="150" y1="0" x2="150" y2="300" class="grid-line" stroke-width="1" stroke-dasharray="3,3" />
+      <line x1="225" y1="0" x2="225" y2="300" class="grid-line" stroke-width="1" stroke-dasharray="3,3" />
+      <line x1="0" y1="75" x2="300" y2="75" class="grid-line" stroke-width="1" stroke-dasharray="3,3" />
+      <line x1="0" y1="150" x2="300" y2="150" class="grid-line" stroke-width="1" stroke-dasharray="3,3" />
+      <line x1="0" y1="225" x2="300" y2="225" class="grid-line" stroke-width="1" stroke-dasharray="3,3" />
+
+      <!-- Highlight computed block -->
+      <rect x="0" y="0" width="75" height="75" fill="#ffebee" stroke="#d32f2f" stroke-width="3" />
+      <text x="37.5" y="37.5" font-size="11" font-weight="bold" fill="#333" text-anchor="middle">Computed</text>
+      <text x="37.5" y="52" font-size="10" fill="#666" text-anchor="middle">in SRAM</text>
+
+      <!-- Label dimensions -->
+      <text x="-20" y="150" font-size="12" fill="#666" text-anchor="end">N (Br blocks)</text>
+      <text x="150" y="330" font-size="12" fill="#666" text-anchor="middle">N (Bc blocks)</text>
+    </g>
+  </g>
+
+  <!-- Key insight box -->
+  <g transform="translate(580, 100)">
+    <rect x="0" y="0" width="200" height="200" fill="none" stroke="#4A90A4" stroke-width="2" rx="5" />
+
+    <text x="100" y="25" font-size="14" font-weight="bold" fill="#333" text-anchor="middle">Key Points</text>
+
+    <text x="10" y="50" font-size="12" fill="#333">• Process one block</text>
+    <text x="15" y="68" font-size="11" fill="#666">at a time</text>
+
+    <text x="10" y="90" font-size="12" fill="#333">• Each block fits</text>
+    <text x="15" y="108" font-size="11" fill="#666">in SRAM</text>
+
+    <text x="10" y="130" font-size="12" fill="#333">• Never store full</text>
+    <text x="15" y="148" font-size="11" fill="#666">N×N matrix</text>
+
+    <text x="10" y="170" font-size="12" fill="#333">• Bc = O(M/d)</text>
+    <text x="10" y="188" font-size="12" fill="#333">• Br = min(Bc, d)</text>
+  </g>
+
+  <!-- Footer note -->
+  <text x="400" y="530" font-size="13" fill="#666" text-anchor="middle">
+    Flash Attention computes (Tr × Tc) small blocks instead of one large N×N matrix
+  </text>
+</svg>

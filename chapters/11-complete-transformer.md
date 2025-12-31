@@ -53,12 +53,14 @@ For an input sequence $X = (x_1, x_2, \ldots, x_n)$:
 
 1. **Embedding**: $E = \text{Embed}(X) + \text{PosEnc}(X)$
 2. **Encoder layers** (repeated $L$ times):
+
    ```math
-\begin{align}
+   \begin{align}
    H' &= \text{LayerNorm}(E + \text{MultiHeadAttn}(E, E, E, \text{mask}=\text{None})) \\
    H &= \text{LayerNorm}(H' + \text{FFN}(H'))
    \end{align}
-```
+   ```
+
 3. **Output**: Contextualized representations for each token
 
 Key difference from decoder: **no causal mask** - each token can attend to all other tokens.
@@ -288,17 +290,22 @@ For an input sequence $X = (x_1, x_2, \ldots, x_n)$:
 
 1. **Embedding**: $E = \text{Embed}(X) + \text{PosEnc}(X)$
 2. **Decoder layers** (repeated $L$ times):
+
+
    ```math
 \begin{align}
    H' &= \text{LayerNorm}(E + \text{MaskedMultiHeadAttn}(E, E, E)) \\
    H &= \text{LayerNorm}(H' + \text{FFN}(H'))
    \end{align}
 ```
+
+
 3. **Language modeling head**: $\text{Logits} = H W_\text{vocab}^T$
 
 Key difference from encoder: **causal mask** ensures token $i$ can only attend to tokens $\leq i$.
 
 The causal mask is:
+
 ```math
 M_{ij} = \begin{cases}
 0 & \text{if } i < j \\
@@ -426,8 +433,10 @@ class TransformerDecoder(nn.Module):
 
         Returns:
             Mask of shape (seq_len, seq_len) where:
+
             - 0.0 = attend
             - -inf = don't attend (future positions)
+
         """
         # Create lower triangular matrix
         mask = torch.triu(
@@ -585,11 +594,13 @@ Encoder-decoder models combine both architectures with **cross-attention** to co
 ### Mathematical Formulation
 
 **Encoder** (same as before):
+
 ```math
 H_\text{enc} = \text{Encoder}(X_\text{src})
 ```
 
 **Decoder** with cross-attention:
+
 ```math
 \begin{align}
 H'_\text{self} &= \text{LayerNorm}(E + \text{MaskedSelfAttn}(E, E, E)) \\
@@ -599,6 +610,7 @@ H &= \text{LayerNorm}(H'_\text{cross} + \text{FFN}(H'_\text{cross}))
 ```
 
 Cross-attention uses:
+
 - **Query** from decoder
 - **Key, Value** from encoder
 
@@ -911,6 +923,7 @@ class RMSNorm(nn.Module):
     where RMS(x) = sqrt(mean(x^2) + eps)
 
     Compared to LayerNorm:
+
     - No mean centering (re-centering invariance)
     - No bias term
     - ~10-15% faster
@@ -1011,12 +1024,14 @@ class GroupedQueryAttention(nn.Module):
     """Grouped Query Attention (GQA).
 
     GQA is a hybrid between:
+
     - Multi-Head Attention (MHA): Each Q head has its own K,V heads
     - Multi-Query Attention (MQA): All Q heads share one K,V head
 
     GQA: Groups of Q heads share K,V heads
 
     Benefits:
+
     - Reduces KV cache by factor of (n_heads / n_kv_heads)
     - Minimal quality loss compared to MHA
     - Used in LLaMA 2/3, Qwen, Mistral, etc.
@@ -1143,9 +1158,11 @@ class ModernTransformerBlock(nn.Module):
     """Modern transformer block (LLaMA-style).
 
     Uses:
+
     - RMSNorm (pre-norm)
     - Grouped Query Attention with RoPE
     - SwiGLU activation
+
     """
     def __init__(
         self,
@@ -1189,6 +1206,7 @@ class ModernTransformer(nn.Module):
     """Modern decoder-only transformer (LLaMA-style).
 
     Architecture choices:
+
     - RMSNorm (faster than LayerNorm)
     - RoPE (better than learned positions)
     - GQA (efficient KV cache)
@@ -1637,6 +1655,7 @@ Let's put it all together with a complete training example.
 Language model training requires processing massive amounts of text data efficiently. The key challenge is transforming raw text into a format suitable for autoregressive training where the model predicts the next token given previous tokens.
 
 **Why This Matters:**
+
 - Language models learn by predicting token $t_i$ given context $(t_1, \ldots, t_{i-1})$
 - Training requires millions to billions of text sequences
 - Naive approaches (loading all text into memory) fail for large corpora
@@ -1645,21 +1664,25 @@ Language model training requires processing massive amounts of text data efficie
 **Theoretical Foundation:**
 
 The causal language modeling objective is:
+
 ```math
 \mathcal{L} = -\frac{1}{T} \sum_{t=1}^{T} \log P(x_t \mid x_{<t}; \theta)
 ```
 
 To compute this efficiently, we:
+
 1. **Chunk text into fixed-length blocks**: Allows batching sequences of equal length
 2. **Create input-target pairs**: For sequence $[x_1, \ldots, x_n]$, input is $[x_1, \ldots, x_{n-1}]$ and target is $[x_2, \ldots, x_n]$
 3. **Shuffle blocks**: Reduces correlation between consecutive batches
 
 **Key Design Choices:**
+
 - **Block size**: Typically 512-4096 tokens (matches model's max sequence length)
 - **Overlap strategy**: No overlap for simplicity; overlapping windows possible for better data utilization
 - **Padding**: Usually avoided by filtering to complete blocks only
 
 **How This Relates to Alternatives:**
+
 - **Per-document processing**: Wastes computation on padding for variable-length documents
 - **Streaming tokenization**: More memory-efficient but complex; we'll cover below
 - **Dynamic batching**: Groups similar-length sequences but adds complexity
@@ -1762,6 +1785,7 @@ The `TextDataset` above loads all tokens into memory, which works for small corp
 When training on datasets with billions of tokens (e.g., Common Crawl, C4, RedPajama), loading all data into RAM is impossible. A 100GB tokenized dataset cannot fit in typical GPU server memory (128-256GB).
 
 **Why Memory Mapping Matters:**
+
 - Allows working with datasets larger than available RAM
 - The OS handles data loading transparently via virtual memory
 - Only loads needed chunks into RAM on-demand (lazy loading)
@@ -1770,17 +1794,20 @@ When training on datasets with billions of tokens (e.g., Common Crawl, C4, RedPa
 **Theoretical Justification:**
 
 Memory mapping leverages the OS page cache:
+
 1. File is mapped to virtual address space (no actual RAM used yet)
 2. When accessing position $i$, OS loads surrounding page into RAM
 3. Least-recently-used pages evicted when RAM fills
 4. Sequential access patterns (common in training) are highly efficient
 
 **Performance Characteristics:**
+
 - **Memory usage**: O(block_size) instead of O(dataset_size)
 - **Access speed**: ~95% of RAM speed for sequential access
 - **Random access**: Slower due to page faults, but still practical
 
 **How This Compares to Alternatives:**
+
 - **In-memory dataset**: Fastest but limited to ~1GB datasets
 - **Memory-mapped**: Handles 1GB-100GB datasets efficiently
 - **Streaming** (below): For 100GB+ or distributed/cloud storage
@@ -1859,6 +1886,7 @@ def create_memmap_dataset(text_files: list, output_path: str, tokenizer):
 Modern LLM training uses datasets too large to store locally (multi-terabyte corpora) or distributed across cloud storage. Additionally, we may want to process data on-the-fly (e.g., dynamic augmentation, filtering).
 
 **Why Streaming Matters:**
+
 - **Unlimited dataset size**: Process data that exceeds local storage
 - **Distributed training**: Each worker can stream different data subsets
 - **Cloud-native**: Read directly from S3, GCS, Azure Blob, etc.
@@ -1867,21 +1895,25 @@ Modern LLM training uses datasets too large to store locally (multi-terabyte cor
 **Theoretical Foundation:**
 
 Streaming datasets implement an **iterator pattern** rather than random access:
+
 - Traditional dataset: Implements `__getitem__(idx)` for random access
 - Streaming dataset: Implements `__iter__()` for sequential access
 
 This enables:
+
 ```math
 \text{Sample} \sim \text{Stream}(\text{DataSource}) \rightarrow \text{Process} \rightarrow \text{Batch}
 ```
 
 **Key Advantages:**
+
 1. **Constant memory**: O(buffer_size) regardless of dataset size
 2. **Deterministic shuffling**: Via shuffle buffers (reservoir sampling)
 3. **Fault tolerance**: Can resume from any point in stream
 4. **Multi-worker friendly**: Each worker gets different shard
 
 **How This Compares to Alternatives:**
+
 - **Memory-mapped**: Requires all data on local disk
 - **Streaming**: Works with cloud storage, infinite data streams
 - **Trade-off**: Cannot randomly sample; must process sequentially
@@ -1890,6 +1922,7 @@ This enables:
 
 **Implementation Details:**
 The shuffle buffer uses **reservoir sampling** to maintain randomness:
+
 1. Fill buffer with first $k$ samples
 2. For each new sample $x_i$ (where $i > k$):
    - With probability $k/i$, replace random buffer element with $x_i$
@@ -1903,9 +1936,11 @@ class StreamingDataset(IterableDataset):
     """Streaming dataset that loads data on-the-fly.
 
     Useful for:
+
     - Very large datasets that don't fit on disk
     - Distributed training across many nodes
     - Datasets stored in cloud storage
+
     """
     def __init__(
         self,
@@ -1968,10 +2003,12 @@ def create_hf_dataset(dataset_name: str, tokenizer, block_size: int = 512):
     """Use HuggingFace datasets library for efficient data loading.
 
     Benefits:
+
     - Automatic caching and memory mapping
     - Supports streaming from cloud storage
     - Built-in data processing pipelines
     - Works seamlessly with distributed training
+
     """
     # Load dataset (automatically cached and memory-mapped)
     dataset = load_dataset(dataset_name, split='train', streaming=True)
@@ -2042,6 +2079,7 @@ def create_hf_dataset(dataset_name: str, tokenizer, block_size: int = 512):
 ### The Problem: Stable and Efficient Optimization
 
 Training large language models is notoriously difficult due to:
+
 1. **Numerical instability**: Gradients can explode or vanish in deep networks
 2. **Optimization challenges**: High-dimensional non-convex loss landscape
 3. **Computational cost**: Billions of parameters and tokens require efficient training
@@ -2049,6 +2087,7 @@ Training large language models is notoriously difficult due to:
 **Why These Training Techniques Matter:**
 
 Modern LLMs use a carefully designed training recipe that has been refined over years:
+
 - **AdamW optimizer**: Handles sparse gradients better than SGD, decouples weight decay
 - **Learning rate warmup**: Prevents early training instability
 - **Cosine decay**: Gradually reduces LR for better final convergence
@@ -2057,6 +2096,7 @@ Modern LLMs use a carefully designed training recipe that has been refined over 
 **Theoretical Justification:**
 
 **1. AdamW Optimizer:**
+
 ```math
 \begin{align}
 m_t &= \beta_1 m_{t-1} + (1-\beta_1) g_t \quad \text{(momentum)} \\
@@ -2071,6 +2111,7 @@ Key insight: AdamW applies weight decay **directly to weights**, not to gradient
 **2. Learning Rate Schedule:**
 
 Warmup + cosine decay:
+
 ```math
 \alpha(t) = \begin{cases}
 \alpha_{\text{max}} \cdot \frac{t}{T_{\text{warmup}}} & \text{if } t < T_{\text{warmup}} \\
@@ -2084,6 +2125,7 @@ Warmup + cosine decay:
 **3. Gradient Clipping:**
 
 Scale gradients if their norm exceeds threshold:
+
 ```math
 \tilde{g} = \begin{cases}
 g & \text{if } \|g\| \leq \tau \\
@@ -2094,6 +2136,7 @@ g & \text{if } \|g\| \leq \tau \\
 This prevents rare catastrophic updates that can destabilize training.
 
 **How This Relates to Alternatives:**
+
 - **SGD with momentum**: Simpler but requires careful LR tuning, slower convergence
 - **Adam**: Original version couples weight decay with gradients (less effective)
 - **Lion, Sophia**: Recent optimizers with potential benefits, less battle-tested
@@ -2199,6 +2242,7 @@ def train_language_model(
 **Why Mixed Precision Training is Essential:**
 
 Training large models is limited by:
+
 1. **GPU memory**: A 7B model in FP32 requires ~28GB just for parameters
 2. **Memory bandwidth**: Moving FP32 tensors is slow
 3. **Compute throughput**: Modern GPUs (Ampere, Hopper) have 2-8x more FP16/BF16 compute than FP32
@@ -2208,50 +2252,59 @@ Training large models is limited by:
 Mixed precision uses different numerical formats for different operations:
 
 **Floating Point Formats:**
+
 - **FP32** (32 bits): 1 sign + 8 exponent + 23 mantissa → range $\approx 10^{-38}$ to $10^{38}$, precision $\approx 7$ decimal digits
 - **FP16** (16 bits): 1 sign + 5 exponent + 10 mantissa → range $\approx 10^{-5}$ to $10^{5}$, precision $\approx 3$ decimal digits
 - **BF16** (16 bits): 1 sign + 8 exponent + 7 mantissa → same range as FP32, precision $\approx 2$ decimal digits
 
 **The Mixed Precision Strategy:**
-```math
+```
+
 \begin{align}
 \text{Forward/Backward:} &\quad \text{FP16/BF16} \quad \text{(2x memory, 2-8x faster compute)} \\
 \text{Weights (master copy):} &\quad \text{FP32} \quad \text{(numerical stability)} \\
 \text{Optimizer states:} &\quad \text{FP32} \quad \text{(accumulation precision)} \\
 \text{Loss scaling:} &\quad \text{FP32} \quad \text{(prevent underflow)}
 \end{align}
-```
+
+```text
 
 **Key Technique: Loss Scaling**
 
 Problem: FP16 gradients can underflow (become 0) for small values.
 Solution: Scale loss by $S$ before backward pass:
-```math
+```
+
 \begin{align}
 \mathcal{L}_{\text{scaled}} &= S \cdot \mathcal{L} \\
 g_{\text{scaled}} &= \nabla_\theta \mathcal{L}_{\text{scaled}} = S \cdot g \\
 g &= g_{\text{scaled}} / S \quad \text{(unscale before optimizer)}
 \end{align}
-```
+
+```text
 
 The GradScaler dynamically adjusts $S$:
+
 - Increase $S$ if no overflow occurs (capture smaller gradients)
 - Decrease $S$ if overflow detected (prevent NaN)
 
 **Memory Savings Breakdown:**
 
 For a 7B parameter model (batch=4, seq=2048):
+
 - **Model weights**: 28GB (FP32) → 14GB (FP16) = **14GB saved**
 - **Activations**: ~16GB (FP32) → ~8GB (FP16) = **8GB saved**
 - **Gradients**: 28GB (FP32) → 14GB (FP16) = **14GB saved**
 - **Total**: ~72GB → ~36GB = **50% reduction**
 
 **BF16 vs FP16:**
+
 - **BF16 advantages**: Same range as FP32, no loss scaling needed, more stable
 - **FP16 advantages**: Higher precision for values in range
 - **Modern practice**: Use BF16 on Ampere+ GPUs (A100, H100), FP16 on older (V100)
 
 **How This Relates to Alternatives:**
+
 - **Pure FP32**: Most stable but 2x memory and slower
 - **Pure FP16**: Risk of underflow/overflow, needs careful tuning
 - **Mixed precision**: Best of both worlds - speed + stability
@@ -2271,6 +2324,7 @@ def train_with_mixed_precision(
     """Train with mixed precision (FP16/BF16) for memory efficiency and speed.
 
     Mixed precision training:
+
     - Uses FP16/BF16 for forward/backward passes (2x memory savings)
     - Uses FP32 for optimizer states (maintains numerical stability)
     - Can train 2x larger models or use 2x larger batch sizes
@@ -2739,6 +2793,7 @@ loaded_model = load_model_for_inference(
 **The Problem: Measuring Language Model Quality**
 
 How do we quantify how well a language model has learned? We need a metric that:
+
 1. Measures predictive accuracy across all vocabulary
 2. Is interpretable and comparable across models
 3. Correlates with downstream task performance
@@ -2751,6 +2806,7 @@ Perplexity is the standard metric for evaluating generative language models. It 
 
 **Definition:**
 Perplexity is the exponential of the average negative log-likelihood:
+
 ```math
 \text{PPL}(X) = \exp\left(-\frac{1}{T}\sum_{t=1}^{T} \log P(x_t \mid x_{<t}; \theta)\right)
 ```
@@ -2768,6 +2824,7 @@ Perplexity can be interpreted as the **effective vocabulary size** the model is 
 **Mathematical Derivation:**
 
 For a perfect uniform distribution over $k$ equally likely outcomes:
+
 ```math
 H = -\sum_{i=1}^{k} \frac{1}{k} \log \frac{1}{k} = \log k
 ```
@@ -2776,11 +2833,13 @@ H = -\sum_{i=1}^{k} \frac{1}{k} \log \frac{1}{k} = \log k
 ```
 
 **Relationship to Cross-Entropy:**
+
 ```math
 \text{PPL} = \exp(\text{CrossEntropy}) = \exp\left(\mathcal{L}_{\text{CE}}\right)
 ```
 
 This means:
+
 - **Lower perplexity = better model**
 - Perplexity of 10 means average cross-entropy loss of $\ln(10) \approx 2.3$
 - Perplexity of 100 means average cross-entropy loss of $\ln(100) \approx 4.6$
@@ -2795,18 +2854,21 @@ This means:
 | Character-level | Text | 1.5-3.0 |
 
 **How This Relates to Alternatives:**
+
 - **Accuracy**: Too coarse (ignores confidence in predictions)
 - **Cross-entropy loss**: Less interpretable (perplexity has intuitive meaning)
 - **BLEU, ROUGE**: For specific generation tasks (translation, summarization)
 - **Human evaluation**: Gold standard but expensive and not reproducible
 
 **Key Insights:**
+
 1. Perplexity is **dataset-dependent**: Only comparable on same test set
 2. Lower perplexity ≠ better generation quality (correlation not perfect)
 3. Perplexity measures **calibration**: How well probabilities match true distribution
 4. For downstream tasks, task-specific metrics often more relevant
 
 **Limitations:**
+
 - Doesn't measure generation quality (fluency, factuality)
 - Sensitive to tokenization (BPE vs character vs word level)
 - Can be "gamed" by overfitting to test distribution
@@ -2920,6 +2982,7 @@ print(f"Perplexity: {perplexity:.2f}")
 Gradient checkpointing (also called activation checkpointing) trades compute for memory by recomputing activations during the backward pass instead of storing them. This allows training much larger models on limited GPU memory.
 
 **Trade-off**:
+
 - Memory savings: ~50-75% reduction in activation memory
 - Compute cost: ~30-40% increase in training time
 - Use when: Memory-bound (can't fit larger batch or model)
@@ -3087,6 +3150,7 @@ model_with_cp = ModernTransformerWithCheckpointing(
 | **GQA vs MHA** | 50-75% KV cache | Minimal | Inference with long context |
 
 **Recommended Stack for Large Model Training**:
+
 1. Mixed precision (BF16 on A100/H100, FP16 on V100)
 2. Flash Attention for sequence length >512
 3. Gradient checkpointing if memory-bound
@@ -3195,6 +3259,7 @@ model_with_cp = ModernTransformerWithCheckpointing(
 **Objective**: Train a small language model (10M-100M parameters) from scratch.
 
 **Steps**:
+
 1. Collect a small text corpus (e.g., all of Shakespeare's works)
 2. Train a tokenizer (BPE with 2000-5000 tokens)
 3. Implement and train the modern transformer architecture
@@ -3204,6 +3269,7 @@ model_with_cp = ModernTransformerWithCheckpointing(
 7. Measure perplexity and generate sample outputs
 
 **Extensions**:
+
 - Add instruction tuning (see [Supervised Fine-tuning](19-sft.md))
 - Implement LoRA for efficient fine-tuning (see [LoRA and PEFT](20-peft.md))
 - Deploy with inference optimizations
@@ -3213,6 +3279,7 @@ model_with_cp = ModernTransformerWithCheckpointing(
 **Next Chapter**: [Flash Attention](12-flash-attention.md) - Learn how to make attention computations faster and more memory-efficient.
 
 **Previous Chapters**:
+
 - [The Transformer Block](09-transformer-block.md) - Building blocks
 - [Multi-Head Attention](04-multi-head-attention.md) - Attention mechanism
 - [Rotary Position Embeddings (RoPE)](08-rope.md) - Position encoding

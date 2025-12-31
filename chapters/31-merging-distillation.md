@@ -38,12 +38,14 @@ Knowledge distillation compresses a large, complex model (teacher) into a smalle
 The core idea: train a small student model to mimic a large teacher model's behavior.
 
 **Key Advantages:**
+
 - **Efficiency**: Smaller models run faster with less memory
 - **Deployment**: Enable on-device or edge inference
 - **Accessibility**: Democratize access to powerful model capabilities
 - **Specialization**: Focus student on specific tasks
 
 **Historical Context:**
+
 - **Hinton et al. (2015)**: ["Distilling the Knowledge in a Neural Network"](https://arxiv.org/abs/1503.02531) - foundational paper
 - **DistilBERT (2019)**: [Sanh et al.](https://arxiv.org/abs/1910.01108) - 40% smaller, 60% faster, 97% of BERT's performance
 - **TinyBERT (2020)**: [Jiao et al.](https://arxiv.org/abs/1909.10351) - 7.5x smaller, 9.4x faster
@@ -62,6 +64,7 @@ p_i = \frac{\exp(z_i / T)}{\sum_j \exp(z_j / T)}
 ```
 
 where:
+
 - $z_i$ is the logit for class $i$
 - $T$ is the temperature (higher $T$ = softer distribution)
 - $T = 1$ gives standard softmax
@@ -73,6 +76,7 @@ where:
 ```
 
 where:
+
 - $\mathcal{L}_{\text{CE}}$ is cross-entropy with true labels
 - $\mathcal{L}_{\text{KL}}$ is KL divergence between teacher and student distributions
 - $\alpha$ balances hard (true labels) vs soft (teacher) targets
@@ -85,6 +89,8 @@ The $T^2$ factor is crucial for maintaining proper gradient magnitudes:
 1. **Gradient Scaling**: When we compute $\frac{\partial \mathcal{L}_{\text{KL}}}{\partial z_i}$ (gradient with respect to logits), the derivative of the softmax function scales as $\frac{1}{T}$
 
 2. **KL Divergence Scaling**: The KL divergence itself contains two softmax operations, so its gradients scale as $\frac{1}{T^2}$:
+
+
    ```math
 \frac{\partial \mathcal{L}_{\text{KL}}}{\partial z_i} \propto \frac{1}{T^2} \left( p_s^T - p_t^T \right)
 ```
@@ -98,6 +104,7 @@ Typical temperature values: $T \in [2, 5]$ for most tasks, though this is a hype
 **Implementation Considerations:**
 
 The following implementation addresses several key challenges:
+
 - **Numerical Stability**: Uses separate `log_softmax` and `softmax` to avoid numerical overflow
 - **Gradient Flow**: The `temperature ** 2` scaling ensures gradients remain meaningful at high temperatures
 - **Flexibility**: The `alpha` parameter allows balancing between learning from ground truth (hard labels) and teacher predictions (soft labels)
@@ -114,8 +121,10 @@ class DistillationLoss(nn.Module):
     Combined loss for knowledge distillation.
 
     Combines:
+
     1. Hard label loss (CE with true labels)
     2. Soft label loss (KL divergence with teacher logits)
+
     """
     def __init__(self, alpha: float = 0.5, temperature: float = 2.0):
         super().__init__()
@@ -230,6 +239,7 @@ Beyond output distributions, we can match intermediate layer representations.
 **Theoretical Justification**: Layer-wise distillation is based on the hypothesis that intermediate representations capture important semantic features. By matching these representations, the student learns not just what to predict, but *how* the teacher processes information hierarchically. This is particularly effective for deep networks where early layers learn low-level features and later layers learn high-level concepts.
 
 **Relation to Alternatives**:
+
 - **vs. Output-only distillation**: More expensive but transfers richer knowledge; especially beneficial when student has significantly fewer layers
 - **vs. Attention-based distillation**: Complementary approaches; attention distillation focuses on what the model "looks at" while feature distillation focuses on what it "computes"
 - **vs. Relation-based distillation**: Feature distillation matches absolute representations; relation-based methods match pairwise similarities (more invariant but potentially loses magnitude information)
@@ -243,6 +253,7 @@ Beyond output distributions, we can match intermediate layer representations.
 ```
 
 where:
+
 - $h_s^l$ is student's hidden state at layer $l$
 - $h_t^{f(l)}$ is teacher's hidden state at mapped layer $f(l)$
 - $W_l$ is a learned projection (if dimensions differ)
@@ -328,11 +339,13 @@ For autoregressive LMs, we can distill at the sequence level by having the teach
 **The Problem**: For generative models, we care more about the quality of generated sequences than per-token probabilities. Token-level distillation may not capture the teacher's generation strategy, sampling behavior, or multi-step reasoning capabilities.
 
 **Theoretical Justification**: Sequence-level distillation operates on the model's actual output distribution, not just individual token predictions. By training on teacher-generated sequences, the student implicitly learns:
+
 - The teacher's sampling strategy and output style
 - Multi-step reasoning patterns (if present)
 - Task-specific generation behaviors that emerge from RLHF or instruction tuning
 
 **Relation to Alternatives**:
+
 - **vs. Token-level distillation**: Simpler but may miss generation dynamics; sequence-level captures actual model behavior
 - **vs. Imitation learning**: Closely related; sequence distillation is essentially behavior cloning for language models
 - **vs. RLHF**: Much cheaper (no reward model needed), but can only match teacher quality, not exceed it
@@ -340,6 +353,7 @@ For autoregressive LMs, we can distill at the sequence level by having the teach
 **Key Insight**: This is how models like Alpaca, Vicuna, and many open-source instruction-tuned models are created. The teacher's generations become training data, transferring not just knowledge but also the style, safety, and instruction-following capabilities learned through RLHF.
 
 **Sequence Distillation Process:**
+
 1. Teacher generates responses to prompts
 2. Student learns to reproduce teacher's generations
 3. Can include intermediate reasoning steps (chain-of-thought)
@@ -358,8 +372,10 @@ def sequence_level_distillation(
     Distillation using teacher-generated sequences.
 
     This is how models like Alpaca and Orca are created:
+
     1. Use teacher to generate responses to prompts
     2. Train student to reproduce those responses
+
     """
     teacher_model.eval()
     teacher_model.to(device)
@@ -423,6 +439,7 @@ def sequence_level_distillation(
 ```
 
 **Notable Examples:**
+
 - **Alpaca**: LLaMA distilled using GPT-3.5-turbo completions
 - **Orca**: Uses detailed explanations from GPT-4 (not just outputs)
 - **Phi-3**: Trained on high-quality synthetic data generated by larger models
@@ -442,6 +459,7 @@ When distilling from models trained with RLHF (Reinforcement Learning from Human
 ```
 
 where:
+
 - $\mathcal{L}_{\text{distill}}$ is the standard KL distillation loss
 - $\mathcal{L}_{\text{pref}}$ is a preference learning objective (DPO or ranking loss)
 - $\beta$ balances knowledge transfer vs preference alignment
@@ -453,6 +471,7 @@ where:
 ```
 
 where:
+
 - $y_w$ is the preferred (winning) response
 - $y_l$ is the less preferred (losing) response
 - $p_{\text{ref}}$ is a reference model (often the pre-distillation student)
@@ -616,6 +635,7 @@ def distill_from_rlhf_model(
     Distill from an RLHF-trained teacher while preserving alignment.
 
     This approach:
+
     1. Uses standard distillation on general data
     2. Adds preference learning on preference pairs
     3. Maintains both capability and safety alignment
@@ -780,6 +800,7 @@ def on_policy_distillation(
 | **On-Policy Distillation** | RLHF models without preference data | No extra data needed | Implicit preference transfer |
 
 **Real-World Examples:**
+
 - **Llama-2-Chat 7B/13B**: Distilled from Llama-2-Chat 70B with on-policy approach
 - **Zephyr**: Distilled from larger DPO-trained models with preference data
 - **OpenAssistant**: Community effort using preference-aware distillation
@@ -797,11 +818,13 @@ The simplest merging method: average the weights element-wise.
 **The Problem**: You have multiple models fine-tuned for different tasks from the same base model, and you want a single model that can handle all tasks without switching between models or using mixture-of-experts architectures.
 
 **Theoretical Justification**: Linear mode connectivity research has shown that models fine-tuned from the same initialization often lie in the same loss basin. Within this basin, linear paths between models typically maintain low loss, meaning averaged weights produce a functional model. This is particularly true when:
+
 - Models start from the same pretrained checkpoint
 - Fine-tuning uses small learning rates (stays near initialization)
 - Tasks are somewhat related (not adversarial)
 
 **Relation to Alternatives**:
+
 - **vs. Multi-task training**: Merging requires no joint training data or retraining; much cheaper
 - **vs. Mixture of Experts**: Simpler, no routing mechanism needed, but loses task specialization
 - **vs. Task arithmetic**: Linear averaging doesn't use the base model explicitly; task arithmetic subtracts the base first
@@ -888,6 +911,7 @@ def merge_fine_tuned_models_example():
 ```
 
 **Limitations of Simple Averaging:**
+
 - Assumes models are in similar regions of parameter space
 - Can average out task-specific improvements
 - Doesn't handle parameter interference well
@@ -899,6 +923,7 @@ Task arithmetic treats fine-tuning as a vector in weight space.
 **The Problem**: Linear averaging mixes everything together, making it hard to control the contribution of each task or to remove unwanted capabilities. We need a more principled way to combine task-specific knowledge while maintaining control over each task's influence.
 
 **Theoretical Justification**: Task arithmetic is based on the observation that fine-tuning creates a "task vector" in parameter space: $\tau = \theta_{\text{finetuned}} - \theta_{\text{base}}$. This vector represents the knowledge added for that specific task. Key theoretical properties:
+
 - **Linearity**: Task vectors can be added, subtracted, and scaled
 - **Compositionality**: Multiple task vectors can be combined to create multi-task models
 - **Reversibility**: Negative task vectors can remove capabilities (useful for safety)
@@ -906,6 +931,7 @@ Task arithmetic treats fine-tuning as a vector in weight space.
 The effectiveness relies on the smoothness of the loss landscape and the fact that different tasks often require orthogonal or complementary changes to the parameters.
 
 **Relation to Alternatives**:
+
 - **vs. Linear averaging**: Task arithmetic uses the base model as an anchor point; more principled and controllable
 - **vs. Multi-task learning**: No need for joint training; can combine tasks post-hoc
 - **vs. Continual learning**: Simpler and doesn't suffer from catastrophic forgetting (all tasks available simultaneously)
@@ -927,6 +953,7 @@ The effectiveness relies on the smoothness of the loss landscape and the fact th
 where $\lambda_i$ controls the strength of task $i$.
 
 **Key Paper:**
+
 - [Editing Models with Task Arithmetic (Ilharco et al., 2022)](https://arxiv.org/abs/2212.04089)
 
 ```python
@@ -1005,6 +1032,7 @@ TIES (TrIm, Elect Sign & Merge) addresses parameter interference in model mergin
 3. **Disjoint Merging**: Only average parameters that agree with the elected sign. This prevents conflicting updates from canceling each other out, preserving task-specific knowledge.
 
 **Relation to Alternatives**:
+
 - **vs. Task arithmetic**: TIES explicitly handles conflicts; task arithmetic blindly combines all updates
 - **vs. Fisher merging**: TIES uses simple magnitude/sign, Fisher uses second-order information (more expensive)
 - **vs. RegMean**: TIES is parameter-wise; RegMean focuses on reducing variance in activations
@@ -1012,6 +1040,7 @@ TIES (TrIm, Elect Sign & Merge) addresses parameter interference in model mergin
 **Key Insight**: The trim threshold creates a sparsity-accuracy tradeoff. Keeping the top 80% (threshold=0.2) works well in practice, removing noise while retaining important updates. The sign election step is crucial: it transforms a destructive averaging process into a constructive one.
 
 **TIES Algorithm:**
+
 1. **Trim**: Remove small task vector values (below threshold)
 2. **Elect Sign**: For each parameter, elect the dominant sign across tasks
 3. **Disjoint Merge**: Average only parameters with the elected sign
@@ -1036,6 +1065,7 @@ For task vector $\tau_i$ and parameter $p$:
 ```
 
 **Key Paper:**
+
 - [TIES-Merging: Resolving Interference When Merging Models (Yadav et al., 2023)](https://arxiv.org/abs/2306.01708)
 
 ```python
@@ -1049,6 +1079,7 @@ def ties_merge(
     TIES-Merging: Trim, Elect Sign, Merge.
 
     Steps:
+
     1. Compute task vectors (fine-tuned - base)
     2. Trim small values from task vectors
     3. Elect dominant sign for each parameter
@@ -1120,6 +1151,7 @@ DARE (Drop And REscale) randomly drops parameters from task vectors before mergi
 **The Problem**: Fine-tuned models contain many redundant parameters. Most parameters contribute little to task-specific performance, creating noise during merging. We need a way to sparsify task vectors while maintaining their overall magnitude and effect.
 
 **Theoretical Justification**: DARE is based on the lottery ticket hypothesis and dropout intuition:
+
 - **Sparsity**: Most fine-tuning updates are redundant; a small subset of parameters captures most task-specific knowledge
 - **Random selection**: Unlike magnitude-based selection, random dropout provides an unbiased sample of the parameter distribution
 - **Rescaling**: The $1/(1-p)$ factor maintains expectation: $\mathbb{E}[\tilde{\tau}] = \tau$, ensuring the merged model's magnitude matches what uniform merging would produce
@@ -1127,6 +1159,7 @@ DARE (Drop And REscale) randomly drops parameters from task vectors before mergi
 Surprisingly, dropping 90-95% of parameters often maintains performance, suggesting extreme redundancy in fine-tuned models.
 
 **Relation to Alternatives**:
+
 - **vs. TIES trimming**: DARE uses random dropout, TIES uses magnitude-based; DARE is more aggressive and unbiased
 - **vs. Pruning**: DARE operates on task vectors (deltas), not absolute weights; complementary techniques
 - **vs. Magnitude-based selection**: Random selection avoids bias toward large-magnitude updates
@@ -1134,6 +1167,7 @@ Surprisingly, dropping 90-95% of parameters often maintains performance, suggest
 **Key Insight**: The "drop and rescale" operation is essentially dropout applied to merging. The rescaling is critical: without it, the merged model would be too close to the base. With rescaling, each kept parameter is amplified to compensate for dropped ones, maintaining the effective magnitude of the task vector. The method works because fine-tuning is highly redundant—many parameters move together, so sampling a subset captures the overall direction.
 
 **DARE Algorithm:**
+
 1. Compute task vectors: $\tau_i = \theta_i - \theta_{\text{base}}$
 2. Randomly drop parameters with probability $p$
 3. Rescale remaining parameters by $1/(1-p)$
@@ -1153,6 +1187,7 @@ Surprisingly, dropping 90-95% of parameters often maintains performance, suggest
 ```
 
 **Key Paper:**
+
 - [Language Models are Super Mario: Absorbing Abilities from Homologous Models as a Free Lunch (Yu et al., 2024)](https://arxiv.org/abs/2311.03099)
 
 ```python
@@ -1277,16 +1312,19 @@ SLERP (Spherical Linear intERPolation) merges models along the surface of a hype
 **The Problem**: Linear interpolation in parameter space may not respect the geometry of the loss landscape. When merging models or creating intermediate checkpoints, we want smooth transitions that maintain model quality throughout the interpolation path, not just at the endpoints.
 
 **Theoretical Justification**: SLERP operates in spherical geometry rather than Euclidean:
+
 - **Constant angular velocity**: SLERP maintains constant rate of rotation, while linear interpolation has variable speed
 - **Geodesic path**: On a sphere, SLERP follows the shortest path (great circle), preserving distances better than linear interpolation
 - **Magnitude preservation**: SLERP can independently control direction and magnitude, useful when models differ in scale
 
 This is particularly important when:
+
 - Models represent different stages of training (early vs late checkpoints)
 - The loss landscape is curved (which it typically is for neural networks)
 - You want smooth interpolation for ensemble methods or model transitions
 
 **Relation to Alternatives**:
+
 - **vs. Linear interpolation**: SLERP respects spherical geometry; linear is faster but less principled for curved spaces
 - **vs. Bezier curves**: SLERP is deterministic and parameter-free; Bezier requires control points
 - **vs. Mode connectivity methods**: SLERP is simpler but may not find the optimal low-loss path
@@ -1393,9 +1431,11 @@ def create_intermediate_checkpoint():
     Use SLERP to create smooth intermediate checkpoints.
 
     Useful for:
+
     - Creating model ensembles
     - Smooth model transitions
     - Exploring the loss landscape
+
     """
     from transformers import AutoModelForCausalLM
 
@@ -1423,6 +1463,7 @@ W' = W + \alpha \cdot BA
 ```
 
 where:
+
 - $W \in \mathbb{R}^{d \times k}$ is the original weight
 - $B \in \mathbb{R}^{d \times r}$, $A \in \mathbb{R}^{r \times k}$ are low-rank matrices
 - $r \ll \min(d, k)$ is the rank
@@ -1433,6 +1474,7 @@ where:
 **The Problem**: LoRA adapters are efficient for training but add inference overhead (extra matrix multiplications). For deployment, we want to merge the adapter back into the base model to eliminate this overhead while keeping the adapted behavior.
 
 **Theoretical Justification**: LoRA decomposes weight updates as $\Delta W = BA$ where $B \in \mathbb{R}^{d \times r}$ and $A \in \mathbb{R}^{r \times k}$ are low-rank matrices. The merge operation is simply:
+
 ```math
 W' = W + \alpha \cdot BA
 ```
@@ -1440,6 +1482,7 @@ W' = W + \alpha \cdot BA
 This is exact—there's no approximation error because matrix addition and multiplication are closed operations. The merged model behaves identically to the base+adapter model but with no runtime overhead.
 
 **Relation to Alternatives**:
+
 - **vs. Keeping adapters separate**: Merging eliminates inference overhead but loses modularity (can't swap adapters)
 - **vs. Full fine-tuning**: LoRA merging gets same inference speed but training was more memory-efficient
 - **vs. Quantized adapters**: Merging before quantization may give better quality than quantizing adapters separately
@@ -1524,6 +1567,7 @@ Multiple LoRA adapters can be combined before merging into the base model.
    - Recommended when accuracy matters
 
 **Relation to Alternatives**:
+
 - **vs. Sequential LoRA**: Combining is parallel composition; sequential would train LoRA-on-LoRA
 - **vs. Higher-rank LoRA**: Combining low-rank adapters can exceed the rank of individual adapters
 - **vs. Multi-LoRA inference**: Merging removes runtime overhead of multiple adapters
@@ -1647,6 +1691,7 @@ Remove weights with smallest absolute values.
 **The Problem**: Neural networks are overparameterized—many weights contribute little to the output. We want to remove these weights to reduce model size and computational cost while maintaining accuracy.
 
 **Theoretical Justification**: Magnitude pruning is based on a simple heuristic: small weights have small impact on outputs. Taylor expansion of the loss change when removing a weight:
+
 ```math
 \Delta \mathcal{L} \approx \left|\frac{\partial \mathcal{L}}{\partial w}\right| \cdot |w|
 ```
@@ -1654,6 +1699,7 @@ Remove weights with smallest absolute values.
 For trained networks with small gradients, $|w|$ dominates, making magnitude a reasonable proxy for importance.
 
 **Relation to Alternatives**:
+
 - **vs. Gradient-based pruning**: Magnitude is simpler and doesn't require backprop; gradient-based is more accurate
 - **vs. Second-order methods** (SparseGPT): Magnitude ignores parameter interactions; second-order uses Hessian
 - **vs. Structured pruning**: Magnitude is unstructured (arbitrary sparsity pattern); structured removes entire units
@@ -1724,16 +1770,19 @@ Remove entire neurons, channels, or attention heads.
 **The Problem**: Unstructured pruning creates irregular sparsity patterns that don't map well to hardware. Modern GPUs/TPUs are optimized for dense operations, so scattered zero weights don't improve speed. We need to remove entire structural units (neurons, heads, channels) to actually accelerate inference.
 
 **Theoretical Justification**: Structured pruning trades compression for hardware efficiency:
+
 - **Hardware compatibility**: Removing entire rows/columns creates smaller dense matrices that run faster on GPUs
 - **Granularity**: Neuron-level or head-level removal is coarse-grained, so each removal must be carefully chosen
 - **Importance metrics**: Head importance can be measured by gradient magnitude, attention entropy, or layer output variance
 
 For transformers, attention head pruning is particularly effective because:
+
 - Heads are independent within a layer
 - Many heads are redundant (learn similar attention patterns)
 - Removing a head requires only removing corresponding slices from Q, K, V, and output projections
 
 **Relation to Alternatives**:
+
 - **vs. Unstructured pruning**: Structured gives actual speedup; unstructured gives better compression but needs sparse kernels
 - **vs. Layer dropping**: Removing entire layers is more aggressive; head pruning is fine-grained within layers
 - **vs. Knowledge distillation**: Complementary; can prune then distill, or distill then prune
@@ -1841,6 +1890,7 @@ SparseGPT enables one-shot pruning of large language models with minimal accurac
 **The Problem**: Pruning large language models (billions of parameters) is expensive if it requires iterative training. Standard magnitude pruning degrades quality significantly at high sparsity (60%+). We need a method that can prune very large models in one shot while maintaining quality.
 
 **Theoretical Justification**: SparseGPT is based on Optimal Brain Surgeon (OBS), which uses second-order information:
+
 - **Hessian approximation**: The Hessian $H = \frac{\partial^2 \mathcal{L}}{\partial W^2}$ captures parameter interactions
 - **Importance score**: Weight importance is $w^2 / H_{ii}^{-1}$ (combines magnitude with curvature)
 - **Weight update**: When pruning weight $w_i$, update remaining weights to compensate: $\Delta w_j = -w_i H_{ij}^{-1} / H_{ii}^{-1}$
@@ -1848,6 +1898,7 @@ SparseGPT enables one-shot pruning of large language models with minimal accurac
 The key insight: pruning a weight creates an error; we can compensate by adjusting correlated weights. The Hessian tells us which weights are correlated and how to adjust them.
 
 **Relation to Alternatives**:
+
 - **vs. Magnitude pruning**: SparseGPT accounts for parameter interactions; magnitude doesn't
 - **vs. Iterative magnitude pruning**: SparseGPT is one-shot; iterative requires multiple training runs
 - **vs. Wanda**: SparseGPT uses Hessian (expensive but accurate); Wanda uses activations (cheaper)
@@ -1855,11 +1906,13 @@ The key insight: pruning a weight creates an error; we can compensate by adjusti
 **Key Insight**: The Hessian is computed from activations: $H \approx X^T X$ where $X$ is the layer input. This is the Gauss-Newton approximation, which is positive semi-definite and computationally tractable. By processing layer-by-layer and using calibration data, SparseGPT can prune even 175B parameter models to 60% sparsity with <1% perplexity increase.
 
 **Key Ideas:**
+
 - Prune weights layer-by-layer
 - Use second-order information (Hessian approximation)
 - Adjust remaining weights to compensate for pruned ones
 
 **Key Paper:**
+
 - [SparseGPT: Massive Language Models Can Be Accurately Pruned in One-Shot (Frantar & Alistarh, 2023)](https://arxiv.org/abs/2301.00774)
 
 ```python
@@ -1971,16 +2024,19 @@ Wanda (Pruning by Weights And activations) is a simpler alternative to SparseGPT
 **The Problem**: SparseGPT requires computing and inverting Hessians, which is expensive for very large models. We need a simpler metric that approximates importance without second-order computation.
 
 **Theoretical Justification**: Wanda combines two intuitions:
+
 1. **Weight magnitude**: Large weights have large impact (standard magnitude pruning)
 2. **Input magnitude**: Weights connected to frequently-activated features are more important
 
 The score $S_{i,j} = |W_{i,j}| \cdot \|X_j\|_2$ captures both:
+
 - If $W_{i,j}$ is large, it directly impacts the output
 - If $X_j$ is large (frequently activated), $W_{i,j}$ contributes more to the output variance
 
 This is a first-order approximation to SparseGPT's Hessian-based importance. The activation norm $\|X_j\|_2$ approximates the diagonal of the Hessian ($H_{jj} \approx \sum X_j^2$), making Wanda much cheaper to compute.
 
 **Relation to Alternatives**:
+
 - **vs. Magnitude pruning**: Wanda adds activation information; more accurate with similar simplicity
 - **vs. SparseGPT**: Simpler (no Hessian inversion) but less accurate at very high sparsity
 - **vs. Movement pruning**: Wanda is data-driven (uses activations); movement uses gradients during training
@@ -1994,12 +2050,14 @@ S_{i,j} = |W_{i,j}| \cdot \|X_j\|_2
 ```
 
 where:
+
 - $W_{i,j}$ is the weight magnitude
 - $X_j$ is the $j$-th input feature (across calibration data)
 
 Prune weights with lowest $S_{i,j}$ scores.
 
 **Key Paper:**
+
 - [A Simple and Effective Pruning Approach for Large Language Models (Sun et al., 2023)](https://arxiv.org/abs/2306.11695)
 
 ```python
@@ -2089,15 +2147,21 @@ pip install mergekit
 # config.yaml for TIES merge
 merge_method: ties
 slices:
+
   - sources:
       - model: base-model
+
         layer_range: [0, 32]
+
       - model: math-model
+
         layer_range: [0, 32]
         parameters:
           weight: 0.5
           density: 0.6
+
       - model: code-model
+
         layer_range: [0, 32]
         parameters:
           weight: 0.5
@@ -2133,6 +2197,7 @@ run_merge(
 ```
 
 **Supported Merge Methods in Mergekit:**
+
 - `linear` - Simple weighted average
 - `ties` - TIES-Merging
 - `dare_ties` - DARE + TIES
@@ -2199,9 +2264,11 @@ Combining distillation and merging to create efficient specialized models.
 ```python
 def distill_then_specialize_workflow():
     """
+
     1. Distill large general model → small general model
     2. Fine-tune small model on specialized tasks
     3. Merge specialized models
+
     """
     # Step 1: Distill GPT-4 → Small model
     teacher = load_model("gpt-4-equivalent")
@@ -2246,9 +2313,11 @@ def fine_tune(model, data):
 ```python
 def specialize_then_distill_workflow():
     """
+
     1. Create specialized large models
     2. Merge specialized models
     3. Distill merged model → small efficient model
+
     """
     # Step 1: Fine-tune large models
     base_large = load_model("llama-70b")
@@ -2326,10 +2395,12 @@ def create_medical_expert_model():
     Create an efficient medical domain expert model.
 
     Combines:
+
     - Base medical knowledge
     - Clinical reasoning
     - Medical coding
     - Patient communication
+
     """
     from transformers import AutoModelForCausalLM
 
@@ -2399,6 +2470,7 @@ When faced with model compression or combination tasks, selecting the right appr
 
 #### Production Deployment (Mobile/Edge)
 **Best Approach**: Multi-stage pipeline
+
 1. Distill large model → medium model (70B → 7B)
 2. Fine-tune medium model on target tasks
 3. Prune with Wanda or SparseGPT (50-70% sparsity)
@@ -2410,6 +2482,7 @@ When faced with model compression or combination tasks, selecting the right appr
 
 #### Multi-Task Learning
 **Best Approach**: Specialize-then-merge
+
 1. Fine-tune base model on each task separately
 2. Merge specialists with TIES-DARE
 3. Optional: Distill merged model for efficiency
@@ -2420,6 +2493,7 @@ When faced with model compression or combination tasks, selecting the right appr
 
 #### Research/Safety
 **Best Approach**: Task arithmetic with ablation
+
 1. Identify capability to remove
 2. Use negative task arithmetic
 3. Validate extensively
@@ -2431,6 +2505,7 @@ When faced with model compression or combination tasks, selecting the right appr
 
 #### Domain Adaptation
 **Best Approach**: LoRA specialization + merging
+
 1. Train LoRA adapters for each domain aspect
 2. Merge LoRA products
 3. Fine-tune merged model if needed
@@ -2442,6 +2517,7 @@ When faced with model compression or combination tasks, selecting the right appr
 ### Hyperparameter Guidelines
 
 #### Distillation
+
 - **Temperature (T)**: Start with 2-3, tune in range [1, 5]
   - Lower (1-2): Sharper distributions, harder task
   - Higher (3-5): Softer distributions, easier transfer
@@ -2451,6 +2527,7 @@ When faced with model compression or combination tasks, selecting the right appr
 - **Learning rate**: 5e-5 to 1e-4 (typically lower than from-scratch training)
 
 #### Merging
+
 - **TIES trim threshold**: 0.1-0.3 (20 = keep top 80%)
   - Lower: Keep more parameters, less aggressive
   - Higher: More aggressive trimming, may lose capability
@@ -2464,6 +2541,7 @@ When faced with model compression or combination tasks, selecting the right appr
   - Negative: Remove capabilities
 
 #### Pruning
+
 - **Sparsity level**: Start conservative, increase gradually
   - 30-50%: Minimal accuracy loss
   - 50-70%: Moderate loss, good efficiency
@@ -2636,15 +2714,18 @@ Implement knowledge distillation for a small text classification task.
 ```python
 def exercise_distillation():
     """
+
     1. Train a large BERT model on text classification
     2. Distill to a smaller 6-layer model
     3. Compare accuracy and inference speed
+
     """
     # TODO: Implement
     pass
 ```
 
 **Tasks:**
+
 - Load a pretrained BERT-large as teacher
 - Create a 6-layer BERT-small as student
 - Implement distillation with temperature=3.0, alpha=0.5
@@ -2658,16 +2739,19 @@ Merge two fine-tuned models and compare methods.
 ```python
 def exercise_merging():
     """
+
     1. Fine-tune base model on two different tasks
     2. Merge using: linear, task arithmetic, TIES, DARE
     3. Evaluate each merge on both tasks
     4. Compare multi-task performance
+
     """
     # TODO: Implement
     pass
 ```
 
 **Tasks:**
+
 - Fine-tune on sentiment analysis and NER
 - Implement all four merging methods
 - Evaluate on both tasks separately
@@ -2681,15 +2765,18 @@ Combine multiple LoRA adapters efficiently.
 ```python
 def exercise_lora_merging():
     """
+
     1. Train LoRA adapters for 3 different tasks
     2. Merge LoRAs using different strategies
     3. Compare with full fine-tuning merge
+
     """
     # TODO: Implement
     pass
 ```
 
 **Tasks:**
+
 - Train LoRA adapters (rank=8) on 3 tasks
 - Merge LoRAs before adding to base
 - Compare with merging full fine-tuned models
@@ -2703,16 +2790,19 @@ Implement and compare pruning methods.
 ```python
 def exercise_pruning():
     """
+
     1. Implement magnitude pruning
     2. Implement Wanda pruning
     3. Compare accuracy vs sparsity trade-off
     4. Measure actual speedup
+
     """
     # TODO: Implement
     pass
 ```
 
 **Tasks:**
+
 - Prune at 50%, 70%, 90% sparsity
 - Compare magnitude vs Wanda
 - Plot accuracy degradation curves
@@ -2727,17 +2817,20 @@ Build a complete specialized model creation pipeline.
 def exercise_full_pipeline():
     """
     Create an efficient code assistant:
+
     1. Distill large model to 7B
     2. Fine-tune on: Python, JavaScript, debugging
     3. Merge specialists with TIES-DARE
     4. Prune to 70% sparsity
     5. Evaluate on code benchmarks
+
     """
     # TODO: Implement
     pass
 ```
 
 **Tasks:**
+
 - Set up multi-stage distillation
 - Fine-tune on code datasets
 - Merge with optimal hyperparameters
@@ -2752,15 +2845,18 @@ Implement feature-matching distillation.
 ```python
 def exercise_layerwise_distillation():
     """
+
     1. Map 12-layer student to 24-layer teacher
     2. Implement feature distillation loss
     3. Compare with output-only distillation
+
     """
     # TODO: Implement
     pass
 ```
 
 **Tasks:**
+
 - Create uniform layer mapping
 - Implement MSE feature loss
 - Combine with output distillation
@@ -2807,6 +2903,7 @@ This chapter covered:
    - Domain expert creation
 
 **Key Takeaways for Interviews:**
+
 - Distillation transfers knowledge from large to small models
 - Model merging combines capabilities without retraining
 - TIES and DARE solve parameter interference problems
@@ -2817,6 +2914,7 @@ This chapter covered:
 [Hardware, Quantization, and Training Optimization](32-hardware-quantization-optimization.md) - Learn about efficient deployment and training.
 
 **Related Chapters:**
+
 - [Supervised Fine-tuning (SFT)](19-sft.md) - Creating models to merge
 - [LoRA and Parameter-Efficient Fine-tuning](20-peft.md) - Efficient adaptation
 - [Architecture Comparison: Modern LLMs](30-model-architectures.md) - Understanding distilled models

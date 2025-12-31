@@ -5,6 +5,7 @@
 Direct Preference Optimization (DPO) is a powerful technique for aligning language models with human preferences without the complexity of reinforcement learning. Introduced by Rafailov et al. in 2023, DPO simplifies the [RLHF](21-rlhf.md) pipeline by directly optimizing the language model using preference data, eliminating the need for a separate reward model and reinforcement learning optimization.
 
 **Key Benefits:**
+
 - No reward model training required
 - No RL optimization (PPO, etc.)
 - More stable training
@@ -22,6 +23,7 @@ As covered in [Chapter 20: RLHF](21-rlhf.md), the traditional RLHF pipeline invo
 3. **RL Optimization**: Use PPO or similar to optimize the policy against the reward model
 
 This pipeline has several challenges:
+
 - **Instability**: RL training can be unstable
 - **Complexity**: Multiple models and training stages
 - **Hyperparameter sensitivity**: KL penalty coefficient, learning rates, etc.
@@ -58,6 +60,7 @@ In RLHF, we maximize:
 ```
 
 where:
+
 - $\pi_\theta$ is our policy (language model)
 - $\pi_{\text{ref}}$ is the reference model (typically the SFT model)
 - $\beta$ is the KL penalty coefficient
@@ -114,6 +117,7 @@ The diagram above illustrates how DPO learns from preference data. Given a promp
 ![DPO Loss Function Behavior](../assets/diagrams/ch22-loss-behavior.svg)
 
 The loss function has several important properties:
+
 - **Asymptotic behavior**: Loss approaches 0 when the model strongly prefers the chosen response, and increases unboundedly when it prefers the rejected response
 - **Gradient behavior**: Gradients are strongest when the model is uncertain (ratio near 0) and weaker when the model is confident
 - **β parameter**: Controls the strength of the implicit KL constraint - higher β keeps the policy closer to the reference model
@@ -129,12 +133,14 @@ The loss function has several important properties:
 **Theoretical Justification:** The DPO loss requires computing log probabilities under both the policy (trainable) and reference (frozen) models. We freeze the reference model to prevent it from being updated, ensuring it remains the anchor point for the KL constraint. The log probability computation must account for the causal language modeling objective where we predict the next token.
 
 **Key Insights:**
+
 1. **Two-model architecture**: Policy model trains while reference stays frozen as a baseline
 2. **Log probability aggregation**: Sum log probabilities across the sequence to get total likelihood
 3. **Gradient isolation**: Only the policy model needs gradients; reference uses `torch.no_grad()`
 4. **Numerical stability**: Use `F.logsigmoid` instead of computing `log(sigmoid())` to avoid numerical issues
 
 **How This Relates to Alternatives:**
+
 - Unlike RLHF which needs 4 models (policy, reference, reward, value), DPO only needs 2
 - Unlike supervised fine-tuning which only needs one forward pass, DPO needs 4 per batch (2 policy, 2 reference)
 - The loss computation is simpler than PPO's clipped objective, making training more stable
@@ -302,6 +308,7 @@ class DPOTrainer:
 
         Args:
             batch: Dictionary with keys:
+
                 - chosen_input_ids: [batch_size, seq_len]
                 - chosen_attention_mask: [batch_size, seq_len]
                 - chosen_labels: [batch_size, seq_len]
@@ -777,12 +784,14 @@ if __name__ == "__main__":
 not $\log \frac{\pi_\theta(x, y_w)}{\pi_\theta(x, y_l)}$. The prompt $x$ appears in both numerator and denominator, so its contribution should be excluded. We achieve this by masking prompt tokens with a special value (-100) that PyTorch's loss functions ignore.
 
 **Key Insights:**
+
 1. **Separate tokenization**: Tokenize prompt separately to know exactly how many tokens to mask
 2. **Label masking with -100**: PyTorch convention for tokens to ignore in loss computation
 3. **Mask both prompt and padding**: Ensure only actual completion tokens contribute to loss
 4. **Per-sequence masking**: Each example might have different prompt lengths
 
 **How This Relates to Alternatives:**
+
 - Standard supervised fine-tuning often includes prompts in loss, which is fine for next-token prediction
 - RLHF reward models typically score entire sequences, but DPO needs completion-only scoring
 - Some implementations use attention masking, but label masking is more explicit and reliable
@@ -1012,6 +1021,7 @@ ORPO combines SFT and preference optimization in a single stage, eliminating the
 ```
 
 where:
+
 ```math
 \mathcal{L}_{\text{OR}} = -\mathbb{E}_{(x, y_w, y_l)} \left[\log \sigma\left(\log \frac{\text{odds}_\theta(y_w \mid x)}{\text{odds}_\theta(y_l \mid x)}\right)\right]
 ```
@@ -1071,6 +1081,7 @@ def compute_orpo_loss(
 ### Simple Preference Optimization (SimPO)
 
 SimPO simplifies DPO by:
+
 1. Removing the reference model (like ORPO)
 2. Using length-normalized rewards
 3. Adding a target reward margin
@@ -1149,12 +1160,14 @@ def compute_simpo_loss(
 ### When to Use Each
 
 **Use RLHF when:**
+
 - You have complex, compositional reward functions
 - You need to optimize for metrics beyond pairwise preferences
 - You have extensive computational resources
 - You need fine-grained control over the optimization process
 
 **Use DPO when:**
+
 - You have high-quality preference data
 - You want simpler, more stable training
 - You have limited computational resources
@@ -1168,6 +1181,7 @@ def compute_simpo_loss(
 **Problem:** Training large language models requires significant computational resources. Understanding DPO's resource requirements is essential for planning deployments, estimating costs, and making architecture decisions.
 
 **Why This Matters:** Computational complexity determines:
+
 - How many GPUs you need
 - How long training takes
 - How much it costs
@@ -1177,12 +1191,14 @@ def compute_simpo_loss(
 **Theoretical Justification:** DPO requires 2 models in memory (policy and reference) and performs 4 forward passes per batch (2 through each model). The policy model also needs backward passes and optimizer states. This makes the complexity higher than standard training but significantly lower than RLHF's 4-model setup.
 
 **Key Insights:**
+
 1. **Forward passes dominate**: 4 forward passes per batch vs. 1 for standard training
 2. **Memory vs. compute trade-off**: Can offload reference to CPU (saves memory, costs compute)
 3. **LoRA reduces trainable parameters**: From billions to millions without much performance loss
 4. **Gradient checkpointing**: Trade 40% more compute for 50% less memory
 
 **How This Relates to Alternatives:**
+
 - **Standard training**: 1 model, 1 forward + 1 backward = baseline
 - **DPO**: 2 models, 4 forward + 2 backward ≈ 3x memory, 2x time
 - **RLHF**: 4 models, 6-8 forward passes ≈ 6x memory, 3x time
@@ -1191,6 +1207,7 @@ def compute_simpo_loss(
 Understanding the computational requirements of DPO is crucial for practical deployment and interview discussions.
 
 **Time Complexity:**
+
 - Per training step: $O(2 \times \text{forward\_pass})$
   - One forward pass for chosen response through policy model
   - One forward pass for rejected response through policy model
@@ -1198,6 +1215,7 @@ Understanding the computational requirements of DPO is crucial for practical dep
 - Total: Approximately 4 forward passes per batch
 
 **Memory Complexity:**
+
 - Model parameters: $2 \times |\theta|$ (policy model + reference model)
 - Activations: $\sim 2 \times |\text{activations}|$ for policy model (forward + backward)
 - Total GPU memory: $\sim 3 \times \text{model\_size}$ (policy + ref + gradients/activations)
@@ -1218,17 +1236,20 @@ Understanding the computational requirements of DPO is crucial for practical dep
 **Why This Matters:** Without optimization, DPO training of large models requires expensive multi-GPU setups or is simply impossible. Memory optimizations can reduce requirements by 50-90%, enabling training on consumer hardware or reducing cloud costs significantly.
 
 **Theoretical Justification:**
+
 - **LoRA (Low-Rank Adaptation)**: Instead of updating all parameters $\theta$, we update low-rank matrices: $W' = W + BA$ where $B \in \mathbb{R}^{d \times r}, A \in \mathbb{R}^{r \times k}$ with $r \ll d$. This reduces trainable parameters from $d \times k$ to $(d + k) \times r$.
 - **Gradient checkpointing**: Trades compute for memory by not storing intermediate activations during forward pass. Recomputes them during backward pass when needed.
 - **CPU offloading**: Reference model is only used for forward passes (no gradients), so can be on CPU with minimal performance impact.
 
 **Key Insights:**
+
 1. **LoRA typically uses r=8-16**: Reduces trainable params by ~99% with <1% performance loss
 2. **Target attention layers**: Q and V projection matrices give best quality/efficiency trade-off
 3. **Keep reference model full precision**: It's frozen, so no optimizer states needed
 4. **Gradient checkpointing is almost free**: ~40% more compute for ~50% less memory
 
 **How This Relates to Alternatives:**
+
 - **QLoRA**: Combines LoRA with 4-bit quantization for even more memory savings
 - **DeepSpeed ZeRO**: Shards optimizer states across GPUs, different approach to same problem
 - **Full fine-tuning**: Maximum quality but requires 3-4x more memory than LoRA
@@ -1317,6 +1338,7 @@ class DPOTrainerWithCPUOffload(DPOTrainer):
 **Typical Resource Requirements:**
 
 For a 7B parameter model with DPO:
+
 - GPU Memory: ~40-50 GB (with LoRA: ~20-25 GB)
 - Training time: ~1-3 days on 8x A100 (40GB) for 10K examples
 - Inference: Same as base model (no overhead)
@@ -1326,12 +1348,14 @@ For a 7B parameter model with DPO:
 **Problem:** The beta parameter is the most critical hyperparameter in DPO, but there's no universal "best" value. Choosing beta wrong can cause training to fail (too low → instability, too high → no learning).
 
 **Why This Matters:** Beta ($\beta$) directly controls the strength of the KL constraint, affecting:
+
 - How much the model can deviate from the reference
 - Training stability and convergence speed
 - Whether the model over-optimizes or under-optimizes
 - The final model's balance between alignment and capability
 
 **Theoretical Justification:** In the original RLHF objective, $\beta$ is the coefficient on the KL penalty:
+
 ```math
 \max_\pi \mathbb{E}[r(y)] - \beta \text{KL}(\pi \| \pi_{\text{ref}})
 ```
@@ -1342,18 +1366,21 @@ For a 7B parameter model with DPO:
 In DPO, this appears as the temperature in the Bradley-Terry model. Higher $\beta$ makes the preference signal "sharper" - small reward differences matter more.
 
 **Key Insights:**
+
 1. **Start with 0.1**: Works well for most cases as a default
 2. **Monitor KL divergence**: Should gradually increase but stay < 1.0
 3. **Task-dependent**: Simpler tasks can use lower beta (faster alignment)
 4. **Model-dependent**: Larger models may need higher beta (more conservative)
 
 **How This Relates to Alternatives:**
+
 - **RLHF**: Uses same beta but also has learning rate, PPO clip ratio, value loss coefficient
 - **IPO**: Beta has same role but loss function differs (squared vs. sigmoid)
 - **SimPO**: Uses higher beta (2.0+) because no reference model
 - **Reward modeling**: No beta equivalent, uses classification margin
 
 The $\beta$ parameter controls the trade-off between:
+
 - **High $\beta$**: Stay close to reference model (more conservative)
 - **Low $\beta$**: Deviate more from reference (more aggressive optimization)
 
@@ -1435,12 +1462,14 @@ def analyze_beta_sensitivity(
 **Problem:** DPO directly optimizes preferences, so the quality of preference data determines the quality of alignment. Poor data leads to poor models, regardless of hyperparameter tuning or implementation quality.
 
 **Why This Matters:** Unlike supervised learning where the model averages over noisy labels, DPO tries to satisfy each preference. Low-quality data (inconsistent labels, ambiguous preferences, or biased annotations) gets directly embedded into model behavior. This can cause:
+
 - Low training accuracy (model can't learn the preferences)
 - Reward hacking (model exploits spurious correlations)
 - Mode collapse (model learns to generate safe but uninformative responses)
 - Poor generalization (model overfits to annotation artifacts)
 
 **Theoretical Justification:** The DPO loss assumes preferences follow the Bradley-Terry model: $P(y_w \succ y_l) = \sigma(\beta(r(y_w) - r(y_l)))$. This assumes:
+
 1. Preferences are transitive (if A > B and B > C, then A > C)
 2. There exists an underlying reward function $r$
 3. Annotator noise is bounded
@@ -1448,12 +1477,14 @@ def analyze_beta_sensitivity(
 When these assumptions are violated (e.g., random labels, contradictory preferences), the optimization objective becomes ill-defined and training fails.
 
 **Key Insights:**
+
 1. **Inter-annotator agreement**: If humans disagree, the model can't learn
 2. **Clear preference gaps**: Win rate of chosen vs. rejected should be >70%
 3. **Diversity matters**: Need wide coverage of prompt types and response styles
 4. **Quantity threshold**: Typically need 1000s of examples for small models, 10Ks for large models
 
 **How This Relates to Alternatives:**
+
 - **RLHF reward modeling**: Can smooth over noisy data by learning average preferences
 - **Constitutional AI**: Uses AI-generated preferences with more consistency
 - **RLAIF**: Uses LLM judgments instead of human annotations, often more consistent but may have biases
@@ -1538,6 +1569,7 @@ def analyze_preference_data_quality(
 **Problem:** DPO training can fail in subtle ways - loss decreasing but model not improving, high accuracy but poor generation quality, or training appearing to work but the model degenerating. Debugging requires understanding what each metric indicates.
 
 **Why This Matters:** Unlike supervised learning where you can simply watch loss decrease, DPO requires monitoring multiple metrics simultaneously:
+
 - **Loss**: Should decrease but doesn't directly correlate with quality
 - **Accuracy**: Model's preference alignment with training data
 - **Reward margin**: Separation between chosen and rejected responses
@@ -1546,6 +1578,7 @@ def analyze_preference_data_quality(
 Misinterpreting these metrics leads to wasted compute on failing runs or stopping successful runs prematurely.
 
 **Theoretical Justification:** Each metric corresponds to a different aspect of the DPO objective:
+
 - **Accuracy = $P(\beta(\log \pi/\pi_{\text{ref}})_w > \beta(\log \pi/\pi_{\text{ref}})_l)$**: Measures if implicit rewards are ordered correctly
 - **Reward margin = $\mathbb{E}[\beta \log \pi_w/\pi_{\text{ref}} - \beta \log \pi_l/\pi_{\text{ref}}]$**: Magnitude of preference signal
 - **KL divergence = $\mathbb{E}[\log \pi/\pi_{\text{ref}}]$**: How much policy has moved from reference
@@ -1553,12 +1586,14 @@ Misinterpreting these metrics leads to wasted compute on failing runs or stoppin
 When these metrics don't align with expectations, it indicates specific failure modes that require targeted interventions.
 
 **Key Insights:**
+
 1. **Accuracy < 55% → data quality issue**: Model can't learn anything beyond random guessing
 2. **High accuracy, low margin → beta too high**: Model barely updates from reference
 3. **High margin, mode collapse → beta too low**: Model overfits to preference data
 4. **NaN loss → numerical instability**: Usually in log computations or gradient explosion
 
 **How This Relates to Alternatives:**
+
 - **RLHF debugging**: Also requires multi-metric monitoring but adds reward model accuracy and PPO-specific metrics
 - **SFT debugging**: Simpler, only need to watch loss and perplexity
 - **Reward model debugging**: Need to track ranking accuracy and margin calibration
@@ -1875,6 +1910,7 @@ def check_length_exploitation(
 **Problem:** Even though DPO doesn't have an explicit reward model, the implicit reward (log probability ratio) can still be gamed. Models find shortcuts that maximize the training objective without actually improving response quality.
 
 **Why This Matters:** Reward hacking undermines the entire alignment process. Common hacks include:
+
 1. **Length exploitation**: Longer sequences have more tokens, higher total log probability
 2. **Mode collapse**: Generate safe, generic responses that never get rejected
 3. **Repetition**: Repeat high-probability tokens to boost log likelihood
@@ -1883,18 +1919,21 @@ def check_length_exploitation(
 These behaviors satisfy the training objective but produce poor real-world performance.
 
 **Theoretical Justification:** DPO optimizes $\mathbb{E}[\log \pi_\theta(y_w|x) - \log \pi_\theta(y_l|x)]$. This can be maximized by:
+
 - Increasing $\log \pi_\theta(y_w|x)$ (legitimate: make chosen responses more likely)
 - Decreasing $\log \pi_\theta(y_l|x)$ (problematic: can over-penalize rejected responses)
 
 Without constraints, the model can assign infinitely low probability to rejected responses, which often hurts generation quality. The KL penalty from the reference model provides some regularization, but additional constraints help.
 
 **Key Insights:**
+
 1. **Length normalization**: Divide by sequence length to prevent length exploitation (used in SimPO)
 2. **KL regularization**: Explicitly penalize deviation from reference beyond the implicit penalty
 3. **Diversity penalties**: Encourage varied responses to prevent mode collapse
 4. **Early stopping**: Stop before over-optimization occurs
 
 **How This Relates to Alternatives:**
+
 - **RLHF with KL penalty**: Explicit constraint prevents reward hacking, but can be circumvented
 - **IPO**: Uses squared loss instead of sigmoid to prevent assigning very low probabilities
 - **SimPO**: Length normalization built into the loss function
@@ -2015,6 +2054,7 @@ DPO works by reparameterizing the reward function in terms of the policy itself.
 This eliminates the need for a separate reward model while maintaining the same theoretical objective.
 
 **Follow-up:** "What are the limitations of this approach?"
+
 - DPO is limited to optimizing pairwise preferences (can't handle complex reward functions)
 - Assumes the Bradley-Terry preference model is accurate
 - Requires high-quality preference data
@@ -2024,6 +2064,7 @@ This eliminates the need for a separate reward model while maintaining the same 
 **Answer:**
 
 Choose DPO when:
+
 1. **You have high-quality preference data** - DPO requires clear pairwise comparisons
 2. **You want simpler, more stable training** - No RL complexity, no value function
 3. **Limited computational resources** - DPO needs 2 models vs RLHF's 4 (policy, ref, reward, value)
@@ -2031,6 +2072,7 @@ Choose DPO when:
 5. **Your goal is preference alignment** - Not optimizing for specific metrics
 
 Choose RLHF when:
+
 1. **Complex reward functions** - Need to optimize for multiple objectives or non-preference metrics
 2. **Fine-grained control** - Want to tune reward model separately
 3. **Extensive resources** - Can handle the computational cost
@@ -2057,6 +2099,7 @@ Beta ($\beta$) controls the KL penalty from the reference model. The trade-offs 
   - Use when: strong preference signal, good data quality
 
 **Practical approach:**
+
 1. Start with $\beta = 0.1$ (common default)
 2. Monitor KL divergence and reward margin during training
 3. If KL divergence is too small → decrease beta
@@ -2103,26 +2146,36 @@ Main failure modes:
 This is a common whiteboard question. Walk through step-by-step:
 
 1. Start with Bradley-Terry model:
+
+
    ```math
 P(y_w \succ y_l | x) = \frac{\exp(r(x, y_w))}{\exp(r(x, y_w)) + \exp(r(x, y_l))} = \sigma(r(x, y_w) - r(x, y_l))
 ```
 
 2. Substitute reward reparameterization:
+
+
    ```math
 r(x, y) = \beta \log \frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y|x)} + \beta \log Z(x)
 ```
 
 3. Compute reward difference (Z cancels):
+
+
    ```math
 r(x, y_w) - r(x, y_l) = \beta \left[\log \frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \log \frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)}\right]
 ```
 
 4. Substitute into Bradley-Terry:
+
+
    ```math
 P(y_w \succ y_l | x) = \sigma\left(\beta \left[\log \frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \log \frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)}\right]\right)
 ```
 
 5. Negative log-likelihood gives DPO loss:
+
+
    ```math
 \mathcal{L}_{\text{DPO}} = -\mathbb{E}_{(x,y_w,y_l)} \left[\log \sigma(\beta[\log \pi_\theta(y_w|x)/\pi_{\text{ref}}(y_w|x) - \log \pi_\theta(y_l|x)/\pi_{\text{ref}}(y_l|x)])\right]
 ```
@@ -2134,22 +2187,26 @@ P(y_w \succ y_l | x) = \sigma\left(\beta \left[\log \frac{\pi_\theta(y_w|x)}{\pi
 **Answer:**
 
 **Time complexity per batch:**
+
 - 4 forward passes: 2 through policy (chosen + rejected), 2 through reference
 - 2 backward passes: only through policy model (reference is frozen)
 - Total: $O(2 \times \text{forward} + 2 \times \text{backward})$
 
 **Memory complexity:**
+
 - Policy model parameters + gradients: $2 \times |\theta|$
 - Reference model parameters (no gradients): $|\theta|$
 - Activations for backprop: $\sim 2 \times |\text{activation}|$
 - Total: $\sim 3-4 \times$ single model size
 
 **Comparison to RLHF:**
+
 - RLHF: 4 models (policy, reference, reward, value), ~5-6x model size in memory
 - DPO: 2 models, ~3x model size in memory
 - DPO is approximately 2x more memory efficient and 1.5-2x faster per batch
 
 **Optimization strategies:**
+
 - Use LoRA on policy (reduces trainable params by ~99%)
 - Offload reference to CPU (slower but saves GPU memory)
 - Gradient checkpointing (trades compute for memory)
@@ -2206,6 +2263,7 @@ Systematic debugging approach:
 Implement the DPO training loop for a small GPT-2 model on a synthetic preference dataset.
 
 **Tasks:**
+
 1. Create 100 preference pairs (prompt, chosen, rejected)
 2. Train for 5 epochs
 3. Track loss, accuracy, and reward margins
@@ -2216,6 +2274,7 @@ Implement the DPO training loop for a small GPT-2 model on a synthetic preferenc
 Implement and compare DPO, IPO, and SimPO on the same dataset.
 
 **Questions to answer:**
+
 1. Which achieves the best accuracy?
 2. Which is most stable during training?
 3. How do the final model outputs differ?
@@ -2224,6 +2283,7 @@ Implement and compare DPO, IPO, and SimPO on the same dataset.
 ### Exercise 3: Beta Sensitivity Analysis
 
 **Tasks:**
+
 1. Train models with $\beta \in \{0.01, 0.1, 0.5, 1.0\}$
 2. Measure KL divergence from reference model
 3. Evaluate win rate on a held-out test set
@@ -2232,6 +2292,7 @@ Implement and compare DPO, IPO, and SimPO on the same dataset.
 ### Exercise 4: Data Quality Impact
 
 **Tasks:**
+
 1. Create three datasets with different quality levels:
    - High quality: clear preferences, diverse prompts
    - Medium quality: some ambiguous pairs
@@ -2243,6 +2304,7 @@ Implement and compare DPO, IPO, and SimPO on the same dataset.
 ### Exercise 5: Reward Hacking Detection
 
 **Tasks:**
+
 1. Train a DPO model that might exhibit length hacking
 2. Implement metrics to detect:
    - Average response length over training
@@ -2254,6 +2316,7 @@ Implement and compare DPO, IPO, and SimPO on the same dataset.
 ### Exercise 6: From RLHF to DPO
 
 **Tasks:**
+
 1. Implement a simple reward model on preference data
 2. Train using the reward model (RLHF-style)
 3. Train using DPO on the same data
@@ -2266,6 +2329,7 @@ Implement and compare DPO, IPO, and SimPO on the same dataset.
 ### Exercise 7: Conditional Preference Optimization
 
 **Tasks:**
+
 1. Extend DPO to support conditioning on style (e.g., "concise" vs "detailed")
 2. Create preference data with style annotations
 3. Train a conditional model
@@ -2286,26 +2350,32 @@ DPO has become the dominant approach for aligning modern LLMs, used in models li
 ## References
 
 1. **Direct Preference Optimization: Your Language Model is Secretly a Reward Model**
+
    Rafailov et al., 2023
    [https://arxiv.org/abs/2305.18290](https://arxiv.org/abs/2305.18290)
 
 2. **A General Theoretical Paradigm to Understand Learning from Human Preferences**
+
    Azar et al., 2023
    [https://arxiv.org/abs/2310.12036](https://arxiv.org/abs/2310.12036)
 
 3. **KTO: Model Alignment as Prospect Theoretic Optimization**
+
    Ethayarajh et al., 2024
    [https://arxiv.org/abs/2402.01306](https://arxiv.org/abs/2402.01306)
 
 4. **ORPO: Monolithic Preference Optimization without Reference Model**
+
    Hong et al., 2024
    [https://arxiv.org/abs/2403.07691](https://arxiv.org/abs/2403.07691)
 
 5. **SimPO: Simple Preference Optimization with a Reference-Free Reward**
+
    Meng et al., 2024
    [https://arxiv.org/abs/2405.14734](https://arxiv.org/abs/2405.14734)
 
 6. **Training language models to follow instructions with human feedback**
+
    Ouyang et al., 2022
    [https://arxiv.org/abs/2203.02155](https://arxiv.org/abs/2203.02155)
 

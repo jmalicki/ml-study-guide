@@ -165,14 +165,16 @@
 ### Specific Suggestions for Improvement
 
 1. **Add Reward Hacking Section** (after line 1337)
+
    ```markdown
+
    ## Reward Hacking and Specification Gaming
 
    Models can exploit reward functions in unexpected ways...
    [Include examples: sycophancy, verbosity, loopholes]
    [Mathematical formulation of Goodhart's Law]
    [Mitigation strategies]
-   ```
+```
 
 2. **Improve Toxicity Scoring** (replace lines 1849-1854)
    - Add example using `detoxify` library
@@ -200,14 +202,17 @@
    - Discuss reward model uncertainty
 
 7. **Add Configuration Management Example**
+
    ```python
    @dataclass
    class SafetyConfig:
        toxicity_threshold: float = 0.5
        max_length: int = 100
        temperature: float = 0.7
+
        # ...
-   ```
+
+```
 
 8. **Improve Cross-References**
    - Add link to Flash Attention when discussing computational efficiency
@@ -234,17 +239,20 @@
 ### Cross-Reference Quality
 
 **Good References:**
+
 - Links to RLHF (21-rlhf.md) - appropriate and helpful
 - Links to DPO (22-dpo.md) - good context
 - Links to Architecture Comparison (30-model-architectures.md) - nice forward reference
 
 **Missing References:**
+
 - Should link to specific sections within chapters, not just chapter files
 - Could reference tokenization chapter for encoding attacks
 - Could link to training chapters for data filtering discussion
 - Flash Attention chapter for efficiency discussions
 
 **External References:**
+
 - Excellent paper citations
 - Good mix of foundational and recent papers
 - Links to company blogs (Anthropic, OpenAI, DeepMind) are helpful
@@ -252,12 +260,14 @@
 ### Interview Preparation Value
 
 **Strengths:**
+
 - Covers topics frequently asked about (Constitutional AI, RLAIF, alignment tax)
 - Good mix of concepts and implementation
 - Practical examples of code you might write
 - Discusses real-world tradeoffs
 
 **Could Improve:**
+
 - Add "Common Interview Questions" section
 - Include more discussion of production systems (what companies actually do)
 - Add complexity analysis (computational costs)
@@ -266,17 +276,20 @@
 ### Exercises Quality
 
 **Excellent Variety:**
+
 - Conceptual questions test understanding
 - Implementation exercises are practical
 - Research questions are thought-provoking
 
 **Specific Comments:**
+
 1. Exercise 1 (Constitutional design) - excellent open-ended question
 2. Exercise 2 (Alignment tax) - good critical thinking
 3. Exercise 5 (Preference dataset) - very practical
 4. Exercise 12 (Human-AI collaboration) - excellent systems design question
 
 **Suggestions:**
+
 - Add more guided exercises with starter code
 - Include expected answers or rubrics for conceptual questions
 - Add time estimates for implementation exercises
@@ -314,6 +327,7 @@
 This is an excellent chapter that provides comprehensive coverage of LLM safety and alignment techniques. The explanations are clear, the code is runnable and well-documented, and the topic selection is highly relevant for ML interviews.
 
 **Key Strengths:**
+
 - Comprehensive coverage of major safety techniques
 - Excellent code examples with clear docstrings
 - Good balance of theory and practice
@@ -321,6 +335,7 @@ This is an excellent chapter that provides comprehensive coverage of LLM safety 
 - Realistic discussion of tradeoffs (alignment tax)
 
 **Main Areas for Improvement:**
+
 - Add reward hacking discussion
 - Improve oversimplified components (toxicity scoring, jailbreak detection)
 - Fix the PPO implementation or clearly mark as simplified

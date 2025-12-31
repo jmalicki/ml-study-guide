@@ -22,6 +22,7 @@ Rotary Position Embeddings (RoPE) have become the de facto standard for position
 Transformers are inherently position-agnostic: without positional information, a transformer processes a sequence as a bag of words. As discussed in [Chapter 7: Positional Encodings](07-positional-encodings.md), various approaches have been developed to inject positional information.
 
 **The ideal positional encoding should:**
+
 1. Encode absolute position information
 2. Maintain relative position relationships
 3. Extrapolate to sequence lengths unseen during training
@@ -72,6 +73,7 @@ class LearnedPositionalEmbedding(nn.Module):
 ```
 
 **Limitations:**
+
 1. **No extrapolation**: Cannot handle sequences longer than `max_position`
 2. **No relative bias**: Position 5 and position 6 have no inherent relationship
 3. **Inefficient**: Requires storing embeddings for every possible position
@@ -88,6 +90,7 @@ The original Transformer (Vaswani et al., 2017) uses sinusoidal encodings:
 ```
 
 **Limitations:**
+
 1. **Added to inputs**: Positional information can be diluted through layers
 2. **No relative bias in attention**: Doesn't directly encode relative distances
 3. **Extrapolation issues**: Performance degrades on longer sequences
@@ -97,6 +100,7 @@ The original Transformer (Vaswani et al., 2017) uses sinusoidal encodings:
 ## Rotary Embeddings: Intuition
 
 RoPE's key insight is to rotate the query and key vectors by an angle proportional to their position. This encoding:
+
 - Gives each position a unique representation (absolute position)
 - Makes relative positions fall out naturally from the rotation angle difference
 
@@ -146,6 +150,7 @@ z' = e^{i\theta} \cdot z = (\cos\theta + i\sin\theta)(x_0 + ix_1)
 ```
 
 Expanding:
+
 ```math
 z' = (x_0\cos\theta - x_1\sin\theta) + i(x_0\sin\theta + x_1\cos\theta)
 ```
@@ -187,6 +192,7 @@ This gives lower dimensions faster rotation (capturing fine-grained position) an
 ### Why This Frequency Schedule?
 
 The frequency schedule is inspired by sinusoidal positional encodings. For dimension pair $i$:
+
 - Small $i$ (low dimensions): High frequency $\theta_i$ → distinguishes nearby positions
 - Large $i$ (high dimensions): Low frequency $\theta_i$ → distinguishes distant positions
 
@@ -228,6 +234,7 @@ RoPE works by treating consecutive dimension pairs as complex numbers and rotati
 Instead of explicitly constructing rotation matrices (which would be memory-intensive), we precompute cos and sin values for all positions and apply the rotation through element-wise operations. This reduces memory from O(d² × L) to O(d × L) while maintaining the same mathematical properties.
 
 **Key insights:**
+
 1. **Precomputation**: We cache cos/sin values for all positions to avoid recomputing trigonometric functions
 2. **Complex number trick**: The "rotate_half" operation implements complex multiplication without using PyTorch's complex types (for broader compatibility)
 3. **Frequency schedule**: Using base^(-2i/d) creates a geometric progression of frequencies, enabling multi-scale positional encoding
@@ -530,6 +537,7 @@ In autoregressive generation (like GPT), we generate one token at a time. Withou
 Since RoPE rotations are deterministic functions of position, we can rotate K at position n, cache it, and never rotate it again. The cached K already "knows" its position through the baked-in rotation. When a new query at position m attends to this cached K, the relative position (m-n) emerges naturally from their rotation difference.
 
 **Comparison to other position encodings:**
+
 - **Absolute embeddings**: Added to inputs before attention - also works with KV cache
 - **Sinusoidal**: Added to inputs - also cache-friendly
 - **ALiBi**: Applied during attention computation as a bias - requires storing bias terms
@@ -712,11 +720,13 @@ Below are actual runtime measurements comparing different RoPE implementations o
 RoPE is applied to every attention layer in every forward pass, potentially billions of times during training. A 2x speedup in RoPE translates to measurable wall-clock time improvements. Additionally, memory efficiency affects the maximum batch size and sequence length you can fit on GPU.
 
 **What we're measuring:**
+
 1. **Latency**: Time to apply RoPE to Q and K tensors (excludes attention computation)
 2. **Memory**: Peak GPU memory during RoPE application
 3. **Scalability**: How performance changes with sequence length
 
 **Implementation variants:**
+
 - **Basic**: Separate cos/sin multiplications (reference implementation)
 - **Complex**: Uses PyTorch's complex number operations (mathematically equivalent)
 - **LLaMA**: Production implementation from Meta's LLaMA models (optimized)
@@ -892,6 +902,7 @@ benchmark_memory_usage()
 | 32768           | 7.45 ms    | 4.21 ms      | 3.89 ms    | 1.9x    |
 
 **Key observations:**
+
 - Complex number implementation is ~1.7-2x faster than basic implementation
 - Memory usage is ~20-30% lower with complex implementation
 - FLOPs reduced by 50% (from 2 ops to 1 complex multiply)
@@ -901,6 +912,7 @@ benchmark_memory_usage()
 ### 5. Translation Invariance
 
 For any shift $\Delta$:
+
 ```math
 \text{score}(m + \Delta, n + \Delta) = \text{score}(m, n)
 ```
@@ -989,6 +1001,7 @@ See [Long Context Techniques](27-long-context.md) for comprehensive coverage of 
 ### The Extrapolation Problem
 
 When trained on sequences of length $L$ and tested on length $L' > L$:
+
 - Position embeddings for positions $> L$ were never seen during training
 - The model hasn't learned how to handle those rotation angles
 - Attention patterns become unpredictable
@@ -1010,6 +1023,7 @@ Models are better at interpolating (filling in gaps within seen data) than extra
 The model learned attention patterns for rotation angles in the range [0, 2π × max_train_pos]. Position interpolation keeps all angles within this learned range by slowing down the rotation rate. Position 4096 now rotates at the same rate that position 2048 did during training.
 
 **Trade-offs:**
+
 - **Pro**: Simple to implement, requires minimal fine-tuning (sometimes none)
 - **Pro**: Guaranteed to keep all angles in the trained range
 - **Con**: Changes frequencies for ALL positions, even short sequences that worked fine
@@ -1085,15 +1099,18 @@ The Neural Tangent Kernel theory suggests that different frequency bands contrib
 
 **How it works:**
 Instead of scaling positions by α, we scale the base frequency. The formula base × α^(d/(d-2)) increases the base, which has a larger effect on low frequencies than high frequencies (due to the geometric progression). This means:
+
 - **High frequencies** (dimension pair 0, 1, 2...): Slightly affected, preserving local attention
 - **Low frequencies** (dimension pair d/2-3, d/2-2, d/2-1...): Heavily affected, enabling long-range attention
 
 **Mathematical intuition:**
 For dimension pair i, the frequency is base^(-2i/d). If we increase base, this affects different i differently:
+
 - Small i (high freq): base^(-small value) ≈ doesn't change much
 - Large i (low freq): base^(-large value) changes significantly
 
 **Relation to alternatives:**
+
 - **vs PI**: Better preserves local attention patterns, slightly more complex
 - **vs YaRN**: Simpler but less sophisticated frequency separation
 - **vs standard RoPE**: Enables longer contexts with minimal quality loss
@@ -1142,6 +1159,7 @@ class NTKRoPE(nn.Module):
 ### YaRN (Yet another RoPE extensioN)
 
 YaRN combines multiple techniques:
+
 1. **Frequency interpolation** for high-frequency components
 2. **Frequency extrapolation** for low-frequency components
 3. **Attention temperature scaling**
@@ -1164,6 +1182,7 @@ The wavelength λ = 2π/θ tells us how many positions it takes for a full rotat
 Different frequency bands have different extrapolation capabilities. Low frequencies can extrapolate well because the model has seen many full rotation cycles during training (even for long sequences). High frequencies cannot extrapolate well because unseen positions create unseen rotation angles.
 
 **Comparison to alternatives:**
+
 - **vs PI**: Better local attention (doesn't slow down high frequencies as much)
 - **vs NTK**: More principled frequency separation, adds attention temperature correction
 - **vs both**: State-of-the-art for extreme extensions (16-32x), but more complex
@@ -1176,6 +1195,7 @@ class YaRNRoPE(nn.Module):
     """RoPE with YaRN scaling for extreme context extension.
 
     YaRN applies different scaling strategies to different frequency bands:
+
     - High frequencies: Interpolation (preserve local attention)
     - Low frequencies: Extrapolation (extend long-range)
     - Middle frequencies: Smooth transition
@@ -1246,6 +1266,7 @@ class YaRNRoPE(nn.Module):
 ```
 
 **Usage in attention:**
+
 ```python
 # In attention computation:
 scores = torch.matmul(q, k.transpose(-2, -1)) / (self.scale * rope.get_attention_scale())
@@ -1263,11 +1284,13 @@ scores = torch.matmul(q, k.transpose(-2, -1)) / (self.scale * rope.get_attention
 ### Real-World Examples
 
 **Qwen 2.5** uses ABF (Attention Base Frequency) scaling:
+
 - Base frequency: 1,000,000 (vs standard 10,000)
 - Enables 128K context from 32K training
 - Combined with Dynamic Context Awareness (DCA)
 
 **LLaMA 3.1** uses position interpolation:
+
 - Extended from 8K to 128K context
 - Required continued pretraining on long sequences
 
@@ -1286,6 +1309,7 @@ GQA reduces the number of key-value heads to save memory and computation (e.g., 
 RoPE must be applied to Q and K before expanding K to match Q's head count. If we expand first, we'd be rotating the same K vector multiple times with the same rotation, which is redundant. If we rotate after expansion, we'd waste computation on identical rotations.
 
 **How it works:**
+
 1. Project to Q (n_heads), K (n_kv_heads), V (n_kv_heads)
 2. Apply RoPE to Q and K at their native dimensions
 3. Expand K and V by repeating each KV head (n_heads // n_kv_heads) times
@@ -1361,12 +1385,14 @@ Flash Attention is a memory-efficient attention implementation that avoids mater
 
 **The key compatibility:**
 Flash Attention operates on (batch, seq_len, n_heads, head_dim) tensors, which is exactly the format RoPE expects. We simply:
+
 1. Apply RoPE to Q and K tensors
 2. Pass rotated tensors to Flash Attention
 3. Flash Attention handles the rest (attention computation, softmax, masking)
 
 **Performance benefits:**
 Combining RoPE with Flash Attention gives you:
+
 - RoPE's positional encoding without parameters
 - Flash Attention's O(n) memory complexity instead of O(n²)
 - Both optimizations stack multiplicatively
@@ -1405,6 +1431,7 @@ LLaMA 4 introduces iRoPE, which alternates between RoPE and NoPE (No Positional 
 ![Chapter 08 rope diagram 2](../assets/diagrams/ch08-rope-diagram-2.svg)
 
 **Benefits**:
+
 - NoPE layers handle long-range dependencies without position constraints
 - RoPE layers provide position anchoring
 - Enables 10M+ token contexts
@@ -1413,6 +1440,7 @@ LLaMA 4 introduces iRoPE, which alternates between RoPE and NoPE (No Positional 
 What if positional encoding isn't needed in every layer? Earlier layers might need strong positional signals to ground tokens in the sequence, but later layers might benefit from position-invariant processing for abstract reasoning and long-range dependencies.
 
 **Why this works:**
+
 1. **RoPE layers (every 4th)**: Provide "anchoring" - the model knows where things are in the sequence
 2. **NoPE layers (other layers)**: Process information based purely on content, enabling unlimited context
 3. **Chunked attention in RoPE layers**: Process extremely long sequences in chunks (e.g., 4K tokens), reducing quadratic complexity
@@ -1421,12 +1449,14 @@ What if positional encoding isn't needed in every layer? Earlier layers might ne
 Traditional Transformers use position encoding in every layer, but this might be overkill. After early layers establish positional relationships, later layers can focus on content-based reasoning. This is analogous to how CNNs lose spatial resolution in deeper layers.
 
 **Relation to pure RoPE:**
+
 - **Pure RoPE**: Every layer has position encoding, great for <100K contexts
 - **iRoPE**: Selective position encoding, enables 10M+ contexts
 - **Trade-off**: Slightly weaker positional signal, but enables extreme length generalization
 
 **Why every 4th layer:**
 The 4-layer period is empirically chosen. It balances:
+
 - Too frequent RoPE (e.g., every layer): Limited long-context benefits
 - Too sparse RoPE (e.g., every 10th layer): Insufficient positional grounding
 
@@ -1486,6 +1516,7 @@ class iRoPEAttention(nn.Module):
 ### RoPE for Multimodal Models
 
 In vision-language models (see [Multimodality](28-multimodality.md)), RoPE can be applied differently:
+
 - **1D RoPE** for text tokens (standard)
 - **2D RoPE** for vision tokens (rows and columns)
 
@@ -1497,12 +1528,14 @@ Split the embedding dimension in half: one half encodes row position, the other 
 
 **Why this works:**
 The attention score between two vision tokens at (r1, c1) and (r2, c2) depends on:
+
 - Row distance: |r1 - r2| (encoded in first half of dimensions)
 - Column distance: |c1 - c2| (encoded in second half of dimensions)
 
 Both contribute independently to the final dot product, giving a natural 2D distance metric.
 
 **Relation to alternatives:**
+
 - **1D flattened RoPE**: Treats image as raster-scanned sequence - loses 2D structure
 - **Learned 2D embeddings**: Parameter-heavy, doesn't extrapolate to different image sizes
 - **2D RoPE**: Zero parameters, extrapolates to arbitrary image resolutions
@@ -1574,12 +1607,14 @@ class RoPE2D(nn.Module):
 ### When to Use RoPE
 
 ✅ **Use RoPE when:**
+
 - Building a new LLM from scratch
 - Need good extrapolation to longer contexts
 - Want efficient positional encoding
 - Following modern best practices
 
 ❌ **Consider alternatives when:**
+
 - Working with very specific architectures (e.g., some multimodal models)
 - Need absolute position information (rare)
 - Context length is fixed and small (learned embeddings may be simpler)
@@ -1661,6 +1696,7 @@ for m in range(seq_len):
             score_m1_n1 = (q_rot[0, m+1] @ k_rot[0, n+1]).item()
             print(f"score({m}, {n}) = {score_mn:.4f}, score({m+1}, {n+1}) = {score_m1_n1:.4f}")
 ```
+
 </details>
 
 ### Exercise 2: Visualize Rotation Angles
@@ -1744,6 +1780,7 @@ The code above produces four plots that illustrate RoPE's multi-scale frequency 
 4. **Bottom-right (Wavelengths)**: The inverse view showing wavelengths (how many positions for one full rotation). Low dimensions have short wavelengths (~6 positions), while high dimensions have very long wavelengths (>10,000 positions).
 
 **What this reveals:**
+
 - RoPE uses a **multi-scale** encoding similar to Fourier transforms
 - **High-frequency components** (low dimensions) distinguish nearby tokens (local attention)
 - **Low-frequency components** (high dimensions) distinguish distant tokens (global structure)
@@ -1837,6 +1874,7 @@ def test_rope_extrapolation():
 
 test_rope_extrapolation()
 ```
+
 </details>
 
 ### Exercise 4: Compare Memory Usage
@@ -1911,6 +1949,7 @@ def compare_memory_usage():
 
 compare_memory_usage()
 ```
+
 </details>
 
 ### Exercise 5: Implement and Test YaRN
@@ -1967,6 +2006,7 @@ def test_yarn():
 
 test_yarn()
 ```
+
 </details>
 
 ---
@@ -1976,21 +2016,25 @@ test_yarn()
 ### Primary Papers
 
 1. **RoFormer: Enhanced Transformer with Rotary Position Embedding**
+
    Su, Jianlin, et al. (2021)
    https://arxiv.org/abs/2104.09864
    *The original RoPE paper. Essential reading.*
 
 2. **Extending Context Window of Large Language Models via Position Interpolation**
+
    Chen, Shouyuan, et al. (2023)
    https://arxiv.org/abs/2306.15595
    *Position Interpolation method.*
 
 3. **NTK-Aware Scaled RoPE**
+
    Reddit: /u/bloc97 (2023)
    https://www.reddit.com/r/LocalLLaMA/comments/14lz7j5/ntkaware_scaled_rope_allows_llama_models_to_have/
    *Community-driven discovery of NTK scaling.*
 
 4. **YaRN: Efficient Context Window Extension of Large Language Models**
+
    Peng, Bowen, et al. (2023)
    https://arxiv.org/abs/2309.00071
    *State-of-the-art RoPE scaling method.*
@@ -1998,21 +2042,25 @@ test_yarn()
 ### Implementation References
 
 5. **LLaMA: Open and Efficient Foundation Language Models**
+
    Touvron, Hugo, et al. (2023)
    https://arxiv.org/abs/2302.13971
    *LLaMA uses RoPE as standard positional encoding.*
 
 6. **Mistral 7B**
+
    Jiang, Albert Q., et al. (2023)
    https://arxiv.org/abs/2310.06825
    *RoPE with sliding window attention.*
 
 7. **Qwen2.5 Technical Report**
+
    Qwen Team (2024)
    https://arxiv.org/abs/2412.15115
    *ABF scaling for extended context.*
 
 8. **The Llama 4 Herd**
+
    Meta AI (2025)
    https://ai.meta.com/blog/llama-4-multimodal-intelligence/
    *Introduces iRoPE (interleaved RoPE/NoPE).*
@@ -2028,12 +2076,15 @@ test_yarn()
 ### Code Resources
 
 - **llama.cpp**: Efficient C++ implementation with RoPE
+
   https://github.com/ggerganov/llama.cpp
 
 - **transformers (Hugging Face)**: RoPE in LLaMA, Mistral, etc.
+
   https://github.com/huggingface/transformers
 
 - **xFormers**: Optimized RoPE implementations
+
   https://github.com/facebookresearch/xformers
 
 ---

@@ -109,10 +109,11 @@
 3. **Type Hint Issues** (Lines 928, 1085, 2069): Uses `tuple[bool, float]` (Python 3.9+ syntax) but earlier uses `Tuple` from typing. Should be consistent - either use `from __future__ import annotations` and lowercase `tuple` throughout, or use `Tuple` from typing consistently.
 
 4. **DummyModel Limitation**: The dummy models in examples are very simplified. For a study guide, it might be worth noting that in practice, one would use actual pre-trained models like:
+
    ```python
    from transformers import GPT2LMHeadModel, GPT2Tokenizer
    model = GPT2LMHeadModel.from_pretrained('gpt2')
-   ```
+```
 
 5. **LSH Probability**: The LSH section doesn't explain how to choose `num_bands` and `rows_per_band` given a desired similarity threshold. The relationship is: for similarity $s$ and threshold $t$, the probability of being detected as a candidate is approximately $1 - (1 - s^r)^b$ where $r$ is rows per band and $b$ is number of bands.
 
@@ -137,7 +138,9 @@
 ### Specific Suggestions for Improvement
 
 1. **Add a section on Data Contamination**:
+
    ```markdown
+
    ### Test Set Contamination Detection
 
    A critical concern is ensuring training data doesn't include test set examples.
@@ -147,10 +150,12 @@
    $$\text{Overlap}(test, train) = \frac{|\text{n-grams}(test) \cap \text{n-grams}(train)|}{|\text{n-grams}(test)|}$$
 
    Flag examples with >X% overlap (typically 50-80% for 13-grams).
-   ```
+```
 
 2. **Expand LSH Parameter Selection**:
+
    Add explanation of the S-curve and how to choose parameters:
+
    ```python
    def choose_lsh_params(threshold: float, num_perm: int) -> tuple[int, int]:
        """
@@ -162,36 +167,48 @@
        optimal_r = int(math.log(0.5) / math.log(threshold))
        optimal_b = num_perm // optimal_r
        return optimal_b, optimal_r
-   ```
+```
 
 3. **Add Scaling Discussion**:
+
    Create a subsection under "Complete Pipeline Implementation":
+
    ```markdown
+
    ### Scaling to Production
 
    For trillion-token datasets:
+
    1. **Distributed Processing**: Use Apache Spark or Ray
    2. **Streaming Pipeline**: Process documents as they arrive
    3. **Approximate Deduplication**: Trade accuracy for speed
    4. **Sampling for Quality**: Score subset, filter all based on learned thresholds
-   ```
+
+```
 
 4. **Improve Safety Filtering Section**:
+
    The current safety filter is overly simplistic. Either:
+
    - Provide more realistic patterns/keywords (challenging due to content policy)
    - Or clearly mark as "toy example" and reference production tools more strongly
    - Add discussion of false positive rates and the need for human review
 
 5. **Add Visualization Examples**:
+
    Show how to visualize pipeline statistics:
+
    ```python
    def plot_funnel(stats):
        """Create a funnel plot showing document attrition."""
+
        # Using matplotlib or plotly
        # Show % passing each stage
-   ```
+
+```
 
 6. **Cross-Reference Exercise 6 with Chapter 32**:
+
    The exercise mentions evaluation, so explicitly reference the evaluation chapter for understanding contamination risks.
 
 ### Missing Interview-Relevant Topics
@@ -235,11 +252,13 @@ For ML/LLM interviews, these topics are often discussed:
 ### Cross-Reference Quality
 
 **Good**:
+
 - References to Chapter 1 (Tokenization) - appropriate
 - References to Chapter 32 (Evaluation) - appropriate
 - External papers and datasets well-cited
 
 **Could Improve**:
+
 - Link to Chapter 15 (Language Model Training) to show how this data is actually used
 - Could reference Chapter 2 (Attention) when discussing sequence length in curriculum learning
 - Could reference any future chapter on model evaluation for contamination discussion
@@ -256,6 +275,7 @@ The exercises are excellent:
 6. **Exercise 6** (End-to-End): Capstone project tying everything together
 
 **Suggestions**:
+
 - Add expected time estimates for each exercise
 - Provide starter code or templates for exercises
 - Add "bonus challenges" for advanced students
@@ -264,11 +284,13 @@ The exercises are excellent:
 ### Math/LaTeX Quality
 
 **Strengths**:
+
 - Jaccard similarity formula (Line 520): Correct and clear
 - Perplexity formula (Lines 842-845): Correct and well-explained
 - Temperature sampling formula (Lines 1357-1364): Clear explanation
 
 **Could Improve**:
+
 - Add LSH probability formula: $P(\text{candidate}) = 1 - (1 - s^r)^b$
 - Could add more mathematical analysis of deduplication impact on dataset size
 - Perplexity computation: Could show the relationship to cross-entropy more explicitly
@@ -293,6 +315,7 @@ The exercises are excellent:
    - Production challenges
 
 **Missing Interview Prep**:
+
 - Common follow-up questions and answers
 - "What would you do differently at different scales?" discussion
 - More emphasis on failure modes and debugging
@@ -300,11 +323,13 @@ The exercises are excellent:
 ### References and Further Reading
 
 **Excellent Selection**:
+
 - All major papers cited (Gopher, The Pile, RefinedWeb, etc.)
 - Good mix of datasets and tools
 - Up-to-date references (2023-2024)
 
 **Could Add**:
+
 - Chinchilla paper (Hoffmann et al., 2022) for data scaling laws
 - DataComp paper (Gadre et al., 2023) for data quality analysis
 - More on legal/ethical considerations (data licensing papers)
@@ -315,12 +340,14 @@ The exercises are excellent:
 This is an **excellent chapter** that comprehensively covers data curation for LLM training. The code is production-quality, the explanations are clear, and the practical value is very high. It successfully bridges the gap between academic papers and real-world implementation.
 
 **Key Strengths**:
+
 - Complete, working implementations
 - Real-world grounding
 - Excellent structure and flow
 - High practical value for interviews
 
 **Main Areas for Improvement**:
+
 - More on data contamination/test set leakage
 - Scaling and distributed processing discussion
 - Some minor technical corrections (type hints, determinism)

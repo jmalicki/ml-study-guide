@@ -12,11 +12,13 @@ The `validate_activation_svg.py` script validates that the activation function c
 ## Usage
 
 ### Direct execution
+
 ```bash
 python3 scripts/validate_activation_svg.py
 ```
 
 ### Via Makefile
+
 ```bash
 make validate-activation-svg
 ```
@@ -43,7 +45,8 @@ The script validates the following activation functions in `/assets/diagrams/ch1
 ## Output format
 
 Success:
-```
+
+```text
 Validating activation function SVG...
 
 ReLU: OK (all 11 points within epsilon=0.05)
@@ -56,7 +59,8 @@ SUCCESS: All activation functions validated correctly!
 ```
 
 Failure:
-```
+
+```text
 Validating activation function SVG...
 
 ReLU: OK (all 11 points within epsilon=0.05)
@@ -79,10 +83,12 @@ epsilon = 0.05  # Increase for looser validation, decrease for stricter
 ## Coordinate transformation
 
 The script handles the SVG coordinate system where:
+
 - X-axis increases left to right (same as data)
 - Y-axis increases top to bottom (inverted from data)
 
 The transformation formulas are:
+
 ```python
 data_x = x_min + (px - plot_x_min) / (plot_x_max - plot_x_min) * (x_max - x_min)
 data_y = y_max - (py - plot_y_min) / (plot_y_max - plot_y_min) * (y_max - y_min)

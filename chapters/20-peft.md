@@ -36,6 +36,7 @@ Parameter-Efficient Fine-Tuning (PEFT) methods enable adapting large language mo
 ### Memory Requirements of Full Fine-tuning
 
 Full fine-tuning requires storing:
+
 1. Model parameters: $\theta \in \mathbb{R}^d$
 2. Gradients: $\nabla_\theta \mathcal{L} \in \mathbb{R}^d$
 3. Optimizer states (for AdamW):
@@ -99,6 +100,7 @@ PEFT methods freeze the base model weights and train only a small number of addi
 Typical values: 0.01% - 1% of total parameters.
 
 **Key benefits:**
+
 1. **Memory efficiency**: Only store optimizer states for trainable parameters
 2. **Modularity**: Multiple adapters can be trained and swapped
 3. **Reduced catastrophic forgetting**: Base model remains unchanged
@@ -123,6 +125,7 @@ W = W_0 + \Delta W = W_0 + BA
 ```
 
 where:
+
 - $B \in \mathbb{R}^{d \times r}$ (down-projection)
 - $A \in \mathbb{R}^{r \times k}$ (up-projection)
 - $r \ll \min(d, k)$ is the rank
@@ -437,9 +440,11 @@ class RankSelectionExperiments:
     Experiments to guide rank selection for LoRA.
 
     Key findings from Hu et al. (2021):
+
     - r=8 achieves 95%+ of full fine-tuning performance
     - Higher ranks have diminishing returns
     - Optimal rank depends on task complexity
+
     """
 
     @staticmethod
@@ -594,6 +599,7 @@ RANK_RECOMMENDATIONS = {
 ```
 
 **Practical guidelines:**
+
 1. **Start with r=8, α=16**: Good default for most tasks
 2. **Complex tasks**: Use r=16 or r=32
 3. **Memory constrained**: Use r=4
@@ -609,6 +615,7 @@ QLoRA enables fine-tuning of massive models (65B+) on consumer GPUs by combining
 ### Key Innovation
 
 QLoRA introduces:
+
 1. **4-bit NormalFloat (NF4)**: A data type optimized for normally distributed weights
 2. **Double quantization**: Quantize the quantization constants
 3. **Paged optimizers**: Use unified memory to avoid OOM
@@ -624,11 +631,13 @@ QLoRA introduces:
 **Mathematical Formulation:**
 
 For a random variable $W \sim \mathcal{N}(0, 1)$, optimal k-bit quantization divides the distribution into $2^k$ bins such that:
+
 ```math
 P(W \in \text{bin}_i) = \frac{1}{2^k} \quad \forall i
 ```
 
 For NF4 ($k=4$, 16 bins), the quantization levels are:
+
 ```math
 q_i = \Phi^{-1}\left(\frac{i}{16}\right) \quad \text{for } i = 0, 1, \ldots, 15
 ```
@@ -636,12 +645,14 @@ q_i = \Phi^{-1}\left(\frac{i}{16}\right) \quad \text{for } i = 0, 1, \ldots, 15
 where $\Phi^{-1}$ is the inverse CDF (quantile function) of $\mathcal{N}(0,1)$.
 
 **Why This Works:**
+
 1. **Optimal Information Preservation**: Equal probability bins minimize expected quantization error for Gaussian distributions
 2. **Higher Precision Where It Matters**: More bins near zero (where most weights concentrate) and fewer at extremes
 3. **Empirically Validated**: Pre-trained LLM weights are approximately Gaussian after layer normalization
 4. **Block-wise Quantization**: Normalizing weights block-by-block (typically 64 elements) before quantizing accounts for variance differences across the weight matrix
 
 **Comparison to Alternatives:**
+
 - vs **Uniform Int4**: ~30% lower quantization error on neural network weights
 - vs **Int8**: Similar accuracy but 2x memory savings
 - vs **Float16**: 4x memory savings with minimal accuracy loss (<1%)
@@ -770,10 +781,12 @@ class DoubleQuantization:
     Double quantization: Quantize the quantization constants themselves.
 
     Typical model: 32M parameters, block_size=64
+
     - Number of blocks: 32M / 64 = 500K blocks
     - Scales (FP16): 500K * 2 bytes = 1 MB
 
     With double quantization (8-bit):
+
     - Scales (INT8): 500K * 1 byte = 0.5 MB
     - Second-level scales: ~8 KB
     - Total: 0.508 MB (save ~0.5 MB per 32M params)
@@ -843,19 +856,23 @@ class QLoRALinear(nn.Module):
     Linear layer with QLoRA: 4-bit base weights + 16-bit LoRA adapter.
 
     Storage:
+
     - Base weights: 4 bits per parameter (NF4)
     - LoRA adapters: 16 bits per parameter (BF16)
     - Scales: ~1-2 bits per 64 parameters (with double quantization)
 
     During forward pass:
+
     1. Dequantize base weights to BF16
     2. Compute base output
     3. Compute LoRA output (in BF16)
     4. Sum outputs
 
     During backward pass:
+
     - Only LoRA parameters receive gradients
     - Base weights remain frozen
+
     """
 
     def __init__(
@@ -1031,6 +1048,7 @@ Double quantization applies quantization to the quantization constants (scales):
 This provides an additional ~3% memory reduction with negligible quality loss.
 
 **Key Paper:**
+
 - [QLoRA: Efficient Finetuning of Quantized LLMs](https://arxiv.org/abs/2305.14314) (Dettmers et al., 2023)
 
 ---
@@ -1048,11 +1066,13 @@ Prefix tuning prepends trainable vectors to the input sequence, while prompt tun
 **Mathematical Formulation:**
 
 For standard attention:
+
 ```math
 \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
 ```
 
 With prefix tuning, we augment K and V:
+
 ```math
 \text{Attention}(Q, [P_{K}; K], [P_{V}; V])
 ```
@@ -1060,11 +1080,13 @@ With prefix tuning, we augment K and V:
 where $P_{K} \in \mathbb{R}^{L_p \times d_k}$ and $P_{V} \in \mathbb{R}^{L_p \times d_v}$ are learned prefix parameters of length $L_p$.
 
 **Why This Works:**
+
 1. **Attention Mechanism**: Since attention computes weighted combinations of values based on query-key similarity, prefix keys/values act as task-specific "memory" that influences all tokens
 2. **Layer-specific Adaptation**: Different prefixes at each layer allow hierarchical task specification (low-level features vs high-level semantics)
 3. **Reparameterization Trick**: Using an MLP to generate prefixes (rather than optimizing them directly) improves training stability by providing a smoother optimization landscape
 
 **Comparison to Alternatives:**
+
 - vs **LoRA**: Prefix tuning modifies activations (context) rather than weights; more interpretable but potentially less powerful
 - vs **Prompt Tuning**: More parameters (prefix at every layer vs only input), but more expressive
 - vs **Full Fine-tuning**: Orders of magnitude fewer parameters (~0.1% vs 100%)
@@ -1248,6 +1270,7 @@ Prompt tuning is simpler - only add trainable tokens to the input embedding:
 **Mathematical Formulation:**
 
 Given input token embeddings $E \in \mathbb{R}^{L \times d}$, we prepend learned soft prompts:
+
 ```math
 E' = [P; E]
 ```
@@ -1255,11 +1278,13 @@ E' = [P; E]
 where $P \in \mathbb{R}^{L_p \times d}$ are trainable prompt embeddings. The rest of the model processes $E'$ normally, with prompts influencing computation through attention.
 
 **Why This Works:**
+
 1. **Scale Matters**: Research shows that prompt tuning becomes competitive with full fine-tuning only at large model scales (>10B parameters). Larger models have more capacity to leverage the prompt information
 2. **Prompt Initialization**: Initializing prompts from vocabulary embeddings (rather than random) provides a better starting point by leveraging pre-trained semantic space
 3. **Information Propagation**: Transformer residual connections ensure that input information (including prompts) influences all layers, not just early ones
 
 **Comparison to Alternatives:**
+
 - vs **Prefix Tuning**: 10-100x fewer parameters; works only for sufficiently large models
 - vs **LoRA**: Even fewer parameters but lower performance ceiling; best for simple tasks
 - vs **Hard Prompts**: Soft prompts are continuous and optimizable, allowing more precise task specification than discrete text prompts
@@ -1351,11 +1376,13 @@ def compare_prefix_methods():
 ```
 
 **Comparison:**
+
 - **Prompt tuning**: Simplest, fewest parameters (~0.01%)
 - **Prefix tuning**: More expressive, more parameters (~0.1%)
 - **LoRA**: Most flexible, moderate parameters (~0.1-0.5%)
 
 **When to use:**
+
 - **Prompt tuning**: Simple classification, few-shot learning
 - **Prefix tuning**: Generation tasks, sequence-to-sequence
 - **LoRA**: General purpose, best overall performance
@@ -1373,28 +1400,33 @@ Adapters insert small bottleneck layers within transformer blocks.
 **Mathematical Formulation:**
 
 An adapter is a bottleneck module applied after a transformer sublayer:
+
 ```math
 h' = h + \text{Adapter}(h)
 ```
 
 where the adapter function is:
+
 ```math
 \text{Adapter}(h) = W_{\text{up}} \cdot \sigma(W_{\text{down}} \cdot h + b_{\text{down}}) + b_{\text{up}}
 ```
 
 Here:
+
 - $W_{\text{down}} \in \mathbb{R}^{d \times r}$ projects from model dimension $d$ to bottleneck dimension $r$
 - $\sigma$ is a non-linearity (typically GELU or ReLU)
 - $W_{\text{up}} \in \mathbb{R}^{r \times d}$ projects back to model dimension
 - The bottleneck dimension $r \ll d$ keeps parameters small
 
 **Why This Works:**
+
 1. **Bottleneck Architecture**: Forces the adapter to learn a compressed representation, acting as a regularizer that prevents overfitting
 2. **Residual Connection**: Ensures gradients flow to pre-trained layers and adapter starts as near-identity (with small initialization)
 3. **Non-linearity**: Unlike LoRA's linear transformations, adapters can learn non-linear task-specific features
 4. **Strategic Placement**: Inserting after attention and/or FFN allows task-specific processing at multiple stages
 
 **Comparison to Alternatives:**
+
 - vs **LoRA**: Adapters add non-linearity and new capacity; LoRA is purely linear and modifies existing weights
 - vs **Full Fine-tuning**: ~0.5-2% of parameters vs 100%; modular and swappable
 - vs **Prefix Tuning**: Adapters modify representations directly rather than through attention context; more powerful but less interpretable
@@ -1411,6 +1443,7 @@ class AdapterLayer(nn.Module):
     Adapter layer with bottleneck architecture.
 
     Architecture:
+
     - Down-project: d_model -> bottleneck_dim
     - Non-linearity
     - Up-project: bottleneck_dim -> d_model
@@ -1476,6 +1509,7 @@ class TransformerBlockWithAdapter(nn.Module):
     Transformer block with adapters.
 
     Adapters can be inserted:
+
     1. After attention (before FFN)
     2. After FFN (before next layer)
 
@@ -1550,10 +1584,15 @@ class ParallelAdapter(nn.Module):
     on the GPU, improving hardware utilization.
 
     WHY THIS WORKS:
+
     1. Hardware Parallelism: Modern GPUs can execute independent operations
+
        concurrently; parallel adapters exploit this
+
     2. Equivalent Expressiveness: With proper scaling, parallel adapters can
+
        approximate serial adapters' representational power
+
     3. Reduced Latency: ~20-30% speedup in forward pass on modern GPUs
 
     Reference: He et al., "Towards a Unified View of Parameter-Efficient
@@ -1601,6 +1640,7 @@ class ParallelAdapter(nn.Module):
 ```
 
 **Adapter placement strategies:**
+
 1. **Serial**: Add after attention and/or FFN (original)
 2. **Parallel**: Compute alongside main branch (more efficient)
 3. **Scaled**: Use scaling factor to control adapter influence
@@ -1622,11 +1662,13 @@ IA³ (Infused Adapter by Inhibiting and Amplifying Inner Activations) uses learn
 **Mathematical Formulation:**
 
 For attention mechanism, IA³ applies learned scaling vectors:
+
 ```math
 K' = K \odot \ell_k, \quad V' = V \odot \ell_v
 ```
 
 For feedforward layers:
+
 ```math
 \text{FFN}'(x) = \text{FFN}(x) \odot \ell_{ff}
 ```
@@ -1634,12 +1676,14 @@ For feedforward layers:
 where $\ell_k, \ell_v, \ell_{ff} \in \mathbb{R}^d$ are learned scaling vectors (initialized to ones), and $\odot$ denotes element-wise multiplication.
 
 **Why This Works:**
+
 1. **Feature Selection**: Scaling allows the model to "inhibit" (scale down) irrelevant features and "amplify" (scale up) task-relevant features from pre-trained representations
 2. **Minimal Parameters**: Only $3d$ parameters per layer (vs $4dr$ for LoRA with rank $r$), typically ~100x fewer than LoRA
 3. **No Additional Latency**: Element-wise multiplication is extremely fast compared to matrix multiplications in LoRA or adapters
 4. **Preserves Pre-trained Knowledge**: Multiplicative scaling (vs additive updates) maintains the relative relationships in pre-trained representations
 
 **Comparison to Alternatives:**
+
 - vs **LoRA**: ~100x fewer parameters; works well for few-shot but may underperform on complex tasks
 - vs **Adapters**: No additional layers or non-linearity; purely scales existing features
 - vs **Prefix/Prompt Tuning**: Similar parameter count but modifies all layers rather than just input
@@ -1647,6 +1691,7 @@ where $\ell_k, \ell_v, \ell_{ff} \in \mathbb{R}^d$ are learned scaling vectors (
 **Key Insight:** IA³ demonstrates that for many tasks, especially few-shot learning, the pre-trained model already contains the necessary features - we just need to learn which ones to emphasize. The element-wise scaling provides a minimal, efficient way to perform this feature selection. However, this simplicity is also a limitation: tasks requiring genuinely new features or transformations will need the additional capacity of LoRA or adapters.
 
 **When IA³ Excels:**
+
 - Few-shot learning (< 1000 examples)
 - Tasks where pre-trained features are largely sufficient
 - Deployment scenarios requiring many adapters in memory simultaneously
@@ -1752,6 +1797,7 @@ def compare_ia3_parameters():
 ```
 
 **IA³ characteristics:**
+
 - **Fewest parameters**: ~0.01% of base model
 - **No additional latency**: Element-wise multiplication is extremely fast
 - **Good for few-shot**: Works well with limited data
@@ -1951,28 +1997,33 @@ def print_comparison_table():
 ### Guidelines
 
 **Use Full Fine-tuning when:**
+
 - You have abundant compute and memory
 - Dataset is large (>100K examples) and diverse
 - Task requires significant domain shift
 - You need absolute best performance
 
 **Use LoRA when:**
+
 - Memory is limited but not extreme
 - You need multiple task-specific models
 - Want 95%+ of full FT performance
 - Need fast iteration during development
 
 **Use QLoRA when:**
+
 - Training very large models (30B+)
 - Single consumer GPU (e.g., RTX 4090)
 - Memory is the primary constraint
 
 **Use Prefix/Prompt Tuning when:**
+
 - Dataset is very small (<1K examples)
 - Task is simple (classification, labeling)
 - Need absolute minimal parameters
 
 **Use Adapters when:**
+
 - Need more capacity than LoRA but less than full FT
 - Architecture allows for easy adapter insertion
 - Want modular, composable adaptations
@@ -1991,6 +2042,7 @@ def performance_benchmarks():
     Empirical performance comparison across different tasks.
 
     Data aggregated from:
+
     - Hu et al. (2021): LoRA paper results
     - Dettmers et al. (2023): QLoRA paper results
     - Community benchmarks on Alpaca, MMLU, HumanEval
@@ -2069,10 +2121,12 @@ def compare_training_time():
     Training time comparison for different fine-tuning approaches.
 
     Benchmarks based on:
+
     - LLaMA-2 7B model
     - 10,000 training examples
     - Single A100 80GB GPU
     - Batch size optimized for each method
+
     """
 
     results = {
@@ -2461,9 +2515,11 @@ def should_use_peft_decision_tree():
     Summary:
     • Default to LoRA r=16 for most cases ✓
     • Use full FT only when:
+
       - Domain shift is extreme AND no pre-training available
       - Need absolute best performance AND have resources
       - Adding new capabilities (modalities, languages)
+
     • LoRA works well 80%+ of the time
     """)
 
@@ -2481,6 +2537,7 @@ DoRA (Weight-Decomposed Low-Rank Adaptation) decomposes weight updates into magn
 **The Problem:** LoRA performs well but updates weights in an unconstrained manner. Analysis of full fine-tuning shows that weight updates often have distinct patterns in their magnitude (L2 norm) and direction (unit vector). Can we better match full fine-tuning by explicitly separating these components?
 
 **Theoretical Foundation:** DoRA is inspired by weight normalization techniques and the observation that neural network learning involves two distinct types of changes:
+
 1. **Directional changes**: Adjusting *what* features the weights extract
 2. **Magnitude changes**: Adjusting *how strongly* those features are weighted
 
@@ -2489,28 +2546,33 @@ By separating these, DoRA can better approximate the learning dynamics of full f
 **Mathematical Formulation:**
 
 Standard LoRA updates:
+
 ```math
 W' = W_0 + \Delta W = W_0 + BA
 ```
 
 DoRA decomposes the updated weight into magnitude and direction:
+
 ```math
 W' = m \frac{W_0 + BA}{\|W_0 + BA\|_{\text{col}}}
 ```
 
 where:
+
 - $m \in \mathbb{R}^{d_{\text{out}}}$ is a learned per-column magnitude vector
 - $\|\cdot\|_{\text{col}}$ denotes column-wise L2 norm
 - The LoRA matrices $B$ and $A$ modify the direction
 - The magnitude $m$ is learned independently
 
 **Why This Works:**
+
 1. **Better Approximation of Full FT**: Empirical analysis shows full fine-tuning changes both magnitude and direction; DoRA can model both
 2. **Improved Learning Dynamics**: Direction and magnitude have different optimal learning rates; separating them allows independent optimization
 3. **Enhanced Expressiveness**: For the same rank, DoRA can represent a larger space of weight updates than standard LoRA
 4. **Stable Training**: Normalization in the direction component prevents gradient explosion and improves convergence
 
 **Comparison to Alternatives:**
+
 - vs **LoRA**: ~25% more parameters (due to magnitude vector) but consistently better performance (1-3% improvement)
 - vs **Full Fine-tuning**: Still only ~0.3% of parameters while matching 98-99% of performance
 - vs **Weight Normalization**: DoRA applies normalization only to LoRA updates, preserving pre-trained magnitudes
@@ -2518,6 +2580,7 @@ where:
 **Key Insight:** The success of DoRA reveals that the structure of weight updates matters, not just the number of parameters. By explicitly modeling how full fine-tuning separates magnitude and directional changes, DoRA achieves better performance than LoRA at the same rank. This suggests that future PEFT methods should consider the *geometry* of weight updates, not just low-rank approximations.
 
 **Trade-offs:**
+
 - **Pros**: Better performance, especially on vision and complex reasoning tasks
 - **Cons**: Cannot merge weights as easily as LoRA (requires runtime normalization), slightly higher computational cost during forward pass
 
@@ -2527,6 +2590,7 @@ class DoRALayer(nn.Module):
     DoRA: Weight-Decomposed Low-Rank Adaptation.
 
     Key insight: Decompose weight update into:
+
     - Magnitude: ||W||
     - Direction: W / ||W||
 
@@ -2626,14 +2690,17 @@ def dora_vs_lora_comparison():
     DoRA vs LoRA comparison.
 
     DoRA advantages:
+
     - Better learning capacity (separates magnitude and direction)
     - Often outperforms LoRA at same rank
     - Particularly effective for vision tasks
 
     DoRA disadvantages:
+
     - Slightly more computation (normalization)
     - Cannot merge weights as easily as LoRA
     - ~2x parameters (magnitude vector + LoRA matrices)
+
     """
 
     d_model = 4096
@@ -2657,6 +2724,7 @@ LoRA+ uses different learning rates for A and B matrices.
 **The Problem:** Standard LoRA treats both matrices A and B equally during optimization, using the same learning rate for both. However, these matrices have fundamentally different roles: A projects to low-rank space while B projects back up. Should they be optimized with the same learning rate?
 
 **Theoretical Foundation:** LoRA+ is based on analyzing the gradient flow and effective learning rate of the combined LoRA update $\Delta W = BA$. Key observations:
+
 1. When computing $\frac{\partial L}{\partial A}$, the gradient is multiplied by $B^T$
 2. When computing $\frac{\partial L}{\partial B}$, the gradient is multiplied by $A^T$
 3. At initialization, $B=0$ and $A \neq 0$, creating asymmetry in gradient magnitudes
@@ -2666,11 +2734,13 @@ This asymmetry means that $A$ and $B$ naturally learn at different effective rat
 **Mathematical Formulation:**
 
 Standard LoRA optimization:
+
 ```math
 A_{t+1} = A_t - \eta \nabla_{A} L, \quad B_{t+1} = B_t - \eta \nabla_{B} L
 ```
 
 LoRA+ uses different learning rates:
+
 ```math
 A_{t+1} = A_t - \eta \nabla_{A} L, \quad B_{t+1} = B_t - \lambda \eta \nabla_{B} L
 ```
@@ -2678,12 +2748,14 @@ A_{t+1} = A_t - \eta \nabla_{A} L, \quad B_{t+1} = B_t - \lambda \eta \nabla_{B}
 where $\lambda > 1$ (typically $\lambda = 16$) is the learning rate ratio.
 
 **Why This Works:**
+
 1. **Gradient Magnitude Balancing**: Since $B$ starts at zero and $A$ is initialized with meaningful values, $B$ needs a higher learning rate to "catch up"
 2. **Improved Convergence**: Empirically, higher LR for $B$ leads to 2x faster convergence with same or better final performance
 3. **Optimal Rank Utilization**: The learning rate ratio helps all $r$ rank components contribute equally, rather than some dominating
 4. **Theoretical Justification**: Analysis shows the optimal ratio scales with the model dimension and rank
 
 **Comparison to Alternatives:**
+
 - vs **Standard LoRA**: Same parameters, ~2x faster convergence, slightly better final performance
 - vs **Higher Rank LoRA**: LoRA+ with rank $r$ often matches standard LoRA with rank $2r$ but trains faster
 - vs **Learning Rate Schedules**: Complementary - can combine LoRA+ with LR schedules for further improvements
@@ -2691,6 +2763,7 @@ where $\lambda > 1$ (typically $\lambda = 16$) is the learning rate ratio.
 **Key Insight:** LoRA+ reveals that the initialization scheme of LoRA ($B=0$, $A \neq 0$) creates an optimization asymmetry that standard SGD doesn't handle well. By explicitly accounting for the different roles of $A$ and $B$ through different learning rates, we can achieve the same performance faster or better performance in the same time. This is a rare case where a simple hyperparameter change yields consistent, significant improvements.
 
 **Practical Recommendations:**
+
 - Use $\lambda = 16$ as default (ratio of B's LR to A's LR)
 - For very large models (>30B), try $\lambda = 32$
 - For smaller models (<3B), $\lambda = 8$ may be sufficient
@@ -2839,6 +2912,7 @@ Serve multiple LoRA adapters efficiently by batching requests.
 **Mathematical Formulation:**
 
 For a batch with requests using different LoRA adapters, compute:
+
 ```math
 y_i = W_0 x_i + B_i A_i x_i
 ```
@@ -2849,26 +2923,31 @@ where adapter index $i$ varies per sample. The challenge is that standard batchi
 
 **Approach 1: Adapter Batching**
 Group requests by adapter, run separate batches:
+
 - Pros: Simple implementation, full batching per adapter
 - Cons: Latency increases with number of unique adapters in queue
 
 **Approach 2: Padded Computation**
 Compute all possible adapters, select per sample:
+
 - Pros: True batching across adapters
 - Cons: Computational waste grows linearly with number of adapters
 
 **Approach 3: S-LoRA (Proposed)**
 Store adapters in paged memory, dynamically compose batches:
+
 - Uses GPU shared memory for adapter weights
 - Schedules batches to maximize throughput
 - Swaps adapters on-demand with minimal overhead
 
 **Why This Works:**
+
 1. **Memory Efficiency**: Base model (GB) shared across all adapters; only adapter weights (MB) duplicated
 2. **Throughput**: Batching provides 10-100x throughput improvement even with adapter overhead
 3. **Latency Control**: Smart scheduling ensures no request waits for incompatible batches
 
 **Comparison to Alternatives:**
+
 - vs **Separate Models**: 100-1000x memory savings; enables serving many more tasks
 - vs **Model Merging**: Dynamic per-request adapter selection vs fixed merged weights
 - vs **Sequential Processing**: 5-20x higher throughput through batching
@@ -2876,6 +2955,7 @@ Store adapters in paged memory, dynamically compose batches:
 **Key Insight:** Multi-LoRA serving demonstrates that modularity has runtime benefits beyond training. The separation of base model and adapters enables a new serving paradigm where one base model serves thousands of specialized tasks. This is only possible because LoRA's additive structure allows efficient composition.
 
 **Practical Impact:**
+
 - **User Personalization**: Serve personalized models for millions of users
 - **Multi-Tenancy**: Isolate different customers' fine-tuned models
 - **A/B Testing**: Run multiple model variants simultaneously
@@ -2888,6 +2968,7 @@ class MultiLoRABatchedInference:
     Key challenge: Different samples in batch may need different adapters.
 
     Solution approaches:
+
     1. Batch samples by adapter (simple but lower throughput)
     2. Compute all adapters, select per-sample (higher memory)
     3. Use efficient kernels (CUDA, best performance)
@@ -2979,10 +3060,12 @@ def multi_lora_memory_analysis():
     Key insight: LoRA adapters are small, so can store many in memory.
 
     Example: 7B model, LoRA r=8
+
     - Base model: 14 GB (FP16)
     - Single LoRA: ~8 MB
     - 100 LoRAs: 800 MB
     - Total: ~15 GB (fits on single GPU!)
+
     """
 
     base_model_gb = 14  # 7B model in FP16
@@ -3003,6 +3086,7 @@ def multi_lora_memory_analysis():
 ```
 
 **Key Papers:**
+
 - [DoRA: Weight-Decomposed Low-Rank Adaptation](https://arxiv.org/abs/2402.09353) (Liu et al., 2024)
 - [LoRA+: Efficient Low Rank Adaptation of Large Models](https://arxiv.org/abs/2402.12354) (Hayou et al., 2024)
 - [S-LoRA: Serving Thousands of Concurrent LoRA Adapters](https://arxiv.org/abs/2311.03285) (Sheng et al., 2023)
@@ -3025,10 +3109,12 @@ class LoRATrainer:
     Complete LoRA training pipeline.
 
     Includes:
+
     - Model initialization with LoRA
     - Training loop
     - Evaluation
     - Checkpoint saving/loading
+
     """
 
     def __init__(
@@ -3406,9 +3492,13 @@ def qlora_with_bitsandbytes():
    - Typically $r=8$ or $r=16$ achieves 95%+ of full fine-tuning
 
 2. **Mathematical Foundation**
+
+
    ```math
 h = W_0 x + \frac{\alpha}{r} BAx
 ```
+
+
    - $W_0$: Frozen pre-trained weights
    - $B \in \mathbb{R}^{d \times r}$, $A \in \mathbb{R}^{r \times k}$: Trainable
    - $\alpha/r$: Scaling factor

@@ -17,19 +17,23 @@
 ### What the Chapter Does Well
 
 #### 1. **Pedagogical Excellence**
+
 The chapter follows an outstanding pedagogical progression:
+
 - Starts with the problem (fixed-length bottleneck) before introducing the solution
 - Uses the "soft dictionary lookup" analogy which is intuitive and accurate
 - Builds from dot-product attention to scaled attention with clear motivation
 - Real-world analogies (highlighting text) are effective and memorable
 
 #### 2. **Mathematical Rigor**
+
 - Variance analysis for scaling is explained clearly with proper derivation
 - Matrix notation is introduced systematically
 - Complexity analysis is thorough (both time and space)
 - LaTeX formatting is clean and professional
 
 #### 3. **Code Quality**
+
 - All code examples are complete and runnable
 - Proper type hints throughout (`torch.Tensor`, return types)
 - Excellent docstrings with shape annotations
@@ -37,19 +41,23 @@ The chapter follows an outstanding pedagogical progression:
 - Test functions included for validation
 
 #### 4. **Practical Focus**
+
 - "Common Pitfalls and Best Practices" section is gold for interviews
 - Side-by-side wrong/correct code examples are extremely helpful
 - Attention visualization code is production-quality
 - Integration with Chapter 2 (embeddings) shows how pieces fit together
 
 #### 5. **Comprehensive Coverage**
+
 - Includes all essential topics: intuition, math, implementation, complexity, visualization
 - Exercises range from conceptual to advanced research questions
 - References are well-curated and include both seminal papers and tutorials
 - Cross-references to future chapters are appropriate
 
 #### 6. **Interview Preparation**
+
 The "Interview Talking Points" section is perfectly targeted:
+
 - Concise answers to common questions
 - Focuses on the "why" not just "what"
 - Covers complexity, which is often tested
@@ -60,6 +68,7 @@ The "Interview Talking Points" section is perfectly targeted:
 
 **Issue 1: Inconsistent mask value handling**
 Lines 207, 389, 440, and 709 use different mask fill values:
+
 - `-1e9` (lines 207, 389)
 - `float('-inf')` (lines 440, 709, 1032)
 
@@ -83,18 +92,27 @@ The scaling by √d_k is well-covered, but attention temperature (scaling by arb
 
 **Example Enhancement: Real tokenized text**
 The `attention_example_with_words()` function (line 510) uses simulated embeddings. While this is fine, a comment suggesting how to use actual embeddings from a tokenizer would make it more practical:
+
 ```python
+
 # To use real embeddings, replace the random embeddings with:
+
 # from transformers import AutoTokenizer, AutoModel
+
 # tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+
 # model = AutoModel.from_pretrained("bert-base-uncased")
+
 # tokens = tokenizer(source_words, return_tensors="pt", is_split_into_words=True)
+
 # source_embeddings = model.embeddings(tokens.input_ids)
+
 ```
 
 #### 3. **Computational Complexity Section**
 
 **Enhancement Opportunity**: The complexity analysis (line 876-1005) is excellent but could benefit from:
+
 - A brief mention of batch dimension complexity: O(b·n²·d) where b is batch size
 - Flash Attention preview: "Flash Attention (Chapter 12) reduces memory to O(n) while maintaining O(n²d) operations through kernel fusion and tiling"
 
@@ -103,15 +121,21 @@ The `attention_example_with_words()` function (line 510) uses simulated embeddin
 **Exercise 5** (line 1180): The test compares against `F.scaled_dot_product_attention` but this function may use Flash Attention internally (PyTorch 2.0+), which could cause numerical differences. Should specify `atol=1e-5` or note that Flash Attention uses different numerics.
 
 **Exercise 14** (line 1223): "At what sequence length does it become infeasible?" - This is good but could provide a framework:
-```
+
+```text
+
 # Guidance: For an 80GB A100 with multi-head attention (h=32, d_k=64):
+
 # Memory per layer ≈ b·h·n²·4 bytes (float32)
+
 # Solve for n when this exceeds available memory
+
 ```
 
 ### Errors Found
 
 #### Technical Errors: None Found
+
 The mathematics, code, and explanations are all technically correct.
 
 #### Typos/Minor Issues:
@@ -119,10 +143,12 @@ The mathematics, code, and explanations are all technically correct.
 1. **Line 142**: "Wiegreffe" should be "Wiegreffe" (correct spelling) - Actually, this is correct as written.
 
 2. **Line 287**: The code comment could be clearer:
+
    ```python
    def compare_scaling():
        """Demonstrate the effect of scaling on softmax."""
-   ```
+```
+
    Better: `"""Demonstrate the effect of scaling on softmax saturation."""`
 
 3. **Line 1002**: "Flash Attention" reference links to `12-flash-attention.md`. Should verify this chapter exists in the outline.
@@ -134,11 +160,13 @@ The mathematics, code, and explanations are all technically correct.
 ### Cross-Reference Quality
 
 #### Excellent Cross-References:
+
 - Line 789: Reference to Chapter 2 (Embeddings) with working link
 - Line 1110: Reference to Chapter 4 (Multi-Head Attention)
 - Line 1230: "Next Chapter" link at the end
 
 #### Potential Issues:
+
 The forward references to chapters 12, 13, and 26 should be verified against the outline. If these chapters don't exist yet or have different numbers, the links will break.
 
 **Recommendation**: Check these against `/home/jmalicki/src/ml-study-guide/README.md` or the main outline.
@@ -146,16 +174,20 @@ The forward references to chapters 12, 13, and 26 should be verified against the
 ### Specific Suggestions for Improvement
 
 #### 1. **Consistency Fix for Masking**
+
 Replace all instances of `-1e9` with `float('-inf')`:
 
 Lines to update:
+
 - Line 207: `scores = scores.masked_fill(mask == 0, float('-inf'))`
 - Line 389: `scores = scores.masked_fill(mask == 0, float('-inf'))`
 
 #### 2. **Add Attention Temperature Section**
+
 After the scaled attention section (around line 350), add a brief subsection:
 
 ```markdown
+
 ### Attention Temperature (Optional)
 
 While √d_k is the standard scaling, attention can be controlled with a temperature parameter:
@@ -170,13 +202,17 @@ Temperature is mainly used for controllable generation, not in standard transfor
 ```
 
 #### 3. **Enhance Best Practices Section**
+
 Add one more best practice:
 
 ```markdown
+
 - ✅ Consider using `torch.backends.cuda.sdp_kernel()` context manager (PyTorch 2.0+) to control which attention implementation is used
+
 ```
 
 #### 4. **Add Batch Dimension to Complexity Analysis**
+
 In the complexity section, add after line 896:
 
 ```markdown
@@ -184,17 +220,20 @@ In the complexity section, add after line 896:
 ```
 
 #### 5. **Verify Forward References**
+
 Check that chapters 12, 13, and 26 exist and update references if needed.
 
 ### Additional Strengths
 
 #### Code Features Worth Highlighting:
+
 1. **Xavier initialization** (line 675-678): Good practice, often overlooked in tutorials
 2. **Proper dropout handling** (line 445): Checks `self.training` correctly
 3. **Attention weight detachment** in best practices (line 1052): Critical for memory efficiency
 4. **Broadcasting-compatible masks** (line 694): Shows understanding of practical implementation
 
 #### Interview Preparation Features:
+
 1. **Variance derivation** (lines 258-280): Often asked in interviews
 2. **Complexity analysis with actual numbers** (lines 996-999): Helps with system design questions
 3. **Common pitfalls section**: Directly addresses frequent interview mistakes
@@ -203,6 +242,7 @@ Check that chapters 12, 13, and 26 exist and update references if needed.
 ### Comparison to Learning Objectives
 
 Based on the CLAUDE.md instructions:
+
 - ✅ "describe the algorithms" - Excellent coverage
 - ✅ "use LaTeX math notation where appropriate" - Properly used throughout
 - ✅ "include sample python code using pytorch" - Multiple complete examples
@@ -212,6 +252,7 @@ Based on the CLAUDE.md instructions:
 ### Final Assessment
 
 This is an **exemplary chapter** that sets a high bar for the rest of the study guide. The combination of:
+
 - Clear intuitive explanations
 - Rigorous mathematical treatment
 - Production-quality code

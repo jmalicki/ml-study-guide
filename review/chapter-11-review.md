@@ -148,39 +148,53 @@
 ### Specific Suggestions for Improvement
 
 1. **Add KV Cache Implementation**
+
    ```python
+
    # Add a KV-cached version of generate
+
    @torch.no_grad()
    def generate_with_cache(self, ...):
+
        # Maintain cache of past key-value pairs
        # Only compute attention for new token
        # This is critical for efficient inference
-   ```
+
+```
 
 2. **Improve RoPE Implementation**
+
    ```python
    def apply_rope(x: torch.Tensor, freqs: torch.Tensor) -> torch.Tensor:
        assert x.shape[-1] % 2 == 0, "head_dim must be even for RoPE"
        x_complex = x.float().reshape(*x.shape[:-1], -1, 2).contiguous()
+
        # ... rest of implementation
-   ```
+
+```
 
 3. **Add Mixed Precision Example**
+
    ```python
+
    # In training function, show:
+
    scaler = torch.cuda.amp.GradScaler()
    with torch.cuda.amp.autocast():
        logits = model(x)
        loss = F.cross_entropy(...)
-   ```
+```
 
 4. **Improve Dataset for Large Scale**
+
    ```python
+
    # Add note about memory-efficient alternatives:
    # - torch.utils.data.IterableDataset
    # - Memory-mapped files
    # - Streaming datasets (e.g., HuggingFace datasets library)
-   ```
+
+```
 
 5. **Add Initialization Explanation**
    - Add a section explaining why modern transformers use different initialization
@@ -206,6 +220,7 @@
 ### Cross-Reference Quality
 
 **Excellent cross-references:**
+
 - Links to Flash Attention (chapter 12)
 - Links to Multi-Head Attention (chapter 4)
 - Links to RoPE (chapter 8)
@@ -213,11 +228,13 @@
 - Links to other relevant chapters
 
 **Missing cross-references:**
+
 - Should link to Tokenization (chapter 1) when discussing the character tokenizer
 - Could link to Normalization chapter when discussing RMSNorm vs LayerNorm
 - Should link to Training chapters when discussing fine-tuning in exercises
 
 **Potentially broken references:**
+
 - Line 42: Links to "30-model-architectures.md" - need to verify this chapter exists
 - Line 902: Links to "30-model-architectures.md" again
 - Line 1495: Links to "15-lm-training.md" - verify chapter exists

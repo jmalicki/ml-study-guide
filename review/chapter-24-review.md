@@ -105,9 +105,11 @@
    - They're equivalent since $\alpha_t = 1 - \beta_t$, but the notation switch is confusing
 
 2. **Line 251**: Cosine schedule implementation
+
    ```python
    alphas_cumprod = torch.cos(((x / num_timesteps) + s) / (1 + s) * torch.pi * 0.5) ** 2
-   ```
+```
+
    - This is correct, but could benefit from a comment explaining why we square after cos
    - The original paper formula uses $\cos^2$ which is clearer in intent
 
@@ -126,17 +128,21 @@
 **Potential Technical Issues:**
 
 6. **Line 199**: The `_extract` method uses `gather`
+
    ```python
    out = a.gather(-1, t)
-   ```
+```
+
    - This assumes `t` is a 1D tensor, but `t.shape[0]` is used
    - Should validate or document the expected shape of `t`
    - More robust: `out = a[t.cpu()]` if `a` and `t` are compatible
 
 7. **Line 424**: DSM loss uses log-uniform noise level
+
    ```python
    sigma = torch.exp(torch.rand(x.shape[0], 1) * ...)
-   ```
+```
+
    - This creates a different sigma for each batch element
    - Should clarify this is intentional (it is correct for DSM)
    - Could also mention geometric spacing as alternative
@@ -149,6 +155,7 @@
 ### Specific Suggestions for Improvement
 
 1. **Add a Complexity Comparison Table**
+
    ```markdown
    | Operation | VAE | GAN | Diffusion |
    |-----------|-----|-----|-----------|
@@ -156,7 +163,7 @@
    | Sampling time | O(1) | O(1) | O(T) |
    | Memory during training | O(n) | O(n) | O(n) |
    | Memory during sampling | O(n) | O(n) | O(n) |
-   ```
+```
 
 2. **Enhance the Time Embedding Explanation**
    - Lines 640-662 introduce time embeddings but could explain WHY sinusoidal
@@ -164,6 +171,7 @@
    - Mention alternatives: learned embeddings, Fourier features
 
 3. **Add Shape Comments to Code**
+
    ```python
    def q_sample(self, x_0, t, noise=None):
        """
@@ -173,7 +181,7 @@
            t: Timestep tensor [batch_size]  # Already good
            noise: Optional pre-sampled noise [batch_size, C, H, W]  # Add shape
        """
-   ```
+```
 
 4. **Improve Exercise 3 (DDIM)**
    - Provide actual implementation template, not just hint
@@ -203,23 +211,29 @@
 ### Cross-Reference Quality
 
 **Good References:**
+
 - Line 7: Links to Chapters 24 and 25 (implementation and advanced topics)
 - Line 1038-1041: Clear roadmap to next chapters
 - Key papers properly cited with ArXiv links
 
 **Missing References:**
+
 - Could reference attention chapter (flash attention similarities to memory-efficient sampling)
 - Position encodings chapter when discussing time embeddings
 - Transformer chapters when mentioning positional encodings
 
 **Suggestion:**
 Add a "Prerequisites" section at the start:
+
 ```markdown
+
 ## Prerequisites
+
 - Basic understanding of neural networks and PyTorch
 - Familiarity with probability distributions (Gaussian, KL divergence)
 - Knowledge of VAEs helpful but not required
 - See [Chapter X: Attention Mechanisms] for background on positional encodings
+
 ```
 
 ### Additional Strengths Worth Highlighting
@@ -254,6 +268,7 @@ Add a "Prerequisites" section at the start:
 ### Summary of Recommendations
 
 **High Priority (Should Fix):**
+
 1. Fix notation inconsistency in line 117
 2. Add device handling in DDPM sampling code (line 570-580)
 3. Add type hints to code examples
@@ -261,6 +276,7 @@ Add a "Prerequisites" section at the start:
 5. Add numerical stability considerations
 
 **Medium Priority (Nice to Have):**
+
 1. Add brief SDE perspective paragraph
 2. Include complexity comparison table
 3. Enhance time embedding explanation
@@ -268,6 +284,7 @@ Add a "Prerequisites" section at the start:
 5. Expand common pitfalls section with concrete examples
 
 **Low Priority (Polish):**
+
 1. Add prerequisites section
 2. Make cross-references more specific
 3. Add concrete training time/memory numbers
@@ -279,12 +296,14 @@ Add a "Prerequisites" section at the start:
 This is an **exceptionally strong chapter** that successfully balances mathematical rigor with practical implementation. It would serve excellently for ML interview preparation, particularly for roles involving generative modeling or research positions.
 
 The chapter's greatest strengths are:
+
 - Crystal-clear mathematical exposition
 - Production-quality code examples
 - Perfect pedagogical structure
 - Comprehensive coverage of fundamentals
 
 The areas for improvement are minor and mostly involve:
+
 - Adding some advanced topics (SDE formulation, learned variance)
 - Improving robustness of code examples (device handling, type hints)
 - Expanding practical guidance (evaluation, debugging, training tips)

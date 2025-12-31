@@ -66,32 +66,42 @@
 1. **Minor Clarifications Needed**
 
    a. **Line 84**: "Total parameters: roughly the same as single-head attention"
+
       - This could be more precise. The total parameters are *exactly* the same when comparing MHA with dimension $d_k$ per head vs single-head attention with dimension $d_{\text{model}}$
       - Suggestion: "Total computational cost is similar to single-head attention with full dimension $d_{\text{model}}$"
 
    b. **Line 548-549**: The `repeat_interleave` operation in GQA
+
       - While correct, a brief comment explaining why this works would help
       - Suggestion: Add comment: `# Each KV head serves num_queries_per_kv query heads`
 
 2. **Potential Additions**
 
    a. **Attention Head Visualization**:
+
       - The visualization code (lines 726-759) is good but could benefit from showing actual learned patterns
       - Consider adding a note about what patterns to look for (diagonal = local attention, full rows = global attention, etc.)
 
    b. **KV Cache Implementation**:
+
       - Since KV cache is discussed extensively as motivation for MQA/GQA, showing a minimal KV cache implementation would be valuable
       - Example:
+
       ```python
       def forward_with_kv_cache(self, query, kv_cache=None):
           """Forward pass with KV caching for autoregressive generation."""
           if kv_cache is not None:
+
               # Use cached K, V and only compute for new tokens
+
           else:
+
               # Full computation
-      ```
+
+```
 
    c. **When to Use Each Variant**:
+
       - Add a decision flowchart or guidelines:
         - Use MHA for: Training from scratch, when quality is paramount
         - Use GQA for: Balancing quality and inference speed (recommended for most cases)
@@ -100,18 +110,25 @@
 3. **Code Improvements**
 
    a. **Mask Broadcasting** (line 179):
+
       - The mask shape comment suggests `(batch_size, 1, 1, seq_len_k)` or `(batch_size, 1, seq_len_q, seq_len_k)`
       - Consider showing both patterns explicitly:
+
       ```python
+
       # Padding mask: (batch_size, 1, 1, seq_len_k)
+
       # Causal mask: (1, 1, seq_len_q, seq_len_k) or (batch_size, 1, seq_len_q, seq_len_k)
-      ```
+
+```
 
    b. **Test Function Output**:
+
       - `test_multi_head_attention()` uses `plt.savefig()` but doesn't handle the case where matplotlib isn't available
       - Add try/except or make visualization optional
 
    c. **Memory-Efficient Implementation** (lines 857-906):
+
       - The chunking is only applied to queries, not the full attention matrix
       - This is correct for autoregressive case but should be noted
       - For bidirectional attention with very long sequences, you'd need to chunk both dimensions
@@ -160,14 +177,17 @@ I verified the following and found them all correct:
 ### Specific Suggestions for Improvement
 
 1. **Add a "Common Pitfalls" Section**:
+
    ```markdown
+
    ### Common Pitfalls
 
    1. **Forgetting to scale attention scores**: Always divide by sqrt(d_k)
    2. **Incorrect mask broadcasting**: Ensure mask shape is compatible
    3. **Not using .contiguous()**: Required before view() after transpose()
    4. **Wrong dimension for softmax**: Should be dim=-1 (over keys)
-   ```
+
+```
 
 2. **Enhance the Summary Table** (line 769):
    - Add a "Conversion" column showing how to convert between variants
@@ -176,10 +196,11 @@ I verified the following and found them all correct:
 3. **Add Initialization Example**:
    - The initialization function (lines 826-838) is good but not integrated with the main classes
    - Consider showing how to apply it:
+
    ```python
    mha = MultiHeadAttention(d_model=512, num_heads=8)
    mha.apply(init_multihead_attention)
-   ```
+```
 
 4. **Clarify "Empirical Evidence" Section** (lines 36-43):
    - Add specific paper references for each claim
@@ -205,6 +226,7 @@ I verified the following and found them all correct:
 - ✓ References Model Architectures (Chapter 29) - great for seeing MHA/GQA in practice
 
 **Potential additions:**
+
 - Could reference positional encodings (RoPE) since attention heads in lower layers focus on positional patterns
 - Could reference the exercises section from earlier chapters if they exist
 
@@ -241,6 +263,7 @@ I verified the following and found them all correct:
 5. ✓ The only potential issue is matplotlib dependency (minor)
 
 **Testing recommendation:**
+
 - Actually run all code snippets to verify
 - Test with different batch sizes, sequence lengths
 - Verify outputs match expected shapes
@@ -254,6 +277,7 @@ I verified the following and found them all correct:
 3. **Research Papers**: Code matches mathematical descriptions in cited papers
 
 **This chapter would prepare someone to:**
+
 - Read and understand transformer implementations in major libraries
 - Implement custom attention variants
 - Discuss attention mechanisms in technical interviews
@@ -271,6 +295,7 @@ I verified the following and found them all correct:
 6. ✓ Cross-references to other chapters
 
 **Minor suggestion:**
+
 - Add publication venues if known (e.g., "NeurIPS 2017")
 - Add a "Further Reading" subsection for optional depth
 
@@ -279,6 +304,7 @@ I verified the following and found them all correct:
 This is an **outstanding chapter** that would be highly valuable for ML interview preparation. It covers the essential topic of multi-head attention with exceptional depth, clarity, and practical examples. The progression from MHA to MQA to GQA mirrors the evolution of modern LLMs and prepares readers for real-world scenarios.
 
 **Strengths:**
+
 - Complete, runnable implementations
 - Modern coverage (GQA in LLaMA/Mistral)
 - Excellent balance of theory and practice
@@ -286,6 +312,7 @@ This is an **outstanding chapter** that would be highly valuable for ML intervie
 - Production-quality code
 
 **Minor Areas for Enhancement:**
+
 - Could add KV cache implementation example
 - Decision guidelines for choosing variants
 - Common pitfalls section

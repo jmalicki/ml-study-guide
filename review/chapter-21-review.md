@@ -66,13 +66,16 @@
 2. **Code Improvements Needed**
 
    a. **Shape Mismatch in PPO Step** (lines 791-801):
+
    ```python
    log_probs = F.log_softmax(logits[:, :-1], dim=-1)  # [batch, seq-1, vocab]
    actions = input_ids[:, 1:]  # [batch, seq-1]
-   ```
+```
+
    This shifts by one token but doesn't account for the prompt portion. The code should only compute losses on generated tokens, not prompt tokens.
 
    b. **Value Function Shape Handling** (line 811):
+
    ```python
    value_loss = compute_value_loss(
        values[:, :-1],
@@ -80,7 +83,8 @@
        old_values[:, :-1],
        self.clip_epsilon
    )
-   ```
+```
+
    Similar issue - should mask prompt tokens when computing value loss.
 
    c. **Missing Reward Normalization in Trainer**:
@@ -111,12 +115,15 @@
 1. **Minor Technical Issues**
 
    a. **Line 154** - Removing LM head with `nn.Identity()`:
+
    ```python
    self.model.lm_head = nn.Identity()
-   ```
+```
+
    This doesn't actually remove it from memory if the original model is still referenced. Better to use `del self.model.lm_head` or explain that this is for API compatibility.
 
    b. **Lines 869-874** - Advantage computation:
+
    ```python
    advantages, returns = compute_advantages_and_returns(
        rewards,
@@ -124,12 +131,14 @@
        gamma=self.gamma,
        lambda_=self.lambda_
    )
-   ```
+```
+
    The `values_old` tensor includes the value head outputs for ALL positions, but rewards are only at the end. This could lead to incorrect advantage estimates. Should clarify or handle this more explicitly.
 
 2. **Code Consistency**
 
    a. **Inconsistent padding token handling**:
+
    - Line 719: `pad_token_id=self.tokenizer.pad_token_id`
    - Line 724: `(outputs != self.tokenizer.pad_token_id)`
    - But line 905: `tokenizer.pad_token = tokenizer.eos_token`
@@ -139,12 +148,14 @@
 3. **Potential Runtime Issues**
 
    a. **Line 186** - Gathering last hidden states:
+
    ```python
    last_hidden_states = hidden_states[
        torch.arange(batch_size, device=hidden_states.device),
        sequence_lengths
    ]
-   ```
+```
+
    If `sequence_lengths` goes out of bounds (all padding), this will error. Should add bounds checking.
 
    b. **Memory leak potential**: The reference model and reward model are kept on GPU (lines 662-674) throughout training. For large models, this could cause OOM. Should mention CPU offloading more prominently.
@@ -152,6 +163,7 @@
 ### Specific Suggestions for Improvement
 
 1. **Add Reward Normalization Example**
+
    ```python
    class RewardNormalizer:
        """Running reward normalization for stable RLHF training."""
@@ -168,16 +180,19 @@
            batch_count = rewards.numel()
 
            # Update running statistics
+
            delta = batch_mean - self.mean
            self.mean += delta * batch_count / (self.count + batch_count)
+
            # ... (implement Welford's algorithm)
 
        def normalize(self, rewards: torch.Tensor) -> torch.Tensor:
            """Normalize rewards using running statistics."""
            return (rewards - self.mean) / (torch.sqrt(self.var) + self.epsilon)
-   ```
+```
 
 2. **Add Prompt Masking Utility**
+
    ```python
    def create_response_mask(
        attention_mask: torch.Tensor,
@@ -200,13 +215,16 @@
            response_mask[i, prompt_lengths[i]:] = 1
 
        return response_mask * attention_mask
-   ```
+```
 
 3. **Improve PPO Step to Only Train on Responses**
+
    The `ppo_step` method should use the prompt mask to ensure we only compute losses on generated tokens, not prompt tokens.
 
 4. **Add Evaluation Section**
+
    Include a section on evaluating RLHF models:
+
    - Reward model accuracy on held-out preferences
    - KL divergence monitoring
    - Human evaluation protocols
@@ -215,32 +233,41 @@
    - Diversity metrics
 
 5. **Add Troubleshooting Subsection**
+
    Create a practical troubleshooting guide:
+
    - Policy collapse: What it looks like and how to fix
    - Reward hacking patterns: Examples and detection
    - Value divergence: Signs and solutions
    - NaN gradients: Common causes and fixes
 
 6. **Expand Exercise 4**
+
    The comparison exercise could include more specific metrics:
+
    ```python
    def evaluate_rlhf_improvement(sft_model, rlhf_model, reward_model, prompts):
        """
        Comprehensive evaluation comparing SFT and RLHF models.
 
        Metrics:
+
        - Average reward score
        - KL divergence from original SFT
        - Response length distribution
        - Diversity (unique n-grams)
        - Human preference win rate (if available)
+
        """
+
        # TODO: Implementation
-   ```
+
+```
 
 ### Cross-Reference Quality
 
 **Excellent cross-referencing:**
+
 - Line 20: Links to SFT chapter (19-sft.md) ✓
 - Line 25: Links to DPO chapter (22-dpo.md) ✓
 - Line 72: References SFT chapter again ✓
@@ -250,6 +277,7 @@
 - Line 1156-1158: Clear next steps with relevant chapters ✓
 
 **Suggestions:**
+
 1. Could add a reference to the attention mechanisms chapter when discussing the transformer architecture of reward models
 2. Could reference tokenization chapter when discussing input_ids generation
 3. The "Constitutional AI" reference (line 1151) is forward-looking; ensure Chapter 22 exists and covers this
@@ -278,6 +306,7 @@
 ### Comparison with Industry Practices
 
 The chapter aligns well with industry practices:
+
 - **OpenAI's InstructGPT**: Methodology matches their paper ✓
 - **Anthropic's approach**: Constitutional AI mentioned ✓
 - **Modern alternatives**: DPO prominently mentioned ✓
@@ -302,6 +331,7 @@ This is an **excellent chapter** that provides comprehensive coverage of RLHF wi
 The chapter successfully achieves its goal of preparing readers for ML interviews focused on LLMs. The combination of theory, math, code, and practical considerations makes it a valuable resource. With the suggested improvements, this would be a near-perfect reference chapter.
 
 **Recommendation**: Publish with minor revisions. The issues identified are relatively minor and don't detract significantly from the chapter's value. Priority fixes would be:
+
 1. Prompt masking in PPO loss computation (High priority - correctness issue)
 2. Reward normalization example (Medium priority - best practice)
 3. Evaluation section (Medium priority - completeness)

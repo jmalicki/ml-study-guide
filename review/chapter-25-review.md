@@ -93,15 +93,19 @@
 ### Errors (Technical, Code, or Typos)
 
 1. **Potential Bug in DDIM (line 1092)**
+
    ```python
    alpha_bar_t_prev = torch.tensor(1.0)
-   ```
+```
+
    This creates a CPU tensor even if the model is on GPU. Should be:
+
    ```python
    alpha_bar_t_prev = torch.tensor(1.0, device=device)
-   ```
+```
 
 2. **Incomplete Implementation (line 1293)**
+
    The `UNetCheckpointed` class ends with just `pass` - this should either be fully implemented or removed with a note about how to implement it
 
 3. **Missing Import**
@@ -117,24 +121,32 @@
 ### Specific Suggestions for Improvement
 
 1. **Add Skip Connection Diagram**
+
    After line 76, add a more detailed diagram showing how channels flow:
-   ```
+
+```text
    Channels: 128 → 256 → 512 → 1024
                    ↓      ↓      ↓
    Skip cons:    256    512   1024
                    ↓      ↓      ↓
    Up blocks:  ←─────←─────←─────
-   ```
+```
 
 2. **Clarify Channel Accumulation**
+
    Add a comment at line 332:
+
    ```python
+
    # Track channels at each level for matching skip connections in decoder
+
    channels = [model_channels]
-   ```
+```
 
 3. **Complete Gradient Checkpointing Example**
+
    Replace lines 1278-1293 with a concrete example:
+
    ```python
    def forward(self, x, t):
        from torch.utils.checkpoint import checkpoint
@@ -144,45 +156,62 @@
 
        skips = []
        for block in self.down_blocks:
+
            # Checkpoint expensive blocks to save memory
+
            x, skip = checkpoint(block, x, t_emb, use_reentrant=False)
            skips.append(skip)
+
        # ... rest of implementation
-   ```
+
+```
 
 4. **Add Warmup Scheduler**
+
    After line 808, add:
+
    ```python
+
    # Optional: Add warmup for better training stability
+
    from torch.optim.lr_scheduler import LinearLR, SequentialLR
    warmup_scheduler = LinearLR(optimizer, start_factor=0.1, total_iters=1000)
    main_scheduler = CosineAnnealingLR(optimizer, T_max=num_epochs)
    scheduler = SequentialLR(optimizer, [warmup_scheduler, main_scheduler], milestones=[1000])
-   ```
+```
 
 5. **Fix DDIM Device Bug**
+
    Line 1092:
+
    ```python
    alpha_bar_t_prev = torch.tensor(1.0, device=device)
-   ```
+```
 
 6. **Expand Variance Sampling Explanation**
+
    After line 982, add:
+
    ```python
    """
    Use this version when:
+
    - You need better sample quality at the cost of speed
    - You've trained with learned variance
    - You want to use the theoretically correct posterior variance
 
    Use simple sample_ddpm when:
+
    - You want faster sampling
    - Fixed variance works well enough for your use case
+
    """
-   ```
+```
 
 7. **Add Conditional Example**
+
    Consider adding a simple conditional U-Net example in the exercises section or as a bonus:
+
    ```python
    class ConditionalUNet(UNet):
        def __init__(self, num_classes, *args, **kwargs):
@@ -191,21 +220,28 @@
 
        def forward(self, x, t, y):
            t_emb = self.time_mlp(t) + self.class_emb(y)
+
            # ... rest remains the same
-   ```
+
+```
 
 8. **Add Flash Attention Note**
+
    After line 187, add a note:
+
    ```python
+
    # Note: For production, consider using Flash Attention (see [Flash Attention](14-flash-attention.md))
    # which provides 2-4x speedup with lower memory usage:
    # from torch.nn.functional import scaled_dot_product_attention
    # h = scaled_dot_product_attention(q, k, v, scale=scale)
-   ```
+
+```
 
 ### Cross-Reference Quality
 
 **Excellent**:
+
 - Links to Chapter 23 (Diffusion Fundamentals) are well-placed and relevant
 - Reference to Chapter 3 (Basic Attention) in the attention block
 - Reference to Chapter 7 (Positional Encodings) for time embeddings
@@ -214,6 +250,7 @@
 - Reference to Chapter 25 (Advanced Diffusion Topics) at the end
 
 **Could Add**:
+
 - Reference to Chapter 14 (Flash Attention) in the AttentionBlock implementation
 - Reference to Chapter 17 (Scaling Laws and Optimization) for optimizer choices
 - Reference to Chapter 31 (Hardware, Quantization) for inference optimization
@@ -228,6 +265,7 @@
 4. **Progression**: Builds from simple components to complete system
 
 **Interview Topics Covered**:
+
 - U-Net architecture and skip connections
 - Time conditioning mechanisms
 - Noise scheduling strategies
@@ -237,6 +275,7 @@
 - Common failure modes and debugging
 
 An ML engineer who thoroughly understands this chapter would be well-prepared to:
+
 - Discuss diffusion model architectures in depth
 - Implement a diffusion model from scratch
 - Debug training issues
@@ -263,6 +302,7 @@ An ML engineer who thoroughly understands this chapter would be well-prepared to
 This is an **exceptional chapter** that represents best-in-class technical writing for an ML study guide. The code is production-quality, the explanations are clear and rigorous, and the practical considerations are invaluable. The few issues identified are minor and don't detract from the overall excellence.
 
 **For an ML interview context**, this chapter is nearly perfect. It balances:
+
 - Theoretical understanding (math and intuition)
 - Practical implementation (runnable code)
 - Real-world concerns (memory, speed, debugging)
@@ -273,6 +313,7 @@ This is an **exceptional chapter** that represents best-in-class technical writi
 ### Comparison to Industry Standards
 
 This chapter compares favorably to:
+
 - **Hugging Face Diffusers documentation**: More pedagogical and complete
 - **OpenAI's Improved DDPM repo**: Better explained, more accessible
 - **Phil Wang's implementations**: Similar code quality, better educational flow
@@ -284,6 +325,7 @@ It successfully bridges the gap between academic papers and production code, whi
 If I were interviewing an ML engineer who demonstrated the level of understanding presented in this chapter, I would be highly impressed. The chapter doesn't just teach what diffusion models are - it teaches how to build them, debug them, and deploy them. That's the difference between academic knowledge and engineering competence.
 
 **Score justification**:
+
 - 9.5/10 Overall: Deducted 0.5 for minor bugs and incomplete sections
 - Would be 10/10 with the DDIM device bug fixed and gradient checkpointing completed
 

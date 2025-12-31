@@ -71,6 +71,7 @@ if __name__ == "__main__":
 ### Why Order Matters in Language
 
 Language is fundamentally sequential:
+
 - **Syntax**: "The dog bit the man" ≠ "The man bit the dog"
 - **Temporal relationships**: "After lunch, I went home" vs "I went home after lunch"
 - **Long-range dependencies**: "The keys that I left on the table ... are missing"
@@ -85,12 +86,14 @@ A good positional encoding scheme should satisfy several properties:
 
 ### 1. Uniqueness
 Each position should have a unique encoding:
+
 ```math
 \text{PE}(pos_i) \neq \text{PE}(pos_j) \quad \text{for } i \neq j
 ```
 
 ### 2. Bounded Values
 Encodings should have bounded magnitudes to prevent numerical instability:
+
 ```math
 \|\text{PE}(pos)\| \leq C \quad \text{for some constant } C
 ```
@@ -122,6 +125,7 @@ For a position $pos$ and dimension $i$, the positional encoding is:
 ```
 
 Where:
+
 - $pos$ is the position in the sequence (0, 1, 2, ...)
 - $i$ is the dimension index (0 to $d_{model}/2 - 1$)
 - $d_{model}$ is the embedding dimension
@@ -130,6 +134,7 @@ Where:
 ![Position-Dimension Heatmap](../assets/diagrams/ch07-dimension-heatmap.svg)
 
 The heatmap above illustrates how sinusoidal encoding varies across both positions (horizontal axis) and dimensions (vertical axis). Notice how:
+
 - **Top rows** (low dimensions) show rapid alternation between values - these high-frequency components capture fine-grained position differences
 - **Bottom rows** (high dimensions) change slowly across positions - these low-frequency components provide coarse positional context
 - Each **column** (position) has a unique pattern across all dimensions, creating a distinctive "fingerprint"
@@ -137,6 +142,7 @@ The heatmap above illustrates how sinusoidal encoding varies across both positio
 ### Intuition
 
 The sinusoidal encoding uses different frequencies for different dimensions:
+
 - **Low dimensions**: High frequency (changes rapidly with position)
 - **High dimensions**: Low frequency (changes slowly with position)
 
@@ -151,6 +157,7 @@ The visualization above shows how different dimensions oscillate at different fr
 Before implementing sinusoidal encodings, it's important to understand the theoretical foundation:
 
 **The Problem Being Solved**: We need a function that maps position integers to continuous vectors such that:
+
 - Each position gets a unique representation
 - The model can learn to identify relative positions (e.g., "5 positions apart")
 - The encoding generalizes to unseen sequence lengths
@@ -164,6 +171,7 @@ Before implementing sinusoidal encodings, it's important to understand the theor
 3. **Bounded and smooth**: Unlike incrementing integers (0, 1, 2, ...), which grow unbounded, sine and cosine values stay in [-1, 1], preventing numerical instability and ensuring the positional information doesn't dominate the semantic token embeddings.
 
 **Relation to Alternatives**:
+
 - **vs. Learned embeddings**: Sinusoidal is deterministic and extrapolates, but learned embeddings can be more task-adaptive
 - **vs. Binary encoding**: Binary (0/1 patterns) would give unique positions but lacks smoothness for the model to interpolate
 - **vs. Simple incrementing**: Position values 0, 1, 2, ... would grow unbounded and lack the linear transformation property
@@ -381,6 +389,7 @@ The positional embeddings are stored in an embedding matrix $P \in \mathbb{R}^{m
 3. **Simplicity**: Conceptually simpler than sinusoidal—just another embedding table, using the same machinery as token embeddings.
 
 **Relation to Alternatives**:
+
 - **vs. Sinusoidal**: Trades determinism and extrapolation for task-specific flexibility
 - **vs. No position encoding**: Absolutely necessary—without any positional information, transformers are order-agnostic
 - **vs. Relative methods**: Simpler to implement but encodes absolute position rather than relative distances
@@ -449,8 +458,10 @@ def analyze_learned_positions():
     """Analyze what learned positional embeddings learn.
 
     This demonstrates that learned embeddings often capture:
+
     1. Nearby positions have similar embeddings
     2. Some periodic structure (though not as regular as sinusoidal)
+
     """
     # Create and "train" a simple model with learned positions
     max_len = 100
@@ -516,6 +527,7 @@ Now that we understand both approaches theoretically, let's empirically compare 
 ![Positional Encoding Methods Comparison](../assets/diagrams/ch07-encoding-comparison.svg)
 
 The comparison above illustrates the key differences between four major positional encoding approaches:
+
 - **Sinusoidal**: Regular wave patterns with different frequencies across dimensions
 - **Learned**: More irregular patterns optimized for the specific task
 - **ALiBi**: Distance-based bias matrix applied directly to attention scores
@@ -526,6 +538,7 @@ The comparison above illustrates the key differences between four major position
 **The Problem**: Theory tells us sinusoidal should extrapolate better and learned should be more task-adaptive, but how significant are these differences in practice?
 
 **What We're Testing**:
+
 1. **Learning capability**: Can both methods learn to use positional information effectively?
 2. **Extrapolation**: What happens when we test on sequences longer than training?
 3. **Convergence speed**: Does one approach learn faster than the other?
@@ -676,10 +689,12 @@ Both sinusoidal and learned encodings are **absolute**: they encode the absolute
 Consider the sentence: "The cat sat on the mat."
 
 For absolute encoding:
+
 - "cat" gets position 1
 - "mat" gets position 5
 
 For relative encoding when processing "sat":
+
 - "cat" is -1 positions away
 - "mat" is +3 positions away
 
@@ -696,6 +711,7 @@ Relative positional encodings modify the attention mechanism to include position
 Where $R$ is a matrix of relative position biases.
 
 **Note**: This is just an introduction. Modern relative positional encoding methods include:
+
 - **RoPE (Rotary Position Embeddings)**: See [Chapter 8](08-rope.md) for detailed coverage
 - **ALiBi (Attention with Linear Biases)**: Simple yet effective approach covered below
 - **T5's relative position biases**: Learned biases for relative distances
@@ -723,12 +739,14 @@ Here, $m$ is a head-specific slope (a constant, not learned), and $|i - j|$ is t
 #### Key Properties
 
 **Advantages**:
+
 1. **No positional embeddings**: Saves parameters and computation—no need to add anything to the input
 2. **Excellent extrapolation**: Can train on sequences of length 512 and generalize to 2048+ tokens with minimal degradation
 3. **Extremely simple**: Just a single bias addition to attention scores
 4. **Head-specific distances**: Different heads can focus on different distance ranges
 
 **Disadvantages**:
+
 1. **Linear penalty only**: May not capture all positional relationships as well as more complex methods
 2. **Less common in practice**: RoPE has become more standard for modern LLMs
 
@@ -883,6 +901,7 @@ Beyond ALiBi, another influential approach is the relative position bias used in
 3. **Attention-level encoding**: Rather than adding position to embeddings (which then propagates through all layers possibly getting diluted), relative biases directly influence attention scores where position matters most.
 
 **Relation to Alternatives**:
+
 - **vs. Absolute encodings**: More robust to position shifts; models relationships rather than locations
 - **vs. ALiBi**: More flexible (learned) but requires parameters; ALiBi is simpler and parameter-free
 - **vs. RoPE**: T5-style is conceptually simpler but RoPE has better theoretical properties for long-range extrapolation
@@ -987,17 +1006,20 @@ Now we bring together all the concepts to show how positional encodings integrat
 ### Why a Complete Implementation?
 
 **The Problem**: Understanding individual components (embeddings, positional encoding, attention) is crucial, but seeing how they **compose** into a working system is equally important. The complete picture shows:
+
 - How position information flows through the model
 - The interaction between token semantics and position
 - Practical considerations for building production systems
 
 **What This Demonstrates**:
+
 1. **Component integration**: Token embeddings + positional encoding + transformer layers + output projection
 2. **Flexibility**: Easy to swap between different positional encoding schemes
 3. **End-to-end training**: How gradients flow back through all components
 
 **Architecture Flow**:
-```
+
+```text
 Input tokens (batch, seq_len)
     ↓ [Token Embedding]
 Token embeddings (batch, seq_len, d_model)
@@ -1019,9 +1041,11 @@ class TransformerWithPositionalEncoding(nn.Module):
 
     This demonstrates how positional encodings fit into the full architecture.
     See also:
+
     - [Embeddings](02-embeddings.md) for token embedding details
     - [Basic Attention](03-basic-attention.md) for attention mechanism
     - [The Transformer Block](09-transformer-block.md) for full transformer details
+
     """
     def __init__(
         self,
@@ -1229,6 +1253,7 @@ if __name__ == "__main__":
 **Question**: Why does the sinusoidal encoding use different frequencies for different dimensions?
 
 **Task**:
+
 1. Modify the `SinusoidalPositionalEncoding` class to use the same frequency for all dimensions
 2. Train a small model and compare performance
 3. Explain why varied frequencies are beneficial
@@ -1243,6 +1268,7 @@ Different frequencies allow the model to attend to both fine-grained (adjacent p
 **Question**: How well do learned embeddings extrapolate to longer sequences?
 
 **Task**:
+
 1. Train a model with learned positional embeddings on sequences of length 50
 2. Test it on sequences of length 25, 50, 75, and 100
 3. For sequences longer than 50, try:
@@ -1256,6 +1282,7 @@ Different frequencies allow the model to attend to both fine-grained (adjacent p
 **Question**: Implement a simple attention mechanism with relative position bias.
 
 **Task**:
+
 1. Modify the basic attention from [Chapter 3](03-basic-attention.md) to include `SimpleRelativePositionalBias`
 2. Train two models: one with absolute sinusoidal encoding, one with relative bias
 3. Test on sequences with different lengths
@@ -1266,6 +1293,7 @@ Different frequencies allow the model to attend to both fine-grained (adjacent p
 **Question**: Can we combine sinusoidal and learned encodings?
 
 **Task**:
+
 1. Implement a hybrid encoding: `PE = α * Sinusoidal + (1-α) * Learned`
 2. Make α a learnable parameter
 3. After training, what value does α converge to?
@@ -1276,6 +1304,7 @@ Different frequencies allow the model to attend to both fine-grained (adjacent p
 **Question**: What patterns do learned position embeddings capture?
 
 **Task**:
+
 1. Train a model with learned positional embeddings on a real task (e.g., language modeling on a small corpus)
 2. Extract the learned position embeddings
 3. Analyze:
@@ -1289,6 +1318,7 @@ Different frequencies allow the model to attend to both fine-grained (adjacent p
 **Question**: Implement the complete positional encoding formula from scratch without using PyTorch's built-in functions (except basic operations).
 
 **Task**:
+
 ```python
 def positional_encoding_from_scratch(max_len: int, d_model: int) -> np.ndarray:
     """
@@ -1312,6 +1342,7 @@ Verify your implementation matches PyTorch's by comparing outputs.
 **Question**: Research and summarize modern positional encoding methods.
 
 **Task**:
+
 1. Read about RoPE ([Chapter 8](08-rope.md) or the [paper](https://arxiv.org/abs/2104.09864))
 2. Read about ALiBi ([Press et al., 2021](https://arxiv.org/abs/2108.12409))
 3. Create a comparison table:
@@ -1391,18 +1422,21 @@ Positional encodings are essential for transformers to understand sequence order
 | **RoPE** | Excellent extrapolation, efficient | More complex math | LLaMA, modern LLMs |
 
 **Key Insights**:
+
 - Sinusoidal uses multiple frequencies to encode both local and global position information
 - Learned embeddings are flexible but don't extrapolate
 - Relative methods encode distance between positions rather than absolute positions
 - Modern LLMs (LLaMA, GPT-NeoX) use RoPE for better extrapolation
 
 **Next Steps**:
+
 - Study [RoPE (Chapter 8)](08-rope.md) for the modern approach used in most current LLMs
 - See [The Transformer Block (Chapter 9)](09-transformer-block.md) to understand how positional encodings fit in the complete architecture
 
 ---
 
 **Navigation**:
+
 - Previous: [Cross-Attention](06-cross-attention.md)
 - Next: [Rotary Position Embeddings (RoPE)](08-rope.md)
 - [Back to Table of Contents](../README.md)

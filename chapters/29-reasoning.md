@@ -47,14 +47,16 @@ Chain-of-Thought (CoT) prompting, introduced by Wei et al. (2022), demonstrates 
 The key insight: Simply adding "Let's think step by step" or providing examples with reasoning steps dramatically improves performance on reasoning tasks.
 
 **Standard Prompting:**
-```
+
+```text
 Q: Roger has 5 tennis balls. He buys 2 more cans of tennis balls.
 Each can has 3 tennis balls. How many tennis balls does he have now?
 A: 11
 ```
 
 **Chain-of-Thought Prompting:**
-```
+
+```text
 Q: Roger has 5 tennis balls. He buys 2 more cans of tennis balls.
 Each can has 3 tennis balls. How many tennis balls does he have now?
 A: Roger started with 5 balls. 2 cans of 3 tennis balls each is 6 tennis balls.
@@ -68,6 +70,7 @@ Kojima et al. (2022) showed that simply appending "Let's think step by step" to 
 #### Problem Being Solved
 
 Traditional language models often jump directly to conclusions without showing their work. For reasoning tasks, this leads to:
+
 - Mistakes in multi-step problems
 - No visibility into where errors occur
 - Difficulty in debugging wrong answers
@@ -79,10 +82,13 @@ Zero-shot CoT addresses this by triggering the model's latent reasoning capabili
 The key insight is that large language models have implicitly learned to decompose problems during training (from seeing worked examples in their training data), but need an explicit trigger to activate this capability. The prompt "Let's think step by step" acts as a **reasoning mode switch**, shifting the model from direct answer prediction to step-by-step problem solving.
 
 Formally, we're changing the generation objective from:
+
 ```math
 P(a|q) \quad \text{(direct answer)}
 ```
+
 to:
+
 ```math
 P(r, a|q, \text{"Let's think step by step"}) \quad \text{(reasoning + answer)}
 ```
@@ -255,6 +261,7 @@ P(a|q) = \sum_{r \in \mathcal{R}} P(a|r, q) P(r|q)
 ```
 
 Where:
+
 - $q$ is the question
 - $a$ is the answer
 - $r$ is the reasoning trace
@@ -267,6 +274,7 @@ a^* \approx \arg\max_a P(a|r^*, q) \text{ where } r^* = \arg\max_r P(r|q)
 ```
 
 **References:**
+
 - [Chain-of-Thought Prompting Elicits Reasoning in Large Language Models (Wei et al., 2022)](https://arxiv.org/abs/2201.11903)
 - [Large Language Models are Zero-Shot Reasoners (Kojima et al., 2022)](https://arxiv.org/abs/2205.11916)
 
@@ -303,6 +311,7 @@ a^* = \text{argmax}_a \sum_{r \in \mathcal{R}} P(a|r, q) P(r|q) \approx \text{mo
 where we approximate the marginalized distribution over reasoning paths by sampling $N$ paths and taking a majority vote.
 
 **Why this works:**
+
 1. **Error diversity**: Different samples make different mistakes, but correct reasoning converges
 2. **Noise averaging**: Random errors cancel out across multiple samples
 3. **Robustness**: Even if some paths fail, the majority can succeed
@@ -432,11 +441,13 @@ for i, sample in enumerate(all_answers[:3]):
 ### Performance Analysis
 
 Self-consistency typically improves accuracy by 5-20% over single-path CoT, especially on tasks where:
+
 - Multiple valid reasoning approaches exist
 - The model has sufficient capability but is prone to occasional errors
 - Answer space is discrete (e.g., multiple choice, numerical)
 
 **Reference:**
+
 - [Self-Consistency Improves Chain of Thought Reasoning in Language Models (Wang et al., 2022)](https://arxiv.org/abs/2203.11171)
 
 ## Least-to-Most Prompting
@@ -452,16 +463,20 @@ Least-to-Most prompting, proposed by Zhou et al. (2022), breaks down complex pro
 ### Two-Stage Process
 
 **Stage 1: Problem Decomposition**
-```
+
+```text
 Problem: [complex problem]
 To solve this, we need to solve these subproblems:
+
 1. [easiest subproblem]
 2. [intermediate subproblem]
 3. [hardest subproblem using previous solutions]
+
 ```
 
 **Stage 2: Sequential Solution**
-```
+
+```text
 Subproblem 1: [easiest]
 Solution 1: [answer]
 
@@ -477,6 +492,7 @@ Final answer: [answer]
 #### Problem Being Solved
 
 Complex problems often require **compositional reasoning** - breaking down into subproblems that must be solved in order. Standard CoT may struggle with:
+
 - Long dependency chains (solution to step 5 depends on steps 1-4)
 - Compositional generalization (combining learned sub-skills in new ways)
 - Problems longer than what was seen during training
@@ -492,6 +508,7 @@ P(a|q) = P(a | s_n, s_{n-1}, ..., s_1, q) \prod_{i=1}^{n} P(s_i | s_{i-1}, ..., 
 ```
 
 where $s_i$ are subproblem solutions. By solving subproblems sequentially, we:
+
 1. Reduce cognitive load at each step
 2. Build context incrementally (each solution helps solve the next)
 3. Enable **compositional generalization** - solving harder problems by combining easier ones
@@ -653,6 +670,7 @@ print(f"\nFinal answer: {result['final_answer']}")
 ### When Least-to-Most Works Best
 
 Least-to-Most prompting excels at:
+
 - **Compositional tasks**: Problems with clear substructure
 - **Multi-step calculations**: Sequential dependencies between steps
 - **Planning problems**: Tasks requiring ordered actions
@@ -669,6 +687,7 @@ Least-to-Most prompting excels at:
 | **Computational cost** | Single pass (or N for self-consistency) | 2+ passes (decompose + solve each) |
 
 **Reference:**
+
 - [Least-to-Most Prompting Enables Complex Reasoning in Large Language Models (Zhou et al., 2022)](https://arxiv.org/abs/2205.10625)
 
 ## Program-Aided Language Models (PAL)
@@ -678,12 +697,14 @@ Program-Aided Language Models (PAL), introduced by Gao et al. (2023), use code g
 ### Key Idea
 
 Traditional CoT:
-```
+
+```text
 Question: What is 17 * 23 + 45?
 Let's solve: 17 * 23 = 391, then 391 + 45 = 436
 ```
 
 PAL approach:
+
 ```python
 # Question: What is 17 * 23 + 45?
 result = 17 * 23 + 45
@@ -703,6 +724,7 @@ print(result)  # 436
 #### Problem Being Solved
 
 Natural language reasoning is inherently approximate and error-prone for precise computation. LLMs often make **arithmetic errors** even in basic calculations:
+
 - "347 × 23 = 7,871" (Correct: 7,981)
 - Manual multi-step calculations accumulate rounding errors
 - No way to verify intermediate computational steps
@@ -712,15 +734,18 @@ PAL solves this by delegating the computation to a **symbolic executor** (Python
 #### Theoretical Justification
 
 PAL is based on the **neuro-symbolic** paradigm, combining:
+
 1. **Neural** (LLM): Natural language understanding, problem formulation
 2. **Symbolic** (code execution): Precise computation, logical operations
 
 The division of labor is:
+
 ```math
 \text{LLM}: \text{Problem} \rightarrow \text{Code} \quad\quad \text{Interpreter}: \text{Code} \rightarrow \text{Answer}
 ```
 
 This exploits the complementary strengths of each system:
+
 - **LLMs excel at**: Parsing natural language, identifying relevant operations, structuring logic
 - **Interpreters excel at**: Exact arithmetic, symbolic manipulation, algorithmic execution
 
@@ -767,7 +792,8 @@ Write code that computes the answer and stores it in a variable called 'answer'.
 Question: {question}
 
 Python code:
-```python
+```
+
 # {question}
 """
 
@@ -934,13 +960,15 @@ for question in questions:
     else:
         print(f"\nExecution failed: {result['execution_result'].get('error')}")
     print("-" * 80)
-```
+
+```text
 
 ### PAL with Few-Shot Examples
 
 Providing examples helps the model generate better code:
 
-```python
+```
+
 def pal_few_shot(model, tokenizer, question, examples, device="cuda"):
     """
     Program-Aided reasoning with few-shot examples.
@@ -1012,11 +1040,13 @@ result = pal_few_shot(model, tokenizer, question, examples)
 print(f"Question: {question}")
 print(f"Code:\n{result['code']}")
 print(f"Answer: {result['answer']}")
-```
+
+```text
 
 ### Advantages and Limitations
 
 **Advantages:**
+
 - Eliminates arithmetic errors
 - Handles complex calculations (logarithms, trigonometry, etc.)
 - Verifiable and reproducible
@@ -1024,6 +1054,7 @@ print(f"Answer: {result['answer']}")
 - Natural for algorithmic problems
 
 **Limitations:**
+
 - Requires code execution infrastructure
 - Security concerns (must sandbox execution)
 - Not suitable for all reasoning types (e.g., common sense, ethics)
@@ -1031,6 +1062,7 @@ print(f"Answer: {result['answer']}")
 - Debugging generated code can be difficult
 
 **Reference:**
+
 - [PAL: Program-aided Language Models (Gao et al., 2023)](https://arxiv.org/abs/2211.10435)
 
 ## ReAct: Reasoning and Acting
@@ -1042,6 +1074,7 @@ ReAct (Reasoning + Acting), proposed by Yao et al. (2023), interleaves reasoning
 Instead of just thinking or just acting, ReAct combines both in an alternating pattern:
 
 ```
+
 Thought 1: I need to find information about X
 Action 1: Search[X]
 Observation 1: [search results]
@@ -1050,11 +1083,13 @@ Action 2: Search[Z]
 Observation 2: [search results]
 Thought 3: Based on observations, the answer is...
 Action 3: Finish[answer]
-```
+
+```text
 
 ### Architecture
 
 ReAct extends CoT with action primitives:
+
 - **Thought**: Internal reasoning step (like CoT)
 - **Action**: External action to execute (search, calculate, look up, etc.)
 - **Observation**: Result from executing the action
@@ -1064,6 +1099,7 @@ ReAct extends CoT with action primitives:
 #### Problem Being Solved
 
 Pure reasoning (CoT) operates in a **closed world** - the model can only use information present in its weights. This fails for tasks requiring:
+
 - **External knowledge**: Real-time information not in training data
 - **Tool use**: Computation, search, APIs
 - **Environment interaction**: Web navigation, database queries
@@ -1080,13 +1116,16 @@ ReAct is inspired by the **sense-plan-act** cycle in robotics and the **dual-pro
 3. **Feedback (Observation)**: Results that inform next thought
 
 The key insight is the **synergy between reasoning and acting**:
+
 - **Reasoning helps acting**: Thoughts guide which actions to take
 - **Acting helps reasoning**: Observations ground reasoning in reality, correct errors
 
 Formally, this creates a feedback loop:
-```math
-t_1 \rightarrow a_1 \rightarrow o_1 \rightarrow t_2 \rightarrow a_2 \rightarrow o_2 \rightarrow ... \rightarrow a_{\text{final}}
 ```
+
+t_1 \rightarrow a_1 \rightarrow o_1 \rightarrow t_2 \rightarrow a_2 \rightarrow o_2 \rightarrow ... \rightarrow a_{\text{final}}
+
+```text
 
 This is a form of **interactive planning** where the agent updates its plan based on environmental feedback.
 
@@ -1105,7 +1144,8 @@ This is a form of **interactive planning** where the agent updates its plan base
 4. **Tool modularity**: Easy to add new tools without retraining (just update tool descriptions)
 5. **Error recovery**: If action fails, next thought can adapt strategy
 
-```python
+```
+
 from typing import Dict, List, Callable, Optional
 import json
 
@@ -1386,13 +1426,15 @@ if result["success"]:
     print(f"\nFinal Answer: {result['answer']}")
 else:
     print(f"\nFailed: {result.get('error')}")
-```
+
+```text
 
 ### ReAct for Web Navigation
 
 ReAct is particularly powerful for interactive tasks:
 
-```python
+```
+
 # Example: Web navigation task
 web_tools = {
     "Click": lambda element: f"Clicked on {element}",
@@ -1406,7 +1448,8 @@ web_agent = ReActAgent(model, tokenizer, web_tools)
 
 task = "Find the release date of the movie Inception on a movie database website"
 result = web_agent.solve(task, max_steps=10)
-```
+
+```text
 
 ### Benefits of ReAct
 
@@ -1426,6 +1469,7 @@ result = web_agent.solve(task, max_steps=10)
 | **Agents** | Yes | Yes | Environment-based |
 
 **Reference:**
+
 - [ReAct: Synergizing Reasoning and Acting in Language Models (Yao et al., 2023)](https://arxiv.org/abs/2210.03629)
 
 ## Tree-of-Thought Reasoning
@@ -1444,6 +1488,7 @@ Tree-of-Thought (ToT), proposed by Yao et al. (2023), generalizes CoT by explori
 ![Chapter 29 reasoning diagram](../assets/diagrams/ch29-reasoning-diagram.svg)
 
 At each level, the model:
+
 1. Generates $k$ possible next thoughts
 2. Evaluates each thought (heuristic score)
 3. Prunes low-scoring branches
@@ -1454,6 +1499,7 @@ At each level, the model:
 #### Problem Being Solved
 
 Many reasoning problems require **search and exploration**:
+
 - Multiple valid approaches (which path is best?)
 - Dead ends (some reasoning paths lead nowhere)
 - Need for backtracking (made wrong assumption early on)
@@ -1464,13 +1510,16 @@ Linear CoT commits to a single path with no ability to backtrack. Self-consisten
 
 Tree-of-Thought extends the marginalization principle from self-consistency to a **hierarchical search space**:
 
-```math
-P(a|q) = \sum_{r \in \mathcal{R}} P(a|r) P(r|q) = \sum_{T \in \text{Trees}} \sum_{r \in T} P(a|r) P(r|q)
 ```
+
+P(a|q) = \sum_{r \in \mathcal{R}} P(a|r) P(r|q) = \sum_{T \in \text{Trees}} \sum_{r \in T} P(a|r) P(r|q)
+
+```text
 
 where we search over tree structures $T$ rather than just linear paths.
 
 This is analogous to **Monte Carlo Tree Search (MCTS)** in game playing:
+
 1. **Selection**: Choose promising nodes to expand (guided by value function)
 2. **Expansion**: Generate child thoughts
 3. **Evaluation**: Score each child's promise
@@ -1493,7 +1542,8 @@ The key theoretical insight: **deliberate search** over reasoning space, not jus
 4. **Pruning is essential**: Most branches are dead ends; aggressive pruning makes search tractable
 5. **Breadth vs depth**: Exploring more options at each level vs going deeper in promising paths
 
-```python
+```
+
 import torch
 from typing import List, Tuple, Optional
 from dataclasses import dataclass
@@ -1584,9 +1634,11 @@ class TreeOfThought:
 
         Returns a score between 0 and 1, where higher is better.
         This is a simplified heuristic; in practice, you might:
+
         - Use a separate value model
         - Use the LLM to self-evaluate
         - Use domain-specific heuristics
+
         """
         # Build evaluation prompt
         prompt = f"""Question: {question}
@@ -1706,7 +1758,8 @@ print("Best reasoning path:")
 for i, thought in enumerate(best_path, 1):
     print(f"  {i}. {thought}")
 print(f"\nConfidence score: {score:.2f}")
-```
+
+```text
 
 ### ToT vs CoT Comparison
 
@@ -1719,6 +1772,7 @@ print(f"\nConfidence score: {score:.2f}")
 | **Best for** | Most tasks | Complex planning, search problems |
 
 **Reference:**
+
 - [Tree of Thoughts: Deliberate Problem Solving with Large Language Models (Yao et al., 2023)](https://arxiv.org/abs/2305.10601)
 
 ## Process Reward Models (PRMs)
@@ -1728,16 +1782,20 @@ Process Reward Models (PRMs), introduced by OpenAI for improving mathematical re
 ### Outcome vs Process Supervision
 
 **Outcome Reward Model (ORM):**
-```math
-r_{\text{outcome}}(q, r, a) = \mathbb{1}[a = a^*]
 ```
+
+r_{\text{outcome}}(q, r, a) = \mathbb{1}[a = a^*]
+
+```text
 
 Only rewards correct final answers, regardless of reasoning quality.
 
 **Process Reward Model (PRM):**
-```math
-r_{\text{process}}(q, r, a) = \sum_{i=1}^{n} w_i \cdot \text{score}(r_i | r_{<i}, q)
 ```
+
+r_{\text{process}}(q, r, a) = \sum_{i=1}^{n} w_i \cdot \text{score}(r_i | r_{<i}, q)
+
+```text
 
 Rewards correct reasoning at each step $r_i$.
 
@@ -1753,6 +1811,7 @@ Rewards correct reasoning at each step $r_i$.
 #### Problem Being Solved
 
 Outcome-based training has a fundamental **credit assignment problem**:
+
 - Correct answer, wrong reasoning (lucky guess) → gets rewarded
 - Wrong answer, correct reasoning (small error) → gets penalized
 - No signal about **which steps** in reasoning are good vs bad
@@ -1763,21 +1822,26 @@ This leads to models that learn shortcuts and fail to generalize. PRMs solve thi
 
 The key insight comes from **reinforcement learning theory**. The value of a reasoning path can be decomposed:
 
-```math
-V(r) = \sum_{i=1}^{n} V(r_i | r_{<i})
 ```
+
+V(r) = \sum_{i=1}^{n} V(r_i | r_{<i})
+
+```text
 
 where $V(r_i | r_{<i})$ is the value of step $i$ given previous steps.
 
 This is analogous to **temporal difference learning** in RL:
+
 - **TD(0)**: One-step rewards (immediate feedback)
 - **Monte Carlo**: Episode return (outcome reward)
 - **PRMs**: Intermediate between these - step-level rewards for reasoning "trajectory"
 
 The advantage of step-level rewards is better **credit assignment**:
-```math
-\nabla_\theta \mathbb{E}[\text{reward}] = \sum_{i=1}^{n} \nabla_\theta \log P_\theta(r_i | r_{<i}) \cdot V(r_i)
 ```
+
+\nabla_\theta \mathbb{E}[\text{reward}] = \sum_{i=1}^{n} \nabla_\theta \log P_\theta(r_i | r_{<i}) \cdot V(r_i)
+
+```text
 
 Each step gets its own gradient signal, enabling faster and more accurate learning.
 
@@ -1796,7 +1860,8 @@ Each step gets its own gradient signal, enabling faster and more accurate learni
 4. **Bootstrapping**: Can use model's own rollouts to generate process supervision at scale
 5. **Combining with RL**: Process rewards + policy gradient = strong reasoning models
 
-```python
+```
+
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
@@ -1856,9 +1921,11 @@ class ReasoningStepDataset(Dataset):
     Dataset of reasoning steps with human labels.
 
     Each example contains:
+
     - question: The problem
     - steps: List of reasoning steps
     - labels: List of labels (1 = correct step, 0 = incorrect, -1 = neutral)
+
     """
 
     def __init__(self, data, tokenizer, max_length=512):
@@ -1998,13 +2065,15 @@ dataloader = DataLoader(dataset, batch_size=2, shuffle=True)
 # Initialize and train PRM
 prm = ProcessRewardModel(model)
 trained_prm = train_prm(prm, dataloader, num_epochs=3, lr=1e-5)
-```
+
+```text
 
 ### Using PRMs for Best-of-N Sampling
 
 Once trained, PRMs can be used to select the best reasoning path:
 
-```python
+```
+
 def best_of_n_with_prm(model, prm, tokenizer, question, n=8, device="cuda"):
     """
     Generate N reasoning paths and select the best according to PRM.
@@ -2055,9 +2124,11 @@ def best_of_n_with_prm(model, prm, tokenizer, question, n=8, device="cuda"):
     best_score = scores[best_idx]
 
     return best_reasoning, best_score
-```
+
+```text
 
 **Reference:**
+
 - [Let's Verify Step by Step (OpenAI, Lightman et al., 2023)](https://arxiv.org/abs/2305.20050)
 
 ## Reasoning Traces and Verification
@@ -2072,7 +2143,8 @@ Reasoning traces are the explicit intermediate steps a model generates. Verifica
 
 ### Self-Verification Implementation
 
-```python
+```
+
 def self_verify_reasoning(model, tokenizer, question, reasoning, device="cuda"):
     """
     Ask the model to verify its own reasoning.
@@ -2131,13 +2203,15 @@ print(f"Question: {question}")
 print(f"\nReasoning:\n{reasoning}")
 print(f"\nVerification: {'CORRECT' if is_correct else 'INCORRECT'}")
 print(f"Explanation: {explanation}")
-```
+
+```text
 
 ### Code Execution for Verification
 
 For mathematical problems, we can execute generated code to verify answers:
 
-```python
+```
+
 import re
 from typing import Optional
 
@@ -2237,7 +2311,8 @@ print(f"\nReasoning:\n{result['reasoning']}")
 print(f"\nText answer: {result['text_answer']}")
 print(f"Code answer: {result['code_answer']}")
 print(f"Verified: {result['verified']}")
-```
+
+```text
 
 ## Test-Time Compute Scaling
 
@@ -2249,9 +2324,11 @@ Traditional scaling: Better models require more **training** compute.
 
 Test-time scaling: Better answers require more **inference** compute.
 
-```math
-\text{Quality}(a) \propto f(\text{compute}_{\text{test}})
 ```
+
+\text{Quality}(a) \propto f(\text{compute}_{\text{test}})
+
+```text
 
 ### Methods for Test-Time Scaling
 
@@ -2265,6 +2342,7 @@ Test-time scaling: Better answers require more **inference** compute.
 #### Problem Being Solved
 
 Traditional ML scaling focuses on **training compute**: bigger models, more data, longer training. But this has limits:
+
 - Expensive and time-consuming
 - Fixed capability after training
 - Same performance regardless of problem difficulty
@@ -2275,19 +2353,24 @@ Test-time compute scaling enables **adaptive intelligence**: spend more compute 
 
 The fundamental insight is that **inference is optimization**:
 
-```math
-a^* = \arg\max_a P(a|q) = \arg\max_a \sum_{r} P(a|r, q) P(r|q)
 ```
 
+a^* = \arg\max_a P(a|q) = \arg\max_a \sum_{r} P(a|r, q) P(r|q)
+
+```text
+
 We can improve this optimization by:
+
 1. **Sampling more paths**: Better approximation of the sum
 2. **Searching deeper**: Finding better local optima
 3. **Iterating longer**: Refining until convergence
 
 This creates a **compute-quality tradeoff**:
-```math
-\text{Quality}(C) = f(C) \quad \text{where } f \text{ is monotonic increasing}
 ```
+
+\text{Quality}(C) = f(C) \quad \text{where } f \text{ is monotonic increasing}
+
+```text
 
 The scaling law: doubling test-time compute can yield 5-15% accuracy improvements (up to a saturation point).
 
@@ -2308,7 +2391,8 @@ This is analogous to **anytime algorithms** in classical AI: more time → bette
 4. **Problem-adaptive**: Hard problems benefit more from extra compute than easy ones
 5. **Economic tradeoff**: Compute cost vs accuracy gain determines optimal N
 
-```python
+```
+
 import torch
 import numpy as np
 from typing import List, Callable
@@ -2512,19 +2596,23 @@ for entry in result_refine['history']:
     if 'critique' in entry:
         print(f"    Critique: {entry['critique'][:100]}...")
     print(f"    Answer: {extract_answer(entry['reasoning'])}")
-```
+
+```text
 
 ### Compute-Optimal Test-Time Scaling
 
 There's a tradeoff between compute and quality:
 
-```math
-\text{Quality} = f(\text{compute}) - \text{cost} \cdot \text{compute}
 ```
+
+\text{Quality} = f(\text{compute}) - \text{cost} \cdot \text{compute}
+
+```text
 
 Find the optimal compute budget:
 
-```python
+```
+
 def compute_optimal_n(model, tokenizer, question,
                       cost_per_sample=1.0,
                       value_per_accuracy=100.0,
@@ -2583,7 +2671,8 @@ print("Compute-optimal analysis:")
 for r in results:
     print(f"N={r['n']:2d}: Accuracy={r['accuracy']:.1%}, Cost=${r['cost']:.2f}, Net Value=${r['net_value']:.2f}")
 print(f"\nOptimal N: {optimal_n}")
-```
+
+```text
 
 ### O1-Style Reasoning
 
@@ -2595,12 +2684,14 @@ OpenAI's o1 model uses long internal reasoning traces with reinforcement learnin
 4. **Compute scaling**: More compute → better results
 
 Key principles:
+
 - Train models to "think longer" before answering
 - Use process rewards to guide reasoning
 - Allow backtracking and self-correction
 - Scale compute at test time, not just training time
 
 **References:**
+
 - [Learning to Reason with LLMs (OpenAI o1 announcement)](https://openai.com/index/learning-to-reason-with-llms/)
 - [Scaling LLM Test-Time Compute Optimally (Snell et al., 2024)](https://arxiv.org/abs/2408.03314)
 
@@ -2631,42 +2722,49 @@ Choosing the right reasoning strategy depends on your task requirements, constra
 #### When to Use Each Method
 
 **Zero-Shot Chain-of-Thought**
+
 - **Use when**: Fast response needed, simple reasoning, cost-sensitive
 - **Don't use when**: Accuracy critical, complex multi-step problems
 - **Example**: "What is 15% of 80?"
 - **Expected accuracy**: 60-75% on GSM8K
 
 **Self-Consistency**
+
 - **Use when**: Moderate latency acceptable, accuracy important, discrete answer space
 - **Don't use when**: Extremely high latency costs, open-ended generation
 - **Example**: "Solve this math word problem..."
 - **Expected accuracy**: 75-85% on GSM8K (n=10)
 
 **Least-to-Most Prompting**
+
 - **Use when**: Compositional tasks, clear subproblem structure, planning
 - **Don't use when**: Problem doesn't decompose naturally, single-step tasks
 - **Example**: "Plan a route visiting 5 cities with constraints..."
 - **Expected accuracy**: 80-90% on compositional tasks
 
 **Program-Aided Language Models (PAL)**
+
 - **Use when**: Arithmetic heavy, need deterministic computation, code-friendly problem
 - **Don't use when**: Natural language reasoning, common sense, no clear algorithm
 - **Example**: "Calculate compound interest with varying rates..."
 - **Expected accuracy**: 85-95% on math problems
 
 **ReAct**
+
 - **Use when**: Need external information, tool use, interactive environments
 - **Don't use when**: All info in prompt, no tools available, latency critical
 - **Example**: "Find the population of the capital of France in 2020"
 - **Expected accuracy**: 70-85% on QA tasks (with good tools)
 
 **Tree-of-Thought**
+
 - **Use when**: Complex planning, need backtracking, search-heavy problems
 - **Don't use when**: Simple problems, strict latency requirements
 - **Example**: "Solve the 24 game with 4, 6, 6, 8"
 - **Expected accuracy**: 85-95% on planning tasks
 
 **Process Reward Models**
+
 - **Use when**: Have labeled process data, train for specific domain
 - **Don't use when**: No supervision data, rapid prototyping phase
 - **Example**: Mathematical reasoning with step-level labels
@@ -2674,7 +2772,8 @@ Choosing the right reasoning strategy depends on your task requirements, constra
 
 ### Cost-Performance Tradeoffs
 
-```python
+```
+
 def estimate_reasoning_cost(
     method: str,
     model_cost_per_1k_tokens: float = 0.01,
@@ -2739,22 +2838,26 @@ for method in methods:
           f"{result['estimated_accuracy']:<12.1%} "
           f"${result['cost_per_query']:<11.4f} "
           f"${result['cost_per_correct_answer']:<11.4f}")
-```
+
+```text
 
 ### Production Deployment Considerations
 
 #### Latency-Constrained Scenarios
-```python
+```
+
 # User-facing chatbot: <500ms response time
 config = ReasoningConfig(
     strategy=ReasoningStrategy.ZERO_SHOT_COT,
     temperature=0.3,
     max_tokens=150,
 )
-```
+
+```text
 
 #### Accuracy-Critical Scenarios
-```python
+```
+
 # Medical diagnosis, legal analysis: accuracy paramount
 config = ReasoningConfig(
     strategy=ReasoningStrategy.SELF_CONSISTENCY,
@@ -2762,20 +2865,24 @@ config = ReasoningConfig(
     temperature=0.8,
     use_verification=True,
 )
-```
+
+```text
 
 #### Cost-Optimized Scenarios
-```python
+```
+
 # High-volume low-stakes queries
 config = ReasoningConfig(
     strategy=ReasoningStrategy.ZERO_SHOT_COT,
     temperature=0.5,
     max_tokens=200,
 )
-```
+
+```text
 
 #### Adaptive Strategy
-```python
+```
+
 def adaptive_reasoning(question: str, difficulty: str, budget: float) -> ReasoningConfig:
     """
     Select reasoning strategy based on question difficulty and budget.
@@ -2813,7 +2920,8 @@ def adaptive_reasoning(question: str, difficulty: str, budget: float) -> Reasoni
                 temperature=0.8,
                 use_verification=True,
             )
-```
+
+```text
 
 ## Failure Modes and Mitigation
 
@@ -2826,19 +2934,23 @@ Understanding how reasoning systems fail is crucial for building robust applicat
 **Problem**: The model generates plausible-sounding but incorrect reasoning.
 
 ```
+
 Question: What is 17 × 23?
 Wrong reasoning: "17 × 23 = 17 × 20 + 17 × 3 = 340 + 51 = 381"
 (Error: 17 × 20 = 340, but that's wrong)
 Correct: 17 × 23 = 391
-```
+
+```text
 
 **Mitigation strategies:**
+
 - Use PAL to delegate computation to Python
 - Self-consistency voting catches some hallucinations
 - Verification step with code execution
 - Process reward models trained to detect errors
 
-```python
+```
+
 def detect_hallucination(question, reasoning, answer):
     """
     Check for hallucinated reasoning by executing verification.
@@ -2856,19 +2968,23 @@ def detect_hallucination(question, reasoning, answer):
             return True, f"Hallucination detected: claimed {answer}, computed {code_result['code_answer']}"
 
     return None, "Cannot verify"
-```
+
+```text
 
 #### 2. Correct Answer, Wrong Reasoning
 
 **Problem**: Model arrives at correct answer through flawed logic.
 
 ```
+
 Question: Is 37 prime?
 Wrong reasoning: "37 ÷ 2 = 18.5, so 37 is prime."
 (Missing checks for other divisors; got lucky)
-```
+
+```text
 
 **Mitigation strategies:**
+
 - Process reward models (reward reasoning quality, not just answers)
 - Explicit verification steps
 - Require showing all work
@@ -2878,17 +2994,21 @@ Wrong reasoning: "37 ÷ 2 = 18.5, so 37 is prime."
 **Problem**: Reasoning loops back on itself without making progress.
 
 ```
+
 Thought 1: To solve X, I need to find Y
 Thought 2: To find Y, I need to solve X
 Thought 3: X depends on Y...
-```
+
+```text
 
 **Mitigation strategies:**
+
 - Detect repeated states in Tree-of-Thought
 - Maximum depth limits
 - Track visited reasoning paths
 
-```python
+```
+
 def detect_circular_reasoning(reasoning_history: List[str], window=3) -> bool:
     """
     Detect if recent reasoning is circular.
@@ -2914,20 +3034,24 @@ def detect_circular_reasoning(reasoning_history: List[str], window=3) -> bool:
                     return True
 
     return False
-```
+
+```text
 
 #### 4. Off-Topic Rambling
 
 **Problem**: Model starts reasoning but drifts away from the original question.
 
 ```
+
 Question: What is the capital of France?
 Reasoning: "France is a country in Europe. Europe has many countries.
 The European Union was formed in 1993. The EU has 27 members..."
 (Never answers the question)
-```
+
+```text
 
 **Mitigation strategies:**
+
 - Explicit answer extraction prompts
 - Require structured format (Q → A)
 - Penalize long reasoning without conclusion
@@ -2938,16 +3062,20 @@ The European Union was formed in 1993. The EU has 27 members..."
 **Problem**: Model expresses high confidence in incorrect reasoning.
 
 ```
+
 "I am absolutely certain that 7 × 8 = 54."
 (Wrong, but stated with high confidence)
-```
+
+```text
 
 **Mitigation strategies:**
+
 - Calibration training
 - Self-consistency (diversity in answers indicates uncertainty)
 - Require model to self-critique before finalizing
 
-```python
+```
+
 def calibrate_confidence(reasoning_system, questions_with_answers):
     """
     Calibrate confidence scores using validation set.
@@ -2979,18 +3107,22 @@ def calibrate_confidence(reasoning_system, questions_with_answers):
         return raw_confidence
 
     return calibrated_confidence
-```
+
+```text
 
 #### 6. Premature Convergence
 
 **Problem**: In self-consistency, all samples converge to the same wrong answer.
 
 ```
+
 All 10 samples: "The answer is 42"
 (All wrong due to consistent bias in reasoning)
-```
+
+```text
 
 **Mitigation strategies:**
+
 - Increase temperature for more diversity
 - Use different prompts for each sample
 - Combine multiple methods (CoT + PAL)
@@ -3000,9 +3132,11 @@ All 10 samples: "The answer is 42"
 **Problem**: Manual arithmetic in CoT is error-prone.
 
 ```
+
 "347 + 892 = 1239"  (Correct)
 "1239 × 7 = 8663"   (Wrong: should be 8673)
-```
+
+```text
 
 **Mitigation:** Use PAL for any arithmetic-heavy reasoning.
 
@@ -3011,11 +3145,14 @@ All 10 samples: "The answer is 42"
 **Problem**: Long reasoning traces exceed context window.
 
 ```
+
 Tree-of-Thought with depth=10:
 Exceeds 4096 token limit → truncation → broken reasoning
-```
+
+```text
 
 **Mitigation strategies:**
+
 - Summarize intermediate steps
 - Hierarchical reasoning (solve subproblems separately)
 - Use models with longer context
@@ -3023,7 +3160,8 @@ Exceeds 4096 token limit → truncation → broken reasoning
 
 ### Failure Detection System
 
-```python
+```
+
 class ReasoningFailureDetector:
     """
     Detect various failure modes in reasoning.
@@ -3131,13 +3269,15 @@ if failures:
     # e.g., retry with different method, flag for human review
 else:
     print("No failure modes detected")
-```
+
+```text
 
 ### Recovery Strategies
 
 When failures are detected, employ these recovery strategies:
 
-```python
+```
+
 def reason_with_fallback(question, max_attempts=3):
     """
     Reasoning with automatic fallback on failure.
@@ -3174,7 +3314,8 @@ def reason_with_fallback(question, max_attempts=3):
         "error": "All reasoning strategies failed",
         "attempts": max_attempts,
     }
-```
+
+```text
 
 ## Benchmark Results
 
@@ -3199,6 +3340,7 @@ GSM8K contains 8.5K grade school math word problems. It's the standard benchmark
 | **o1-preview** | o1-preview | 96.4% | 2024 | Extended thinking |
 
 **Key findings:**
+
 - Self-consistency gives 20-30% absolute improvement over single-path CoT
 - Larger models don't always win (technique matters more)
 - PAL eliminates arithmetic errors but requires code capability
@@ -3220,6 +3362,7 @@ MATH dataset contains 12,500 competition-level math problems across algebra, geo
 | **o1 (full)** | o1 | 94.8% | 2024 | Near-perfect |
 
 **Key findings:**
+
 - MATH is much harder than GSM8K
 - Process supervision (PRM) is crucial for hard math
 - Test-time compute scaling (o1) shows massive gains
@@ -3275,7 +3418,8 @@ Science questions requiring reasoning.
 
 ### Reproducing Benchmark Results
 
-```python
+```
+
 def benchmark_reasoning_system(
     reasoning_system,
     dataset_name: str = "gsm8k",
@@ -3402,13 +3546,15 @@ print(f"Dataset: {results['dataset']}")
 print(f"Accuracy: {results['accuracy']:.1%}")
 print(f"Avg time per question: {results['avg_time_per_question']:.2f}s")
 print(f"Avg cost per question: ${results['avg_cost_per_question']:.4f}")
-```
+
+```text
 
 ## Implementation: Building a Reasoning System
 
 Let's build a complete reasoning system that combines multiple techniques:
 
-```python
+```
+
 import torch
 import torch.nn as nn
 from typing import List, Dict, Optional, Callable
@@ -3681,20 +3827,23 @@ for i, question in enumerate(questions, 1):
     reasoning_text = result['reasoning']
     print(reasoning_text[:300] + "..." if len(reasoning_text) > 300 else reasoning_text)
     print()
-```
+
+```text
 
 ## Exercises
 
 ### Exercise 1: Implement Answer Extraction
 
 Improve the `extract_answer()` function to handle more formats:
+
 - Fractions (e.g., "3/4", "2 1/2")
 - Percentages (e.g., "25%")
 - Multiple choice (e.g., "A", "B", "C", "D")
 - Yes/No questions
 - Ranges (e.g., "between 5 and 10")
 
-```python
+```
+
 def robust_extract_answer(text: str, answer_type: str = "numeric") -> str:
     """
     Extract answer from text based on expected answer type.
@@ -3708,13 +3857,15 @@ def robust_extract_answer(text: str, answer_type: str = "numeric") -> str:
     """
     # TODO: Implement this
     pass
-```
+
+```text
 
 ### Exercise 2: Implement Monte Carlo Tree Search
 
 Implement MCTS for reasoning, similar to AlphaGo but for problem-solving:
 
-```python
+```
+
 class MCTSNode:
     def __init__(self, thought, parent=None):
         self.thought = thought
@@ -3744,20 +3895,24 @@ class MCTSReasoning:
         Perform MCTS to find best reasoning path.
 
         Steps:
+
         1. Selection: Choose most promising node using UCT
         2. Expansion: Generate new thoughts from selected node
         3. Simulation: Rollout to completion
         4. Backpropagation: Update values along path
+
         """
         # TODO: Implement MCTS
         pass
-```
+
+```text
 
 ### Exercise 3: Build a Multi-Modal Reasoner
 
 Extend the reasoning system to handle images (e.g., geometry problems with diagrams):
 
-```python
+```
+
 class MultiModalReasoning:
     def __init__(self, vision_model, language_model, tokenizer):
         self.vision_model = vision_model
@@ -3769,19 +3924,23 @@ class MultiModalReasoning:
         Reason over question with optional image.
 
         If image provided:
+
         1. Extract visual features
         2. Generate image description
         3. Combine with question for reasoning
+
         """
         # TODO: Implement multi-modal reasoning
         pass
-```
+
+```text
 
 ### Exercise 4: Reasoning Benchmark Evaluation
 
 Evaluate your reasoning system on standard benchmarks:
 
-```python
+```
+
 def evaluate_on_gsm8k(reasoning_system, num_samples=100):
     """
     Evaluate on GSM8K (Grade School Math) dataset.
@@ -3789,9 +3948,11 @@ def evaluate_on_gsm8k(reasoning_system, num_samples=100):
     Dataset: https://github.com/openai/grade-school-math
 
     Metrics to compute:
+
     - Accuracy
     - Average confidence on correct/incorrect answers
     - Compute efficiency (accuracy per forward pass)
+
     """
     # TODO: Implement evaluation
     pass
@@ -3804,18 +3965,21 @@ def evaluate_on_math(reasoning_system, num_samples=100):
     """
     # TODO: Implement evaluation
     pass
-```
+
+```text
 
 ### Exercise 5: Reasoning Distillation
 
 Train a smaller model to mimic the reasoning of a larger model:
 
-```python
+```
+
 def distill_reasoning(teacher_model, student_model, dataset, num_epochs=3):
     """
     Distill reasoning ability from teacher to student.
 
     Approach:
+
     1. Generate reasoning traces with teacher
     2. Train student to predict both reasoning and answer
     3. Use KL divergence loss on intermediate steps
@@ -3825,7 +3989,8 @@ def distill_reasoning(teacher_model, student_model, dataset, num_epochs=3):
     """
     # TODO: Implement distillation
     pass
-```
+
+```text
 
 ## Summary
 
@@ -3842,6 +4007,7 @@ Reasoning is a critical capability for LLMs tackling complex problems:
 9. **Test-Time Compute Scaling**: Use more computation at inference for better results
 
 Key takeaways:
+
 - Explicit reasoning steps improve accuracy and interpretability
 - Multiple paths with voting reduces errors (10-20% improvement)
 - Different tasks require different strategies (use the method selection guide)
@@ -3862,30 +4028,36 @@ For evaluating reasoning capabilities, see [Chapter 33: Evaluation and Benchmark
 ### Papers
 
 **Core Chain-of-Thought:**
+
 - [Chain-of-Thought Prompting Elicits Reasoning in Large Language Models](https://arxiv.org/abs/2201.11903) - Wei et al., 2022
 - [Large Language Models are Zero-Shot Reasoners](https://arxiv.org/abs/2205.11916) - Kojima et al., 2022
 - [Self-Consistency Improves Chain of Thought Reasoning](https://arxiv.org/abs/2203.11171) - Wang et al., 2022
 
 **Advanced Prompting Techniques:**
+
 - [Least-to-Most Prompting Enables Complex Reasoning in Large Language Models](https://arxiv.org/abs/2205.10625) - Zhou et al., 2022
 - [PAL: Program-aided Language Models](https://arxiv.org/abs/2211.10435) - Gao et al., 2023
 - [ReAct: Synergizing Reasoning and Acting in Language Models](https://arxiv.org/abs/2210.03629) - Yao et al., 2023
 - [Tree of Thoughts: Deliberate Problem Solving with LLMs](https://arxiv.org/abs/2305.10601) - Yao et al., 2023
 
 **Process Supervision and Verification:**
+
 - [Let's Verify Step by Step](https://arxiv.org/abs/2305.20050) - Lightman et al., 2023 (OpenAI)
 - [STaR: Self-Taught Reasoner](https://arxiv.org/abs/2203.14465) - Zelikman et al., 2022
 
 **Test-Time Compute Scaling:**
+
 - [Scaling LLM Test-Time Compute Optimally](https://arxiv.org/abs/2408.03314) - Snell et al., 2024
 - [Learning to Reason with LLMs](https://openai.com/index/learning-to-reason-with-llms/) - OpenAI o1 announcement, 2024
 
 ### Datasets
+
 - [GSM8K](https://github.com/openai/grade-school-math) - Grade school math problems
 - [MATH](https://github.com/hendrycks/math) - Competition mathematics
 - [PRM800K](https://github.com/openai/prm800k) - Process supervision dataset
 
 ### Code Resources
+
 - [Guidance](https://github.com/guidance-ai/guidance) - Structured generation for reasoning
 - [LangChain](https://github.com/langchain-ai/langchain) - Reasoning chains and agents
 - [DSPy](https://github.com/stanfordnlp/dspy) - Programming with foundation models

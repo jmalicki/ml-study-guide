@@ -155,6 +155,7 @@
    - Example: "LLaMA 1 → RMSNorm + SwiGLU + RoPE", "Mistral → Sliding Window", "DeepSeek → MLA"
 
 2. **Add Memory Calculation Examples**
+
    ```python
    def calculate_kv_cache_memory(
        n_layers: int,
@@ -165,10 +166,12 @@
        dtype_bytes: int = 2  # fp16
    ) -> int:
        """Calculate KV cache memory in GB."""
+
        # K and V for each layer
+
        kv_cache = 2 * n_layers * n_kv_heads * head_dim * seq_len * batch_size * dtype_bytes
        return kv_cache / (1024 ** 3)  # Convert to GB
-   ```
+```
 
 3. **Add Visualization Suggestions**
    - While you can't include images in markdown, suggest what to visualize:
@@ -191,6 +194,7 @@
    - "Compare dense vs. MoE for training vs. inference"
 
 6. **Add Performance Metrics Table**
+
    | Model | Tokens/sec (estimate) | Memory (70B, 4K context) | Training Cost |
    |-------|----------------------|--------------------------|---------------|
    | ... | ... | ... | ... |
@@ -222,12 +226,14 @@
 **Excellent!** The cross-references are one of the strongest aspects of this chapter.
 
 **Strengths:**
+
 - Consistently links to relevant chapters
 - Links appear at natural points in the text
 - Good coverage of prerequisites (attention mechanisms, positional encodings, transformers)
 - Links to both fundamental concepts and advanced topics
 
 **Potential Additions:**
+
 - Could link to [Flash Attention](12-flash-attention.md) when discussing efficiency
 - Link to [Distributed Training](16-distributed-training.md) when mentioning training infrastructure
 - Link to [Scaling Optimization](17-scaling-optimization.md) when discussing large-scale training
@@ -236,6 +242,7 @@
 - Link to [Model Merging & Distillation](31-merging-distillation.md) when mentioning LLaMA 4's co-distillation
 
 **Missing Backward Links:**
+
 - If other chapters reference specific models, this chapter should be linked from there
 - For example, Chapter 4 (Multi-Head Attention) should link here for "real-world usage examples"
 
@@ -256,6 +263,7 @@
 ### Recommendations by Priority
 
 **High Priority:**
+
 1. Add mathematical formulas (LaTeX) for key concepts (RMSNorm, SwiGLU, GQA, MLA)
 2. Fix the MASK_TOKEN undefined variable in DiffusionLanguageModel
 3. Clarify Claude 4/4.5 nomenclature and dates
@@ -263,6 +271,7 @@
 5. Expand the exercises section with more practical problems
 
 **Medium Priority:**
+
 1. Add "Quick Reference" or "Cheat Sheet" section
 2. Include performance/efficiency metrics where available
 3. Add "Common Interview Questions" section
@@ -271,6 +280,7 @@
 6. Make code examples more uniform in style/completeness
 
 **Low Priority:**
+
 1. Consider adding more models (MPT, Falcon, BLOOM, Yi)
 2. Add architecture selection guidelines
 3. Include recent research directions (Jamba, SSMs, etc.)
@@ -282,6 +292,7 @@
 This is an **outstanding chapter** that would be extremely valuable for anyone preparing for ML/LLM interviews. It successfully achieves its goal of comparing modern LLM architectures while maintaining technical depth and practical relevance.
 
 The chapter's greatest strengths are:
+
 - Comprehensive coverage of major models and innovations
 - Excellent code examples with clear explanations
 - Perfect organization and structure
@@ -289,6 +300,7 @@ The chapter's greatest strengths are:
 - Valuable reference materials (comparison tables, timeline)
 
 The areas for improvement are minor:
+
 - Some missing mathematical notation
 - A few code examples could be more complete
 - Some models/details could be added
@@ -301,6 +313,7 @@ The areas for improvement are minor:
 **Publish as-is with minor revisions.** The suggested improvements would make an already excellent chapter even better, but the current version is highly valuable and technically sound.
 
 Priority revisions before publication:
+
 1. Fix undefined MASK_TOKEN
 2. Clarify Claude model naming/dates
 3. Add LaTeX math for 3-4 key formulas

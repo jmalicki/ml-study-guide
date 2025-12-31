@@ -19,4 +19,3 @@ The goal will be for all of this to be runnable and to produce trainable runnabl
 For the first step, just make a markdown outline for review.
 
 Each chapter should be its own file, and the outline should link to the (for now nonexistant) files.
-

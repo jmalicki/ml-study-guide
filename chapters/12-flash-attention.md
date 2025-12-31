@@ -44,6 +44,7 @@ The attention matrix $S = QK^T$ has shape $(N, N)$ where $N$ is the sequence len
 - Each element in FP16: 2 bytes
 
 **Memory requirements:**
+
 - 32K context: 2 GB per attention head
 - 100K context: 20 GB per attention head
 - With 64 heads: 1.28 TB (!)
@@ -113,11 +114,14 @@ Understanding GPU memory hierarchy is critical for understanding Flash Attention
 
 ### Memory Levels
 
+![GPU Memory Hierarchy](../assets/diagrams/ch12-gpu-memory-hierarchy.svg)
+
 **The Problem:**
 Modern GPUs have a fundamental trade-off in their memory hierarchy: fast memory is tiny, and large memory is slow. This hierarchical design is unavoidable due to physics (larger memory requires longer wire distances) and economics (SRAM is ~30x more expensive than DRAM per byte). Understanding this hierarchy is essential because Flash Attention's entire design optimizes for this specific constraint.
 
 **Theoretical Background:**
 The memory hierarchy creates a performance gap that traditional algorithms ignore. Classical algorithm analysis focuses on FLOP count (time complexity) and peak memory usage (space complexity), assuming uniform memory access time. However, on GPUs:
+
 - Accessing SRAM takes ~1 cycle
 - Accessing HBM takes ~100+ cycles
 - The bandwidth difference is 10-15x
@@ -125,6 +129,7 @@ The memory hierarchy creates a performance gap that traditional algorithms ignor
 This means an algorithm with the same FLOP count can be 10x slower if it makes poor memory access choices. Flash Attention recognizes that for attention, **data movement time dominates computation time**.
 
 **How This Relates to Alternatives:**
+
 - Traditional attention: Optimized for FLOPs, ignores memory hierarchy
 - Flash Attention: Optimized for memory bandwidth, accepts redundant computation
 - Sparse attention: Reduces FLOPs but doesn't address memory bandwidth
@@ -341,6 +346,7 @@ def compare_sequence_lengths():
 ```
 
 **Problems with standard attention:**
+
 1. **O(N²) memory:** Must store full attention matrix
 2. **Excessive HBM access:** Attention matrix written/read multiple times
 3. **Limited sequence length:** Cannot fit long sequences in memory
@@ -359,11 +365,13 @@ Flash Attention is built on three key design principles that work together to ac
 #### Principle 1: Tiling (Kernel Fusion)
 
 **Standard approach (3 separate kernels):**
+
 - Kernel 1: Compute $QK^T$, write to HBM
 - Kernel 2: Softmax, read from HBM, write to HBM
 - Kernel 3: Multiply by V, read from HBM
 
 **Flash Attention (1 fused kernel):**
+
 - Process Q, K, V in blocks that fit in SRAM
 - Never write intermediate attention matrix to HBM
 - Output final result directly
@@ -373,15 +381,18 @@ Flash Attention is built on three key design principles that work together to ac
 #### Principle 2: Recomputation in Backward Pass
 
 **Standard approach:**
+
 - Store attention matrix for backward pass
 - Cost: $O(N^2)$ memory
 
 **Flash Attention:**
+
 - Don't store attention matrix
 - Recompute it on-the-fly during backward pass
 - Cost: $O(N)$ memory, but extra computation
 
 **Trade-off: Memory bandwidth vs. compute**
+
 - Modern GPUs have excess compute capacity
 - But limited memory bandwidth
 - Therefore: Recomputation is actually faster!
@@ -395,6 +406,7 @@ This counter-intuitive design choice is at the heart of Flash Attention's effici
 Softmax requires global statistics (max and sum over all elements), but we're processing in blocks!
 
 **Solution: Online softmax algorithm**
+
 - Maintain running max and sum
 - Update incrementally as we process each block
 - Mathematically exact, no approximation
@@ -419,6 +431,8 @@ This is the key algorithmic innovation that makes tiled attention possible.
 
 Flash Attention divides Q, K, V into blocks (tiles) that fit in SRAM.
 
+![Flash Attention Tiling](../assets/diagrams/ch12-flash-attention-tiling.svg)
+
 ### Block Size Selection
 
 **The Problem:**
@@ -426,6 +440,7 @@ When dividing matrices into blocks, we face a critical trade-off: larger blocks 
 
 **Theoretical Justification:**
 The optimal block size is determined by the SRAM capacity constraint. We need to fit in SRAM simultaneously:
+
 - One Q block (Br × d elements)
 - One K block (Bc × d elements)
 - One V block (Bc × d elements)
@@ -437,6 +452,7 @@ This gives us: $(3B_r + 3B_c)d + B_r B_c \leq M$ where $M$ is SRAM capacity.
 The Flash Attention paper proves that choosing $B_c = \Theta(M / d)$ and $B_r = \min(B_c, d)$ yields optimal I/O complexity of $\Theta(N^2 d^2 / M)$ HBM accesses.
 
 **How This Relates to Alternatives:**
+
 - Too small blocks: More kernel launches, poor hardware utilization
 - Too large blocks: Spill to HBM, lose all benefits
 - Dynamic blocking (e.g., cuBLAS): Generic, not optimized for attention's specific pattern
@@ -466,6 +482,7 @@ class TilingStrategy:
         Compute optimal block sizes Bc (columns) and Br (rows).
 
         We need to fit in SRAM:
+
         - Q block: Br × d
         - K block: Bc × d
         - V block: Bc × d
@@ -477,8 +494,10 @@ class TilingStrategy:
         Constraint: (3Br + 3Bc)d + BrBc ≤ SRAM_size / dtype_bytes
 
         For Flash Attention, they use:
+
         - Bc = ⌊SRAM_size / (4d)⌋
         - Br = min(Bc, d)
+
         """
         # Simplified: Assume Bc = Br for simplicity
         # Constraint: 6Bd + B² ≤ M where M = SRAM_size / dtype_bytes
@@ -545,6 +564,7 @@ Standard softmax requires two passes over the data:
 ```
 
 **Two-pass algorithm:**
+
 1. First pass: Find $m = \max_j x_j$ (for numerical stability)
 2. Second pass: Compute $\sum_j e^{x_j - m}$ and $\frac{e^{x_i - m}}{\sum_j e^{x_j - m}}$
 
@@ -771,6 +791,7 @@ Flash Attention's forward pass is based on the associativity of attention operat
 The key observation: we can compute this sum incrementally by processing K, V in blocks, as long as we maintain the correct normalization (via online softmax). This is **exact**, not approximate—we get the same result as if we computed the full attention matrix.
 
 **How This Algorithm Relates to Alternatives:**
+
 - **Standard attention:** Computes full attention matrix, then multiplies by V. Simple but slow.
 - **Chunked attention:** Processes in chunks but still materializes attention matrix for each chunk.
 - **Flash Attention:** Never materializes full attention matrix—only processes blocks in SRAM.
@@ -808,17 +829,21 @@ class FlashAttentionForward:
         1. Divide Q into Tr = ⌈N/Br⌉ blocks: Q_1, ..., Q_Tr
         2. Divide K, V into Tc = ⌈N/Bc⌉ blocks: K_1, V_1, ..., K_Tc, V_Tc
         3. For each Q block i:
+
              Initialize O_i = 0, l_i = 0, m_i = -∞
              For each K, V block j:
                If causal and j > i: skip
                Compute S_ij = Q_i K_j^T / √d
                Update m_i, l_i, O_i using online softmax
              Normalize: O_i = O_i / l_i
+
         4. Concatenate all O_i blocks
 
         Memory complexity: O(N) instead of O(N²)
+
         - Never store full N×N attention matrix
         - Only store Br×Bc blocks in SRAM at a time
+
         """
         batch, n_heads, N, d = Q.shape
 
@@ -976,6 +1001,7 @@ def flash_attention_forward(Q, K, V, block_size=64):
     Simplified Flash Attention implementation demonstrating the tiling algorithm.
 
     This is an educational implementation showing the core ideas:
+
     1. Process Q in blocks to limit memory usage
     2. For each Q block, iterate through K,V blocks
     3. Use online softmax to avoid materializing full attention matrix
@@ -1093,10 +1119,12 @@ The core innovation is how we compute softmax incrementally. Standard softmax re
 ```
 
 This needs the full sequence to compute the sum in the denominator. Flash Attention solves this by maintaining:
+
 - $M$: running maximum (for numerical stability)
 - $L$: running sum of exponentials
 
 When we see a new block with max $m_{new}$:
+
 1. Rescale previous values: multiply by $e^{m_{old} - m_{new}}$
 2. Add new contributions
 3. Update running statistics
@@ -1112,6 +1140,7 @@ Tracking M separately provides numerical stability. In standard softmax, we comp
 ```
 
 Subtracting the max prevents overflow. In online softmax, when we see a new max:
+
 - Old values need rescaling by $e^{m_{old} - m_{new}}$
 - New values are computed with $e^{x - m_{new}}$
 - The running sum L needs the same rescaling
@@ -1137,6 +1166,7 @@ Standard attention backward pass needs the attention matrix P = softmax(QK^T/√
 
 **Why Recomputation Makes Sense:**
 This seems counterintuitive—why recompute when we could save? The answer lies in the arithmetic intensity of modern GPUs:
+
 - **Arithmetic intensity** = FLOPs / bytes accessed
 - For saving P: 0 FLOPs, N² bytes → intensity = 0
 - For recomputing P: 2N²d FLOPs, Nd bytes → intensity = 2Nd/d = 2N
@@ -1147,11 +1177,13 @@ Modern GPUs (e.g., A100) can perform ~200 FLOPs in the time it takes to load 1 b
 This is an instance of the classical **time-memory tradeoff**, but with a hardware-specific twist. On CPUs, memory access is relatively fast, so saving is usually better. On GPUs with massive compute but limited memory bandwidth, the crossover point favors recomputation.
 
 The recomputation strategy is possible because:
+
 1. We save the softmax statistics (m, l) which are O(N) in size
 2. From (Q, K, m, l), we can reconstruct P exactly
 3. Reconstruction cost is lower than the HBM bandwidth cost of saving/loading P
 
 **How This Relates to Alternatives:**
+
 - **Gradient checkpointing:** Recomputes entire layers, not just attention matrix
 - **Selective checkpointing:** Chooses what to save based on heuristics
 - **Flash Attention:** Mathematically proves which tensors to save (m, l) and which to recompute (P)
@@ -1168,18 +1200,22 @@ class FlashAttentionBackward:
     Key insight: Don't store attention matrix, recompute it!
 
     Standard attention backward:
+
     - Store attention matrix P = softmax(QK^T / √d)
     - Memory: O(N²)
 
     Flash attention backward:
+
     - Store only O, m, l (the softmax statistics)
     - Recompute attention during backward
     - Memory: O(N)
 
     Why recomputation is faster:
+
     - Saving O(N²) memory saves HBM bandwidth
     - Recomputation happens in SRAM (fast)
     - Modern GPUs are compute-bound → free compute!
+
     """
 
     @staticmethod
@@ -1193,6 +1229,7 @@ class FlashAttentionBackward:
         Forward pass that saves minimal state for backward.
 
         Saved state:
+
         - O: Output (Nd)
         - m: Row-wise max (N)
         - l: Row-wise sum (N)
@@ -1339,18 +1376,22 @@ class CUDAImplementationNotes:
         Kernel fusion strategy.
 
         Standard attention: 3+ kernel launches
+
         - MatMul (QK^T)
         - Softmax
         - MatMul (PV)
 
         Flash Attention: 1 kernel launch
+
         - All operations fused
         - No intermediate HBM writes
 
         Benefits:
+
         - Fewer kernel launch overheads
         - No HBM writes between operations
         - Better instruction-level parallelism
+
         """
         pass
 
@@ -1360,14 +1401,17 @@ class CUDAImplementationNotes:
         Optimal memory layout for SRAM usage.
 
         Challenges:
+
         - SRAM is tiny (~20 MB per SM on A100)
         - Need to fit Q, K, V, S blocks simultaneously
         - Layout matters for memory access patterns
 
         Techniques:
+
         - Use shared memory for blocks
         - Careful padding to avoid bank conflicts
         - Row-major vs column-major layout choices
+
         """
         pass
 
@@ -1377,19 +1421,23 @@ class CUDAImplementationNotes:
         Mapping computation to CUDA thread blocks.
 
         Flash Attention 1:
+
         - One thread block per attention head per Q block
         - Parallelize over batch and heads
         - Sequential over K, V blocks (online softmax)
 
         Flash Attention 2:
+
         - Improved parallelization across sequence length
         - Non-matmul operations minimized
         - Better work partitioning
 
         Flash Attention 3 (Hopper-specific):
+
         - Warp specialization
         - Asynchronous GEMM operations
         - Overlapping compute and memory
+
         """
         pass
 
@@ -1399,18 +1447,22 @@ class CUDAImplementationNotes:
         Numerical precision considerations.
 
         Challenges:
+
         - FP16/BF16 have limited dynamic range
         - Softmax requires exp (can overflow/underflow)
         - Accumulation errors with long sequences
 
         Solutions:
+
         - Always compute max in FP32 for stability
         - Use higher precision for accumulation
         - Careful order of operations
 
         Flash Attention 3 adds:
+
         - FP8 support (E4M3 and E5M2)
         - Block-wise scaling for FP8
+
         """
         pass
 
@@ -1426,6 +1478,7 @@ class PerformanceOptimizations:
         Auto-tuning block sizes for different GPUs.
 
         Factors:
+
         - Available SRAM per SM
         - Number of SMs
         - Head dimension
@@ -1444,9 +1497,11 @@ class PerformanceOptimizations:
         Standard approach: Apply mask to full N×N matrix
 
         Flash Attention optimization:
+
         - Skip unnecessary K, V blocks entirely
         - For Q block i, only process K, V blocks 0..i
         - Reduces computation by ~50% for causal attention
+
         """
         pass
 
@@ -1458,9 +1513,11 @@ class PerformanceOptimizations:
         MQA/GQA: Fewer K, V heads than Q heads (see [Multi-Head Attention](04-multi-head-attention.md))
 
         Flash Attention adapts:
+
         - K, V blocks are smaller
         - Can process more K, V per iteration
         - Even better memory efficiency
+
         """
         pass
 ```
@@ -1477,22 +1534,26 @@ Flash Attention has evolved through three major versions, each with significant 
 **Authors:** Dao, Fu, Ermon, Rudra, Ré (Stanford, 2022)
 
 **Key contributions:**
+
 1. IO-aware algorithm design
 2. Tiling strategy
 3. Online softmax
 4. Recomputation in backward
 
 **Performance:**
+
 - 2-4x faster than PyTorch attention
 - $O(N)$ memory vs $O(N^2)$
 - Exact (no approximation)
 
 **Limitations:**
+
 - Head dimension limited to 64 or 128
 - Not fully optimized for all sequence lengths
 - Ampere architecture (A100) focus
 
 **Specifications:**
+
 - Speedup vs PyTorch: 2-4x
 - Memory reduction: $N^2 \rightarrow N$
 - Supported head dimensions: 64, 128
@@ -1523,11 +1584,13 @@ Flash Attention has evolved through three major versions, each with significant 
    - Skips unnecessary blocks
 
 **Performance:**
+
 - ~2x faster than FA1
 - 4-8x faster than PyTorch
 - Up to 225 TFLOPs/s on A100 (vs 115 for FA1)
 
 **Specifications:**
+
 - Speedup vs FA1: ~2x
 - Speedup vs PyTorch: 4-8x
 - Supported head dimensions: 64, 128, 256
@@ -1572,15 +1635,18 @@ Flash Attention has evolved through three major versions, each with significant 
    - Async barrier synchronization
 
 **Performance:**
+
 - ~75% of Tensor Core theoretical max (vs 35% for FA2 on H100)
 - 1.5-2x faster than FA2 on H100
 - FP8: 2.6x faster than FA2 BF16
 
 **Limitations:**
+
 - Requires Hopper architecture (H100, H200)
 - More complex implementation
 
 **Specifications:**
+
 - Speedup vs FA2 on H100: 1.5-2x
 - Tensor Core utilization: ~75%
 - Supported precisions: FP16, BF16, FP8 (E4M3 and E5M2)
@@ -1602,6 +1668,7 @@ Note: FA3 achieves near-optimal hardware utilization!
 #### FP8 Support in FlashAttention 3
 
 **FP8 formats:**
+
 - **E4M3:** 1 sign, 4 exponent, 3 mantissa bits
   - Better for forward pass (wider dynamic range)
   - Range: ~[-448, 448]
@@ -1610,6 +1677,7 @@ Note: FA3 achieves near-optimal hardware utilization!
   - Range: ~[-57344, 57344]
 
 **Block-wise scaling:**
+
 - Maintain per-block scaling factors
 - Prevents over/underflow
 - Minimal accuracy loss
@@ -1646,17 +1714,20 @@ Note: FA3 achieves near-optimal hardware utilization!
 #### Warp Specialization in FlashAttention 3
 
 **Traditional approach (FA1/FA2):**
+
 - All warps do the same work
 - Synchronize at kernel boundaries
 - Underutilizes async capabilities
 
 **FA3 Warp Specialization:**
+
 - **Producer warps:** Load Q, K, V from HBM to shared memory
 - **Consumer warps:** Compute attention on data in shared memory
 - Overlap loading and computation
 - Use async barriers for synchronization
 
 **Traditional Approach (FA2) - All warps execute:**
+
 1. Load Q block → shared memory
 2. Load K block → shared memory
 3. Wait for loads to complete (sync)
@@ -1670,18 +1741,21 @@ Note: FA3 achieves near-optimal hardware utilization!
 **FA3 Warp Specialization:**
 
 **Producer Warps (load data):**
+
 - Continuously load Q, K, V from HBM
 - Use TMA (Tensor Memory Accelerator)
 - Prefetch next blocks
 - Signal consumer warps via async barriers
 
 **Consumer Warps (compute):**
+
 - Continuously compute attention
 - Use WGMMA (async matrix multiply)
 - Pipeline multiple blocks
 - No idle time waiting for loads
 
 **Benefits:**
+
 - Overlap memory and compute
 - Hide memory latency
 - Better Tensor Core utilization
@@ -1689,7 +1763,7 @@ Note: FA3 achieves near-optimal hardware utilization!
 
 **Visual Timeline:**
 
-```
+```text
 FA2 (Sequential):
   |--Load--|  (idle)  |--Compute--|  (idle)  |--Load--|
 
@@ -1702,6 +1776,7 @@ FA3 (Overlapped):
 #### FlashAttention 3 Summary
 
 **Hardware Requirements:**
+
 - NVIDIA H100 or H200 (Hopper architecture)
 - CUDA 12.0+
 - PyTorch 2.1+ for FP8 support
@@ -1710,17 +1785,20 @@ FA3 (Overlapped):
 **When to Use FA3:**
 
 Use if:
+
 - ✓ Have H100/H200 GPU
 - ✓ Long sequences (N > 2K)
 - ✓ Large batch sizes
 - ✓ Training or high-throughput inference
 
 Don't use if:
+
 - ✗ Older GPU (A100, RTX) → use FA2 instead
 - ✗ Short sequences → overhead not worth it
 - ✗ Low-latency inference → FP8 quantization overhead
 
 **Practical Deployment:**
+
 - Often bundled in inference frameworks (vLLM, TGI, TensorRT-LLM)
 - PyTorch SDPA may auto-select FA3 on H100
 - For standalone: Use official flash-attn library v3.x
@@ -1739,6 +1817,7 @@ Don't use if:
 | **Production ready** | Yes | Yes | Yes (H100 only) |
 
 **Key papers:**
+
 - [FlashAttention (v1)](https://arxiv.org/abs/2205.14135) (Dao et al., 2022)
 - [FlashAttention-2](https://arxiv.org/abs/2307.08691) (Dao, 2023)
 - [FlashAttention-3](https://arxiv.org/abs/2407.08608) (Shah et al., 2024)
@@ -1754,11 +1833,13 @@ The official Flash Attention library requires complex CUDA compilation that can 
 
 **Why PyTorch's Built-in SDPA Matters:**
 PyTorch 2.0+ includes `scaled_dot_product_attention` (SDPA) which automatically selects the best attention implementation available:
+
 1. Flash Attention (if hardware supports it)
 2. Memory-efficient attention (xformers-style)
 3. Standard math implementation (fallback)
 
 This abstraction is critical because it:
+
 - Eliminates installation complexity (already compiled in PyTorch)
 - Automatically adapts to available hardware
 - Maintains API compatibility across different backends
@@ -1768,6 +1849,7 @@ This abstraction is critical because it:
 This is an example of **performance portability**—the same code runs optimally on different hardware without modification. The SDPA API hides hardware-specific optimizations behind a common interface.
 
 **How This Relates to Alternatives:**
+
 - **Direct Flash Attention library:** Maximum control but installation complexity
 - **PyTorch SDPA:** Easy to use, automatic optimization, but less control over backend
 - **Manual implementation:** Educational but impractically slow
@@ -2002,11 +2084,13 @@ Every algorithm has overhead—kernel launch costs, setup computations, and code
 
 **Why Short Sequences Are Different:**
 For sequence length N < 512, the attention matrix (N² elements) is small enough to fit in GPU caches (L2 cache on modern GPUs is ~40MB). This means standard attention doesn't actually hit HBM much—the attention matrix stays cache-resident. In this regime:
+
 - Standard attention: Simple kernel, cache-friendly for small N
 - Flash Attention: Complex kernel with blocking overhead, unnecessary for cached data
 
 **Theoretical Analysis:**
 The crossover point depends on cache size. Given L2 cache size C:
+
 - If N² × 2 bytes < C, attention matrix fits in cache
 - Standard attention becomes effectively "cache attention"
 - Flash Attention's SRAM optimization is redundant
@@ -2014,6 +2098,7 @@ The crossover point depends on cache size. Given L2 cache size C:
 For typical GPUs (C ≈ 40MB), this occurs around N ≈ 4000 elements (for single head, FP16). But with batching and multiple heads, the effective crossover is much lower (N ≈ 512-1024).
 
 **How This Relates to Alternatives:**
+
 - **Very short (N < 128):** Even matrix multiply overhead dominates; consider fused kernels
 - **Short (128 ≤ N < 512):** Standard attention is fine
 - **Medium (512 ≤ N < 4K):** Flash Attention starts winning
@@ -2037,14 +2122,17 @@ class ShortSequenceLimitations:
         Find the sequence length where Flash Attention becomes beneficial.
 
         Typical crossover points:
+
         - N < 512: Standard attention often faster
         - 512 ≤ N < 1024: Roughly equal
         - N ≥ 1024: Flash Attention wins
 
         Reasoning:
+
         - Flash Attention has higher kernel launch overhead
         - For small N, the N² attention matrix fits in cache anyway
         - Block tiling adds complexity without bandwidth savings
+
         """
         import torch
         import time
@@ -2125,6 +2213,7 @@ class BatchSizeLimitations:
         Analyze parallelism opportunities.
 
         Flash Attention parallelizes over:
+
         - Batch dimension
         - Head dimension
         - Sequence blocks (in FA2/FA3)
@@ -2166,14 +2255,17 @@ class BatchSizeLimitations:
         Considerations for inference with batch_size=1.
 
         Common in:
+
         - Interactive chat applications
         - Real-time generation
         - Single-user inference
 
         Recommendations:
+
         1. For prefill (processing prompt): Flash Attention still helps
         2. For decode (generating tokens): Use Flash-Decoding variant
         3. Consider batching multiple requests if possible
+
         """
         pass
 
@@ -2249,6 +2341,7 @@ class HeadDimensionConstraints:
         Problem: You designed a model with d=96 or d=192
 
         Options:
+
         1. Redesign model to use d ∈ {64, 128, 256}
            - Best option if possible
 
@@ -2263,6 +2356,7 @@ class HeadDimensionConstraints:
         4. Pad to next supported dimension
            - Wastes computation
            - Not recommended
+
         """
         pass
 
@@ -2297,6 +2391,7 @@ Flash Attention is designed for dense attention—it computes all N² attention 
 
 **Why Sparsity Creates a Different Tradeoff:**
 Sparse attention has fundamentally different characteristics:
+
 - **FLOPs:** Only O((1-s)N²) where s is sparsity fraction
 - **Memory access:** Irregular pattern, harder to optimize
 - **Flash Attention:** Always O(N²) FLOPs, optimized memory access
@@ -2305,11 +2400,13 @@ For very sparse patterns (s > 0.9), specialized sparse kernels can skip entire b
 
 **Theoretical Consideration:**
 This reveals a deep tradeoff between **computational efficiency** and **memory efficiency**:
+
 - Flash Attention: Optimizes memory, accepts redundant computation for simplicity
 - Sparse kernels: Reduce computation, accept irregular memory access
 - Combined approach: Block-sparse Flash Attention (exists but more complex)
 
 **How This Relates to Alternatives:**
+
 - **Causal masking (50% sparse):** Flash Attention optimizes this specially—use it!
 - **Local attention (>90% sparse):** Specialized sparse kernels better
 - **Random sparsity:** Too irregular; neither approach works well
@@ -2337,19 +2434,23 @@ class SparseAttentionConsiderations:
             seq_len: Sequence length
 
         Flash Attention:
+
         - Always computes full dense attention
         - O(N²) FLOPs regardless of sparsity
         - But O(N) memory and optimized data movement
 
         Sparse kernels:
+
         - Compute only O((1-sparsity) × N²) FLOPs
         - Skip masked-out regions entirely
         - But less optimized memory access patterns
 
         Crossover point:
+
         - High sparsity (>90%): Sparse kernels win
         - Low sparsity (<50%): Flash Attention wins
         - Medium sparsity: Case-by-case
+
         """
         import math
 
@@ -2386,20 +2487,25 @@ class SparseAttentionConsiderations:
         Alternative implementations for common sparse patterns.
 
         Pattern: Local + Global (Longformer-style)
+
         - Use: Block-sparse Flash Attention variant
         - Or: Separate kernels for local and global
 
         Pattern: Causal (autoregressive)
+
         - Use: Flash Attention with is_causal=True
         - Built-in optimization in FA2/FA3
 
         Pattern: Fixed patterns (BigBird)
+
         - Use: Specialized sparse kernels
         - Or: Block-sparse Flash Attention
 
         Pattern: Learned sparsity
+
         - Use: Standard attention with masking
         - Flash Attention doesn't help if pattern is data-dependent
+
         """
         pass
 
@@ -2517,6 +2623,7 @@ Flash Attention has strict hardware and software requirements. Users often encou
 
 **Why This Happens:**
 Flash Attention is a CUDA kernel compiled for specific GPU architectures. The requirements chain is:
+
 1. CUDA-capable NVIDIA GPU (no AMD/Intel)
 2. Compute capability ≥ 8.0 (Ampere architecture or newer)
 3. CUDA toolkit version matching PyTorch's CUDA version
@@ -2527,6 +2634,7 @@ A failure anywhere in this chain causes Flash Attention to be unavailable. The d
 
 **Theoretical Context:**
 This is a **systems integration problem**, not an algorithmic one. Flash Attention requires:
+
 - Hardware features: Tensor Cores, specific memory hierarchies
 - Software stack: CUDA runtime, cuBLAS, cuDNN
 - Compilation: NVCC compiling CUDA templates for specific architectures
@@ -2534,6 +2642,7 @@ This is a **systems integration problem**, not an algorithmic one. Flash Attenti
 The complexity stems from the performance optimization—generic kernels can't achieve Flash Attention's speedups.
 
 **How This Relates to Alternatives:**
+
 - **CPU-only PyTorch:** No Flash Attention possible (needs GPU)
 - **Older GPUs (V100, etc.):** Use memory-efficient attention instead
 - **AMD GPUs:** Use ROCm attention kernels (different implementation)
@@ -2632,9 +2741,11 @@ def check_which_kernel_is_used():
     Determine which SDPA backend PyTorch is actually using.
 
     PyTorch SDPA can use:
+
     - Flash Attention (fastest)
     - Memory-efficient attention (xformers-style)
     - Math (standard attention, slowest)
+
     """
     import torch
     import torch.nn.functional as F
@@ -2720,12 +2831,14 @@ The differences arise from three sources:
 
 **Theoretical Foundation—Backward Error Analysis:**
 In numerical analysis, we distinguish:
+
 - **Forward error:** How much does the output differ from the exact result?
 - **Backward error:** What input perturbation would produce this output?
 
 For Flash Attention, the backward error is tiny—it's as if we computed standard attention on slightly perturbed inputs (within machine epsilon). This is the best we can hope for in finite precision arithmetic.
 
 **How This Relates to Alternatives:**
+
 - **FP64 (double precision):** Would reduce differences to ~10⁻¹⁵, but 2x slower and unnecessary
 - **Exact arithmetic:** Impossible on real hardware
 - **Deterministic mode:** PyTorch has this, but it's slower
@@ -2810,10 +2923,12 @@ def profile_attention_performance():
     Profile attention to understand performance bottlenecks.
 
     Common issues:
+
     1. Not actually using Flash Attention (fallback to math)
     2. Sequence too short (overhead dominates)
     3. Cold start / kernel compilation
     4. Inefficient data layout
+
     """
     if not torch.cuda.is_available():
         print("CUDA required for profiling")
@@ -2934,12 +3049,14 @@ if __name__ == "__main__":
 The official flash-attn library can be tricky to install. Here's a step-by-step guide.
 
 **Prerequisites:**
+
 - CUDA 11.6+ or 12.x
 - PyTorch 2.0+ with CUDA support
 - GPU: Ampere (RTX 30xx, A100) or newer
 - Linux (Windows/Mac support limited)
 
 **Check your CUDA version:**
+
 ```bash
 python -c 'import torch; print(torch.version.cuda)'
 ```
@@ -2947,17 +3064,24 @@ python -c 'import torch; print(torch.version.cuda)'
 **Installation options:**
 
 **Option A: pip install (compiles from source, SLOW)**
+
 ```bash
 pip install flash-attn --no-build-isolation
 ```
+
+
 - ⚠️ This can take 30+ minutes and uses lots of RAM
 - ⚠️ Requires nvcc (CUDA compiler)
 
 **Option B: Pre-built wheels (if available)**
+
 - Check https://github.com/Dao-AILab/flash-attention/releases
 
 **Option C: Use PyTorch's built-in SDPA (recommended)**
+
 - No installation needed! PyTorch 2.0+ includes Flash Attention
+
+
 ```python
 import torch.nn.functional as F
 F.scaled_dot_product_attention(Q, K, V)
@@ -3012,6 +3136,7 @@ if __name__ == "__main__":
 ### Common Error Messages and Solutions
 
 **1. "Flash Attention is not supported on this GPU"**
+
 - **Cause:** GPU compute capability < 8.0 (pre-Ampere)
 - **Solutions:**
   - Upgrade to Ampere or newer GPU (RTX 30xx, A100, etc.)
@@ -3019,6 +3144,7 @@ if __name__ == "__main__":
   - Fall back to standard attention
 
 **2. "RuntimeError: expected scalar type Half but found Float"**
+
 - **Cause:** Mixed precision types (FP32 and FP16)
 - **Solutions:**
   - Ensure Q, K, V are all same dtype
@@ -3026,6 +3152,7 @@ if __name__ == "__main__":
   - Or use FP32 for all (slower)
 
 **3. "RuntimeError: CUDA out of memory"**
+
 - **Cause:** Sequence length too long even for Flash Attention
 - **Solutions:**
   - Reduce batch size
@@ -3034,6 +3161,7 @@ if __name__ == "__main__":
   - Use Ring Attention for multi-GPU
 
 **4. "Numerical instability / NaN values"**
+
 - **Cause:** Softmax overflow in FP16 with large attention scores
 - **Solutions:**
   - Use BF16 instead of FP16 (better dynamic range)
@@ -3041,6 +3169,7 @@ if __name__ == "__main__":
   - Check for inf values in Q, K before attention
 
 **5. "Performance slower than expected"**
+
 - **Cause:** Multiple possible causes
 - **Solutions:**
   - Verify Flash Attention is actually being used (profiler)
@@ -3506,6 +3635,7 @@ Traditional algorithm analysis focuses on time complexity (FLOPs) and space comp
 
 **Theoretical Framework—The IO Model:**
 The IO complexity model (also called the "red-blue pebble game" or "external memory model") counts:
+
 - **Reads from HBM to SRAM:** Cost = bytes read / HBM bandwidth
 - **Writes from SRAM to HBM:** Cost = bytes written / HBM bandwidth
 - **Computation in SRAM:** Essentially free (relative to HBM access)
@@ -3517,12 +3647,14 @@ The Flash Attention paper proves:
 
 **Theorem (IO Complexity of Flash Attention):**
 For sequence length N, head dimension d, and SRAM size M:
+
 - Standard attention: $\Theta(N^2 + Nd)$ HBM accesses
 - Flash Attention: $\Theta(N^{2}d^{2}/M + Nd)$ HBM accesses
 
 When M = Θ(d) (typical for attention workloads), this simplifies to $\Theta(N^2\sqrt{d})$, a $\Theta(\sqrt{d})$ improvement factor.
 
 **How This Relates to Other Approaches:**
+
 - **Algorithmic improvements (sparse attention):** Reduce FLOPs but not necessarily IO
 - **Hardware improvements (faster HBM):** Helps all algorithms equally
 - **IO-aware algorithms (Flash Attention):** Fundamental algorithmic improvement in IO complexity
@@ -3638,10 +3770,12 @@ IOComplexityAnalysis.comparison()
 **Theoretical result:**
 
 For standard attention:
+
 - **IO complexity:** $\Theta(N^2 + Nd)$ where $N$ is sequence length, $d$ is head dimension
 - **Dominated by:** $\Theta(N^2)$ for long sequences
 
 For Flash Attention:
+
 - **IO complexity:** $\Theta\left(\frac{N^2 d^2}{M}\right)$ where $M$ is SRAM size
 - **With** $M = \Theta(d)$: $\Theta(N^2 \sqrt{d})$
 - **Reduction:** $\Theta(\sqrt{d})$ improvement (e.g., 8x for $d=64$)
@@ -3660,11 +3794,13 @@ def answer_q1():
     Answer: Memory bandwidth bottleneck, not compute.
 
     Key points to mention:
+
     1. Modern GPUs are compute-abundant but memory-bandwidth-constrained
     2. Standard attention reads/writes the N×N attention matrix multiple times to HBM
     3. HBM bandwidth is 10-15x slower than SRAM bandwidth
     4. Flash Attention minimizes HBM access through tiling and kernel fusion
     5. Result: Even with same FLOPs, Flash Attention is 2-8x faster
+
     """
     print("Answer: Standard attention is memory-bound, not compute-bound")
     print("\nDetailed explanation:")
@@ -3703,11 +3839,13 @@ def answer_q2():
     Answer: Incremental softmax computation for block-wise processing.
 
     Key points:
+
     1. Standard softmax requires two passes (find max, then compute)
     2. Flash Attention processes K, V in blocks
     3. Can't make two passes over all blocks efficiently
     4. Online softmax maintains running statistics (max and sum)
     5. Mathematically exact, not an approximation
+
     """
     print("Answer: Online softmax enables exact block-wise softmax computation")
     print("\nDetailed explanation:")
@@ -3781,11 +3919,13 @@ def answer_q3():
     Answer: Trading compute for memory bandwidth.
 
     Key points:
+
     1. Standard backward: Save O(N²) attention matrix, use O(N²) HBM bandwidth
     2. Flash backward: Recompute attention, only save O(N) statistics
     3. Modern GPUs: Compute is cheap, memory bandwidth is expensive
     4. Recomputation happens in fast SRAM, not slow HBM
     5. Net effect: Less HBM traffic = faster overall
+
     """
     print("Answer: Modern GPUs have excess compute but limited memory bandwidth")
     print("\nDetailed explanation:")
@@ -4028,6 +4168,7 @@ Flash Attention isn't just a single algorithm—it's a **design methodology**: a
 
 **Why Extensions Matter:**
 The original Flash Attention solves dense attention for training. But production systems have different workloads:
+
 - **Inference (decoding):** Process one token at a time (different parallelism pattern)
 - **Very long sequences:** Even Flash Attention runs out of memory eventually
 - **Sparse patterns:** Many applications don't need full attention
@@ -4040,6 +4181,7 @@ A general-purpose algorithm is rarely optimal for all use cases. The Flash Atten
 
 **How This Relates to Software Engineering:**
 This mirrors the design pattern of having a common interface (scaled_dot_product_attention) with multiple backend implementations. The system automatically selects the appropriate variant based on:
+
 - Hardware capabilities (H100 → FA3, A100 → FA2)
 - Attention pattern (causal, sparse, etc.)
 - Sequence length and batch size
@@ -4050,12 +4192,14 @@ This mirrors the design pattern of having a common interface (scaled_dot_product
 **Flash-Decoding: Optimized for generation (decoding)**
 
 Problem: During generation, we append one token at a time.
+
 - Query: 1 token
 - Key, Value: All previous tokens (growing)
 
 Standard Flash Attention parallelizes over queries, but with 1 query token, we have no parallelism!
 
 Flash-Decoding solution:
+
 - Parallelize over K, V instead
 - Split K, V into blocks
 - Compute attention for each block in parallel
@@ -4070,11 +4214,13 @@ Paper: "Flash-Decoding for long-context inference" (2023)
 PagedAttention (from vLLM) manages KV cache in pages (see [Hardware, Quantization, and Training Optimization](32-hardware-quantization-optimization.md))
 
 Paged Flash Attention:
+
 - Use Flash Attention for computation
 - Use paged memory management for KV cache
 - Best of both worlds!
 
 Enables:
+
 - Long context with Flash Attention efficiency
 - Memory efficient KV cache management
 - Continuous batching for inference
@@ -4086,11 +4232,13 @@ Used in: vLLM, TensorRT-LLM
 Idea: Combine Flash Attention with block sparsity patterns.
 
 Applications:
+
 - Longformer-style attention (local + global)
 - BigBird attention patterns
 - Custom sparsity patterns
 
 Implementation:
+
 - Skip blocks that are masked out
 - Only process non-zero blocks
 - Maintains Flash Attention efficiency
@@ -4102,6 +4250,7 @@ Paper: "Flash-Attention with Block-Sparse Attention" (Dao et al.)
 MQA/GQA: Fewer K, V heads than Q heads (see [Multi-Head Attention](04-multi-head-attention.md))
 
 Optimizations:
+
 - K, V blocks are smaller
 - Can fit more K, V in SRAM
 - Better K, V reuse across Q heads
@@ -4111,11 +4260,13 @@ Result: Even faster than standard Flash Attention!
 **Ring Attention: Distributed Flash Attention**
 
 For sequences longer than single-GPU memory:
+
 - Split sequence across multiple GPUs
 - Pass K, V blocks in a ring
 - Each GPU processes its Q block with all K, V
 
 Enables:
+
 - Multi-million token contexts
 - Distributed training on long sequences
 
@@ -4126,11 +4277,13 @@ Paper: "Ring Attention with Blockwise Transformers for Near-Infinite Context" (2
 **Memory-Efficient Attention (Xformers)**
 
 Similar to Flash Attention but different approach:
+
 - Focuses on reducing peak memory
 - Uses gradient checkpointing strategically
 - Supports more flexible attention masks
 
 Trade-offs vs Flash Attention:
+
 - More flexible (arbitrary masks)
 - Slightly slower
 - Lower memory peak
@@ -4140,6 +4293,7 @@ Used in: Stable Diffusion, many vision models
 **Fused Attention (NVIDIA Apex)**
 
 NVIDIA's optimized attention implementation:
+
 - Fused CUDA kernels
 - Similar principles to Flash Attention
 - Integrated with Apex mixed precision training
@@ -4183,6 +4337,7 @@ Superseded by Flash Attention in most use cases.
 ### Mental Model
 
 Think of Flash Attention as:
+
 - **Compiler optimization** for attention: Kernel fusion + memory optimization
 - **Streaming algorithm:** Process data in chunks, maintain running statistics
 - **Hardware-aware design:** Designed around GPU memory hierarchy, not just algorithmic complexity

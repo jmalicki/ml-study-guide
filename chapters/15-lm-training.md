@@ -111,7 +111,7 @@ The fundamental task in causal language modeling is **next token prediction**: g
 
 **Example Sequence:**
 
-```
+```text
 Input:  "The cat sat on the"
 Target: "cat sat on the mat"
 ```
@@ -325,6 +325,7 @@ y'_i = \begin{cases}
 #### Problem: Model Overconfidence
 
 Standard cross-entropy training encourages models to assign probability 1.0 to the correct token and 0.0 to all others. This can lead to:
+
 - **Overconfidence**: Model becomes too certain about predictions, even when multiple tokens might be valid
 - **Poor calibration**: Predicted probabilities don't reflect true uncertainty
 - **Reduced generalization**: Model memorizes training distribution rather than learning robust patterns
@@ -348,6 +349,7 @@ Label smoothing acts as a regularizer by preventing the model from becoming over
 #### Key Insight
 
 The optimal logit for the correct class with label smoothing $\epsilon$ is bounded: rather than pushing logits to infinity, the model learns to output finite values. This creates a margin between correct and incorrect predictions without extreme values, leading to:
+
 - Better generalization to unseen data
 - More robust probability estimates
 - Reduced sensitivity to mislabeled training data
@@ -409,10 +411,12 @@ class LanguageModelTrainer:
     Basic trainer for causal language models.
 
     This implements a standard training loop with:
+
     - Forward pass
     - Loss computation
     - Backward pass
     - Optimizer step
+
     """
 
     def __init__(
@@ -538,6 +542,7 @@ Tracking training and validation loss over time is crucial for monitoring model 
 ![Training Loss Curves](../assets/diagrams/ch15-training-loss-curves.svg)
 
 The diagram above shows typical training dynamics:
+
 - **Training loss** (blue) decreases smoothly as the model learns patterns in the data
 - **Validation loss** (red dashed) follows a similar trend but may plateau or increase if overfitting occurs
 - The gap between training and validation loss indicates generalization performance
@@ -636,8 +641,10 @@ def compute_perplexity(loss: float) -> float:
     PPL = exp(loss)
 
     Typical values:
+
     - Random baseline: exp(log(vocab_size)) = vocab_size
     - Good LLM: 10-30 on validation data
+
     """
     import math
     return math.exp(loss)
@@ -665,9 +672,11 @@ class CheckpointManager:
     Manage model checkpoints during training.
 
     Features:
+
     - Save checkpoints at regular intervals
     - Keep only the best N checkpoints
     - Resume training from checkpoint
+
     """
 
     def __init__(
@@ -808,6 +817,7 @@ def train_with_checkpointing():
 **Solution**: Accumulate gradients over multiple forward-backward passes before updating weights.
 
 **Example:**
+
 - Target batch size: 64
 - GPU can fit: 16 samples
 - Accumulation steps: 4
@@ -818,6 +828,7 @@ def train_with_checkpointing():
 ![Gradient Accumulation Visualization](../assets/diagrams/ch15-gradient-accumulation.svg)
 
 The diagram illustrates the gradient accumulation process:
+
 1. Process 4 micro-batches sequentially (each with batch size 16)
 2. Accumulate gradients from each backward pass (loss is scaled by 1/4)
 3. After all micro-batches, perform a single optimizer step with accumulated gradients
@@ -830,11 +841,13 @@ def gradient_accumulation_explained():
     Understanding gradient accumulation.
 
     Standard training:
+
     1. Forward pass (batch_size=64)
     2. Backward pass
     3. Optimizer step
 
     With gradient accumulation (accumulation_steps=4):
+
     1. Forward pass (batch_size=16)
     2. Backward pass (gradients accumulate)
     3. Forward pass (batch_size=16)
@@ -1011,6 +1024,7 @@ def compute_tokens_per_batch(
     Modern LLMs often report batch sizes in tokens rather than sequences.
 
     Example:
+
         - batch_size = 256 sequences
         - sequence_length = 2048 tokens
         - tokens_per_batch = 256 × 2048 = 524,288 tokens (~0.5M)
@@ -1030,6 +1044,7 @@ def gpt3_batch_config():
     - Number of sequences: 3.2M / 2048 = 1562.5 ≈ 1563
 
     To achieve this on modern hardware:
+
     - micro_batch_size = 4 (per GPU)
     - sequence_length = 2048
     - gradient_accumulation_steps = 32
@@ -1050,6 +1065,7 @@ def gpt3_batch_config():
 Mixed precision training uses FP16 or BF16 for most operations while keeping FP32 for critical computations. This speeds up training and reduces memory usage.
 
 **Benefits:**
+
 - 2-3x faster training (on GPUs with Tensor Cores)
 - ~40% less memory usage
 - Minimal accuracy loss
@@ -1059,6 +1075,7 @@ See [Hardware, Quantization, and Training Optimization](32-hardware-quantization
 ![Mixed Precision Training Flow](../assets/diagrams/ch15-mixed-precision-flow.svg)
 
 The diagram shows the complete mixed precision training pipeline:
+
 - **Forward pass** uses FP16/BF16 for fast matrix operations and reduced memory
 - **Loss computation** happens in FP16/BF16
 - **FP16 only**: Loss is scaled up by a factor (e.g., 1024) to prevent gradient underflow
@@ -1138,6 +1155,7 @@ def compare_precision_formats():
     Compare FP16 and BF16 for LLM training.
 
     FP16 (Float16):
+
     - 1 sign bit, 5 exponent bits, 10 mantissa bits
     - Range: ±65,504
     - Precision: ~3-4 decimal digits
@@ -1145,6 +1163,7 @@ def compare_precision_formats():
     - Cons: Limited range, gradient underflow issues
 
     BF16 (BFloat16):
+
     - 1 sign bit, 8 exponent bits, 7 mantissa bits
     - Range: ±3.4×10^38 (same as FP32!)
     - Precision: ~2-3 decimal digits
@@ -1152,6 +1171,7 @@ def compare_precision_formats():
     - Cons: Lower precision than FP16
 
     For LLM training, BF16 is preferred:
+
     - No loss scaling needed
     - Handles gradient magnitudes better
     - Simpler training pipeline
@@ -1189,6 +1209,7 @@ class LossScalingExplained:
     Solution: Scale loss by large factor (e.g., 1024) before backward pass.
 
     Process:
+
     1. loss_scaled = loss × scale
     2. loss_scaled.backward()  # Gradients are now scaled up
     3. optimizer.step()  # Automatically unscales gradients
@@ -1292,6 +1313,7 @@ def gradient_clipping_methods():
        - Clamp each gradient: g_i = clip(g_i, -max_val, max_val)
        - Can distort gradient direction
        - Less common for LLMs
+
     """
 
     # Method 1: Clip by norm (recommended)
@@ -1321,9 +1343,11 @@ def why_gradient_clipping():
        - Most LLMs use gradient clipping
 
     Typical values:
+
     - max_norm = 1.0 (most common)
     - max_norm = 0.5 (more conservative)
     - max_norm = 5.0 (for very large models)
+
     """
     pass
 ```
@@ -1364,12 +1388,14 @@ Early in training, these estimates are unreliable (high bias toward initializati
 **2. Gradient Noise and Batch Statistics**
 
 At initialization, gradients can have high variance. The effective learning rate in Adam is $\frac{\alpha}{\sqrt{v_t}}$. Without warmup:
+
 - Small initial $v_t$ → very large effective learning rate → instability
 - Warmup allows $v_t$ to stabilize before using the full learning rate
 
 **3. Sharp Loss Landscapes**
 
 Random initialization may place parameters in regions with:
+
 - Sharp minima (high curvature)
 - Large gradients in certain directions
 
@@ -1463,9 +1489,11 @@ def why_warmup():
        - BERT: 10,000 step warmup
 
     Typical warmup duration:
+
     - Small models: 1,000-2,000 steps
     - Large models: 2,000-10,000 steps
     - Usually <1% of total training steps
+
     """
     pass
 ```
@@ -1477,10 +1505,12 @@ Cosine annealing smoothly decays the learning rate following a cosine curve. Thi
 ##### The Problem: Balancing Exploration and Convergence
 
 During training, we face competing objectives:
+
 - **Early/mid training**: Need high learning rate to explore loss landscape and make rapid progress
 - **Late training**: Need low learning rate to converge to a good minimum without overshooting
 
 A constant learning rate can't satisfy both. Abrupt changes (step decay) can cause:
+
 - Training instability when learning rate drops
 - Wasted computation if decay happens too early or too late
 - Difficulty in hyperparameter tuning (when to decay? by how much?)
@@ -1490,6 +1520,7 @@ A constant learning rate can't satisfy both. Abrupt changes (step decay) can cau
 **1. Smooth Convergence**
 
 The cosine schedule provides a smooth, continuous decay that:
+
 - Gradually reduces learning rate as training progresses
 - Avoids sudden jumps that can destabilize training
 - Ensures the model smoothly transitions from exploration to exploitation
@@ -1497,6 +1528,7 @@ The cosine schedule provides a smooth, continuous decay that:
 **2. Stochastic Gradient Descent Theory**
 
 Classical SGD theory suggests that learning rate should decay as $O(1/\sqrt{t})$ or $O(1/t)$ for convergence guarantees. However, for non-convex deep learning:
+
 - Cosine decay is empirically superior to polynomial decay
 - The specific functional form matters less than smooth, monotonic decrease
 - Cosine provides a good balance: fast initial decay, slower later decay
@@ -1504,6 +1536,7 @@ Classical SGD theory suggests that learning rate should decay as $O(1/\sqrt{t})$
 **3. Connection to Simulated Annealing**
 
 Cosine annealing draws inspiration from simulated annealing in optimization:
+
 - High "temperature" (learning rate) early: explore widely
 - Gradually cool (decay lr): focus on promising regions
 - Low temperature late: fine-tune solution
@@ -1519,6 +1552,7 @@ The cosine curve naturally implements this cooling schedule.
 - **Inverse sqrt**: $\text{lr}(t) = \text{lr}_0 / \sqrt{t}$; never reaches zero, used when training time is unknown
 
 **Why cosine wins in practice:**
+
 - Single hyperparameter (min_lr) vs multiple for step decay
 - Smooth transitions prevent instability
 - Works well across diverse tasks and model sizes
@@ -1545,6 +1579,7 @@ After warmup, the learning rate follows:
 ```
 
 where:
+
 - $t$ is the current step
 - $t_{\text{warmup}}$ is the warmup duration
 - $T$ is the total training steps
@@ -1552,6 +1587,7 @@ where:
 - $\text{lr}_{\min}$ is the minimum learning rate (often 0.1 × lr_max)
 
 **Properties:**
+
 - At $t = t_{\text{warmup}}$: $\text{lr} = \text{lr}_{\max}$ (starts at peak)
 - At $t = T$: $\text{lr} = \text{lr}_{\min}$ (ends at minimum)
 - Derivative is continuous everywhere (smooth)
@@ -1567,8 +1603,10 @@ class CosineAnnealingWithWarmup:
     Used in GPT-3, LLaMA, and many modern LLMs.
 
     Learning rate schedule:
+
     - Steps 0 to warmup_steps: Linear increase from 0 to max_lr
     - Steps warmup_steps to total_steps: Cosine decay from max_lr to min_lr
+
     """
 
     def __init__(
@@ -1756,6 +1794,7 @@ Traditional cosine schedules decay learning rate throughout training. However, f
 **1. Staged Learning Dynamics**
 
 Large-scale training exhibits distinct phases:
+
 - **Phase 1 (Warmup)**: Stabilize optimizer and escape initialization
 - **Phase 2 (Stable)**: Rapid loss reduction as model learns fundamental patterns
 - **Phase 3 (Decay)**: Fine-tuning and convergence to final solution
@@ -1765,6 +1804,7 @@ WSD explicitly models these phases rather than smoothly transitioning between th
 **2. Computational Efficiency**
 
 For models trained on 1-10 trillion tokens:
+
 - Warmup: ~1% of steps (stabilization)
 - Stable: ~80-90% of steps (main learning)
 - Decay: ~10-15% of steps (convergence)
@@ -1774,6 +1814,7 @@ This allocation ensures maximum compute is spent with optimal learning rate, wit
 **3. Flexibility and Continuation**
 
 Unlike cosine (which requires knowing total steps upfront), WSD:
+
 - Allows extending training in stable phase if beneficial
 - Can transition to decay phase based on validation performance
 - Separates exploration (stable) from exploitation (decay)
@@ -1786,6 +1827,7 @@ Unlike cosine (which requires knowing total steps upfront), WSD:
 - **Inverse sqrt**: Never reaches minimum; WSD guarantees convergence via decay phase
 
 **Why WSD for large-scale training:**
+
 - Cosine: Good for fixed budgets, shorter training
 - WSD: Better for long training runs, flexible stopping, very large models
 - Most modern LLMs use WSD or variants (PaLM, Chinchilla, Gopher, etc.)
@@ -1805,11 +1847,13 @@ Unlike cosine (which requires knowing total steps upfront), WSD:
 ##### Typical Allocation
 
 For a training run of $T$ total steps:
+
 - **Warmup**: $0.01T$ to $0.02T$ (1-2%)
 - **Stable**: $0.80T$ to $0.90T$ (80-90%)
 - **Decay**: $0.10T$ to $0.15T$ (10-15%)
 
 **Example (100K steps):**
+
 - Warmup: 1,000 steps
 - Stable: 85,000 steps
 - Decay: 14,000 steps
@@ -1822,14 +1866,17 @@ class WSDSchedule:
     Used in recent large language models like PaLM and Chinchilla.
 
     Three phases:
+
     1. Warmup: Linear increase to max_lr
     2. Stable: Constant max_lr for majority of training
     3. Decay: Cosine or linear decay to min_lr
 
     Typical allocation:
+
     - Warmup: 1-2% of total steps
     - Stable: 80-90% of total steps
     - Decay: 10-15% of total steps
+
     """
 
     def __init__(
@@ -1998,10 +2045,12 @@ def schedule_recommendations():
        - Use cases: Original Transformer, NMT models
 
     General Guidelines:
+
     - For pretraining: Use Cosine or WSD
     - For fine-tuning: Use Linear Decay or Cosine with short decay
     - Warmup steps: 0.5-2% of total training steps
     - min_lr: Typically 10% of max_lr (e.g., 3e-5 if max_lr is 3e-4)
+
     """
     pass
 ```
@@ -2071,15 +2120,18 @@ def weight_decay_explained():
     where wd is the weight decay coefficient.
 
     Key difference from Adam:
+
     - Adam: Weight decay is scaled by adaptive learning rate
     - AdamW: Weight decay is applied at a constant rate
 
     AdamW is superior for transformer training.
 
     Typical values for LLMs:
+
     - weight_decay = 0.1 (most common)
     - weight_decay = 0.01 (lighter regularization)
     - weight_decay = 0.0 (no regularization, rare)
+
     """
 
     # Example: AdamW with weight decay
@@ -2096,6 +2148,7 @@ def selective_weight_decay():
     Apply weight decay selectively.
 
     Common practice: Don't apply weight decay to:
+
     - Bias terms
     - Layer normalization parameters
     - Embeddings (sometimes)
@@ -2140,6 +2193,7 @@ Gradient checkpointing is based on a fundamental insight: **activations can be r
 **Mathematical Formulation:**
 
 For a sequential model $f = f_{L} \circ f_{L-1} \circ \cdots \circ f_1$:
+
 - Standard backprop: Store all intermediate activations $a_1, a_2, \ldots, a_{L}$
 - Gradient checkpointing: Store only selected checkpoints (e.g., every $k$ layers)
 - During backward: Recompute missing activations by re-running forward pass from nearest checkpoint
@@ -2171,16 +2225,19 @@ These techniques are **complementary** and often used together in large-scale tr
 #### How Gradient Checkpointing Works
 
 **Standard Training:**
+
 1. Forward pass: Compute and store all activations
 2. Backward pass: Use stored activations to compute gradients
 3. Memory usage: O(n × layers) where n is batch size
 
 **With Gradient Checkpointing:**
+
 1. Forward pass: Only store activations at checkpoints (e.g., every few layers)
 2. Backward pass: Recompute activations from checkpoints as needed
 3. Memory usage: O(n × sqrt(layers)) - significant reduction!
 
 **Trade-off:**
+
 - Memory savings: 40-50% reduction in activation memory
 - Computational cost: 20-30% slower (one extra forward pass per checkpoint)
 
@@ -2315,17 +2372,21 @@ def memory_comparison():
     Example for a 7B parameter model:
 
     Without checkpointing:
+
     - Activations: ~100GB for batch_size=8, seq_len=2048
     - Cannot train on single 80GB A100
 
     With checkpointing:
+
     - Activations: ~50GB for same batch size
     - Can train on single 80GB A100
 
     Rule of thumb:
+
     - Checkpointing reduces activation memory by ~40-50%
     - Increases training time by ~20-30%
     - Essential for large models (>3B parameters) on consumer GPUs
+
     """
     pass
 
@@ -2335,22 +2396,26 @@ def when_to_use_checkpointing():
     Guidelines for using gradient checkpointing.
 
     Use gradient checkpointing when:
+
     1. Training large models (>1B parameters)
     2. Using long sequences (>2048 tokens)
     3. Want to maximize batch size
     4. GPU memory is the bottleneck (not computation)
 
     Don't use gradient checkpointing when:
+
     1. Training small models (<500M parameters)
     2. Computational speed is critical
     3. Already have enough GPU memory
     4. Using very short sequences (<512 tokens)
 
     Best practices:
+
     - Checkpoint transformer layers, not embeddings/output layers
     - Consider checkpointing every N layers (e.g., every 2-3 layers)
     - Combine with other memory optimizations (mixed precision, etc.)
     - Profile to find optimal checkpoint frequency
+
     """
     pass
 
@@ -2395,9 +2460,11 @@ class SelectiveCheckpointing:
     Advanced gradient checkpointing strategies.
 
     Instead of checkpointing all layers, you can be selective:
+
     1. Checkpoint only expensive layers (e.g., large FFN layers)
     2. Checkpoint every N layers
     3. Checkpoint based on memory/computation trade-off
+
     """
 
     @staticmethod
@@ -2434,6 +2501,7 @@ This section covers common problems encountered during LLM training and how to d
 ### Loss Not Decreasing
 
 **Symptoms:**
+
 - Training loss stays constant or decreases very slowly
 - Validation loss doesn't improve
 - Model appears to be "stuck"
@@ -2469,6 +2537,7 @@ def debug_loss_not_decreasing():
     6. Incorrect loss computation:
        - Check: Verify loss calculation
        - Fix: Ensure labels are shifted correctly for LM
+
     """
 
     # Debug: Check learning rate
@@ -2572,6 +2641,7 @@ def debug_loss_not_decreasing():
 ### NaN or Inf Values in Loss
 
 **Symptoms:**
+
 - Loss becomes NaN (not a number) or inf (infinity)
 - Training crashes or produces nonsensical outputs
 
@@ -2608,6 +2678,7 @@ def debug_nan_loss():
        - Symptom: NaN when using FP16
        - Fix: Use BF16 instead
        - Fix: Use loss scaling with FP16
+
     """
 
     # Add NaN detection
@@ -2669,6 +2740,7 @@ def debug_nan_loss():
 ### Out of Memory (OOM) Errors
 
 **Symptoms:**
+
 - CUDA out of memory error
 - Training crashes during forward or backward pass
 - Inconsistent OOM (works sometimes, fails other times)
@@ -2703,6 +2775,7 @@ def debug_oom_errors():
     6. Offloading:
        - Move optimizer states to CPU
        - Use ZeRO optimizer (DeepSpeed)
+
     """
 
     # Memory monitoring
@@ -2829,6 +2902,7 @@ def example_memory_estimation():
 ### Slow Training
 
 **Symptoms:**
+
 - Training is slower than expected
 - Low GPU utilization
 - High training time per batch
@@ -2861,6 +2935,7 @@ def debug_slow_training():
     5. Suboptimal hardware utilization:
        - Check: GPU utilization (nvidia-smi)
        - Fix: Increase batch size, use tensor cores
+
     """
 
     # Profile training
@@ -2943,6 +3018,7 @@ def debug_slow_training():
 ### Model Not Converging
 
 **Symptoms:**
+
 - Validation loss stops improving while training loss decreases
 - Model outputs don't make sense
 - High variance in loss
@@ -2980,6 +3056,7 @@ def debug_convergence_issues():
        - Symptom: Train and val loss diverge early
        - Fix: Check train/val split
        - Fix: Ensure data is shuffled properly
+
     """
 
     # Monitor overfitting
@@ -3035,12 +3112,14 @@ class CompleteTrainer:
     Complete training pipeline with all best practices.
 
     Includes:
+
     - Mixed precision training (BF16)
     - Gradient accumulation
     - Gradient clipping
     - Learning rate warmup
     - Checkpointing
     - Logging
+
     """
 
     def __init__(

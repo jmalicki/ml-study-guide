@@ -7,6 +7,7 @@ Data quality is often the most important factor in training high-performing lang
 Modern LLMs are typically trained on trillions of tokens from diverse sources. The [GPT-3 paper](https://arxiv.org/abs/2005.14165) used 300B tokens from various sources, while more recent models like [LLaMA 2](https://arxiv.org/abs/2307.09288) used 2T tokens and [Qwen 2.5](https://arxiv.org/abs/2412.15115) used over 18T tokens. The curation process for these datasets involves sophisticated filtering, deduplication, and quality scoring techniques.
 
 Key datasets and papers we'll reference:
+
 - [**The Pile**](https://arxiv.org/abs/2101.00027) (EleutherAI): 825GB diverse dataset with 22 high-quality sources
 - [**RefinedWeb**](https://arxiv.org/abs/2306.01116) (Falcon): Massive-scale web data with careful filtering
 - [**RedPajama**](https://github.com/togethercomputer/RedPajama-Data): Open reproduction of LLaMA's training data
@@ -48,11 +49,13 @@ Common data sources for LLM training include:
 [CommonCrawl](https://commoncrawl.org/) is a massive web archive containing petabytes of data collected since 2008. It's the foundation for many LLM training datasets.
 
 **CommonCrawl Format**: WARC (Web ARChive) files containing:
+
 - Raw HTML
 - HTTP headers
 - Metadata
 
 **Key Challenges**:
+
 - Noisy content (ads, navigation, boilerplate)
 - Duplicate content
 - Low-quality text
@@ -66,17 +69,20 @@ Common data sources for LLM training include:
 **Why This Matters**: Training on raw HTML would waste model capacity learning boilerplate patterns instead of natural language. Modern LLMs trained on trillions of tokens need clean text to maximize the value of each training token. The [C4 dataset paper](https://arxiv.org/abs/1910.10683) showed that aggressive HTML cleaning significantly improved downstream performance.
 
 **Theoretical Justification**: The goal is to extract the **main content** while removing **boilerplate**. This is essentially a signal-to-noise problem. Research on content extraction includes:
+
 - **DOM-based methods**: Identify semantic HTML5 tags (`<article>`, `<main>`) that typically contain primary content
 - **Density-based methods**: Content regions have higher text density than navigation/ads
 - **Template detection**: Identify and remove repeated structures across pages
 
 **How This Relates to Alternatives**:
+
 - **Simple tag stripping** (e.g., `html2text`): Fast but keeps navigation, ads, etc.
 - **Boilerplate detection** (e.g., `jusText`, `Readability`): More sophisticated but slower
 - **Machine learning approaches**: Can be most accurate but require training data
 - **Our approach**: Balance between simplicity and effectiveness using semantic HTML tags
 
 **Key Insights**:
+
 1. **Prioritize semantic tags**: Modern HTML5's `<article>`, `<main>` tags are strong signals
 2. **Remove known noise tags**: Scripts, styles, navigation are never useful for LLM training
 3. **Preserve structure**: Keep paragraph breaks - they're meaningful for coherence
@@ -219,6 +225,7 @@ print(result['text'])
 **Why This Matters**: The [Gopher paper](https://arxiv.org/abs/2112.11446) found that training on carefully filtered data substantially outperformed training on raw web crawls of the same size. Quality filtering allows models to learn from better examples in fewer training steps. Since compute is expensive, it's more efficient to filter aggressively than to train on noisy data.
 
 **Theoretical Justification**: These filters are based on **distributional assumptions about natural language**:
+
 - **Length constraints**: Natural documents have reasonable length ranges. Too short suggests fragments or navigation; too long suggests concatenated pages or auto-generated content
 - **Word statistics**: Natural language has characteristic word length distributions. Abnormal distributions indicate generated content, URLs, or code
 - **Character composition**: Real text is mostly alphabetic. High symbol/number ratios suggest technical content, spam, or errors
@@ -226,12 +233,14 @@ print(result['text'])
 - **Structural patterns**: Excessive bullets/lists suggest navigation menus rather than prose
 
 **How This Relates to Alternatives**:
+
 - **No filtering**: Simple but includes massive amounts of noise, hurting model quality
 - **Manual curation**: Highest quality but completely infeasible at scale
 - **ML-based filtering**: More accurate (discussed later) but requires labeled data and is computationally expensive
 - **Rule-based filtering (our approach)**: Fast, interpretable, requires no training data, catches most low-quality content
 
 **Key Insights**:
+
 1. **Multiple weak signals are stronger than one**: No single heuristic is perfect, but combining many catches most low-quality content
 2. **Conservative thresholds**: False negatives (keeping some bad data) are usually acceptable, but false positives (removing good data) are costly
 3. **Domain-specific tuning**: Thresholds should be adjusted based on data source (news vs. social media vs. technical docs)
@@ -379,12 +388,14 @@ for i, bad_text in enumerate(bad_examples, 1):
 **Why This Matters**: Language composition directly affects model capabilities. The [LLaMA 2 paper](https://arxiv.org/abs/2307.09288) used 89.7% English data, while multilingual models like [BLOOM](https://arxiv.org/abs/2211.05100) carefully balanced 46 languages. Incorrect language filtering can accidentally exclude important multilingual content or waste capacity on unintended languages.
 
 **Theoretical Justification**: Language identification exploits the fact that different languages have **distinctive character and n-gram distributions**:
+
 - **Character-level**: Different scripts (Latin, Cyrillic, Arabic, CJK) have non-overlapping Unicode ranges
 - **Byte-level**: Character encoding patterns differ by language
 - **N-gram level**: Languages have distinctive sequences (e.g., "th" is common in English, rare in Spanish)
 - **Statistical models**: Modern detectors use neural networks or compressed models trained on multilingual text
 
 **How This Relates to Alternatives**:
+
 - **Unicode script detection (our simple approach)**: Very fast, works for script-level detection, but can't distinguish languages with same script (English vs. French)
 - **langdetect**: Python port of Google's detector, uses character n-grams, good accuracy, moderate speed
 - **fastText language ID**: Facebook's neural model, extremely fast (milliseconds for documents), very accurate, supports 176 languages
@@ -392,6 +403,7 @@ for i, bad_text in enumerate(bad_examples, 1):
 - **GPT-based detection**: Use an LLM to identify language - accurate but slow and expensive
 
 **Key Insights**:
+
 1. **Script detection is cheapest**: For many use cases, detecting script (Latin vs. Cyrillic vs. CJK) is sufficient
 2. **Context length matters**: Language detectors need enough text (50-100+ characters) for reliable detection
 3. **Code-switching**: Real web data contains mixed languages within documents - handle with confidence thresholds
@@ -483,6 +495,7 @@ except Exception as e:
 ```
 
 For production systems, use established libraries:
+
 - **langdetect**: Python port of Google's language-detection library
 - **fastText**: Facebook's language identification model (very fast)
 - **pycld2/pycld3**: Python bindings for Chrome's Compact Language Detector
@@ -490,6 +503,7 @@ For production systems, use established libraries:
 ## Deduplication Strategies
 
 Deduplication is critical for several reasons:
+
 1. **Reduces memorization**: Models memorize frequent sequences
 2. **Improves generalization**: Less repetition means broader coverage
 3. **Ethical concerns**: Reduces privacy risks from repeated PII
@@ -502,18 +516,21 @@ The [Dolma paper](https://arxiv.org/abs/2402.00159) found that aggressive dedupl
 **The Problem**: Web crawl data contains massive amounts of exact duplicates - the same document appears multiple times across different URLs, pages are mirrored, content is syndicated, and scrapers revisit the same pages. Without deduplication, models waste capacity memorizing these repeated examples instead of learning from diverse data.
 
 **Why This Matters**: The [GPT-3 paper](https://arxiv.org/abs/2005.14165) found that exact deduplication was essential for preventing models from overfitting to repeated content. The [Scaling Laws paper](https://arxiv.org/abs/2001.08361) showed that diverse, non-repeated data is much more valuable than redundant data. Training on duplicates causes:
+
 - **Memorization**: Models overfit to frequently-seen sequences
 - **Reduced effective dataset size**: 1000 copies of a document ≠ 1000 unique documents
 - **Privacy concerns**: Repeated PII amplifies privacy risks
 - **Biased representations**: Overrepresented content dominates model behavior
 
 **Theoretical Justification**: Exact deduplication is a **set membership problem** solved efficiently with hashing:
+
 - **Cryptographic hashes** (SHA-256, MD5) map arbitrary text to fixed-size fingerprints
 - **Collision resistance**: Different documents (with high probability) produce different hashes
 - **Constant-time lookup**: Hash table membership tests are O(1)
 - **Memory efficient**: Store hashes (32 bytes) instead of full documents
 
 **How This Relates to Alternatives**:
+
 - **Naive comparison**: Compare every document to every other - O(n²) time, infeasible at scale
 - **Exact string matching**: Same complexity as naive comparison
 - **Hash-based deduplication (our approach)**: O(n) time and space, simple and reliable
@@ -521,6 +538,7 @@ The [Dolma paper](https://arxiv.org/abs/2402.00159) found that aggressive dedupl
 - **Bloom filters**: More memory-efficient but allows false positives (acceptable for some use cases)
 
 **Key Insights**:
+
 1. **Normalize before hashing**: Whitespace differences shouldn't prevent duplicate detection
 2. **Hash quality matters**: Cryptographic hashes prevent accidental collisions
 3. **Memory is the bottleneck**: Storing billions of hashes requires gigabytes of RAM
@@ -931,6 +949,7 @@ P(\text{candidate}|s) = 1 - (1 - s^r)^b
 This forms an **S-curve**: low similarity pairs have low probability of being candidates, and high similarity pairs have high probability.
 
 **Key insights**:
+
 - **Similarity threshold** $t$: We want $P(\text{candidate}|t) \approx 0.5$ (the "knee" of the S-curve)
 - At the threshold: $t^r \approx 0.5 \Rightarrow r \approx \frac{\log(0.5)}{\log(t)}$
 - Number of bands: $b = \frac{\text{num\_perm}}{r}$
@@ -1112,6 +1131,7 @@ except:
    - Typical range: 64-256 permutations
 
 **Note**: For production systems at scale, consider:
+
 - **[datasketch](https://github.com/ekzhu/datasketch)**: Efficient MinHash/LSH implementation
 - **Distributed processing**: Use Spark or Dask for large-scale deduplication
 - **Disk-based storage**: Store signatures on disk for datasets larger than memory
@@ -1127,6 +1147,7 @@ Beyond basic filtering, we need sophisticated quality scoring to rank documents.
 **Why This Matters**: The [CCNet paper](https://arxiv.org/abs/1911.00359) (Facebook's CommonCrawl filtering) showed that perplexity-based filtering dramatically improved downstream task performance. The [Gopher paper](https://arxiv.org/abs/2112.11446) used perplexity filtering and found it essential for removing garbled, auto-generated, and low-quality text that passed rule-based filters. High-quality datasets like Wikipedia have much lower average perplexity than random web text.
 
 **Theoretical Justification**: Perplexity measures **how surprising text is to a language model**:
+
 - **Well-formed text**: Natural, grammatical text is predictable to a good language model → low perplexity
 - **Garbled text**: Random characters, corrupted encoding, spam → high perplexity
 - **Auto-generated text**: Often has unusual patterns that increase perplexity
@@ -1143,12 +1164,14 @@ Use a language model to score text quality. High-quality text has lower perplexi
 where $N$ is the number of tokens and $P(x_i | x_{<i})$ is the model's predicted probability of token $x_i$ given context.
 
 **How This Relates to Alternatives**:
+
 - **Rule-based filtering**: Fast but misses subtle quality issues; perplexity catches what rules miss
 - **Classifier-based filtering**: More targeted but requires labeled data (see next section)
 - **Human annotation**: Most accurate but completely infeasible at scale
 - **Perplexity filtering (our approach)**: Uses an already-trained LM to score quality without requiring labeled data
 
 **Key Insights**:
+
 1. **Model choice matters**: Use a high-quality LM trained on diverse, clean data (e.g., GPT-2, KenLM on Wikipedia)
 2. **Sliding window for long texts**: Models have context limits; use overlapping windows for fair scoring
 3. **Threshold tuning**: Optimal perplexity threshold depends on your model and target domain (typical: 500-1500)
@@ -1309,6 +1332,7 @@ for label, text in [("Good", good_text), ("Random", random_text)]:
 **Why This Matters**: The [RefinedWeb paper](https://arxiv.org/abs/2306.01116) (Falcon LLM's training data) showed that training a classifier on high-quality vs. low-quality examples, then using it to filter billions of documents, substantially improved model performance. The [C4 paper](https://arxiv.org/abs/1910.10683) used a classifier trained to distinguish Wikipedia/books from random web pages. This approach allows you to define "quality" based on your specific use case.
 
 **Theoretical Justification**: Quality classification is a **supervised learning problem**:
+
 - **Labeled data**: Collect examples of "high quality" (e.g., Wikipedia, curated sources) vs. "low quality" (random web scrapes)
 - **Feature learning**: A neural network learns features that distinguish quality levels
 - **Transfer learning**: The classifier generalizes to new documents
@@ -1319,6 +1343,7 @@ Train a classifier to predict document quality based on human-labeled examples.
 The [RefinedWeb paper](https://arxiv.org/abs/2306.01116) used a fastText classifier trained on curated vs. random web data.
 
 **How This Relates to Alternatives**:
+
 - **Rule-based filters**: No learning, can't capture complex quality patterns
 - **Perplexity filtering**: Measures coherence but not domain-specific quality
 - **Classifier-based (our approach)**: Learns from examples, can capture nuanced quality concepts, but requires labeled data
@@ -1326,6 +1351,7 @@ The [RefinedWeb paper](https://arxiv.org/abs/2306.01116) used a fastText classif
 - **Ensemble methods**: Combine multiple signals (rules + perplexity + classifier) for best results
 
 **Key Insights**:
+
 1. **Training data is critical**: Your classifier learns from examples - garbage in, garbage out
 2. **Simple models can work**: FastText or small BiLSTM often sufficient; don't need large transformers
 3. **Speed matters**: Must be fast enough to score billions of documents (milliseconds per document)
@@ -1526,6 +1552,7 @@ for text in test_texts:
 **Why This Matters**: The [Gopher paper](https://arxiv.org/abs/2112.11446) found that combining multiple heuristic signals into a quality score was highly effective. The [C4 dataset](https://arxiv.org/abs/1910.10683) used similar heuristics to rank and filter 156B tokens from 806B tokens of raw web data. These heuristics are fast (no model inference), interpretable (you can see why a document scored poorly), and customizable (adjust weights for your domain).
 
 **Theoretical Justification**: Quality scoring combines **multiple weak signals into a strong signal**:
+
 - **Ensemble approach**: Each heuristic captures one aspect of quality; combined they're more robust
 - **Statistical regularities**: High-quality text (books, Wikipedia, news) has characteristic statistical patterns
 - **Weighted combination**: Learn weights from a small labeled dataset or use domain knowledge
@@ -1534,6 +1561,7 @@ for text in test_texts:
 The [Gopher paper](https://arxiv.org/abs/2112.11446) and [C4](https://arxiv.org/abs/1910.10683) used various heuristic scores:
 
 **How This Relates to Alternatives**:
+
 - **Single heuristic**: Too weak, high false positive/negative rates
 - **Binary filters**: Only give yes/no, not relative quality
 - **ML-based scoring**: More accurate but requires training data and is slower
@@ -1541,6 +1569,7 @@ The [Gopher paper](https://arxiv.org/abs/2112.11446) and [C4](https://arxiv.org/
 - **Hybrid approach**: Use heuristics for initial filtering, ML for fine-grained ranking
 
 **Key Insights**:
+
 1. **More signals = better**: Combine 10+ heuristics for robust scores
 2. **Outlier detection**: Quality is often about detecting outliers (too many bullets, too much uppercase)
 3. **Domain matters**: Heuristics for news articles differ from those for code documentation
@@ -1712,12 +1741,14 @@ One of the most critical concerns in modern LLM training is **data contamination
 ### Why Contamination Matters
 
 When a model has seen test examples during training, it can memorize answers rather than demonstrate true capability. This:
+
 - **Inflates benchmark scores** without improving real-world performance
 - **Makes model comparison difficult** when contamination levels differ
 - **Undermines scientific progress** by providing misleading signals
 - **Damages trust** in published results
 
 Notable examples:
+
 - GPT-3.5 showed suspiciously high performance on some benchmarks, leading to contamination investigations
 - Several models have been found to have exact or near-exact matches to popular benchmark questions
 - The community now demands contamination analysis in research papers
@@ -1733,6 +1764,7 @@ For a test example $x_{test}$ and training corpus $D_{train}$, the n-gram overla
 ```
 
 **Common practices**:
+
 - Use 13-grams (balances specificity and coverage)
 - Flag examples with >50% overlap as potentially contaminated
 - Some studies use stricter thresholds (80% for high confidence)
@@ -2134,6 +2166,7 @@ for i, (text, url) in enumerate(test_cases, 1):
 ### Multilingual and Temporal Considerations
 
 **Multilingual Contamination**:
+
 - Benchmarks often have translations in multiple languages
 - Check contamination in all languages present in training data
 - Cross-lingual contamination: test sets in one language leaked via translations
@@ -2221,6 +2254,7 @@ print(f"Cross-lingual check: {cross_lingual}")
 ```
 
 **Temporal Data Considerations**:
+
 - Training data freshness affects model knowledge
 - Test sets should reflect current knowledge, not outdated information
 - Consider data staleness in domains that change rapidly (news, science)
@@ -2244,6 +2278,7 @@ When training on multiple data sources, careful mixing is important for model qu
 **The Problem**: LLMs are typically trained on data from multiple sources: web scrapes, books, code, Wikipedia, etc. Each source has different sizes and quality levels. Simply concatenating all data means the largest (often lowest-quality) source dominates. We need a principled way to balance sources.
 
 **Why This Matters**: The [GLaM paper](https://arxiv.org/abs/2112.06905) showed that careful data mixing significantly improved performance. The [LLaMA 2 paper](https://arxiv.org/abs/2307.09288) carefully designed mixture proportions: 89.7% web, 4.5% code, 2.5% Wikipedia, etc. Poor mixing leads to:
+
 - **Domain imbalance**: Large low-quality sources overwhelm small high-quality ones
 - **Capability gaps**: Under-represented domains (e.g., code, math) lead to weak capabilities
 - **Inefficient learning**: Proportional sampling wastes tokens on redundant data
@@ -2259,15 +2294,18 @@ p_i = \frac{n_i^{1/T}}{\sum_j n_j^{1/T}}
 ```
 
 where $T$ is temperature:
+
 - $T = 1$: Proportional sampling (matches source sizes)
 - $T \to 0$: Uniform sampling (equal probability per source)
 - $T \to \infty$: Sample only from largest source
 
 The temperature parameter provides a **smooth trade-off** between:
+
 - **Diversity** (low T): See all sources equally, but over-sample small sources
 - **Naturalness** (high T): Reflect true data distribution, but under-sample small sources
 
 **How This Relates to Alternatives**:
+
 - **Simple concatenation**: Equivalent to T=1, large sources dominate
 - **Uniform per-source**: Equivalent to T→0, small sources over-represented
 - **Manual mixing ratios**: Requires domain expertise and experimentation
@@ -2275,6 +2313,7 @@ The temperature parameter provides a **smooth trade-off** between:
 - **Learned mixing**: Use validation performance to optimize ratios (more complex)
 
 **Key Insights**:
+
 1. **Typical value**: T ≈ 0.3-0.7 balances diversity and naturalness
 2. **Source quality matters**: High-quality small sources (Wikipedia) benefit from low T
 3. **Curriculum learning**: Can change T during training (start low for diversity, increase for naturalness)
@@ -2420,23 +2459,27 @@ for temp in [0.0, 0.5, 1.0]:
 **The Problem**: Training on a random mixture of data treats all examples equally, but not all data is equally valuable at all stages of training. Early in training, models need to learn basic language patterns; later they can benefit from more complex or noisy data. Curriculum learning strategically orders training data.
 
 **Why This Matters**: The [Curriculum Learning paper](https://ronan.collobert.com/pub/matos/2009_curriculum_icml.pdf) showed that training order matters. Recent work on LLMs found curriculum learning can improve convergence speed and final performance. For example:
+
 - **Early training**: Models struggle with noisy/complex data, waste time on noise
 - **Foundation building**: Clean, structured data helps establish basic language understanding
 - **Progressive complexity**: Gradually introducing harder examples improves generalization
 
 **Theoretical Justification**: Curriculum learning is inspired by **human learning** - we learn easier concepts before harder ones:
+
 - **Progressive abstraction**: Simple patterns → Complex patterns
 - **Signal-to-noise optimization**: Start with high signal (Wikipedia), add noise (web) later when model is robust
 - **Staged objectives**: Different training stages optimize different capabilities
 - **Overfitting prevention**: Early exposure to diverse, clean data prevents fixation on noise patterns
 
 **How This Relates to Alternatives**:
+
 - **Random sampling**: Simple but treats all data equally, suboptimal learning
 - **Static mixing**: Fixed mixture throughout training, misses opportunity for curriculum
 - **Curriculum learning (our approach)**: Adapts data distribution during training, empirically better
 - **Reinforcement learning curriculum**: Use model performance to dynamically adjust data (advanced)
 
 **Key Insights**:
+
 1. **Quality first**: Start with highest-quality data (Wikipedia, books, curated sources)
 2. **Gradual noise introduction**: Add web data once basic patterns are learned
 3. **Sequence length progression**: Shorter sequences early (faster, easier), longer later
@@ -2446,6 +2489,7 @@ for temp in [0.0, 0.5, 1.0]:
 **Curriculum learning** progressively increases data difficulty during training.
 
 Strategies:
+
 1. **Start with high-quality data**: Begin training on curated sources (books, Wikipedia)
 2. **Add web data gradually**: Introduce noisier web data later
 3. **Increase sequence length**: Start with shorter sequences, increase over time
@@ -2560,12 +2604,14 @@ for batch_idx in range(300):  # Process 300 batches
 **The Problem**: The tokenizer is the first step in the LLM pipeline, converting text to tokens. A poorly-trained tokenizer creates inefficiencies that propagate through the entire model: longer sequences, higher compute costs, worse performance on underrepresented content.
 
 **Why This Matters**: The [SentencePiece paper](https://arxiv.org/abs/1808.06226) and [BPE paper](https://arxiv.org/abs/1508.07909) established that tokenizer training data distribution critically affects tokenization efficiency. Poor tokenizer choices hurt model performance:
+
 - **Domain mismatch**: Code tokenized with a news-trained tokenizer fragments into many tokens
 - **Language imbalance**: Underrepresented languages get inefficient tokenization (more tokens = less context)
 - **Rare characters**: Missing characters create unknown tokens, breaking the model
 - **Efficiency**: GPT-3's tokenizer uses ~1.3 tokens/word on average; poor tokenizers use 2+ tokens/word
 
 **Theoretical Justification**: Tokenizer training learns a **vocabulary** and **merging rules** from a corpus:
+
 - **BPE/SentencePiece**: Iteratively merge most frequent character pairs → learns common subwords
 - **Coverage**: Vocabulary must cover characters/patterns in training data
 - **Frequency-based**: Common sequences get dedicated tokens; rare sequences are decomposed
@@ -2581,12 +2627,14 @@ The data used to train your tokenizer affects model performance. See [Chapter 1:
 4. **Vocabulary size**: Balance between coverage and efficiency (32k-100k common)
 
 **How This Relates to Alternatives**:
+
 - **Character-level tokenization**: No training needed but extremely long sequences (inefficient)
 - **Word-level tokenization**: Fixed vocabulary, can't handle rare words or new words
 - **BPE/SentencePiece (standard approach)**: Learns from data, handles rare words via subwords
 - **Reusing existing tokenizer**: Fast but may not match your data distribution
 
 **Key Insights**:
+
 1. **Match training distribution**: Tokenizer sample should mirror full training data distribution
 2. **Sample size matters**: Too small misses rare patterns; too large wastes time (1-10GB sweet spot)
 3. **Multilingual balance**: Languages with <1% of data still need representation in tokenizer training
@@ -2827,12 +2875,14 @@ Remove personally identifiable information (PII) and harmful content from traini
 **The Problem**: Web crawl data inadvertently contains personally identifiable information (PII): email addresses, phone numbers, social security numbers, credit card numbers, addresses, and names. Training on this data raises serious privacy and legal concerns, and models can memorize and regurgitate PII during generation.
 
 **Why This Matters**: The [Extracting Training Data from Large Language Models paper](https://arxiv.org/abs/2012.07805) demonstrated that models can memorize and leak training data, including PII. Legal frameworks (GDPR in EU, CCPA in California) require protecting personal data. The [LLaMA 2 paper](https://arxiv.org/abs/2307.09288) explicitly mentions PII removal as part of their data pipeline. Failure to remove PII can lead to:
+
 - **Privacy violations**: Models leak personal information
 - **Legal liability**: GDPR fines up to 4% of global revenue
 - **Reputational damage**: Public trust erosion
 - **Security risks**: Exposure of credentials, tokens, API keys
 
 **Theoretical Justification**: PII detection combines **pattern matching and entity recognition**:
+
 - **Regex patterns**: Structured PII (emails, phone numbers, SSNs) follows predictable formats
 - **Validation rules**: Check digit algorithms for credit cards, SSNs
 - **Named Entity Recognition (NER)**: ML models detect person names, locations
@@ -2840,6 +2890,7 @@ Remove personally identifiable information (PII) and harmful content from traini
 - **Statistical anomalies**: Unusual character patterns in URLs (credentials in URLs)
 
 Common PII types:
+
 - Email addresses
 - Phone numbers
 - IP addresses
@@ -2849,6 +2900,7 @@ Common PII types:
 - Names (harder - requires NER)
 
 **How This Relates to Alternatives**:
+
 - **No PII removal**: Legally and ethically problematic, high risk
 - **Regex-based removal (our approach)**: Fast, catches structured PII, but misses names and complex cases
 - **NER-based removal**: Catches names and locations, but slower and requires ML model
@@ -2856,6 +2908,7 @@ Common PII types:
 - **Hybrid approach**: Regex for structured PII + NER for names (recommended for production)
 
 **Key Insights**:
+
 1. **False positives are acceptable**: Better to over-redact than leak PII
 2. **Context matters**: "John Smith" in a novel is different from a contact list
 3. **International formats**: Phone/address formats vary by country
@@ -3011,24 +3064,28 @@ for i, text in enumerate(test_texts, 1):
 **The Problem**: Web crawl data contains harmful content - hate speech, graphic violence, adult content, harassment, extremist content, and toxicity. Training models on this content can cause them to generate harmful outputs, creating safety, legal, and ethical issues.
 
 **Why This Matters**: The [RealToxicityPrompts paper](https://arxiv.org/abs/2009.11462) demonstrated that models trained on toxic data generate toxic outputs. The [LLaMA 2 paper](https://arxiv.org/abs/2307.09288) emphasizes safety filtering in their data pipeline. Companies face:
+
 - **Brand risk**: Models generating offensive content damage reputation
 - **User harm**: Toxic outputs can harm vulnerable users
 - **Legal liability**: In some jurisdictions, harmful content generation has legal consequences
 - **Platform violations**: Content policies on distribution platforms
 
 **Theoretical Justification**: Safety filtering combines **multiple detection approaches**:
+
 - **Keyword/pattern matching**: Fast but limited, catches obvious cases
 - **Toxicity classifiers**: ML models trained on labeled toxic/non-toxic data
 - **Ensemble methods**: Combine multiple signals for better accuracy
 - **Contextual understanding**: Advanced models understand context (news about violence ≠ promoting violence)
 
 Filter harmful content including:
+
 - Hate speech
 - Violence
 - Adult content
 - Toxicity
 
 **How This Relates to Alternatives**:
+
 - **No filtering**: Unacceptable for deployed systems, creates safety risks
 - **Simple keyword blocklists (our simple approach)**: Fast but many false positives/negatives
 - **ML classifiers** (Perspective API, OpenAI Moderation): More accurate, context-aware
@@ -3037,6 +3094,7 @@ Filter harmful content including:
 - **Hybrid approach**: Keyword pre-filter + ML classifier for candidates (recommended)
 
 **Key Insights**:
+
 1. **Context is critical**: "Violence" in news is different from promotion of violence
 2. **False positives acceptable**: Better to over-filter than include harmful content
 3. **Multi-category**: Hate, violence, adult content require different detection approaches
@@ -3044,6 +3102,7 @@ Filter harmful content including:
 5. **Use specialized tools**: Don't build from scratch - use Perspective API, OpenAI Moderation, etc.
 
 For production systems, use specialized tools:
+
 - **[Perspective API](https://perspectiveapi.com/)**: Google's toxicity detection
 - **OpenAI Moderation API**: Multi-category content moderation
 - **Custom classifiers**: Train on domain-specific harmful content
@@ -3134,6 +3193,7 @@ for i, text in enumerate(test_cases, 1):
 ```
 
 **Important Note**: Safety filtering is nuanced and context-dependent. In production:
+
 1. Use established APIs or well-tested libraries
 2. Consider context (educational content about violence vs. promoting violence)
 3. Have human review for edge cases
@@ -3148,12 +3208,14 @@ Moving from prototype to production-scale data curation requires handling billio
 ### Scaling Challenges
 
 **Dataset Scale**:
+
 - Modern LLMs train on 1-15 trillion tokens
 - Raw CommonCrawl is hundreds of terabytes
 - Deduplication requires comparing billions of document pairs
 - Memory-intensive operations (LSH, quality scoring) don't fit on single machines
 
 **Computational Requirements**:
+
 - Processing CommonCrawl: weeks to months on single machine
 - Fuzzy deduplication: $O(n^2)$ naive comparison
 - Quality scoring with LMs: GPU-intensive
@@ -3164,12 +3226,14 @@ Moving from prototype to production-scale data curation requires handling billio
 **The Problem**: Single-machine processing is infeasible at LLM scale. Processing CommonCrawl on one machine would take months or years. Distributed computing allows us to parallelize across hundreds or thousands of machines, but requires careful design.
 
 **Why This Matters**: The [RefinedWeb paper](https://arxiv.org/abs/2306.01116) processed 5 trillion tokens from CommonCrawl - impossible on a single machine. The [RedPajama project](https://github.com/togethercomputer/RedPajama-Data) open-sourced their distributed pipeline. Modern data curation requires:
+
 - **Massive parallelism**: 100-1000+ workers processing simultaneously
 - **Fault tolerance**: Days-long jobs must survive machine failures
 - **Efficient shuffling**: Deduplication requires comparing documents across workers
 - **Cost optimization**: Cloud compute costs can reach millions for full pipelines
 
 **Theoretical Justification**: Distributed data processing follows the **MapReduce paradigm**:
+
 - **Map**: Apply transformations to partitions independently (embarrassingly parallel)
 - **Shuffle**: Redistribute data for operations requiring coordination (e.g., deduplication)
 - **Reduce**: Aggregate results across partitions
@@ -3183,6 +3247,7 @@ Three main options for distributed data processing:
 3. **Ray**: Modern framework with good ML integration
 
 **How This Relates to Alternatives**:
+
 - **Single-machine processing**: Fine for small datasets (<100GB), completely infeasible at scale
 - **Custom distributed system**: Maximum control but requires months of engineering
 - **Apache Spark (our approach)**: Industry standard, mature, well-documented, rich ecosystem
@@ -3190,6 +3255,7 @@ Three main options for distributed data processing:
 - **Ray**: Good for ML workloads, modern API, smaller ecosystem than Spark
 
 **Key Insights**:
+
 1. **Embarrassingly parallel operations first**: Filtering, extraction, scoring don't need coordination
 2. **Minimize shuffles**: Deduplication requires shuffling - most expensive operation
 3. **Partition wisely**: Partition by domain/URL for better data locality
@@ -3678,6 +3744,7 @@ Data curation for LLMs raises important legal and ethical questions that must be
 ### Copyright and Fair Use
 
 **Legal Landscape**:
+
 - Web scraping exists in a legal gray area
 - Copyright law varies by jurisdiction
 - Fair use doctrine (US) vs. other frameworks
@@ -3784,6 +3851,7 @@ for i, doc in enumerate(test_documents, 1):
 ### Privacy and Consent
 
 **Personal Data Concerns**:
+
 - GDPR (Europe) requires consent for personal data processing
 - CCPA (California) grants data privacy rights
 - Training data may contain personal information
@@ -3891,12 +3959,14 @@ for i, text in enumerate(test_texts, 1):
 ### Transparency and Documentation
 
 **Research Ethics**:
+
 - Document data sources and curation processes
 - Report data composition and statistics
 - Acknowledge limitations and biases
 - Enable reproducibility
 
 **Data Cards and Model Cards**:
+
 - Describe dataset composition
 - Document curation decisions
 - Report demographic distributions
@@ -4279,6 +4349,7 @@ for stage, rate in stats['pass_rates'].items():
 Implement a web scraper that downloads pages from a list of URLs and processes them through the extraction pipeline.
 
 **Requirements**:
+
 - Use `requests` and `BeautifulSoup`
 - Handle errors gracefully (timeouts, 404s, etc.)
 - Respect robots.txt
@@ -4287,6 +4358,7 @@ Implement a web scraper that downloads pages from a list of URLs and processes t
 ### Exercise 2: MinHash Performance Analysis
 
 Compare exact vs. approximate deduplication:
+
 1. Generate 10,000 synthetic documents with varying similarity
 2. Measure precision/recall of MinHash vs. exact matching
 3. Analyze the speed/quality tradeoff with different signature sizes
@@ -4294,6 +4366,7 @@ Compare exact vs. approximate deduplication:
 ### Exercise 3: Quality Classifier Training
 
 Train a quality classifier:
+
 1. Download examples from Wikipedia (high quality) and a random web corpus (mixed quality)
 2. Label a dataset of 10,000 examples
 3. Train a classifier using the QualityClassifier architecture
@@ -4303,6 +4376,7 @@ Train a quality classifier:
 ### Exercise 4: Data Mixing Experiment
 
 Implement a training experiment:
+
 1. Create 3 data sources with different characteristics
 2. Train small language models with different mixing ratios
 3. Evaluate perplexity on held-out data from each source
@@ -4311,6 +4385,7 @@ Implement a training experiment:
 ### Exercise 5: PII Detection Improvement
 
 Extend the PIIDetector:
+
 1. Add detection for additional PII types (addresses, names using NER)
 2. Implement context-aware filtering (e.g., "My name is [NAME]" vs. product names)
 3. Add privacy-preserving alternatives (replace specific PII with generic placeholders)
@@ -4319,6 +4394,7 @@ Extend the PIIDetector:
 ### Exercise 6: End-to-End Pipeline
 
 Build a complete pipeline:
+
 1. Scrape 1,000 web pages from diverse domains
 2. Process through the complete curation pipeline
 3. Generate statistics at each stage

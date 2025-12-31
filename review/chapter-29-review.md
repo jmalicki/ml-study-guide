@@ -64,15 +64,18 @@
 2. **Code Issues (Minor)**
 
    **Line 514: Missing import**
+
    ```python
    import re  # This is imported at line 247, but should be at top of file
-   ```
+```
 
    **Lines 118-119: Potential model loading issue**
+
    ```python
    model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.bfloat16)
    model.to("cuda")
-   ```
+```
+
    Should check if CUDA is available and handle device placement better.
 
    **Line 1015: Security warning for `exec()`**
@@ -84,15 +87,19 @@
 3. **Mathematical Notation Issues**
 
    **Line 212: Summation over all reasoning traces**
+
    ```latex
    $$P(a|q) = \sum_{r \in \mathcal{R}} P(a|r, q) P(r|q)$$
-   ```
+```
+
    This is correct but could benefit from a note that in practice this is intractable and we approximate.
 
    **Line 632: PRM formula could be clearer**
+
    ```latex
    $$r_{\text{process}}(q, r, a) = \sum_{i=1}^{n} w_i \cdot \text{score}(r_i | r_{<i}, q)$$
-   ```
+```
+
    The weights $w_i$ are not explained. Are they learned? Fixed? Should clarify.
 
 4. **Missing Theoretical Discussion**
@@ -130,36 +137,48 @@
 ### Errors (Technical, Code, or Typos)
 
 1. **Line 222: Notation inconsistency**
+
    ```latex
    $$a^* \approx \arg\max_a P(a|r^*, q) \text{ where } r^* = \arg\max_r P(r|q)$$
-   ```
+```
+
    This should be clarified - are we doing greedy decoding or beam search? The notation suggests greedy but implementation uses sampling.
 
 2. **Line 786: Oversimplified loss computation**
+
    ```python
    step_rewards = rewards.mean(dim=1)
    target_labels = labels.mean(dim=1)
-   ```
+```
+
    This averages all positions, but the comment says we should align with step positions. This is misleading - the implementation doesn't match the intention.
 
 3. **Line 1132-1134: Incorrect log probability calculation**
+
    ```python
    outputs = self.model(**inputs, labels=inputs["input_ids"])
+
    # Negative loss is log probability (approximately)
+
    log_prob = -outputs.loss.item()
-   ```
+```
+
    This is not quite right. The loss is averaged over tokens, so this doesn't give you the true log probability of the sequence. Should multiply by sequence length or compute properly.
 
 4. **Line 1349: Simplified accuracy estimation**
+
    ```python
    estimated_accuracy = 1.0 - (0.5 ** (n / 8))  # Diminishing returns
-   ```
+```
+
    This is a placeholder but should be noted more prominently that it's not real data.
 
 ### Specific Suggestions for Improvement
 
 1. **Add a "Method Selection Guide" Section**
+
    ```markdown
+
    ### Choosing the Right Reasoning Strategy
 
    | Scenario | Recommended Strategy | Why |
@@ -169,7 +188,7 @@
    | Complex planning/search | Tree-of-Thought | Backtracking needed |
    | Have labeled process data | Train PRM | Best accuracy |
    | Need calibrated confidence | Self-consistency + PRM | Combines strengths |
-   ```
+```
 
 2. **Add Safety/Security Discussion**
    - Code execution risks
@@ -187,7 +206,9 @@
    - Demonstrate when each method wins
 
 5. **Add More Failure Examples**
+
    Show where these methods fail:
+
    - Hallucinated reasoning that sounds plausible
    - Correct answer with wrong reasoning
    - Circular reasoning
@@ -219,10 +240,12 @@
 ### Cross-Reference Quality
 
 **Good:**
+
 - Links to Chapter 20 (RLHF) for reward modeling - very relevant
 - Links to Chapter 32 (Evaluation) for benchmarks - appropriate
 
 **Could Add:**
+
 - Link to tokenization chapter when discussing prompt formatting
 - Link to attention chapters when discussing model architecture
 - Link to any chapter on RL if it exists (for training reasoning models)
@@ -259,12 +282,14 @@
 This is an **excellent chapter** that would be extremely valuable for ML interview preparation. It covers the most important and current reasoning techniques with high-quality implementations. The code is practical and runnable, the math is sound, and the writing is clear.
 
 **Main Strengths:**
+
 - Comprehensive and current coverage
 - Excellent code quality with complete implementations
 - Strong focus on practical systems (o1, test-time compute)
 - Well-organized progression from simple to complex
 
 **Main Areas for Improvement:**
+
 - Add a few missing techniques (PAL, ReAct, Least-to-Most)
 - Fix the PRM token alignment implementation
 - Add more practical guidance on method selection
@@ -273,6 +298,7 @@ This is an **excellent chapter** that would be extremely valuable for ML intervi
 
 **For ML Interviews:**
 This chapter would prepare a candidate extremely well for discussions about:
+
 - Modern LLM reasoning capabilities
 - System design for reasoning systems
 - Tradeoffs between different approaches

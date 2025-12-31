@@ -26,6 +26,7 @@ After supervised fine-tuning (see [Supervised Fine-tuning (SFT)](19-sft.md)), a 
 The technique was popularized by OpenAI's InstructGPT and Anthropic's Constitutional AI work, though simpler alternatives like DPO (see [Direct Preference Optimization (DPO)](22-dpo.md)) have since emerged.
 
 **Key Papers:**
+
 - [Training language models to follow instructions with human feedback](https://arxiv.org/abs/2203.02155) (InstructGPT, OpenAI, 2022)
 - [Learning to summarize from human feedback](https://arxiv.org/abs/2009.01325) (Stiennon et al., 2020)
 - [Training a Helpful and Harmless Assistant with RLHF](https://arxiv.org/abs/2204.05862) (Anthropic, 2022)
@@ -39,16 +40,19 @@ The complete RLHF pipeline consists of three stages:
 ![Chapter 21 rlhf diagram](../assets/diagrams/ch21-rlhf-diagram.svg)
 
 **Stage 1: Supervised Fine-tuning (SFT)**
+
 - Train on high-quality (prompt, response) pairs
 - Creates the reference model $\pi_{\text{ref}}$
 - See [Chapter 19](19-sft.md) for details
 
 **Stage 2: Reward Model Training**
+
 - Collect human preferences on model outputs
 - Train a model to predict which response humans prefer
 - Creates the reward model $r_\phi(x, y)$
 
 **Stage 3: RL Fine-tuning**
+
 - Use PPO to optimize the policy $\pi_\theta$ to maximize reward
 - Add KL penalty to stay close to $\pi_{\text{ref}}$
 - Prevents model from exploiting reward model weaknesses
@@ -62,6 +66,7 @@ The complete RLHF pipeline consists of three stages:
 Instead of rating responses on an absolute scale, we collect **pairwise preferences**. Given a prompt $x$, the model generates two responses $y_w$ (winner) and $y_l$ (loser), and humans indicate which they prefer.
 
 **Dataset structure:**
+
 ```python
 {
     "prompt": "Explain quantum computing",
@@ -79,6 +84,7 @@ P(y_w \succ y_l | x) = \sigma(r_\phi(x, y_w) - r_\phi(x, y_l))
 ```
 
 where:
+
 - $r_\phi(x, y)$ is the scalar reward for prompt $x$ and response $y$
 - $\sigma$ is the sigmoid function
 - $\succ$ denotes preference
@@ -100,12 +106,14 @@ This is equivalent to binary cross-entropy loss.
 **Why this architecture works**: By starting from the SFT model, the reward model already understands language semantics and the task domain. We only need to learn a mapping from the final hidden representation to a scalar that correlates with human preference. This is much more sample-efficient than training a reward model from scratch.
 
 **Key design choices**:
+
 1. **Reuse SFT model**: The pretrained language model provides rich semantic representations
 2. **Single linear layer**: A simple projection is sufficient since the hard work (understanding language) is done by the base model
 3. **Last token pooling**: We use the final token's hidden state because it has attended to the entire sequence and contains aggregated information about the whole response
 4. **No language modeling head**: We remove the vocabulary prediction head to save memory and clearly separate the reward task from generation
 
 **Comparison to alternatives**:
+
 - **Training from scratch**: Would require 10-100x more data and compute
 - **Mean pooling**: Last token pooling works better for autoregressive models where information flows left-to-right
 - **Multiple layers**: Adds capacity but risks overfitting on limited preference data
@@ -124,20 +132,25 @@ class RewardModel(nn.Module):
     """
     def __init__(self, base_model_name: str, dropout: float = 0.1):
         super().__init__()
+
         # Load pretrained LM (typically the SFT model)
+
         self.model = AutoModelForCausalLM.from_pretrained(base_model_name)
 
         # Get hidden dimension
+
         config = self.model.config
         hidden_size = config.hidden_size
 
         # Replace LM head with reward head
+
         self.reward_head = nn.Sequential(
             nn.Dropout(dropout),
             nn.Linear(hidden_size, 1, bias=False)
         )
 
         # Remove the original LM head to save memory
+
         self.model.lm_head = nn.Identity()
 
     def forward(
@@ -153,7 +166,9 @@ class RewardModel(nn.Module):
         Returns:
             rewards: [batch_size] scalar rewards
         """
+
         # Get model outputs
+
         outputs = self.model(
             input_ids=input_ids,
             attention_mask=attention_mask,
@@ -161,24 +176,28 @@ class RewardModel(nn.Module):
         )
 
         # Get last hidden state: [batch_size, seq_len, hidden_size]
+
         hidden_states = outputs.hidden_states[-1]
 
         # Get the last token's hidden state (end of sequence)
+
         # We use attention_mask to find the last real token
+
         sequence_lengths = attention_mask.sum(dim=1) - 1  # [batch_size]
         batch_size = hidden_states.shape[0]
 
         # Gather last token hidden states
+
         last_hidden_states = hidden_states[
             torch.arange(batch_size, device=hidden_states.device),
             sequence_lengths
         ]  # [batch_size, hidden_size]
 
         # Get scalar reward
+
         rewards = self.reward_head(last_hidden_states).squeeze(-1)  # [batch_size]
 
         return rewards
-
 
 def compute_reward_loss(
     reward_model: RewardModel,
@@ -200,18 +219,22 @@ def compute_reward_loss(
     Returns:
         loss: scalar loss
     """
+
     # Compute rewards for chosen and rejected
+
     r_chosen = reward_model(chosen_input_ids, chosen_attention_mask)
     r_rejected = reward_model(rejected_input_ids, rejected_attention_mask)
 
     # Bradley-Terry loss: -log(sigmoid(r_chosen - r_rejected))
+
     # This is equivalent to binary cross-entropy
+
     loss = -torch.nn.functional.logsigmoid(r_chosen - r_rejected).mean()
 
     return loss
 
-
 # Training loop for reward model
+
 def train_reward_model(
     reward_model: RewardModel,
     train_dataloader,
@@ -228,13 +251,16 @@ def train_reward_model(
     for epoch in range(num_epochs):
         total_loss = 0
         for batch in train_dataloader:
+
             # Move to device
+
             chosen_input_ids = batch["chosen_input_ids"].to(device)
             chosen_attention_mask = batch["chosen_attention_mask"].to(device)
             rejected_input_ids = batch["rejected_input_ids"].to(device)
             rejected_attention_mask = batch["rejected_attention_mask"].to(device)
 
             # Compute loss
+
             loss = compute_reward_loss(
                 reward_model,
                 chosen_input_ids,
@@ -244,6 +270,7 @@ def train_reward_model(
             )
 
             # Backward pass
+
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -257,6 +284,7 @@ def train_reward_model(
 ### Reward Normalization
 
 **Problem**: Raw reward model outputs can have arbitrary scale and distribution. A reward model might produce scores ranging from -5 to +5, or from -100 to +100. This inconsistent scaling creates several issues:
+
 - Value function struggles to learn appropriate value estimates
 - Advantage estimates have high variance
 - Hyperparameters (learning rate, KL coefficient) that work for one reward scale fail for another
@@ -265,11 +293,13 @@ def train_reward_model(
 **Theoretical justification**: In policy gradient methods, the advantage estimate $\hat{A}_t$ should have similar magnitude across training for stable updates. The policy gradient is proportional to $\nabla \log \pi_\theta(a|s) \hat{A}_t$, so if advantages vary wildly in scale, gradient magnitudes become unpredictable.
 
 **Why running normalization**:
+
 - **Online learning**: We can't compute statistics over all future rewards
 - **Distribution shift**: As the policy improves, reward distribution changes
 - **Numerical stability**: Welford's algorithm avoids catastrophic cancellation that naive methods suffer from
 
 **How it relates to alternatives**:
+
 - **Batch normalization**: Only normalizes within a batch, doesn't track global statistics
 - **Reward clipping**: Throws away information about reward magnitude
 - **Fixed normalization**: Fails as reward distribution shifts during training
@@ -307,13 +337,16 @@ class RewardNormalizer:
         batch_var = rewards_flat.var().item()
 
         # Welford's online algorithm for numerical stability
+
         delta = batch_mean - self.mean
         total_count = self.count + batch_count
 
         # Update mean
+
         self.mean += delta * batch_count / total_count
 
         # Update variance (using parallel variance formula)
+
         m_a = self.var * self.count
         m_b = batch_var * batch_count
         M2 = m_a + m_b + delta**2 * self.count * batch_count / total_count
@@ -341,27 +374,34 @@ class RewardNormalizer:
         """
         return normalized_rewards * torch.sqrt(torch.tensor(self.var)) + self.mean
 
-
 # Example usage in training
+
 def train_with_normalized_rewards():
     """Example of using reward normalization in RLHF."""
     normalizer = RewardNormalizer()
 
     for batch in dataloader:
+
         # Compute raw rewards
+
         rewards = reward_model(batch["input_ids"], batch["attention_mask"])
 
         # Update statistics
+
         normalizer.update(rewards)
 
         # Normalize for training
+
         normalized_rewards = normalizer.normalize(rewards)
 
         # Use normalized rewards in RL training
+
         # ...
+
 ```
 
 **Why normalization matters:**
+
 - **Consistent scale**: Ensures advantages have similar magnitude across training
 - **Numerical stability**: Prevents exploding or vanishing gradients
 - **Better learning**: Value function learns more effectively with normalized targets
@@ -383,6 +423,7 @@ PPO is a policy gradient RL algorithm that has become the standard for RLHF. It'
 ### RL Formulation
 
 We formulate language generation as an RL problem:
+
 - **State** $s$: The prompt $x$ (or prompt + partial response)
 - **Action** $a$: The next token to generate
 - **Policy** $\pi_\theta(a|s)$: The language model's token probability distribution
@@ -397,6 +438,7 @@ The goal is to maximize expected reward while staying close to the reference mod
 ```
 
 where:
+
 - $r_\phi(x, y)$ is the reward from the reward model
 - $\beta$ is the KL penalty coefficient (typically 0.01-0.1)
 - $D_{\text{KL}}$ is the KL divergence (see [KL Divergence Constraints](#kl-divergence-constraints))
@@ -411,6 +453,7 @@ L^{\text{CLIP}}(\theta) = \mathbb{E}_t \left[ \min(r_t(\theta) \hat{A}_t, \text{
 ```
 
 where:
+
 - $r_t(\theta) = \frac{\pi_\theta(a_t|s_t)}{\pi_{\text{old}}(a_t|s_t)}$ is the probability ratio
 - $\hat{A}_t$ is the advantage estimate
 - $\epsilon$ is the clipping parameter (typically 0.2)
@@ -436,22 +479,26 @@ where $\delta_t = r_t + \gamma V(s_{t+1}) - V(s_t)$ is the TD error.
 **Problem**: To compute advantages, we need to estimate $V(s)$ - how good it is to be in a particular state (having generated a partial response). Without this baseline, our policy gradient estimates would have extremely high variance, making learning unstable or impossible.
 
 **Theoretical foundation**: The advantage $A(s,a) = Q(s,a) - V(s)$ tells us how much better action $a$ is than average. This variance reduction technique is critical:
+
 - Reduces variance of policy gradient estimates by ~10-100x
 - Speeds up learning by providing more informative gradient signals
 - Stabilizes training by removing reward scale dependency
 
 **Why share the base model**:
 The actor-critic architecture shares the base transformer between policy and value predictions because:
+
 1. **Sample efficiency**: Both tasks benefit from the same language understanding
 2. **Memory efficiency**: Storing one model instead of two
 3. **Computational efficiency**: One forward pass gives both policy logits and values
 4. **Representation quality**: The shared representations learn from both objectives
 
 **Architecture insight**: We add separate heads on top of the shared transformer:
+
 - **Policy head (LM head)**: Projects to vocabulary for next-token prediction
 - **Value head**: Projects to scalar for state value estimation
 
 **Relation to alternatives**:
+
 - **Separate networks**: Uses 2x memory and compute, but can learn specialized representations
 - **REINFORCE without baseline**: Mathematically unbiased but has prohibitively high variance
 - **Q-learning**: Doesn't work well for large action spaces (vocabulary size ~50k)
@@ -477,7 +524,6 @@ class ValueHead(nn.Module):
             values: [batch_size, seq_len]
         """
         return self.value_head(hidden_states).squeeze(-1)
-
 
 class ActorCritic(nn.Module):
     """
@@ -518,6 +564,7 @@ class ActorCritic(nn.Module):
 ### Response-Only Training and Prompt Masking
 
 A critical detail in RLHF is that we should **only compute losses on generated tokens, not prompt tokens**. Training on prompt tokens would:
+
 - Waste computation on tokens we don't want to change
 - Potentially degrade the model's ability to understand prompts
 - Make the policy deviate unnecessarily from the reference model
@@ -546,14 +593,16 @@ def create_response_mask(
     response_mask = torch.zeros_like(attention_mask)
 
     for i in range(batch_size):
+
         # Set mask to 1 for all tokens after the prompt
+
         response_mask[i, prompt_lengths[i]:] = 1
 
     # Also apply attention mask to handle padding
+
     response_mask = response_mask * attention_mask
 
     return response_mask
-
 
 def apply_response_mask(
     values: torch.Tensor,
@@ -579,15 +628,20 @@ def apply_response_mask(
 ```
 
 **Example usage:**
+
 ```python
+
 # During training
+
 prompt_lengths = torch.tensor([10, 15, 12])  # Lengths of prompts in batch
 attention_mask = torch.ones(3, 50)  # Full sequences of length 50
 
 # Create response mask
+
 response_mask = create_response_mask(attention_mask, prompt_lengths)
 
 # Compute loss only on responses
+
 policy_loss = compute_ppo_loss(
     old_log_probs * response_mask[:, 1:],  # Mask prompt tokens
     new_log_probs * response_mask[:, 1:],
@@ -597,6 +651,7 @@ policy_loss = compute_ppo_loss(
 ```
 
 This is especially important because:
+
 1. **Prevents prompt degradation**: Model doesn't learn to change how it processes prompts
 2. **Maintains alignment**: KL divergence only measured on outputs we care about
 3. **Computational efficiency**: No wasted gradient computation on prompt tokens
@@ -624,16 +679,19 @@ This is especially important because:
    - Improves advantage estimation quality over time
 
 **Theoretical insight**: The key innovation of PPO is the clipped ratio objective:
+
 ```math
 \min(r_t(\theta) \hat{A}_t, \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon) \hat{A}_t)
 ```
 
 This ensures:
+
 - If advantage is positive ($\hat{A}_t > 0$), we increase probability but only up to $(1+\epsilon)$ times
 - If advantage is negative ($\hat{A}_t < 0$), we decrease probability but only down to $(1-\epsilon)$ times
 - Beyond the clip range, gradient becomes zero, preventing excessive updates
 
 **Why this works better than alternatives**:
+
 - **TRPO**: Requires expensive second-order optimization and conjugate gradient
 - **Vanilla PG**: Can take destructively large steps, causing training collapse
 - **PPO**: Simple first-order method with strong empirical performance
@@ -667,6 +725,7 @@ def compute_advantages_and_returns(
     returns = torch.zeros_like(rewards)
 
     # Compute advantages using GAE
+
     gae = 0
     for t in reversed(range(seq_len)):
         if t == seq_len - 1:
@@ -679,10 +738,10 @@ def compute_advantages_and_returns(
         advantages[:, t] = gae
 
     # Returns are advantages + values
+
     returns = advantages + values
 
     return advantages, returns
-
 
 def compute_ppo_loss(
     old_log_probs: torch.Tensor,
@@ -702,18 +761,21 @@ def compute_ppo_loss(
     Returns:
         loss: scalar PPO loss
     """
+
     # Compute probability ratio
+
     ratio = torch.exp(new_log_probs - old_log_probs)
 
     # Compute clipped objective
+
     surr1 = ratio * advantages
     surr2 = torch.clamp(ratio, 1 - clip_epsilon, 1 + clip_epsilon) * advantages
 
     # Take minimum and negate (we want to maximize)
+
     policy_loss = -torch.min(surr1, surr2).mean()
 
     return policy_loss
-
 
 def compute_value_loss(
     values: torch.Tensor,
@@ -733,7 +795,9 @@ def compute_value_loss(
     Returns:
         loss: scalar value loss
     """
+
     # Clip value updates
+
     values_clipped = old_values + torch.clamp(
         values - old_values,
         -clip_epsilon,
@@ -741,10 +805,12 @@ def compute_value_loss(
     )
 
     # Compute losses
+
     vf_loss1 = (values - returns) ** 2
     vf_loss2 = (values_clipped - returns) ** 2
 
     # Take maximum
+
     value_loss = torch.max(vf_loss1, vf_loss2).mean()
 
     return value_loss
@@ -789,21 +855,25 @@ def compute_kl_divergence(
     Returns:
         kl_div: [batch_size] average per-token KL divergence
     """
+
     # Convert logits to log probabilities
+
     log_probs_new = F.log_softmax(logits_new, dim=-1)
     log_probs_ref = F.log_softmax(logits_ref, dim=-1)
 
     # Compute KL divergence: sum over vocabulary
+
     # KL(new || ref) = sum_a p_new(a) * (log p_new(a) - log p_ref(a))
+
     probs_new = torch.exp(log_probs_new)
     kl = (probs_new * (log_probs_new - log_probs_ref)).sum(dim=-1)  # [batch_size, seq_len]
 
     # Apply attention mask and average
+
     kl = kl * attention_mask
     kl_avg = kl.sum(dim=1) / attention_mask.sum(dim=1)  # [batch_size]
 
     return kl_avg
-
 
 def compute_rlhf_reward(
     reward_model_score: torch.Tensor,
@@ -829,11 +899,13 @@ def compute_rlhf_reward(
 **Problem**: Choosing the right KL penalty coefficient $\beta$ is critical but difficult. Too small and the policy exploits the reward model; too large and the policy barely learns. Worse, the optimal $\beta$ changes during training as the policy improves and the reward distribution shifts.
 
 **Why adaptive control is needed**:
+
 - **Fixed $\beta$ brittleness**: A value that works early in training may be wrong later
 - **Hyperparameter sensitivity**: Small changes in $\beta$ can mean the difference between learning and stagnation
 - **Automatic tuning**: Adaptive control removes a crucial hyperparameter from manual tuning
 
 **How it works**: We set a target KL divergence (e.g., 6 nats) and adjust $\beta$ to maintain this target:
+
 - If $D_{KL}$ is too low: policy is barely exploring, reduce $\beta$ to allow more deviation
 - If $D_{KL}$ is too high: policy is drifting too far, increase $\beta$ to constrain it
 - This creates a feedback control system
@@ -841,6 +913,7 @@ def compute_rlhf_reward(
 **Theoretical justification**: The KL constraint acts as a trust region. We want to explore enough to improve (high KL) but not so much that we enter regions where the reward model is unreliable (too high KL). Adaptive control automatically finds this sweet spot.
 
 **Relation to alternatives**:
+
 - **Fixed KL penalty**: Simple but requires extensive hyperparameter search
 - **KL constraint (TRPO-style)**: Hard constraint is less flexible than soft penalty
 - **Scheduled annealing**: Requires knowing the training schedule in advance
@@ -877,10 +950,12 @@ class AdaptiveKLController:
         proportional_error = kl_divergence / self.target_kl - 1
 
         # Multiplicative update
+
         multiplier = 1 + proportional_error * (self.alpha - 1)
         self.beta *= multiplier
 
         # Clip to reasonable range
+
         self.beta = max(0.001, min(self.beta, 1.0))
 
     def get_beta(self) -> float:
@@ -894,6 +969,7 @@ class AdaptiveKLController:
 **Bringing it all together**: We've covered the individual components - reward modeling, value estimation, advantage computation, and PPO updates. Now we integrate them into a complete RLHF training system.
 
 **The challenge**: RLHF training is complex because it requires coordinating:
+
 1. **Generation**: Sampling responses from the current policy
 2. **Evaluation**: Computing rewards from the reward model
 3. **Advantage estimation**: Using the value function to reduce variance
@@ -901,17 +977,20 @@ class AdaptiveKLController:
 5. **Constraint enforcement**: KL divergence penalty to prevent collapse
 
 **Why this architecture**: The `PPOTrainer` class encapsulates the entire RLHF training loop, managing four different models:
+
 - **Actor-critic**: The trainable policy and value function
 - **Reference model**: Frozen copy of the SFT model for KL penalty
 - **Reward model**: Frozen reward predictor from preference data
 - **Reward normalizer**: Tracks statistics for stable training
 
 **Key algorithmic insight**: Unlike supervised learning where we train on a fixed dataset, RLHF continuously generates new training data from the evolving policy. This on-policy learning means:
+
 - Each training step generates fresh responses
 - Old trajectories become invalid as the policy changes
 - We must balance exploration (trying new responses) with exploitation (optimizing current ones)
 
 **Implementation philosophy**:
+
 - **Modularity**: Separate generation, reward computation, and optimization
 - **Efficiency**: Batch operations where possible, cache computations
 - **Safety**: Extensive normalization and clipping to prevent training collapse
@@ -954,6 +1033,7 @@ class PPOTrainer:
         self.tokenizer = tokenizer
 
         # Freeze reference and reward models
+
         self.ref_model.eval()
         for param in self.ref_model.parameters():
             param.requires_grad = False
@@ -963,9 +1043,11 @@ class PPOTrainer:
             param.requires_grad = False
 
         # Initialize reward normalizer
+
         self.reward_normalizer = RewardNormalizer()
 
         # Hyperparameters
+
         self.kl_coef = kl_coef
         self.clip_epsilon = clip_epsilon
         self.value_coef = value_coef
@@ -984,13 +1066,16 @@ class PPOTrainer:
         Generate responses for given prompts.
 
         Returns dict with:
+
             - input_ids: full prompt + response
             - attention_mask
             - prompt_lengths: length of each prompt
+
         """
         self.actor_critic.eval()
 
         # Tokenize prompts
+
         prompt_encodings = self.tokenizer(
             prompts,
             padding=True,
@@ -1001,6 +1086,7 @@ class PPOTrainer:
         prompt_lengths = prompt_encodings.attention_mask.sum(dim=1)
 
         # Generate
+
         with torch.no_grad():
             outputs = self.actor_critic.policy.generate(
                 **prompt_encodings,
@@ -1032,15 +1118,20 @@ class PPOTrainer:
         batch_size, seq_len = input_ids.shape
 
         # Get reward model score (single scalar per sequence)
+
         with torch.no_grad():
             rm_scores = self.reward_model(input_ids, attention_mask)  # [batch_size]
 
         # Get KL divergence
+
         with torch.no_grad():
+
             # Current policy logits
+
             logits_policy, _ = self.actor_critic(input_ids, attention_mask)
 
             # Reference policy logits
+
             ref_outputs = self.ref_model(
                 input_ids=input_ids,
                 attention_mask=attention_mask
@@ -1048,22 +1139,29 @@ class PPOTrainer:
             logits_ref = ref_outputs.logits
 
         # Compute per-token KL
+
         kl_div = compute_kl_divergence(logits_policy, logits_ref, attention_mask)
 
         # Compute final reward with KL penalty
+
         final_rewards = rm_scores - self.kl_coef * kl_div  # [batch_size]
 
         # Update reward normalizer statistics
+
         self.reward_normalizer.update(final_rewards)
 
         # Normalize rewards for stable training
+
         normalized_rewards = self.reward_normalizer.normalize(final_rewards)
 
         # Place reward at the end of each sequence
+
         rewards = torch.zeros(batch_size, seq_len, device=self.device)
 
         for i in range(batch_size):
+
             # Put reward at the last generated token
+
             last_idx = attention_mask[i].sum() - 1
             rewards[i, last_idx] = normalized_rewards[i]
 
@@ -1089,36 +1187,45 @@ class PPOTrainer:
         self.actor_critic.train()
 
         # Forward pass
+
         logits, values = self.actor_critic(input_ids, attention_mask)
 
         # Compute log probabilities for actions taken
+
         # Get the log prob of each token in the sequence
+
         log_probs = F.log_softmax(logits[:, :-1], dim=-1)  # [batch, seq-1, vocab]
         actions = input_ids[:, 1:]  # [batch, seq-1]
 
         # Gather log probs of selected actions
+
         new_log_probs = log_probs.gather(
             dim=-1,
             index=actions.unsqueeze(-1)
         ).squeeze(-1)  # [batch, seq-1]
 
         # Apply response mask to only train on generated tokens
+
         response_mask_shifted = response_mask[:, 1:]  # [batch, seq-1]
         new_log_probs = new_log_probs * response_mask_shifted
         old_log_probs_masked = old_log_probs[:, :-1] * response_mask_shifted
 
         # Compute losses with masking
+
         # Policy loss: only on response tokens
+
         ratio = torch.exp(new_log_probs - old_log_probs_masked)
         surr1 = ratio * advantages[:, :-1] * response_mask_shifted
         surr2 = torch.clamp(ratio, 1 - self.clip_epsilon, 1 + self.clip_epsilon) * \
                 advantages[:, :-1] * response_mask_shifted
 
         # Mean over valid (response) tokens only
+
         num_response_tokens = response_mask_shifted.sum()
         policy_loss = -torch.min(surr1, surr2).sum() / (num_response_tokens + 1e-8)
 
         # Value loss: only on response tokens
+
         values_pred = values[:, :-1]
         values_old_clipped = old_values[:, :-1] + torch.clamp(
             values_pred - old_values[:, :-1],
@@ -1132,9 +1239,11 @@ class PPOTrainer:
         value_loss = torch.max(vf_loss1, vf_loss2).sum() / (num_response_tokens + 1e-8)
 
         # Total loss
+
         loss = policy_loss + self.value_coef * value_loss
 
         # Backward pass
+
         self.optimizer.zero_grad()
         loss.backward()
         torch.nn.utils.clip_grad_norm_(
@@ -1152,21 +1261,27 @@ class PPOTrainer:
     def train_step(self, prompts: List[str]) -> Dict[str, float]:
         """
         Complete PPO training step:
+
         1. Generate responses
         2. Compute rewards
         3. Compute advantages
         4. PPO updates (only on response tokens)
+
         """
+
         # Generate responses
+
         responses = self.generate_responses(prompts)
         input_ids = responses["input_ids"]
         attention_mask = responses["attention_mask"]
         prompt_lengths = responses["prompt_lengths"]
 
         # Create response mask to only train on generated tokens
+
         response_mask = create_response_mask(attention_mask, prompt_lengths)
 
         # Compute rewards
+
         rewards = self.compute_rewards(
             input_ids,
             attention_mask,
@@ -1174,6 +1289,7 @@ class PPOTrainer:
         )
 
         # Get old log probs and values (for PPO clipping)
+
         with torch.no_grad():
             logits_old, values_old = self.actor_critic(input_ids, attention_mask)
 
@@ -1186,6 +1302,7 @@ class PPOTrainer:
             old_log_probs = old_log_probs * attention_mask[:, 1:]
 
         # Compute advantages and returns
+
         advantages, returns = compute_advantages_and_returns(
             rewards,
             values_old,
@@ -1194,6 +1311,7 @@ class PPOTrainer:
         )
 
         # Normalize advantages (only over response tokens)
+
         response_mask_for_advantages = response_mask[:, :-1]
         masked_advantages = advantages[:, :-1] * response_mask_for_advantages
         advantage_mean = masked_advantages.sum() / (response_mask_for_advantages.sum() + 1e-8)
@@ -1204,6 +1322,7 @@ class PPOTrainer:
         advantages = (advantages - advantage_mean) / (advantage_std + 1e-8)
 
         # PPO epochs
+
         stats = {"loss": 0, "policy_loss": 0, "value_loss": 0}
         for _ in range(self.ppo_epochs):
             step_stats = self.ppo_step(
@@ -1219,28 +1338,34 @@ class PPOTrainer:
                 stats[k] += v / self.ppo_epochs
 
         # Add reward stats
+
         stats["mean_reward"] = rewards.sum(dim=1).mean().item()
 
         return stats
 
-
 # Example usage
+
 def train_rlhf():
     """Example RLHF training pipeline."""
+
     # Initialize models
+
     model_name = "gpt2"  # Replace with your SFT model
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     tokenizer.pad_token = tokenizer.eos_token
 
     # Load models
+
     actor_critic = ActorCritic(model_name)
     ref_model = AutoModelForCausalLM.from_pretrained(model_name)
     reward_model = RewardModel(model_name)
 
     # Optimizer
+
     optimizer = torch.optim.AdamW(actor_critic.parameters(), lr=1e-6)
 
     # Trainer
+
     trainer = PPOTrainer(
         actor_critic=actor_critic,
         ref_model=ref_model,
@@ -1252,6 +1377,7 @@ def train_rlhf():
     )
 
     # Training loop
+
     prompts = [
         "Explain quantum computing to a 5-year-old:",
         "Write a haiku about machine learning:",
@@ -1277,17 +1403,20 @@ def train_rlhf():
 ### 1. Computational Cost
 
 RLHF is expensive because it requires:
+
 - **4 models**: Actor, critic, reference, reward model
 - **Generation**: Sampling responses on-the-fly
 - **Multiple forward passes**: For computing rewards, KL, advantages
 
 **Memory requirements:**
+
 - Actor-critic: 2x model size (policy + value head)
 - Reference: 1x model size
 - Reward model: 1x model size
 - Total: ~4x model size
 
 **Solutions:**
+
 - Use smaller models for reward/value
 - Offload reference model to CPU
 - Use parameter-efficient fine-tuning (see [LoRA](20-peft.md))
@@ -1295,6 +1424,7 @@ RLHF is expensive because it requires:
 ### 2. Hyperparameter Tuning
 
 Key hyperparameters:
+
 - **KL coefficient** $\beta$: 0.01-0.1 (higher = stay closer to SFT)
 - **PPO clip** $\epsilon$: 0.1-0.3 (higher = larger updates)
 - **Learning rate**: 1e-6 to 1e-5 (much lower than SFT)
@@ -1304,11 +1434,13 @@ Key hyperparameters:
 ### 3. Reward Hacking
 
 The policy may find adversarial ways to maximize reward:
+
 - **Repetition**: Repeating phrases that score high
 - **Length gaming**: Very short or very long responses
 - **Non-sequiturs**: Random high-reward tokens
 
 **Mitigations:**
+
 - Strong KL penalty
 - Reward model diversity (train on diverse preferences)
 - Length normalization
@@ -1317,11 +1449,13 @@ The policy may find adversarial ways to maximize reward:
 ### 4. Training Stability
 
 RLHF can be unstable:
+
 - **Policy collapse**: Model generates nonsense
 - **Value explosion**: Value estimates diverge
 - **Reward spikes**: Extreme reward values
 
 **Solutions:**
+
 - Reward normalization/clipping
 - Gradient clipping
 - Smaller learning rates
@@ -1330,6 +1464,7 @@ RLHF can be unstable:
 ### 5. Alternatives to PPO
 
 Other RL algorithms have been explored:
+
 - **REINFORCE with baseline**: Simpler but higher variance
 - **A2C/A3C**: More sample efficient
 - **RLOO (REINFORCE Leave-One-Out)**: Used by some recent systems
@@ -1347,21 +1482,25 @@ Evaluating RLHF models goes beyond simply looking at reward scores. A comprehens
 **Problem**: A poorly trained reward model will guide RLHF in the wrong direction, no matter how good the PPO implementation is. We must validate the reward model before using it to train policies.
 
 **Why this matters**: The reward model is the compass for RLHF. If it's miscalibrated:
+
 - The policy learns to optimize for incorrect objectives
 - Training appears to succeed (high rewards) but outputs are poor
 - Failure is only detected after expensive RL training
 
 **What we're measuring**:
+
 1. **Accuracy**: Does the reward model correctly predict which response humans prefer?
 2. **Margin**: How confident is it in its predictions? (larger margin = more confident)
 3. **Calibration**: Do probability scores match actual preference rates?
 
 **Theoretical grounding**: The Bradley-Terry model assumes $P(y_w \succ y_l) = \sigma(r_w - r_l)$. If this holds, we should see:
+
 - Accuracy above random (50%)
 - Larger reward differences for clear preference pairs
 - Consistent predictions across similar examples
 
 **Acceptable performance**:
+
 - **65-70% accuracy**: Minimum viable - better than random but barely
 - **70-75% accuracy**: Good - captures meaningful preference patterns
 - **75%+ accuracy**: Excellent - highly aligned with human judgments
@@ -1396,14 +1535,17 @@ def evaluate_reward_model(
             rejected_attention_mask = batch["rejected_attention_mask"].to(device)
 
             # Get rewards
+
             r_chosen = reward_model(chosen_input_ids, chosen_attention_mask)
             r_rejected = reward_model(rejected_input_ids, rejected_attention_mask)
 
             # Check if chosen > rejected
+
             correct += (r_chosen > r_rejected).sum().item()
             total += len(r_chosen)
 
             # Track reward differences
+
             reward_diffs.extend((r_chosen - r_rejected).cpu().numpy())
 
     accuracy = correct / total
@@ -1418,6 +1560,7 @@ def evaluate_reward_model(
 ```
 
 **Key metrics:**
+
 - **Accuracy**: Should be 65-75% on held-out preferences
 - **Reward margin**: How much higher chosen responses score (typically 0.5-2.0)
 - **Calibration**: Whether probabilities match actual preference rates
@@ -1427,22 +1570,26 @@ def evaluate_reward_model(
 **Problem**: The policy can drift too far from the reference model in two ways - too little drift (no learning) or too much drift (reward hacking or collapse). We need to continuously monitor this deviation to ensure healthy training.
 
 **Why KL divergence is the right metric**: KL divergence $D_{KL}(\pi_\theta || \pi_{ref})$ measures how many additional bits are needed to encode samples from $\pi_\theta$ using $\pi_{ref}$ as a code. It captures:
+
 - **Distributional shift**: How much the policy has changed overall
 - **Asymmetry**: Penalizes the policy for assigning probability where the reference doesn't
 - **Accumulation**: Small per-token changes compound across the sequence
 
 **Interpreting KL values**:
+
 - **0-2 nats**: Very close to reference, minimal learning
 - **2-10 nats**: Healthy range, policy is improving while staying grounded
 - **10-50 nats**: Warning zone, significant deviation
 - **50+ nats**: Danger zone, likely reward hacking or mode collapse
 
 **Theoretical significance**: The RLHF objective $r(x,y) - \beta D_{KL}$ creates a tradeoff:
+
 - Maximize reward: policy wants to generate high-scoring responses
 - Minimize KL: policy wants to stay close to reference
 - The equilibrium point depends on $\beta$ and the reward landscape
 
 **Why this matters for safety**: The reference model was trained on human-written text and has reasonable priors. Large KL divergence indicates the policy is generating text unlike anything in the original training distribution, which often manifests as:
+
 - Nonsensical repetitions
 - Adversarial tokens that fool the reward model
 - Mode collapse to a few high-reward phrases
@@ -1469,7 +1616,9 @@ def compute_kl_statistics(
 
     with torch.no_grad():
         for prompt in prompts:
+
             # Tokenize
+
             inputs = tokenizer(
                 prompt,
                 return_tensors="pt",
@@ -1478,10 +1627,12 @@ def compute_kl_statistics(
             ).to(device)
 
             # Get logits from both models
+
             policy_outputs = policy_model(**inputs)
             ref_outputs = ref_model(**inputs)
 
             # Compute KL
+
             kl = compute_kl_divergence(
                 policy_outputs.logits,
                 ref_outputs.logits,
@@ -1499,6 +1650,7 @@ def compute_kl_statistics(
 ```
 
 **Typical values:**
+
 - **Good**: KL = 2-10 nats (policy is similar to reference)
 - **Warning**: KL = 10-50 nats (significant deviation)
 - **Bad**: KL > 50 nats (policy may have collapsed or reward hacked)
@@ -1508,6 +1660,7 @@ def compute_kl_statistics(
 **Problem**: High reward scores don't guarantee good outputs. The policy might find degenerate solutions that maximize reward through exploitation rather than genuine quality improvement. We need metrics that assess the actual text quality independent of the reward model.
 
 **Why automatic metrics matter**: While human evaluation is the gold standard, it's expensive and slow. Automatic metrics let us:
+
 - Monitor quality continuously during training
 - Detect failure modes quickly (before wasting compute)
 - Run ablation studies to compare approaches
@@ -1539,6 +1692,7 @@ def compute_kl_statistics(
 **The insight**: Quality has many dimensions. A model can improve on reward while degrading on diversity, or improve on diversity while becoming incoherent. Multi-metric evaluation catches these failure modes.
 
 **Relation to alternatives**:
+
 - **Perplexity**: Doesn't measure alignment, only fluency
 - **BLEU/ROUGE**: Require reference texts, not applicable to open-ended generation
 - **Human eval**: Gold standard but too expensive for continuous monitoring
@@ -1567,7 +1721,9 @@ def evaluate_generation_quality(
 
     with torch.no_grad():
         for prompt in prompts:
+
             # Generate
+
             inputs = tokenizer(prompt, return_tensors="pt").to(device)
             outputs = model.generate(
                 **inputs,
@@ -1578,26 +1734,31 @@ def evaluate_generation_quality(
             )
 
             # Decode
+
             generated_text = tokenizer.decode(
                 outputs[0, inputs.input_ids.shape[1]:],
                 skip_special_tokens=True
             )
 
             # Length
+
             tokens = generated_text.split()
             results["avg_length"].append(len(tokens))
 
             # Diversity: unique n-grams
+
             bigrams = set(zip(tokens[:-1], tokens[1:]))
             trigrams = set(zip(tokens[:-2], tokens[1:-1], tokens[2:]))
             results["unique_bigrams"].append(len(bigrams) / max(len(tokens) - 1, 1))
             results["unique_trigrams"].append(len(trigrams) / max(len(tokens) - 2, 1))
 
             # Repetition detection
+
             max_repeated = max([generated_text.count(word) for word in set(tokens)])
             results["repetition_rate"].append(max_repeated / len(tokens) if tokens else 0)
 
             # Reward score (if reward model available)
+
             if reward_model is not None:
                 reward = reward_model(
                     outputs,
@@ -1606,6 +1767,7 @@ def evaluate_generation_quality(
                 results["reward_scores"].append(reward)
 
     # Aggregate statistics
+
     return {
         "mean_length": np.mean(results["avg_length"]),
         "std_length": np.std(results["avg_length"]),
@@ -1617,6 +1779,7 @@ def evaluate_generation_quality(
 ```
 
 **What to look for:**
+
 - **Length distribution**: Should be reasonable (not all very short/long)
 - **Diversity**: High unique n-gram ratios indicate diverse responses
 - **Repetition**: Low repetition rates (< 0.3) are good
@@ -1627,6 +1790,7 @@ def evaluate_generation_quality(
 **Problem**: Automated metrics are proxies for what we really care about - whether humans find the outputs better. No amount of automatic evaluation can fully capture human preferences, coherence, and quality. Human evaluation is the ultimate ground truth.
 
 **Why this is the gold standard**:
+
 - **Alignment validation**: RLHF is trained on human preferences, so human eval directly measures if we succeeded
 - **Catches subtle failures**: Humans notice issues that metrics miss (tone, factual errors, subtle biases)
 - **Measures actual utility**: Does the model actually help users accomplish their goals?
@@ -1657,6 +1821,7 @@ def evaluate_generation_quality(
 **Why randomization matters**: Position bias is real - evaluators tend to prefer the first response shown. Randomizing order removes this systematic error.
 
 **Relation to alternatives**:
+
 - **Automatic metrics**: Fast and cheap but imperfect proxies
 - **LLM-as-judge**: Uses GPT-4 to evaluate, correlates ~85% with humans but has biases
 - **Human eval**: Slow and expensive but definitive
@@ -1679,7 +1844,9 @@ def create_human_evaluation_set(
     evaluation_set = []
 
     for i, prompt in enumerate(prompts[:num_samples]):
+
         # Generate from both models
+
         inputs = tokenizer(prompt, return_tensors="pt")
 
         with torch.no_grad():
@@ -1690,6 +1857,7 @@ def create_human_evaluation_set(
         response_b = tokenizer.decode(output_b[0], skip_special_tokens=True)
 
         # Randomize order to avoid bias
+
         if i % 2 == 0:
             response_a, response_b = response_b, response_a
 
@@ -1704,6 +1872,7 @@ def create_human_evaluation_set(
 ```
 
 **Human evaluation criteria:**
+
 - **Helpfulness**: Does it answer the question?
 - **Harmlessness**: Is it safe and appropriate?
 - **Honesty**: Is it truthful and acknowledges uncertainty?
@@ -1714,6 +1883,7 @@ def create_human_evaluation_set(
 **Problem**: Custom evaluation metrics and human eval are essential, but they lack standardization. We need reproducible, comparable metrics that the research community agrees on. Automated benchmarks fill this role.
 
 **Why standardized benchmarks matter**:
+
 1. **Reproducibility**: Everyone evaluates on the same test set with same metrics
 2. **Comparability**: Can directly compare your model to published baselines
 3. **Comprehensive coverage**: Benchmarks test specific capabilities (reasoning, truthfulness, safety)
@@ -1746,6 +1916,7 @@ def create_human_evaluation_set(
 **Warning**: Some RLHF training can "overfit" to sounding helpful while becoming less accurate. Always check capability benchmarks alongside preference metrics.
 
 **Relation to custom evaluation**:
+
 - **Standardized benchmarks**: Reproducible, comparable, but may not match your use case
 - **Custom evaluation**: Tailored to your application, but not comparable to others
 - **Best practice**: Use both
@@ -1763,12 +1934,16 @@ def evaluate_on_benchmark(
     Evaluate model on standard benchmarks.
 
     Common benchmarks for instruction-following:
+
     - MT-Bench: Multi-turn conversation evaluation
     - AlpacaEval: Instruction-following quality
     - TruthfulQA: Truthfulness evaluation
     - HumanEval: Code generation (if applicable)
+
     """
+
     # Load benchmark
+
     from datasets import load_dataset
     dataset = load_dataset(benchmark_name, split="validation")
 
@@ -1776,11 +1951,14 @@ def evaluate_on_benchmark(
     total = 0
 
     for example in dataset:
+
         # Format depends on benchmark
+
         prompt = example["prompt"]
         correct_answer = example["label"]
 
         # Generate or score
+
         inputs = tokenizer(prompt, return_tensors="pt").to(device)
         with torch.no_grad():
             outputs = model.generate(**inputs, max_length=128)
@@ -1788,6 +1966,7 @@ def evaluate_on_benchmark(
         prediction = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
         # Check correctness (benchmark-specific logic)
+
         if check_answer(prediction, correct_answer):
             correct += 1
         total += 1
@@ -1800,6 +1979,7 @@ def evaluate_on_benchmark(
 **Problem**: RLHF can fail in predictable ways, but these failures might not be obvious from aggregate metrics alone. A model can have reasonable average reward while generating nonsensical outputs for specific prompts. We need targeted detection of known failure patterns.
 
 **Why proactive detection matters**:
+
 - Early detection saves compute (stop bad runs early)
 - Identifies root causes (is it reward hacking, mode collapse, or training instability?)
 - Guides debugging (different failures require different fixes)
@@ -1865,19 +2045,23 @@ def detect_failure_modes(
         tokens = response.split()
 
         # Check for reward hacking: very high reward, nonsensical output
+
         reward = reward_model(outputs, torch.ones_like(outputs)).item()
         if reward > 10.0 and len(set(tokens)) < len(tokens) * 0.3:
             failures["reward_hacking"].append(response)
 
         # Check for policy collapse: very short or very repetitive
+
         if len(tokens) < 5:
             failures["policy_collapse"].append(response)
 
         # Check for length exploitation
+
         if len(tokens) > 400:  # Suspiciously long
             failures["length_exploitation"].append(response)
 
         # Check for repetition loops
+
         for i in range(len(tokens) - 10):
             if tokens[i:i+5] == tokens[i+5:i+10]:
                 failures["repetition_loops"].append(response)
@@ -1891,18 +2075,21 @@ def detect_failure_modes(
 **Why comprehensive evaluation is essential**: RLHF is a complex, multi-stage process where many things can go wrong. A single metric (like reward score) is insufficient - we need to evaluate multiple dimensions simultaneously to ensure genuine improvement.
 
 **The evaluation philosophy**:
+
 1. **Defense in depth**: Multiple metrics catch different failure modes
 2. **Relative comparison**: Always compare RLHF model to SFT baseline
 3. **Holistic assessment**: Look at reward, KL, diversity, and failures together
 4. **Early detection**: Run evaluation frequently to catch problems early
 
 **What makes evaluation reliable**:
+
 - **Diverse test set**: Cover different prompt types, lengths, and difficulties
 - **Held-out data**: Never evaluate on training prompts or preference pairs
 - **Multiple dimensions**: No single metric tells the whole story
 - **Baseline comparison**: Absolute numbers are hard to interpret; relative improvement matters
 
 **Interpreting results - what success looks like**:
+
 1. **Reward improvement**: RLHF > SFT by 1-5 points (substantial but not astronomical)
 2. **Controlled KL**: Stays in 2-10 nat range (learning but not drifting)
 3. **Quality maintained**: Diversity doesn't decrease, coherence maintained
@@ -1910,6 +2097,7 @@ def detect_failure_modes(
 5. **Consistent improvement**: Better across different prompt types, not just easy ones
 
 **Red flags that indicate problems**:
+
 - Reward improves but diversity decreases dramatically
 - KL divergence exceeds 20 nats
 - Many detected failure modes
@@ -1932,18 +2120,21 @@ def comprehensive_rlhf_evaluation(
     results = {}
 
     # 1. Reward model validation
+
     print("Evaluating reward model...")
     results["reward_model"] = evaluate_reward_model(
         reward_model, preference_data, device
     )
 
     # 2. KL divergence
+
     print("Computing KL divergence...")
     results["kl_divergence"] = compute_kl_statistics(
         rlhf_model, sft_model, test_prompts, tokenizer, device
     )
 
     # 3. Generation quality
+
     print("Evaluating generation quality...")
     results["sft_quality"] = evaluate_generation_quality(
         sft_model, tokenizer, test_prompts, reward_model, device
@@ -1953,12 +2144,14 @@ def comprehensive_rlhf_evaluation(
     )
 
     # 4. Failure modes
+
     print("Detecting failure modes...")
     results["failures"] = detect_failure_modes(
         rlhf_model, tokenizer, test_prompts, reward_model, device
     )
 
     # 5. Compute improvement metrics
+
     results["improvement"] = {
         "reward_delta": results["rlhf_quality"]["mean_reward"] -
                        results["sft_quality"]["mean_reward"],
@@ -1972,6 +2165,7 @@ def comprehensive_rlhf_evaluation(
 ```
 
 **Interpretation:**
+
 - **Reward improvement**: RLHF should increase mean reward by 1-5 points
 - **KL under control**: Should stay below 10-20 nats
 - **No failure modes**: Empty or minimal failure mode detections
@@ -1988,7 +2182,9 @@ This comprehensive evaluation ensures your RLHF training produces genuinely bett
 Train a reward model on a small preference dataset.
 
 ```python
+
 # Create a synthetic preference dataset
+
 def create_preference_dataset(num_samples: int = 1000):
     """
     Create a synthetic dataset where longer, more diverse responses
@@ -2005,6 +2201,7 @@ def create_preference_dataset(num_samples: int = 1000):
         prompt = prompts[torch.randint(0, len(prompts), (1,)).item()]
 
         # Simulate chosen (longer, better) vs rejected (shorter, worse)
+
         chosen = prompt + " This is a detailed and helpful response that " \
                          "provides comprehensive information."
         rejected = prompt + " Short answer."
@@ -2018,10 +2215,15 @@ def create_preference_dataset(num_samples: int = 1000):
     return dataset
 
 # TODO: Implement the training loop
+
 # 1. Create the dataset
+
 # 2. Tokenize chosen and rejected responses
+
 # 3. Train the reward model
+
 # 4. Evaluate accuracy on held-out data
+
 ```
 
 ### Exercise 2: Implement GAE from Scratch
@@ -2040,7 +2242,9 @@ def gae_from_scratch(
 
     Hint: Work backwards from the last timestep.
     """
+
     # TODO: Your implementation here
+
     pass
 ```
 
@@ -2049,11 +2253,17 @@ def gae_from_scratch(
 Implement and test the adaptive KL controller with different target KL values.
 
 ```python
+
 # TODO: Test the AdaptiveKLController class
+
 # 1. Initialize with different target_kl values
+
 # 2. Simulate KL divergence observations
+
 # 3. Plot how beta changes over time
+
 # 4. Compare with fixed beta
+
 ```
 
 ### Exercise 4: Compare RLHF with SFT
@@ -2061,16 +2271,25 @@ Implement and test the adaptive KL controller with different target KL values.
 Train a small model (e.g., GPT-2 small) with both SFT only and SFT + RLHF.
 
 ```python
+
 # TODO:
+
 # 1. Fine-tune GPT-2 on an instruction dataset (SFT)
+
 # 2. Collect preferences on model outputs
+
 # 3. Train reward model
+
 # 4. Run RLHF with PPO
+
 # 5. Compare outputs qualitatively
+
 # 6. Measure reward model scores on held-out prompts
+
 ```
 
 **Evaluation questions:**
+
 - Does RLHF improve response quality?
 - How much does KL divergence increase?
 - What happens with different $\beta$ values?
@@ -2085,12 +2304,16 @@ def analyze_reward_model(reward_model, tokenizer, prompts):
     Analyze reward model behavior.
 
     Tasks:
+
     1. Score various responses to the same prompt
     2. Test sensitivity to response length
     3. Test preference for certain patterns
     4. Visualize reward distributions
+
     """
+
     # TODO: Your implementation
+
     pass
 ```
 
@@ -2101,22 +2324,26 @@ def analyze_reward_model(reward_model, tokenizer, prompts):
 RLHF is a powerful technique for aligning language models with human preferences:
 
 **Key Components:**
+
 1. **Reward Model**: Learns to predict human preferences using Bradley-Terry model
 2. **PPO**: Optimizes policy to maximize reward with clipped objective
 3. **KL Constraint**: Prevents reward hacking by staying close to reference model
 
 **Advantages:**
+
 - Can capture complex, hard-to-specify preferences
 - Enables continuous improvement from feedback
 - Has produced state-of-the-art aligned models (ChatGPT, Claude, etc.)
 
 **Challenges:**
+
 - Computationally expensive (4 models, generation)
 - Training instability
 - Reward hacking
 - Requires high-quality preference data
 
 **Alternatives:**
+
 - **DPO** (see [Chapter 22](22-dpo.md)): Simpler, more stable
 - **RLAIF**: Use AI feedback instead of human feedback
 - **Constitutional AI** (see [Chapter 23](23-safety-alignment.md)): Self-improvement through principles
@@ -2124,6 +2351,7 @@ RLHF is a powerful technique for aligning language models with human preferences
 In practice, modern alignment pipelines often use a combination of SFT, RLHF/DPO, and other techniques to achieve safe and helpful behavior.
 
 **Next Steps:**
+
 - [Direct Preference Optimization (DPO)](22-dpo.md): A simpler alternative to RLHF
 - [Safety and Alignment Techniques](23-safety-alignment.md): Additional alignment methods
 - [Supervised Fine-tuning (SFT)](19-sft.md): Review the first step before RLHF

@@ -21,16 +21,19 @@ Lower perplexity indicates better performance. A perplexity of $k$ means the mod
 **Why Perplexity Matters**: Perplexity is the single most important intrinsic metric for language models because it directly measures the model's predictive uncertainty on held-out data. Unlike task-specific metrics, perplexity is universal across all language modeling tasks and correlates strongly with downstream performance. It's the LM equivalent of loss, but exponentiated to be more interpretable.
 
 **Theoretical Foundation**: Perplexity is the exponential of cross-entropy, which measures the expected number of bits needed to encode data using the model's predicted distribution. It's rooted in information theory:
+
 - Cross-entropy: $H(p, q) = -\sum_x p(x) \log q(x)$
 - For language modeling: $H = -\frac{1}{N} \sum_{i=1}^{N} \log P(x_i | x_{<i})$
 - Perplexity: $\text{PPL} = 2^H = \exp(H)$
 
 **Relationship to Alternatives**:
+
 - **vs. Raw Loss**: Perplexity is more interpretable than cross-entropy loss because it represents the effective vocabulary size the model is choosing from at each step.
 - **vs. Accuracy**: Unlike accuracy, perplexity is continuous and measures confidence in predictions, not just correctness.
 - **vs. BLEU/ROUGE**: Perplexity is an intrinsic metric (model-only) while BLEU/ROUGE are extrinsic (require references), making perplexity faster and more general.
 
 **Key Implementation Insights**:
+
 1. **Sliding Window**: For sequences longer than the model's context window, we use a sliding window approach with stride. This ensures all tokens are evaluated while respecting context limits.
 2. **Masking Previous Tokens**: The critical line `target_ids[:, :-trg_len] = -100` prevents counting the same token multiple times across windows, which would artificially lower perplexity.
 3. **Per-Token vs. Per-Sequence**: We can compute both aggregate perplexity and per-token perplexities for analysis. High per-token perplexity identifies specific words the model struggles with.
@@ -157,17 +160,20 @@ For multilingual or byte-level models, bits per byte (BPB) or bits per character
 **Why Bits Per Byte Matters**: When comparing models with different tokenization schemes (e.g., BPE with different vocabulary sizes, character-level, byte-level), perplexity becomes incomparable because it depends on token granularity. BPB provides a tokenization-agnostic metric by normalizing to the underlying byte representation, making it essential for multilingual model evaluation and cross-model comparisons.
 
 **Theoretical Foundation**: BPB is grounded in Shannon's source coding theorem from information theory:
+
 - The cross-entropy in bits represents the expected number of bits needed to encode each symbol using the model's predicted distribution.
 - By normalizing to bytes (the actual data representation), we get a hardware-independent, universal compression metric.
 - A model with BPB of $b$ could theoretically compress the data to $b$ bits per byte using arithmetic coding.
 - The relationship to perplexity: $\text{BPB} = \log_2(\text{PPL}) \times \frac{\text{tokens}}{\text{bytes}}$
 
 **Relationship to Alternatives**:
+
 - **vs. Perplexity**: BPB is comparable across different tokenizations, while perplexity is not. A character-level model will have much lower perplexity than a word-level model on the same data, but similar BPB.
 - **vs. Bits Per Character**: BPC is better for multilingual evaluation because byte-level is universal (all Unicode maps to bytes), while character boundaries depend on encoding.
 - **vs. Compression Ratio**: BPB directly relates to lossless compression efficiency, making it interpretable for practitioners.
 
 **Key Implementation Insights**:
+
 1. **Logarithm Base Conversion**: Models typically output natural log probabilities (nats), so we divide by $\log(2)$ to convert to bits.
 2. **UTF-8 Encoding**: We use `text.encode('utf-8')` to get the byte representation. This handles multilingual text correctly, where characters may be 1-4 bytes.
 3. **Normalization**: The critical step is dividing total bits by number of bytes, not tokens. This makes the metric independent of vocabulary size.
@@ -212,22 +218,26 @@ Modern LLMs are evaluated across a diverse suite of benchmarks, each targeting d
 MMLU ([Hendrycks et al., 2021](https://arxiv.org/abs/2009.03300)) tests knowledge across 57 subjects including STEM, humanities, and social sciences. It uses multiple-choice questions.
 
 **Why MMLU Matters**: MMLU is the gold standard for measuring broad knowledge in LLMs because it covers 57 diverse subjects from elementary to professional levels. Unlike domain-specific benchmarks, MMLU reveals whether a model has truly learned general knowledge or just specialized capabilities. It's particularly important for:
+
 - Comparing models of different sizes (shows scaling laws in action)
 - Detecting knowledge gaps across domains (e.g., strong in STEM, weak in humanities)
 - Measuring the impact of training data curation and alignment
 
 **Theoretical Foundation**: MMLU evaluation is based on **log-probability ranking** rather than generation:
+
 - For each multiple choice question with options A, B, C, D, we compute $P(\text{token}_{A} | \text{prompt})$, $P(\text{token}_{B} | \text{prompt})$, etc.
 - The model predicts the option with highest conditional probability: $\arg\max_{o \in \{A,B,C,D\}} P(o | \text{question})$
 - This is more robust than generation-based evaluation because it's deterministic and not affected by decoding strategies.
 - Few-shot prompting provides in-context learning examples that help the model understand the task format.
 
 **Relationship to Alternatives**:
+
 - **vs. TruthfulQA**: MMLU measures factual knowledge breadth, while TruthfulQA measures resistance to common misconceptions.
 - **vs. ARC/OpenBookQA**: MMLU covers broader academic domains with more challenging graduate-level questions.
 - **vs. Generation-based QA**: Log-probability evaluation is more consistent and doesn't require complex answer extraction, but may not capture the model's ability to explain reasoning.
 
 **Key Implementation Insights**:
+
 1. **Tokenization of Answer Choices**: The critical challenge is that "A", " A", and "A." may tokenize differently. We must ensure we're comparing the correct token IDs for each choice letter.
 2. **Few-Shot Selection**: Using questions from the same subject as few-shot examples (typically 5) improves accuracy significantly by providing domain-specific context and format examples.
 3. **Log-Probability Extraction**: We use `log_softmax` on the final token's logits to get normalized probabilities for each answer token, avoiding numerical instability.
@@ -440,17 +450,20 @@ HellaSwag ([Zellers et al., 2019](https://arxiv.org/abs/1905.07830)) tests commo
 **Why HellaSwag Matters**: HellaSwag is specifically designed to be adversarially difficult for models while remaining easy for humans (95% human accuracy). It tests whether models have genuine commonsense understanding or are just pattern matching on superficial features. The benchmark uses **Adversarial Filtering** where wrong answers are generated by a language model and then filtered to be challenging, making it harder to game than earlier benchmarks.
 
 **Theoretical Foundation**: HellaSwag evaluation is based on **conditional likelihood scoring**:
+
 - For each ending $e_i$, we compute the conditional probability: $P(e_i | \text{context}) = \prod_{t=1}^{|e_i|} P(w_t | \text{context}, e_{i,<t})$
 - We take the log to avoid numerical underflow: $\log P(e_i | \text{context}) = \sum_{t=1}^{|e_i|} \log P(w_t | \text{context}, e_{i,<t})$
 - The model selects: $\arg\max_{i} \log P(e_i | \text{context})$
 - Critically, we must **length-normalize** because language models naturally assign higher probability to shorter sequences (fewer opportunities for low-probability tokens).
 
 **Relationship to Alternatives**:
+
 - **vs. COPA/StoryCloze**: HellaSwag is much larger (70k examples) and adversarially filtered, making it more challenging.
 - **vs. MMLU**: HellaSwag tests implicit commonsense reasoning rather than explicit factual knowledge.
 - **vs. WinoGrande**: Both test commonsense, but HellaSwag focuses on physical/temporal reasoning while WinoGrande tests coreference resolution.
 
 **Key Implementation Insights**:
+
 1. **Conditional Probability Computation**: Unlike MMLU where we only check the first token, here we must compute the full probability of multi-token endings conditioned on the context.
 2. **Length Normalization**: The line `normalized_logprob = log_prob / max(1, len(full_ids) - ending_start_idx)` is critical. Without it, the model would always prefer shorter endings regardless of plausibility.
 3. **Tokenization Alignment**: We must carefully handle the boundary between context and ending. The `-1` in `ending_start_idx = len(context_ids) - 1` prevents double-counting the token where context and ending join.
@@ -549,6 +562,7 @@ hellaswag_examples = [
 GSM8K ([Cobbe et al., 2021](https://arxiv.org/abs/2110.14168)) contains grade-school level math word problems requiring multi-step reasoning.
 
 **Why GSM8K Matters**: GSM8K is the canonical benchmark for testing multi-step reasoning in LLMs. Unlike knowledge-based tasks (MMLU) or single-step reasoning (HellaSwag), GSM8K requires models to:
+
 1. Decompose complex problems into subtasks
 2. Perform arithmetic operations correctly
 3. Chain reasoning steps coherently
@@ -557,6 +571,7 @@ GSM8K ([Cobbe et al., 2021](https://arxiv.org/abs/2110.14168)) contains grade-sc
 It's particularly valuable because it's **verifiable** (answers are numerical) and reveals the limits of reasoning capabilities in current models. Performance on GSM8K correlates strongly with general reasoning ability.
 
 **Theoretical Foundation**: GSM8K evaluation leverages **Chain-of-Thought (CoT) prompting**:
+
 - Standard prompting: Model directly generates answer $P(\text{answer} | \text{question})$
 - CoT prompting: Model generates reasoning steps first: $P(\text{reasoning}, \text{answer} | \text{question})$
 - The factorization becomes: $P(\text{answer} | \text{question}) = \sum_{\text{reasoning}} P(\text{answer} | \text{reasoning}, \text{question}) \cdot P(\text{reasoning} | \text{question})$
@@ -564,11 +579,13 @@ It's particularly valuable because it's **verifiable** (answers are numerical) a
 - Few-shot examples teach the model the format and reasoning style expected.
 
 **Relationship to Alternatives**:
+
 - **vs. MATH Dataset**: GSM8K is elementary-level while MATH contains competition-level problems requiring advanced mathematics. GSM8K is better for evaluating general reasoning.
 - **vs. AQuA/MAWPS**: GSM8K has more natural language questions and requires longer reasoning chains (avg. 5-7 steps vs. 1-3 steps).
 - **vs. HumanEval**: Both test multi-step reasoning, but GSM8K is language-based while HumanEval is code-based, revealing different cognitive capabilities.
 
 **Key Implementation Insights**:
+
 1. **Chain-of-Thought Prompting**: The `use_cot` flag enables intermediate reasoning steps. This is not just a nice-to-have—it's essential for good performance (20% → 60%+ accuracy for many models).
 2. **Greedy Decoding**: We use `temperature=0.0` for deterministic, reproducible results. Since answers are verifiable, we don't need sampling diversity.
 3. **Answer Extraction**: The critical challenge is extracting the final numerical answer from free-form text. We use multiple regex patterns (GSM8K format `#### 42`, natural language "the answer is 42", fallback to last number).
@@ -707,12 +724,14 @@ gsm8k_examples = [
 HumanEval ([Chen et al., 2021](https://arxiv.org/abs/2107.03374)) evaluates code generation capabilities through Python programming problems.
 
 **Why HumanEval Matters**: HumanEval is the industry-standard benchmark for code generation because it tests **functional correctness** via actual code execution, not just syntactic similarity. This is fundamentally different from language tasks—there's no ambiguity in whether code works. Key aspects:
+
 - Tests both basic programming (loops, conditionals) and algorithmic thinking
 - Requires understanding docstrings and translating intent to code
 - Used to evaluate Codex, GPT-4, Claude, and all major code models
 - Correlates with real-world coding ability better than text-similarity metrics
 
 **Theoretical Foundation**: HumanEval uses **pass@k** as the primary metric:
+
 - Generate $n$ samples for each problem
 - A problem is "solved" if at least $k$ of the $n$ samples pass all tests
 - Mathematically: $\text{pass@k} = \mathbb{E}_{\text{problems}} [1 - \frac{\binom{n-c}{k}}{\binom{n}{k}}]$ where $c$ is the number of correct samples
@@ -722,11 +741,13 @@ HumanEval ([Chen et al., 2021](https://arxiv.org/abs/2107.03374)) evaluates code
 The theoretical justification is that code generation often requires multiple attempts even for humans (debugging cycle), and sampling diversity can find correct solutions that greedy decoding misses.
 
 **Relationship to Alternatives**:
+
 - **vs. MBPP** (Mostly Basic Programming Problems): MBPP has simpler problems (3 lines avg vs. 7-8 for HumanEval) and is better for weaker models.
 - **vs. CodeContests/APPS**: These contain competitive programming problems requiring complex algorithms, while HumanEval tests practical programming.
 - **vs. Unit Test Generation**: HumanEval provides tests and requires code; the reverse task tests different skills.
 
 **Key Implementation Insights**:
+
 1. **Execution-Based Evaluation**: The critical innovation is running code in a sandboxed environment with unit tests. This is objective and unambiguous, unlike BLEU for code.
 2. **Temperature vs. Greedy**: For pass@k with k>1, we use `temperature=0.2` for diversity. Too high leads to syntax errors; too low reduces coverage of solution space.
 3. **Stop Tokens**: The `extract_code` function stops at `\nclass`, `\ndef`, etc. to prevent the model from generating additional code beyond the function being completed.
@@ -917,6 +938,7 @@ print("All tests passed!")
 GPQA ([Rein et al., 2023](https://arxiv.org/abs/2311.12022)) contains graduate-level questions in biology, physics, and chemistry that are designed to be difficult even for experts and resistant to web search.
 
 **Why GPQA Matters**: GPQA represents the frontier of knowledge evaluation for LLMs. Unlike MMLU which tests breadth, GPQA tests **depth** of expert-level understanding:
+
 - Questions are validated by PhD-level experts who confirm they cannot be solved via web search
 - Average expert accuracy is only ~65% (vs. 95%+ for MMLU), with non-expert accuracy ~35%
 - Specifically designed to avoid "contamination" from web-scraped training data
@@ -925,17 +947,20 @@ GPQA ([Rein et al., 2023](https://arxiv.org/abs/2311.12022)) contains graduate-l
 This benchmark is crucial for evaluating the most advanced models (GPT-4, Claude Opus, etc.) where simpler benchmarks saturate.
 
 **Theoretical Foundation**: GPQA uses the same **log-probability ranking** as MMLU but with important differences:
+
 - Questions require multi-hop reasoning across concepts (e.g., combining quantum mechanics + thermodynamics)
 - Distractors are carefully crafted to be plausible to non-experts but wrong
 - The evaluation methodology is identical to MMLU: $\arg\max_{o} P(o | \text{question}, \text{domain context})$
 - Domain context in the prompt provides specialist framing, improving performance by ~5-10%
 
 **Relationship to Alternatives**:
+
 - **vs. MMLU**: GPQA is much harder (state-of-the-art ~50% vs. ~90% on MMLU) and tests expert knowledge vs. general knowledge.
 - **vs. Google-Proof QA**: GPQA extends this concept by explicitly validating that questions cannot be solved via search engines.
 - **vs. STEM Benchmarks**: Most STEM benchmarks test undergraduate level; GPQA requires graduate-level expertise.
 
 **Key Implementation Insights**:
+
 1. **Domain Prompting**: The `_format_gpqa_question` includes domain context ("This is a graduate-level physics question"). This primes the model's expert knowledge and improves accuracy.
 2. **Expert Validation**: Unlike other benchmarks, GPQA questions go through multiple rounds of expert review to ensure correctness and difficulty.
 3. **Resistance to Contamination**: By being "Google-proof," GPQA minimizes the risk that models have seen answers during training, making it more reliable for benchmarking over time.
@@ -1037,6 +1062,7 @@ gpqa_example = {
 MT-Bench ([Zheng et al., 2023](https://arxiv.org/abs/2403.04132)) evaluates multi-turn conversation abilities using LLM judges.
 
 **Why MT-Bench Matters**: Most benchmarks test single-turn performance, but real-world LLM usage involves multi-turn conversations where models must:
+
 - Maintain context across turns
 - Handle follow-up questions and clarifications
 - Adapt responses based on previous interactions
@@ -1045,6 +1071,7 @@ MT-Bench ([Zheng et al., 2023](https://arxiv.org/abs/2403.04132)) evaluates mult
 MT-Bench is critical because it revealed that **model rankings change significantly** in multi-turn settings. Some models excel at single-turn but degrade in conversations, while others maintain or improve performance. It's also the first major benchmark to use **LLM-as-judge** evaluation, which correlates better with human preference than automated metrics.
 
 **Theoretical Foundation**: MT-Bench uses **LLM-based evaluation** rather than automated metrics:
+
 - A strong LLM (e.g., GPT-4) acts as a judge, scoring responses on a 1-10 scale
 - The judge evaluates: relevance, accuracy, depth, coherence, and helpfulness
 - Scoring prompt: $\text{score} = \text{LLM}_{\text{judge}}(\text{question}, \text{response}, \text{reference (optional)})$
@@ -1054,11 +1081,13 @@ MT-Bench is critical because it revealed that **model rankings change significan
 The theoretical justification is that for open-ended generation tasks, automated metrics fail to capture quality. LLM judges can evaluate reasoning, style, factuality, and helpfulness holistically.
 
 **Relationship to Alternatives**:
+
 - **vs. Chatbot Arena**: MT-Bench provides standardized questions with reproducible evaluation, while Arena uses crowdsourced comparisons on user queries.
 - **vs. Single-Turn Benchmarks**: MT-Bench explicitly tests conversation continuity and context tracking.
 - **vs. AlpacaEval**: Both use LLM judges, but MT-Bench focuses on multi-turn while AlpacaEval is single-turn instruction following.
 
 **Key Implementation Insights**:
+
 1. **Conversation State Management**: The `conversation_history` tracks all previous turns. Each new response must be generated conditioned on the full history, testing the model's ability to maintain long context.
 2. **LLM Judge Prompting**: The `_judge_response` function creates a detailed prompt for the judge, including evaluation criteria. The quality of this prompt directly affects judgment reliability.
 3. **Temperature Selection**: We use `temperature=0.7` for generation to get natural, diverse responses. Too low makes responses robotic; too high makes them incoherent.
@@ -1189,6 +1218,7 @@ Assistant Response:
 {response}
 
 Please evaluate this response on a scale of 1-10 considering:
+
 - Helpfulness: Does it address the user's question?
 - Relevance: Is it on-topic?
 - Accuracy: Is the information correct?
@@ -1242,6 +1272,7 @@ mt_bench_example = {
 IFEval ([Zhou et al., 2023](https://arxiv.org/abs/2311.07911)) tests models' ability to follow specific formatting and constraint instructions.
 
 **Why IFEval Matters**: Most benchmarks test what models know or can reason about, but IFEval tests whether models can **precisely follow instructions**, which is critical for:
+
 - Controlled generation (e.g., "write exactly 200 words")
 - Format compliance (e.g., "include 3 paragraphs")
 - Constraint satisfaction (e.g., "don't mention X")
@@ -1250,6 +1281,7 @@ IFEval ([Zhou et al., 2023](https://arxiv.org/abs/2311.07911)) tests models' abi
 IFEval revealed a surprising insight: **instruction following ability doesn't correlate strongly with model size or general intelligence**. Some smaller, well-aligned models outperform larger models, suggesting that instruction following is a distinct capability requiring specific training.
 
 **Theoretical Foundation**: IFEval uses **verifiable constraint checking**:
+
 - Instructions are decomposed into formal constraints: $C = \{c_1, c_2, \ldots, c_n\}$
 - Each constraint is programmatically checkable: $c_i : \text{string} \rightarrow \{\text{true}, \text{false}\}$
 - Success requires satisfying ALL constraints: $\text{success} = \bigwedge_{i=1}^{n} c_i(\text{response})$
@@ -1258,11 +1290,13 @@ IFEval revealed a surprising insight: **instruction following ability doesn't co
 This differs from LLM-judge evaluation because constraints are objective and verifiable, eliminating subjective judgment.
 
 **Relationship to Alternatives**:
+
 - **vs. MT-Bench**: MT-Bench evaluates quality; IFEval evaluates compliance. A response can be high-quality but non-compliant.
 - **vs. FollowBench**: IFEval has more diverse constraint types (formatting, content, structure) while FollowBench focuses on multi-step reasoning.
 - **vs. Traditional NLG Metrics**: BLEU/ROUGE measure similarity to references; IFEval measures adherence to explicit constraints.
 
 **Key Implementation Insights**:
+
 1. **Programmatic Constraint Checking**: Each constraint type (`word_count`, `contains_keyword`, `forbidden_words`, etc.) has a dedicated checker function. This makes evaluation objective and reproducible.
 2. **Constraint Composition**: A single instruction may have multiple constraints (e.g., "write 200 words without mentioning 'the'"). All must be satisfied for success.
 3. **Temperature Trade-off**: We use `temperature=0.7` to allow natural language while still following constraints. Higher temps improve fluency but reduce constraint adherence.
@@ -1422,6 +1456,7 @@ ifeval_examples = [
 SimpleQA ([OpenAI, 2024](https://openai.com/index/introducing-simpleqa/)) is a factuality benchmark with short, fact-seeking questions that have clear, unambiguous answers.
 
 **Why SimpleQA Matters**: While many benchmarks test reasoning or knowledge breadth, SimpleQA specifically tests **factual accuracy** on straightforward questions where the model should either know the answer or acknowledge uncertainty. This is critical for:
+
 - Measuring hallucination rates on simple facts
 - Testing calibration (does the model know when it doesn't know?)
 - Evaluating real-world reliability for fact-seeking queries
@@ -1430,11 +1465,13 @@ SimpleQA ([OpenAI, 2024](https://openai.com/index/introducing-simpleqa/)) is a f
 SimpleQA revealed that even state-of-the-art models struggle with simple factuality, often confidently stating incorrect information rather than admitting uncertainty.
 
 **Theoretical Foundation**: SimpleQA uses a **three-way classification** system:
+
 - **Correct**: Response contains the correct answer
 - **Incorrect**: Response contains a wrong answer (hallucination)
 - **Not Attempted**: Model refuses to answer or expresses uncertainty
 
 The key metrics are:
+
 - Accuracy: $\frac{\text{correct}}{\text{correct} + \text{incorrect}}$ (excludes not attempted)
 - Correctness rate: $\frac{\text{correct}}{\text{total}}$ (includes all responses)
 - Hallucination rate: $\frac{\text{incorrect}}{\text{total}}$ (the critical safety metric)
@@ -1442,11 +1479,13 @@ The key metrics are:
 This framework distinguishes between "I don't know" (good calibration) and making up facts (hallucination), which is crucial for trustworthy AI.
 
 **Relationship to Alternatives**:
+
 - **vs. TriviaQA**: SimpleQA focuses on factuality and calibration, while TriviaQA measures knowledge breadth without penalizing hallucinations.
 - **vs. TruthfulQA**: Both test factuality, but TruthfulQA focuses on resisting common misconceptions while SimpleQA tests straightforward facts.
 - **vs. MMLU**: MMLU provides answer choices (guessing is possible); SimpleQA requires generation (reveals true knowledge vs. guessing).
 
 **Key Implementation Insights**:
+
 1. **Short Answer Generation**: We use `max_new_tokens=50` to force concise answers. This prevents the model from hedging or generating verbose non-answers.
 2. **Greedy Decoding**: `temperature=0.0` ensures deterministic, confident answers. We want to see if the model will hallucinate when forced to commit.
 3. **Answer Matching**: The `_check_correctness` function handles variants (e.g., "Harper Lee" vs. "Harper") and partial matches, accounting for different phrasings of correct answers.
@@ -1552,9 +1591,11 @@ class SimpleQAEvaluator:
     ) -> str:
         """
         Classify response type:
+
         - 'correct': Contains correct answer
         - 'incorrect': Contains wrong answer
         - 'not_attempted': Refuses to answer or says "I don't know"
+
         """
         response_lower = response.lower()
 
@@ -1605,6 +1646,7 @@ simpleqa_examples = [
 ARC ([Clark et al., 2018](https://arxiv.org/abs/1803.05457)) contains science questions requiring reasoning. It has two sets: Easy and Challenge.
 
 **Why ARC Matters**: ARC was designed to test genuine reasoning rather than simple fact retrieval. Key features:
+
 - Questions require multi-hop reasoning across scientific concepts
 - ARC-Challenge specifically filters out questions answerable by simple retrieval or co-occurrence
 - Many questions require understanding causality, not just correlation
@@ -1613,6 +1655,7 @@ ARC ([Clark et al., 2018](https://arxiv.org/abs/1803.05457)) contains science qu
 ARC is particularly valuable because it distinguishes between models that have memorized facts and models that can reason about scientific principles. The Challenge set remains difficult even for large models.
 
 **Theoretical Foundation**: ARC combines multiple evaluation approaches:
+
 - **Direct answering**: $P(\text{answer} | \text{question}, \text{choices})$ using log-probability ranking
 - **Chain-of-Thought**: $P(\text{reasoning}, \text{answer} | \text{question})$ to expose intermediate steps
 - **Retrieval-augmented**: $P(\text{answer} | \text{question}, \text{retrieved facts})$ to test reasoning over provided knowledge
@@ -1620,11 +1663,13 @@ ARC is particularly valuable because it distinguishes between models that have m
 The retrieval component is critical: it separates "can the model reason with facts" from "does the model know the facts." Many questions become solvable with the right supporting facts, testing pure reasoning ability.
 
 **Relationship to Alternatives**:
+
 - **vs. MMLU Science**: ARC requires deeper reasoning; MMLU science is more fact-based
 - **vs. GSM8K**: Both test reasoning, but ARC is science-focused while GSM8K is math-focused
 - **vs. CommonsenseQA**: ARC tests scientific reasoning; CommonsenseQA tests everyday reasoning
 
 **Key Implementation Insights**:
+
 1. **Chain-of-Thought**: The `use_cot` flag enables reasoning steps before the answer. For ARC-Challenge, this is nearly essential (often 20-30% accuracy gain).
 2. **Retrieval Integration**: The `evaluate_with_retrieval` method tests whether the model can reason when given supporting facts, isolating reasoning from knowledge.
 3. **Two-Set Design**: ARC-Easy tests basic competence; ARC-Challenge tests genuine reasoning. Models should score >80% on Easy, and Challenge scores reveal reasoning capability.
@@ -1739,6 +1784,7 @@ class ARCEvaluator:
 The MATH dataset ([Hendrycks et al., 2021](https://arxiv.org/abs/2103.03874)) contains challenging competition mathematics problems. Related to [Reasoning and Chain-of-Thought](29-reasoning.md).
 
 **Why MATH Dataset Matters**: While GSM8K tests elementary arithmetic reasoning, MATH tests **advanced mathematical problem-solving** at the competition level (AMC, AIME, etc.). This is important because:
+
 - It requires deep mathematical knowledge (algebra, geometry, calculus, number theory)
 - Problems demand creative problem-solving, not just step-by-step procedures
 - Success rate correlates with general reasoning ability and complex task performance
@@ -1747,6 +1793,7 @@ The MATH dataset ([Hendrycks et al., 2021](https://arxiv.org/abs/2103.03874)) co
 MATH is a frontier benchmark that reveals the limits of current LLM reasoning capabilities.
 
 **Theoretical Foundation**: MATH evaluation faces unique challenges due to mathematical equivalence:
+
 - Unlike text, many mathematical expressions are equivalent: $\frac{1}{2} = 0.5 = \frac{2}{4}$
 - The solution must handle: symbolic expressions, fractions, decimals, multiple representations
 - Evaluation: $\text{correct} = \text{equiv}(\text{normalize}(\text{predicted}), \text{normalize}(\text{ground truth}))$
@@ -1755,11 +1802,13 @@ MATH is a frontier benchmark that reveals the limits of current LLM reasoning ca
 The key challenge is **answer extraction and normalization**—models may get the math right but format answers incorrectly.
 
 **Relationship to Alternatives**:
+
 - **vs. GSM8K**: MATH is much harder (competition-level vs. elementary) and requires specialized mathematical knowledge.
 - **vs. Minerva/TheoremQA**: These test formal theorem proving; MATH tests problem-solving intuition.
 - **vs. ARC**: Both test reasoning, but MATH requires mathematical creativity while ARC tests scientific reasoning.
 
 **Key Implementation Insights**:
+
 1. **Answer Normalization**: The `normalize_answer` function handles LaTeX formatting, whitespace, and different representations. This is critical because models often format correctly but wrap answers differently.
 2. **Boxed Answer Extraction**: The MATH dataset uses `\boxed{answer}` format. The regex pattern extracts this while being robust to malformed LaTeX.
 3. **Symbolic vs. Numerical Equivalence**: We first try string matching (fast), then numerical comparison (handles decimals), and could add symbolic math (using sympy) for algebraic expressions.
@@ -1888,6 +1937,7 @@ class MATHEvaluator:
 BigBench ([Srivastava et al., 2022](https://arxiv.org/abs/2206.04615)) is a diverse collection of over 200 tasks testing various capabilities.
 
 **Why BigBench Matters**: BigBench takes a radically different approach to evaluation—instead of a single focused benchmark, it aggregates **204 diverse tasks** contributed by 450+ researchers. This is valuable because:
+
 - **Coverage**: Tests capabilities that specialized benchmarks miss (analogies, social reasoning, etc.)
 - **Future-Proofing**: Contains tasks beyond current model capabilities, avoiding saturation
 - **Diversity**: Reveals strengths/weaknesses across task types, not just aggregates
@@ -1896,6 +1946,7 @@ BigBench ([Srivastava et al., 2022](https://arxiv.org/abs/2206.04615)) is a dive
 BigBench revealed an important finding: **scaling improves some tasks dramatically while having little effect on others**, helping identify what scaling can and cannot solve.
 
 **Theoretical Foundation**: BigBench uses **task-type-specific evaluation**:
+
 - Multiple choice: Log-probability ranking as in MMLU
 - Generation: String matching or semantic similarity
 - Classification: Accuracy on predicted labels
@@ -1904,11 +1955,13 @@ BigBench revealed an important finding: **scaling improves some tasks dramatical
 The key insight is that **no single evaluation method works for all capabilities**. Different cognitive skills require different measurement approaches.
 
 **Relationship to Alternatives**:
+
 - **vs. GLUE/SuperGLUE**: BigBench is much larger and more diverse, specifically designed for large models
 - **vs. HELM**: Both are comprehensive; HELM focuses on standardized evaluation across models, BigBench on task diversity
 - **vs. Single Benchmarks**: BigBench trades depth for breadth, revealing capability profiles rather than single scores
 
 **Key Implementation Insights**:
+
 1. **Polymorphic Evaluation**: The `task_type` parameter switches between multiple-choice, generation, and classification evaluation modes. Each requires different evaluation logic.
 2. **Per-Task Metrics**: Unlike other benchmarks with a single metric, BigBench tasks may use accuracy, F1, exact match, or custom metrics.
 3. **Few-Shot Adaptation**: Different tasks benefit from different numbers of few-shot examples (0-shot to 5-shot), requiring adaptive prompting.
@@ -1981,6 +2034,7 @@ Safety evaluations are critical for deployed models. See [Safety and Alignment T
 ### 32.4.1 Toxicity Detection
 
 **Why Toxicity Detection Matters**: Even if a model performs well on capability benchmarks, it cannot be deployed if it generates toxic, harmful, or offensive content. Toxicity detection is essential for:
+
 - Measuring model safety before and after alignment training
 - Detecting regression in safety during capability improvements
 - Comparing safety across different models and training approaches
@@ -1989,6 +2043,7 @@ Safety evaluations are critical for deployed models. See [Safety and Alignment T
 Real-world incidents (e.g., Tay chatbot) demonstrate that **capability without safety is dangerous**. Toxicity detection prevents these failures.
 
 **Theoretical Foundation**: Toxicity detection typically uses **classifier-based scoring**:
+
 - A separate toxicity classifier (e.g., Perspective API, toxicity-roberta) scores model outputs
 - Score range: typically 0-1 where higher = more toxic
 - Threshold-based classification: outputs above threshold (e.g., 0.5) are considered toxic
@@ -1997,11 +2052,13 @@ Real-world incidents (e.g., Tay chatbot) demonstrate that **capability without s
 The key challenge is that toxicity is **context-dependent**—discussing toxicity (academic) vs. producing toxicity (harmful) must be distinguished.
 
 **Relationship to Alternatives**:
+
 - **vs. Red Teaming**: Toxicity detection is automated and scalable; red teaming finds edge cases but is manual
 - **vs. Jailbreak Testing**: Toxicity measures unprompted harmful outputs; jailbreaks test resistance to adversarial prompting
 - **vs. Human Evaluation**: Automated toxicity classifiers enable large-scale testing but may miss nuanced cases
 
 **Key Implementation Insights**:
+
 1. **External Classifier**: We use a separate, specialized toxicity classifier rather than the LLM itself to avoid bias (models rate their own outputs as less toxic).
 2. **Threshold Selection**: The `threshold` parameter trades off false positives vs. false negatives. Production systems typically use conservative thresholds (0.3-0.5).
 3. **Prompt Diversity**: Testing across diverse prompts (neutral, edge cases, adversarial) reveals different failure modes.
@@ -2116,6 +2173,7 @@ class SimpleToxicityClassifier:
 ### 32.4.2 Bias Evaluation
 
 **Why Bias Evaluation Matters**: LLMs trained on internet data inherit societal biases around gender, race, religion, and other demographics. Bias evaluation is critical for:
+
 - Ensuring fair treatment across demographic groups
 - Preventing discriminatory outputs in high-stakes applications (hiring, lending, healthcare)
 - Measuring the effectiveness of debiasing techniques
@@ -2124,6 +2182,7 @@ class SimpleToxicityClassifier:
 Studies show that **even state-of-the-art models exhibit measurable biases**, making systematic evaluation essential.
 
 **Theoretical Foundation**: Bias evaluation uses **probability-based stereotype measurement**:
+
 - Create templates with demographic placeholders: "The [GROUP] was known for being [ATTRIBUTE]"
 - Measure model's preference for stereotypical vs. anti-stereotypical completions
 - Bias score: $\text{bias} = \frac{P(\text{stereotype})}{P(\text{stereotype}) + P(\text{anti-stereotype})}$
@@ -2133,11 +2192,13 @@ Studies show that **even state-of-the-art models exhibit measurable biases**, ma
 This approach reveals **implicit biases**—the model may not explicitly state stereotypes but assigns them higher probability.
 
 **Relationship to Alternatives**:
+
 - **vs. StereoSet/CrowS-Pairs**: These are established datasets using the same template-based approach
 - **vs. Embeddings Analysis**: Bias in embeddings (e.g., WEAT) vs. bias in generation are related but distinct
 - **vs. Counterfactual Evaluation**: Testing whether changing demographic terms changes outputs reveals causal bias
 
 **Key Implementation Insights**:
+
 1. **Template-Based Testing**: Using templates with `[GROUP]` placeholders enables systematic testing across demographics while controlling for context.
 2. **Probability Comparison**: We compare probabilities of stereotypical vs. anti-stereotypical completions using conditional log-likelihood, revealing implicit preferences.
 3. **Aggregate Metrics**: Individual examples can be noisy, so we aggregate across many templates and demographic terms to get robust bias scores.
@@ -2237,6 +2298,7 @@ class BiasEvaluator:
 ### 32.4.3 Truthfulness and Hallucination
 
 **Why Truthfulness Evaluation Matters**: One of the most critical safety concerns for LLMs is **hallucination**—generating plausible-sounding but factually incorrect information. Truthfulness evaluation is essential for:
+
 - Measuring reliability for information-seeking tasks
 - Testing resistance to common misconceptions and myths
 - Evaluating the effectiveness of fact-grounding techniques
@@ -2245,6 +2307,7 @@ class BiasEvaluator:
 TruthfulQA revealed a concerning finding: **larger models can be less truthful** because they're better at generating convincing but wrong answers, making truthfulness evaluation critical across model scales.
 
 **Theoretical Foundation**: TruthfulQA uses adversarial question design:
+
 - Questions are crafted where the truthful answer conflicts with common misconceptions
 - Example: "What happens if you crack your knuckles?" (Truthful: "Nothing harmful" vs. Common: "You'll get arthritis")
 - Evaluation modes:
@@ -2255,11 +2318,13 @@ TruthfulQA revealed a concerning finding: **larger models can be less truthful**
 The key insight is that **truth and helpfulness can conflict**—models may give evasive but safe answers or confident but wrong answers.
 
 **Relationship to Alternatives**:
+
 - **vs. SimpleQA**: TruthfulQA tests resistance to misconceptions; SimpleQA tests straightforward factuality
 - **vs. FEVER**: FEVER tests fact verification (given claim, verify); TruthfulQA tests generation
 - **vs. Fact-Checking Datasets**: TruthfulQA focuses on questions where humans commonly err, not just obscure facts
 
 **Key Implementation Insights**:
+
 1. **Adversarial Design**: Questions are specifically chosen where language models are likely to generate popular but incorrect answers, making this a stress test.
 2. **Dual Scoring**: We evaluate both truthfulness (is it correct?) and informativeness (does it actually answer?). Models that always say "I don't know" score low on informativeness.
 3. **Multiple Choice vs. Generation**: MC evaluation is more reliable (deterministic) but generation evaluation better reflects real-world usage.
@@ -2287,9 +2352,11 @@ class TruthfulnessEvaluator:
         Evaluate on TruthfulQA benchmark.
 
         Each question has:
+
         - question: The question text
         - correct_answers: List of truthful answers
         - incorrect_answers: List of common misconceptions
+
         """
         results = []
 
@@ -2369,6 +2436,7 @@ Chatbot Arena ([Zheng et al., 2023](https://arxiv.org/abs/2403.04132)) uses pair
 ![Elo Rating Evolution](../assets/diagrams/ch33-elo-evolution.svg)
 
 **Why Chatbot Arena / Elo Ratings Matter**: Traditional benchmarks measure narrow capabilities, but users care about **overall helpfulness** in conversations. Chatbot Arena addresses this by:
+
 - Using real user queries instead of curated datasets (avoiding benchmark overfitting)
 - Comparing models head-to-head (more reliable than absolute ratings)
 - Aggregating thousands of comparisons into a single ranking (statistical robustness)
@@ -2377,6 +2445,7 @@ Chatbot Arena ([Zheng et al., 2023](https://arxiv.org/abs/2403.04132)) uses pair
 Chatbot Arena has become the **de facto standard** for model ranking because it reflects real-world user preferences better than any single benchmark.
 
 **Theoretical Foundation**: Elo ratings come from chess and are based on probabilistic modeling:
+
 - Each model has a rating $R$ (initially 1500)
 - Expected win probability: $E_{A} = \frac{1}{1 + 10^{(R_B - R_A)/400}}$
 - After a match with outcome $S$ (1=win, 0.5=tie, 0=loss):
@@ -2387,11 +2456,13 @@ Chatbot Arena has become the **de facto standard** for model ranking because it 
 This is theoretically grounded in the **Bradley-Terry model** for pairwise comparisons.
 
 **Relationship to Alternatives**:
+
 - **vs. Absolute Scoring**: Pairwise comparison is more reliable because humans are better at choosing between options than assigning absolute scores.
 - **vs. Fixed Benchmarks**: Arena uses diverse, real-world queries; benchmarks use curated questions that may not reflect actual usage.
 - **vs. Single-Judge**: Arena aggregates many human judgments, reducing noise and bias.
 
 **Key Implementation Insights**:
+
 1. **K-Factor Tuning**: The `k_factor` controls how quickly ratings change. Higher values (32) allow faster adaptation but more volatility; lower values (16) provide stability.
 2. **Initial Rating**: Starting all models at 1500 is standard. The absolute value doesn't matter—only relative differences.
 3. **Win Probability Calculation**: The Elo formula `1 / (1 + 10^((R_B - R_A)/400))` gives the probability model A beats model B, enabling statistical significance testing.
@@ -2514,9 +2585,11 @@ def llm_judge(prompt: str, response_a: str, response_b: str) -> str:
     Use an LLM as a judge (e.g., GPT-4).
 
     This is a simplified version. Real implementation would:
+
     1. Create a judging prompt
     2. Call judge model
     3. Parse the verdict
+
     """
     judge_prompt = f"""You are an impartial judge evaluating two AI assistant responses.
 
@@ -2645,6 +2718,7 @@ Test set contamination is a critical issue when models are trained on web-scale 
 ### 32.6.1 N-gram Overlap Detection
 
 **Why Contamination Detection Matters**: When models are trained on web-scale data (trillions of tokens), there's a significant risk that **benchmark test sets appear in training data**, either directly or in paraphrased form. This is critical because:
+
 - Contaminated evaluation leads to inflated performance estimates
 - Models may memorize answers rather than demonstrate true capability
 - Benchmark rankings become unreliable for model comparison
@@ -2653,6 +2727,7 @@ Test set contamination is a critical issue when models are trained on web-scale 
 The GPT-3 paper was one of the first to systematically analyze contamination, finding significant overlap on several benchmarks.
 
 **Theoretical Foundation**: N-gram overlap detection is based on **statistical matching**:
+
 - Extract all n-grams (sequences of n tokens) from both training and test data
 - For each test example, calculate: $\text{overlap}(t, T) = \frac{|\text{ngrams}(t) \cap \text{ngrams}(T)|}{|\text{ngrams}(t)|}$
 - Threshold-based classification: contaminated if overlap > threshold (typically 10-20%)
@@ -2661,11 +2736,13 @@ The GPT-3 paper was one of the first to systematically analyze contamination, fi
 The choice of n=13 is based on empirical analysis: smaller n values have too many false positives (common phrases), larger n values miss paraphrases.
 
 **Relationship to Alternatives**:
+
 - **vs. Exact Matching**: N-gram overlap catches partial contamination and paraphrases, not just exact duplicates
 - **vs. Embedding Similarity**: N-gram overlap is faster and more interpretable than semantic similarity
 - **vs. Manual Inspection**: Automated detection scales to billions of examples, though it may miss sophisticated paraphrasing
 
 **Key Implementation Insights**:
+
 1. **N-gram Size Selection**: n=13 is standard from GPT-3, but can be adjusted based on domain (longer for formal text, shorter for conversational)
 2. **Indexing for Scale**: Building a set of training n-grams enables O(1) lookup, making checking millions of test examples feasible
 3. **Threshold Tuning**: The 10% overlap threshold is conservative. Lower thresholds (5%) catch more contamination but may have false positives
@@ -2803,6 +2880,7 @@ def example_contamination_detection():
 ### 32.6.2 Mitigation Strategies
 
 **Why Mitigation Strategies Matter**: Detection alone doesn't solve contamination—we need strategies to either prevent it or account for it in evaluation. Mitigation is essential because:
+
 - Simply removing contaminated examples may bias the test set
 - Creating new benchmarks is expensive and time-consuming
 - We need to evaluate existing models on existing benchmarks fairly
@@ -2830,6 +2908,7 @@ Effective mitigation enables **fair comparison** between models trained at diffe
    - May undersample certain task types
 
 **Key Implementation Insights**:
+
 1. **Temporal Holdout**: The cleanest approach but requires knowing exact training data cutoffs. Benchmark creators should timestamp datasets.
 2. **Dynamic Benchmarks**: Creating continuously updated benchmarks (like Chatbot Arena) prevents static contamination.
 3. **Paraphrase Testing**: Simple yet effective—if a model aces the original but fails paraphrases, it's memorizing
@@ -2864,9 +2943,11 @@ class ContaminationMitigation:
         Use dynamically generated benchmarks that couldn't be memorized.
 
         Examples:
+
         - Generate new math problems programmatically
         - Use recent news/events
         - Create novel scenarios
+
         """
         pass
 
@@ -2906,6 +2987,7 @@ When comparing models, it's important to determine if observed differences are s
 ### 32.7.1 Bootstrap Confidence Intervals
 
 **Why Statistical Testing Matters**: Raw accuracy numbers can be misleading without understanding their uncertainty. Statistical testing is critical for:
+
 - Determining if model A is truly better than model B, or just got lucky on the test set
 - Quantifying confidence in benchmark results (e.g., "85% ± 2%" vs. just "85%")
 - Avoiding false claims of "state-of-the-art" from noise
@@ -2914,6 +2996,7 @@ When comparing models, it's important to determine if observed differences are s
 Many papers claim improvements that are **not statistically significant**—proper testing prevents this.
 
 **Theoretical Foundation**: Bootstrap resampling is a non-parametric approach to inference:
+
 - **Bootstrapping**: Repeatedly resample the test set with replacement, computing the metric each time
 - This generates an **empirical distribution** of the metric under sampling variability
 - For accuracy on n examples: resample n examples with replacement, compute accuracy, repeat 10k times
@@ -2921,15 +3004,18 @@ Many papers claim improvements that are **not statistically significant**—prop
 - Theoretical justification: by the **bootstrap principle**, the empirical distribution approximates the true sampling distribution
 
 For comparing two models on the **same test set**, we use **paired bootstrap**:
+
 - Resample example indices, keeping pairs together
 - This accounts for correlation between model performances on specific examples
 
 **Relationship to Alternatives**:
+
 - **vs. Normal Approximation**: Bootstrap makes no distributional assumptions and works for small samples
 - **vs. Permutation Tests**: Bootstrap estimates distributions; permutation tests null hypothesis directly
 - **vs. McNemar's Test**: For binary classification, McNemar's is more powerful but specific; bootstrap is general
 
 **Key Implementation Insights**:
+
 1. **Resampling Strategy**: We resample indices and keep model results paired—critical for valid comparison
 2. **Bootstrap Sample Size**: n_bootstrap=10000 provides stable confidence intervals; fewer samples add uncertainty
 3. **Percentile Method**: We use percentile-based CIs which are transformation-invariant and work for bounded metrics
@@ -3224,9 +3310,11 @@ class EffectSizeCalculator:
         Calculate Cohen's d effect size.
 
         Interpretation:
+
         - Small: 0.2
         - Medium: 0.5
         - Large: 0.8
+
         """
         a = np.array(results_a, dtype=float)
         b = np.array(results_b, dtype=float)

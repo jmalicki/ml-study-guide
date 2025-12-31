@@ -78,18 +78,22 @@
 1. **Code Issues**:
 
    **Line 326**: The text representation extraction might fail for padded sequences:
+
    ```python
    x = x[torch.arange(x.shape[0]), text.argmax(dim=-1)]
-   ```
+```
+
    This assumes the EOS token has the maximum value, which isn't always true. Should track actual sequence lengths or use a special EOS token position.
 
    **Line 1004-1006**: Causal mask creation will fail on wrong device:
+
    ```python
    causal_mask = torch.triu(
        torch.ones(tokens.shape[1], tokens.shape[1]),
        diagonal=1
    ).bool()
-   ```
+```
+
    Should specify device: `device=tokens.device`
 
    **Line 1015**: The mask usage might be incorrect - PyTorch's MultiheadAttention expects `True` for positions to mask out, but the logic might be inverted depending on the version.
@@ -97,9 +101,11 @@
    **Lines 709-774**: The training functions reference `outputs.loss` but the LLaVA model's forward method returns raw outputs, not an object with a `.loss` attribute.
 
    **Line 1033**: Weight tying assumes embedding matrix is transposed correctly:
+
    ```python
    logits = x @ self.token_embedding.weight.T
-   ```
+```
+
    This is correct, but a comment explaining weight tying would be helpful.
 
 2. **Technical Inaccuracies**:
@@ -117,6 +123,7 @@
 ### Specific Suggestions for Improvement
 
 1. **Add Complete Implementations**:
+
    ```python
    def compute_instruction_loss(outputs, responses, instruction_mask):
        """Compute loss only on response tokens, not instruction.
@@ -126,36 +133,46 @@
            responses: Target tokens (batch, seq_len)
            instruction_mask: Boolean mask, True for response tokens
        """
+
        # Flatten for cross-entropy
+
        logits = outputs.view(-1, outputs.size(-1))
        targets = responses.view(-1)
 
        # Compute loss
+
        loss = F.cross_entropy(logits, targets, reduction='none')
 
        # Apply mask to only include response tokens
+
        loss = loss * instruction_mask.view(-1).float()
 
        return loss.sum() / instruction_mask.sum()
-   ```
+```
 
 2. **Add Video Understanding Section**:
+
    ```markdown
+
    ### Video Understanding
 
    Video extends image understanding with temporal modeling:
 
    **Approaches:**
+
    1. **Frame Sampling**: Uniformly sample N frames, treat as N images
    2. **Temporal Pooling**: Average features across frames
    3. **Temporal Attention**: Learn temporal relationships
    4. **Factorized Attention**: Separate spatial and temporal attention
-   ```
+
+```
 
 3. **Expand on Interleaved Image-Text**:
+
    Add a section showing how to handle multiple images in conversation context, which is crucial for models like GPT-4V and Gemini.
 
 4. **Add Visual Grounding Example**:
+
    ```python
    class VisualGroundingHead(nn.Module):
        """Head for referring expression comprehension.
@@ -164,25 +181,32 @@
        """
        def __init__(self, hidden_dim: int):
            super().__init__()
+
            # Predict [x, y, w, h] normalized coordinates
+
            self.bbox_head = nn.Linear(hidden_dim, 4)
 
        def forward(self, text_features: torch.Tensor) -> torch.Tensor:
+
            # text_features: (batch, hidden_dim) from text tokens
+
            bbox = self.bbox_head(text_features)
            return torch.sigmoid(bbox)  # Normalize to [0, 1]
-   ```
+```
 
 5. **Improve Mathematical Explanations**:
    - Add explanation of why cosine similarity is normalized in CLIP
    - Explain the temperature scaling in contrastive learning:
-     ```
+
+```text
      Higher τ → softer distribution → easier training but less discriminative
      Lower τ → sharper distribution → harder training but more discriminative
-     ```
+```
 
 6. **Add Practical Tips Section**:
+
    ```markdown
+
    ### Interview Tips
 
    When discussing multimodal models in interviews:
@@ -192,34 +216,43 @@
    3. **Understand data requirements**: CLIP trained on 400M pairs; discuss data quality vs. quantity
    4. **Mention recent work**: GPT-4V, Gemini, Llama 3.2 Vision show current SOTA
    5. **Connect to other topics**: Bring up LoRA for efficient fine-tuning, Flash Attention for long contexts
-   ```
+
+```
 
 7. **Fix the SigLIP Formula**:
+
    Make the mathematical formula match the code implementation exactly, or update the code to match the formula.
 
 8. **Add Memory/Compute Analysis**:
+
    ```markdown
+
    ### Computational Considerations
 
    For a 224×224 image with 16×16 patches:
+
    - Number of patches: 196
    - With 7B LLM and 2048 context:
      - Additional tokens: +9.6% (196/2048)
      - Memory overhead: ~768MB for embeddings (FP16)
 
    Perceiver Resampler with 64 queries:
+
    - Token reduction: 196 → 64 (67% reduction)
    - Memory savings: ~500MB
    - Trade-off: Additional perceiver parameters (~50M)
-   ```
+
+```
 
 ### Cross-Reference Quality
 
 **Excellent** cross-references:
+
 - Chapter 6 (Cross-Attention): Referenced appropriately for cross-modal attention
 - Chapter 19 (LoRA and PEFT): Good mention for efficient fine-tuning
 
 **Could Add**:
+
 - Chapter 1 (Tokenization): When discussing multimodal tokenization strategies
 - Chapter 4 (Positional Encodings): ViT's positional embeddings connect to earlier concepts
 - Chapter 17 (Scaling Laws): Discuss how scaling laws apply to multimodal models
@@ -228,11 +261,13 @@
 ### Exercise Quality
 
 The exercises are well-designed and practical:
+
 - **Exercise 1** (Patch Embedding): Good hands-on implementation
 - **Exercise 2** (Zero-Shot Classification): Excellent practical application
 - **Exercise 8** (Architecture Comparison): Strong analytical exercise for understanding trade-offs
 
 **Suggestions**:
+
 - Add an exercise on implementing video frame sampling and temporal pooling
 - Include an exercise on data augmentation for multimodal training
 - Add a debugging exercise: "Given a multimodal model that fails to align vision and language, identify and fix the issue"
@@ -252,12 +287,14 @@ The exercises are well-designed and practical:
 ## Final Recommendations
 
 ### Must Fix (Before Finalization):
+
 1. Implement `compute_instruction_loss()` function
 2. Fix device handling in causal mask creation
 3. Correct or clarify the text representation extraction in CLIP
 4. Make SigLIP formula match implementation
 
 ### Should Add (High Value):
+
 1. Section on video understanding
 2. Visual grounding example
 3. Interleaved image-text handling
@@ -265,6 +302,7 @@ The exercises are well-designed and practical:
 5. More recent models (Llama 3.2 Vision, Qwen2-VL)
 
 ### Nice to Have (Enhancement):
+
 1. Memory/compute analysis section
 2. Interview tips section
 3. More mathematical detail on contrastive learning

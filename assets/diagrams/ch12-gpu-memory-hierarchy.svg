@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+
+  <style>
+    /* Light mode (default) */
+    text { fill: #000000; }
+    .axis-text { fill: #000000; }
+    .label-text { fill: #666666; }
+    line[stroke="#333"] { stroke: #333333; }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .axis-text { fill: #ffffff; }
+      .label-text { fill: #cccccc; }
+      line[stroke="#333"] { stroke: #cccccc; }
+
+      /* Override dark inline text colors */
+      text[fill="#000"],
+      text[fill="#000000"],
+      text[fill="#333"],
+      text[fill="#666"] {
+        fill: #ffffff;
+      }
+
+      /* Keep white text white in dark mode (for colored backgrounds) */
+      text[fill="#fff"],
+      text[fill="#ffffff"],
+      text[fill="white"] {
+        fill: #ffffff;
+      }
+
+      /* Keep colored text readable in dark mode */
+      text[fill="#4A90A4"] { fill: #4fc3f7; }
+
+      /* Darken colored backgrounds for white text contrast */
+      rect[fill="#e65100"] { fill: #a66a2a; }
+      rect[fill="#4A90A4"] { fill: #2d5f6f; }
+    }
+  </style>
+
+  <text x="400" y="30" font-size="22" font-weight="bold" fill="#000" text-anchor="middle">
+    GPU Memory Hierarchy for Flash Attention
+  </text>
+  <text x="400" y="55" font-size="14" fill="#666" text-anchor="middle">
+    Fast memory is tiny, large memory is slow
+  </text>
+
+  <!-- SRAM Section -->
+  <g transform="translate(100, 100)">
+    <rect x="0" y="0" width="280" height="140" fill="#e65100" stroke="#333" stroke-width="2" rx="5" />
+    <text x="140" y="30" font-size="18" font-weight="bold" fill="#fff" text-anchor="middle">SRAM (On-chip)</text>
+
+    <text x="20" y="60" font-size="14" fill="#fff">Size: ~20 MB per SM (A100)</text>
+    <text x="20" y="80" font-size="14" fill="#fff">Bandwidth: ~20 TB/s</text>
+    <text x="20" y="100" font-size="14" fill="#fff">Latency: ~1 cycle</text>
+    <text x="20" y="120" font-size="13" font-style="italic" fill="#fff">FAST but TINY</text>
+  </g>
+
+  <!-- HBM Section -->
+  <g transform="translate(420, 100)">
+    <rect x="0" y="0" width="280" height="140" fill="#4A90A4" stroke="#333" stroke-width="2" rx="5" />
+    <text x="140" y="30" font-size="18" font-weight="bold" fill="#fff" text-anchor="middle">HBM (Off-chip)</text>
+
+    <text x="20" y="60" font-size="14" fill="#fff">Size: 40-80 GB (A100)</text>
+    <text x="20" y="80" font-size="14" fill="#fff">Bandwidth: ~1.5-2 TB/s</text>
+    <text x="20" y="100" font-size="14" fill="#fff">Latency: ~100+ cycles</text>
+    <text x="20" y="120" font-size="13" font-style="italic" fill="#fff">LARGE but SLOW</text>
+  </g>
+
+  <!-- Arrow showing bandwidth comparison -->
+  <g transform="translate(100, 270)">
+    <text x="0" y="0" font-size="16" font-weight="bold" fill="#333">Bandwidth Comparison:</text>
+
+    <!-- SRAM bar -->
+    <rect x="0" y="15" width="600" height="35" fill="#e65100" stroke="#333" stroke-width="1" rx="3" />
+    <text x="10" y="38" font-size="14" fill="#fff">SRAM: 20 TB/s</text>
+
+    <!-- HBM bar -->
+    <rect x="0" y="60" width="90" height="35" fill="#4A90A4" stroke="#333" stroke-width="1" rx="3" />
+    <text x="10" y="83" font-size="14" fill="#fff">HBM: 1.5 TB/s</text>
+
+    <text x="100" y="83" font-size="14" fill="#666">(~13× slower)</text>
+  </g>
+
+  <!-- Key insight box -->
+  <g transform="translate(100, 390)">
+    <rect x="0" y="0" width="600" height="180" fill="none" stroke="#4A90A4" stroke-width="3" stroke-dasharray="5,5" rx="8" />
+
+    <text x="300" y="30" font-size="18" font-weight="bold" fill="#333" text-anchor="middle">Flash Attention's Key Insight</text>
+
+    <text x="20" y="60" font-size="14" fill="#333">Problem: Standard attention writes intermediate results to HBM</text>
+    <text x="40" y="80" font-size="13" fill="#666">• Attention matrix S = QK^T stored in HBM (O(N²) memory)</text>
+    <text x="40" y="98" font-size="13" fill="#666">• Read/write to HBM is 13× slower than SRAM</text>
+
+    <text x="20" y="125" font-size="14" fill="#333">Solution: Keep intermediate results in SRAM</text>
+    <text x="40" y="145" font-size="13" fill="#666">• Process Q, K, V in small blocks (tiles) that fit in SRAM</text>
+    <text x="40" y="163" font-size="13" fill="#666">• Never materialize full N×N attention matrix in HBM</text>
+  </g>
+</svg>

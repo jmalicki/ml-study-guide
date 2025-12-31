@@ -10,6 +10,7 @@ Two hook systems are available:
 2. **Standard Git Hooks** - Traditional pre-commit framework for all users
 
 Both systems run the same validation checks before commits:
+
 - `make validate` - Link validation
 - `make check-svg` - Inline SVG check
 
@@ -39,7 +40,7 @@ This will install the `pre-commit` framework and configure git hooks.
 
 ### Claude Code Hooks
 
-```
+```text
 claude-hooks/
 ├── README.md                    # Detailed documentation
 ├── precommit.sh                 # Pre-commit validation script
@@ -84,6 +85,7 @@ claude-hooks/
 Script: `scripts/validate_links.py`
 
 Checks:
+
 - All internal markdown links point to existing files
 - All anchor links point to valid headers
 - No broken cross-references
@@ -93,6 +95,7 @@ Checks:
 Script: `scripts/check_inline_svg.py`
 
 Checks:
+
 - No inline `<svg>` elements in markdown files
 - GitHub doesn't render inline SVG properly
 - Requires using image references instead
@@ -129,9 +132,13 @@ The hooks are configured in `.pre-commit-config.yaml`:
 
 ```yaml
 repos:
+
   - repo: local
+
     hooks:
+
       - id: validate-links
+
         name: Validate internal links
         entry: python scripts/validate_links.py
         language: python
@@ -139,6 +146,7 @@ repos:
         files: '\.(md)$'
 
       - id: check-inline-svg
+
         name: Check for inline SVG
         entry: python scripts/check_inline_svg.py
         language: python
@@ -176,35 +184,51 @@ git commit --no-verify -m "Emergency commit message"
 
 1. Check `.claude/settings.json` exists and contains hook configuration
 2. Verify `precommit.sh` is executable:
+
+
    ```bash
    chmod +x claude-hooks/precommit.sh
-   ```
+```
+
+
 3. Ensure `jq` is installed:
+
+
    ```bash
    sudo apt-get install jq  # Debian/Ubuntu
    brew install jq          # macOS
-   ```
+```
 
 ### Standard Git Hook Not Running
 
 1. Ensure hooks are installed:
+
+
    ```bash
    make install-hooks
-   ```
+```
+
+
 2. Check `.git/hooks/pre-commit` exists
 3. Verify pre-commit framework is installed:
+
+
    ```bash
    pip install pre-commit
-   ```
+```
 
 ### Validation Failures
 
 If commits are blocked due to validation errors:
 
 1. Run checks manually to see details:
+
+
    ```bash
    make check
-   ```
+```
+
+
 2. Fix reported issues
 3. Retry the commit
 
@@ -214,7 +238,9 @@ The same validation commands can be used in CI/CD pipelines:
 
 ```yaml
 # Example GitHub Actions workflow
+
 - name: Run validation
+
   run: |
     make validate
     make check-svg

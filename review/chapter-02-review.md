@@ -109,22 +109,30 @@
 **No significant technical errors found.** The code is correct, the math is accurate, and the explanations are sound. Minor improvements:
 
 1. **Line 177**: The `bmm` operation could use a comment explaining the dimension manipulation
+
    ```python
+
    # Compute scores with all negatives
+
    neg_score = torch.bmm(neg_emb, center_emb.unsqueeze(2)).squeeze(2)  # (batch, n_neg)
+
    # Could add: "Broadcasting center across negatives: (batch, n_neg, emb_dim) @ (batch, emb_dim, 1) -> (batch, n_neg, 1) -> (batch, n_neg)"
-   ```
+
+```
 
 2. **Line 563**: Type hint uses `tuple[...]` which requires Python 3.9+
+
    ```python
    def forward(self, token_ids: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
-   ```
+```
+
    Should note Python version requirement or use `Tuple[...]` from typing for compatibility
 
 3. **Line 908**: Similar issue with `list[int]`
+
    ```python
    kernel_sizes: list[int] = [3, 4, 5]
-   ```
+```
 
 4. **Exercise 1 (Lines 1131-1143)**: The `pass` placeholder could have a skeleton implementation or more detailed TODOs
 
@@ -142,7 +150,9 @@
 ### Specific Suggestions for Improvement
 
 1. **Add a "Common Interview Questions" Section**
+
    ```markdown
+
    ## Common Interview Questions
 
    1. **Explain why we use embeddings instead of one-hot encoding.**
@@ -162,39 +172,57 @@
       - Subword tokenization
       - Character-level fallback
       - UNK token strategies
-   ```
+
+```
 
 2. **Add a Troubleshooting Section**
+
    ```markdown
+
    ## Common Issues and Solutions
 
    ### Problem: Embedding dimension mismatch
-   ```python
-   # Error: RuntimeError: mat1 and mat2 shapes cannot be multiplied
-   # Solution: Check embedding_dim matches model's expected input
+
    ```
+
+   # Error: RuntimeError: mat1 and mat2 shapes cannot be multiplied
+
+   # Solution: Check embedding_dim matches model's expected input
+
+```text
 
    ### Problem: Padding tokens getting non-zero gradients
-   ```python
-   # Use padding_idx parameter
-   embedding = nn.Embedding(vocab_size, dim, padding_idx=0)
+
    ```
+
+   # Use padding_idx parameter
+
+   embedding = nn.Embedding(vocab_size, dim, padding_idx=0)
+
+```text
 
    ### Problem: Very large embedding memory
-   ```python
-   # Consider: gradient checkpointing, embedding quantization, or smaller vocab
-   ```
+
    ```
 
+   # Consider: gradient checkpointing, embedding quantization, or smaller vocab
+
+```text
+
+```
+
 3. **Enhance the Modern LLM Section with Recent Models**
+
    Add to the table:
+
    ```markdown
    | Llama 3.1 (405B) | 128,256 | 16,384 | 2.1B |
    | GPT-4 (rumored) | ~100,000 | ~12,800 | ~1.28B |
    | Gemini | ? | ? | ? |
-   ```
+```
 
 4. **Add a Practical Loading Example**
+
    ```python
    def load_glove_embeddings(glove_file: str, vocab: dict) -> torch.Tensor:
        """Load pre-trained GloVe embeddings.
@@ -215,6 +243,7 @@
                embeddings[word] = vector
 
        # Create embedding matrix
+
        embedding_dim = len(next(iter(embeddings.values())))
        embedding_matrix = np.random.normal(0, 0.1, (len(vocab), embedding_dim))
 
@@ -223,9 +252,10 @@
                embedding_matrix[idx] = embeddings[word]
 
        return torch.FloatTensor(embedding_matrix)
-   ```
+```
 
 5. **Add Memory Estimation Helper**
+
    ```python
    def estimate_embedding_memory(vocab_size: int, embedding_dim: int, dtype=torch.float32) -> str:
        """Estimate memory usage of embedding layer.
@@ -243,6 +273,7 @@
        total_bytes = total_params * bytes_per_param
 
        # Convert to appropriate unit
+
        if total_bytes < 1024**2:
            return f"{total_bytes / 1024:.2f} KB"
        elif total_bytes < 1024**3:
@@ -251,11 +282,14 @@
            return f"{total_bytes / 1024**3:.2f} GB"
 
    # Example
+
    print(estimate_embedding_memory(128_256, 4096))  # LLaMA 3: "~2.10 GB"
-   ```
+```
 
 6. **Strengthen Semantic Arithmetic Example**
+
    Replace lines 325-363 with:
+
    ```python
    def demonstrate_word_arithmetic():
        """Demonstrate semantic arithmetic with embeddings.
@@ -264,21 +298,27 @@
        With actual trained Word2Vec/GloVe embeddings, you would observe
        meaningful semantic relationships.
        """
+
        # [rest of the code]
 
        # Add this note at the end:
+
        print("\nNOTE: These results are random because embeddings are untrained.")
        print("With real Word2Vec embeddings trained on Wikipedia,")
        print("you would actually see: king - man + woman ≈ queen")
        print("Try loading real embeddings with the exercise below!")
-   ```
+```
 
 7. **Add Gradient Flow Visualization**
+
    Enhance the gradient illustration (lines 414-445):
+
    ```python
+
    # After line 445, add:
 
    # Visualize which embeddings were updated
+
    import matplotlib.pyplot as plt
 
    grad_norms = embedding.weight.grad.norm(dim=1)
@@ -296,16 +336,18 @@
    plt.title('Sparse Gradient Updates')
    plt.tight_layout()
    plt.show()
-   ```
+```
 
 ### Cross-Reference Quality
 
 **Excellent.** Cross-references are:
+
 - Appropriate and contextual (not forced)
 - Bidirectional where needed (references both previous and future chapters)
 - Used sparingly enough to not distract
 
 **Suggestions:**
+
 1. Add reference to diffusion models when discussing embeddings for continuous data (if that chapter covers image embeddings)
 2. When RLHF/DPO chapters are written, could reference how embeddings affect value/reward models
 
@@ -321,6 +363,7 @@ This is an **excellent chapter** that would be highly valuable for ML interview 
 6. ✅ Maintains clear writing throughout
 
 The chapter successfully balances:
+
 - **Breadth** (classical to modern)
 - **Depth** (implementation details)
 - **Practicality** (padding, initialization, weight tying)
@@ -329,17 +372,20 @@ The chapter successfully balances:
 ### Priority Improvements
 
 **High Priority:**
+
 1. Fix Python type hint compatibility (use `Tuple`, `List` from typing)
 2. Add note to semantic arithmetic about random embeddings
 3. Add "Common Interview Questions" section
 
 **Medium Priority:**
+
 4. Add troubleshooting/common issues section
 5. Include practical example of loading GloVe embeddings
 6. Add vocabulary expansion discussion
 7. Include embedding compression techniques (quantization)
 
 **Low Priority:**
+
 8. Add memory estimation utilities
 9. Expand on learning rate strategies for embeddings
 10. Add gradient visualization example
@@ -347,6 +393,7 @@ The chapter successfully balances:
 ### Final Recommendation
 
 **This chapter is interview-ready with minor improvements.** The score of 9/10 reflects:
+
 - **Exceptional quality** of existing content
 - **Minor gaps** in modern production practices (compression, quantization, distributed training)
 - **Opportunity** to add more interview-specific guidance
@@ -356,12 +403,14 @@ The chapter successfully achieves its goal as a study guide for ML interviews fo
 ### Comparison to Industry Standards
 
 This chapter compares favorably to:
+
 - **Stanford CS224N materials**: Similar depth, better code examples
 - **Hugging Face tutorials**: More theoretical grounding
 - **Fast.ai**: Similar practical focus, more mathematical rigor
 - **Dive into Deep Learning**: Comparable quality, more LLM-specific
 
 It would serve as excellent supplementary material for interview preparation alongside courses like:
+
 - Stanford CS224N (NLP)
 - Stanford CS25 (Transformers)
 - Fast.ai Practical Deep Learning

@@ -75,9 +75,11 @@
    - Consider adding at least 1-2 of these as they're commonly discussed in interviews
 
 2. **Pass@k Calculation**: The HumanEval implementation mentions pass@k (line 747) but doesn't implement the unbiased estimator from the original paper:
+
    ```python
    pass@k = E[1 - comb(n-c, k) / comb(n, k)]
-   ```
+```
+
    where n is number of samples, c is number of correct samples. The current implementation just checks if k samples passed, which is different.
 
 3. **Missing Evaluation Aspects**:
@@ -150,12 +152,13 @@
 ### Specific Suggestions for Improvement
 
 1. **Add a Quick Reference Table**: Start the chapter with a table comparing benchmarks:
-   ```
+
+```text
    | Benchmark | Task Type | Size | Metric | What it Measures |
    |-----------|-----------|------|--------|------------------|
    | MMLU      | MC        | 14K  | Acc    | Knowledge        |
    | ...       | ...       | ...  | ...    | ...              |
-   ```
+```
 
 2. **Add Visualization Code**: Include functions to:
    - Plot perplexity across different text types
@@ -164,13 +167,14 @@
    - Display per-category MMLU performance
 
 3. **Add Prompt Templates Section**: Show different prompt formats and their impact:
+
    ```python
    MMLU_PROMPTS = {
        'direct': "Answer: ",
        'cot': "Let's think step by step. ",
        'instruction': "Choose the correct answer from A-D. Answer: "
    }
-   ```
+```
 
 4. **Expand Contamination Section**: Add:
    - Bloom filter-based detection for scale
@@ -178,13 +182,14 @@
    - Example of "clean" evaluation protocol
 
 5. **Add Real Dataset Loading**: Include example using Hugging Face datasets:
+
    ```python
    from datasets import load_dataset
 
    def load_mmlu_data(subject='all'):
        dataset = load_dataset('cais/mmlu', subject)
        return dataset['test']
-   ```
+```
 
 6. **Complete the SimpleToxicityClassifier**: Either:
    - Implement using a real model (Detoxify, Perspective API)
@@ -197,6 +202,7 @@
    - How gaming/overfitting can occur
 
 8. **Include Failure Analysis Code**: Add helper for categorizing errors:
+
    ```python
    def categorize_errors(results):
        categories = {
@@ -205,17 +211,20 @@
            'instruction_following': [],
            'calculation': []
        }
+
        # Logic to categorize
+
        return categories
-   ```
+```
 
 9. **Add Cost Estimation**: Include function to estimate evaluation costs:
+
    ```python
    def estimate_cost(benchmark, model, num_examples):
        tokens_per_example = ...
        cost_per_token = ...
        return total_cost
-   ```
+```
 
 10. **Add Debugging Tools**: Include utilities for:
     - Comparing outputs between models
@@ -225,11 +234,13 @@
 ### Cross-Reference Quality
 
 The cross-references are appropriate and helpful:
+
 - Link to Reasoning (28) makes sense for MATH dataset
 - Link to Safety and Alignment (22) is relevant for safety evaluations
 - Link to Data Curation (14) is appropriate for contamination discussion
 
 **Suggestions for additional cross-references**:
+
 - Could reference Chapter on Transformers for the models being evaluated
 - Could reference RLHF/DPO chapter for preference collection methodology
 - Could reference Tokenization chapter when discussing BPB/BPC metrics
@@ -240,6 +251,7 @@ The cross-references are appropriate and helpful:
 This chapter is **extremely valuable** for ML interviews:
 
 **Strengths**:
+
 1. Covers all major evaluation frameworks interviewers ask about
 2. Includes practical implementation details that show deep understanding
 3. Discusses trade-offs and limitations (contamination, metric choice)
@@ -247,6 +259,7 @@ This chapter is **extremely valuable** for ML interviews:
 5. Code is interview-quality with good software engineering practices
 
 **For interview prep, candidates should focus on**:
+
 1. Being able to explain perplexity and when it's (in)appropriate
 2. Knowing the major benchmarks (MMLU, HellaSwag, GSM8K, HumanEval)
 3. Understanding contamination issues and mitigation
@@ -254,6 +267,7 @@ This chapter is **extremely valuable** for ML interviews:
 5. Explaining human evaluation trade-offs (cost, reliability, scale)
 
 **Could add**: A "Common Interview Questions" section at the end with questions like:
+
 - "How would you evaluate a chatbot?"
 - "Why might a model perform well on benchmarks but poorly in production?"
 - "How do you detect if a model has seen test data?"
@@ -274,6 +288,7 @@ This chapter is **extremely valuable** for ML interviews:
 This is an **outstanding chapter** that successfully covers the complex topic of LLM evaluation comprehensively. The code quality is production-grade, the explanations are clear, and the coverage is broad without being superficial.
 
 The chapter would be even stronger with:
+
 1. A few more recent benchmarks (GPQA, MT-Bench, IFEval)
 2. Complete implementations for all code (or explicit exercise markers)
 3. More discussion of practical considerations (costs, speed, dataset access)

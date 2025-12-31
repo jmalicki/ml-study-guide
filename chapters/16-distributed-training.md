@@ -89,7 +89,8 @@ print(f"\nAn H100 has 80GB. Need at least {gpt3_memory/80:.1f} GPUs just for mod
 ```
 
 Output:
-```
+
+```text
 GPT-3 175B memory requirements:
 Model parameters (FP16): 325.26 GB
 Gradients (FP16): 325.26 GB
@@ -132,6 +133,7 @@ M_{\text{gradients}} = 2\Theta \text{ bytes}
 ### Optimizer Memory (AdamW)
 
 AdamW maintains:
+
 - FP32 copy of parameters: $4\Theta$ bytes
 - First moment estimate: $4\Theta$ bytes
 - Second moment estimate: $4\Theta$ bytes
@@ -147,11 +149,13 @@ Total without activations: $16\Theta$ bytes
 For a transformer with $L$ layers, hidden dimension $d_{\text{model}}$, batch size $B$, sequence length $S$:
 
 **Attention activations** (per layer):
+
 - Query, Key, Value projections: $3BSD_{\text{model}}$
 - Attention scores: $BS^{2}H$ (where $H$ is number of heads)
 - Attention output: $BSD_{\text{model}}$
 
 **Feed-forward activations** (per layer):
+
 - First linear layer: $BS \cdot 4d_{\text{model}}$ (typically FFN has 4x hidden dim)
 - After activation: $BS \cdot 4d_{\text{model}}$
 
@@ -162,6 +166,7 @@ With activation checkpointing, we can reduce this significantly (recompute durin
 **Activation checkpointing** (also called **gradient checkpointing**) trades compute for memory by not storing all intermediate activations during the forward pass. Instead, selected activations are recomputed during the backward pass.
 
 **Memory-Compute Trade-off**:
+
 - Without checkpointing: Store all $L$ layer activations
 - With checkpointing: Store $\sqrt{L}$ checkpoints, recompute the rest
 - Memory reduction: $O(L) \to O(\sqrt{L})$
@@ -208,9 +213,11 @@ class CheckpointedTransformerBlock(nn.Module):
         Forward with activation checkpointing.
 
         PyTorch will:
+
         1. Run forward without saving intermediate activations
         2. During backward, rerun forward to compute activations
         3. Use recomputed activations for gradient computation
+
         """
         if self.training:
             # Use checkpointing during training
@@ -346,6 +353,7 @@ def create_fsdp_with_checkpointing():
 ```
 
 **When to use activation checkpointing:**
+
 - Training very large models that don't fit in memory
 - Using large batch sizes or long sequences
 - Combined with FSDP/ZeRO for maximum memory efficiency
@@ -438,6 +446,7 @@ output = model(batch)
 ```
 
 **Problems with DataParallel:**
+
 1. **Single-process bottleneck**: Main process on GPU 0 does all setup
 2. **Gradient gather**: All gradients copied to GPU 0 for optimizer step
 3. **GIL contention**: Python's Global Interpreter Lock limits parallelism
@@ -450,6 +459,7 @@ DDP uses one process per GPU with all-reduce for gradients.
 #### Problem Being Solved
 
 `nn.DataParallel` has fundamental limitations that prevent efficient multi-GPU and multi-node training:
+
 - **Single-process bottleneck**: The main thread on GPU 0 becomes a serialization point for gradient aggregation and parameter broadcasting
 - **Python GIL contention**: All GPU operations compete for Python's Global Interpreter Lock
 - **Inefficient communication**: Gradients are gathered to GPU 0, parameters broadcast back
@@ -468,11 +478,13 @@ Mathematically, for loss $\mathcal{L}$ and data shards $\mathcal{D}_1, \ldots, \
 ```
 
 This means we can:
+
 1. Compute gradients independently on each GPU
 2. Average them using efficient collective communication (all-reduce)
 3. Update parameters identically on all GPUs
 
 **Why all-reduce instead of gather-broadcast?**
+
 - Gather-broadcast: $O(N)$ communication through one node
 - Ring all-reduce: $O(1)$ per-node communication, bandwidth-optimal
 - For $N$ GPUs with gradient size $G$: all-reduce sends/receives $\approx 2G$ per GPU regardless of $N$
@@ -621,10 +633,12 @@ g_{\text{avg}} = \frac{1}{N} \sum_{i=1}^{N} g_i
 Ring all-reduce achieves this in $2(N-1)$ steps with bandwidth-optimal communication.
 
 **Why Ring All-Reduce?** Naive approaches have bottlenecks:
+
 - **Gather to rank 0, then broadcast**: GPU 0 receives $(N-1) \times |g|$ and sends $(N-1) \times |g|$, creating a bottleneck
 - **All-to-all**: Each GPU sends to all other GPUs simultaneously, limited by network bandwidth
 
 **Ring all-reduce insight**: Arrange GPUs in a logical ring. Each GPU:
+
 1. Splits its gradient into $N$ chunks
 2. In each step, sends one chunk to its right neighbor, receives one chunk from its left neighbor
 3. After $2(N-1)$ steps, all GPUs have the full averaged gradient
@@ -640,6 +654,7 @@ def ring_all_reduce_conceptual(gradients, rank, world_size):
     In practice, NCCL handles this efficiently.
 
     The algorithm has two phases:
+
     1. Reduce-scatter: Each rank computes the sum for one chunk
     2. All-gather: Each rank collects all summed chunks
 
@@ -719,11 +734,13 @@ Y = XW = X[W_1 | W_2 | \cdots | W_{N}] = [XW_1 | XW_2 | \cdots | XW_{N}] = [Y_1 
 **Key insight**: Each GPU can compute its portion $Y_i = XW_i$ independently using the full input $X$. No communication needed during the computation, only when gathering outputs (if required).
 
 **How This Relates to Alternatives**:
+
 - **Row parallelism**: Partition $W$ by rows, requires splitting input $X$ and all-reducing outputs
 - **Layer-wise parallelism**: Each GPU owns complete layers (pipeline parallelism) - simpler but creates pipeline bubbles
 - **Column parallelism**: No communication during forward (best for bandwidth), but requires gathering if next layer isn't also partitioned
 
 **Why Column Parallelism for Attention Projections and FFN First Layer**:
+
 - QKV projections in attention: Each head can be independent, natural partitioning
 - FFN first layer: Activation function (GELU/ReLU) applied element-wise to partitioned output, no gathering needed before second layer
 
@@ -822,37 +839,46 @@ class ColumnParallelLinear(nn.Module):
 
 **Theoretical Justification**: For row parallelism, partition the weight matrix $W \in \mathbb{R}^{d_{in} \times d_{out}}$ along rows and the input $X \in \mathbb{R}^{B \times d_{in}}$ along the feature dimension:
 
-```math
-W = \begin{bmatrix} W_1 \\ W_2 \\ \vdots \\ W_{N} \end{bmatrix}, \quad X = [X_1 | X_2 | \cdots | X_{N}]
 ```
+
+W = \begin{bmatrix} W_1 \\ W_2 \\ \vdots \\ W_{N} \end{bmatrix}, \quad X = [X_1 | X_2 | \cdots | X_{N}]
+
+```text
 
 Then each GPU computes a partial result:
 
-```math
-Y_i = X_i W_i
 ```
+
+Y_i = X_i W_i
+
+```text
 
 The full output is the sum of partial results:
 
-```math
-Y = XW = \sum_{i=1}^{N} X_i W_i = \sum_{i=1}^{N} Y_i
 ```
+
+Y = XW = \sum_{i=1}^{N} X_i W_i = \sum_{i=1}^{N} Y_i
+
+```text
 
 This requires an **all-reduce** to sum $Y_i$ across GPUs.
 
 **Key Insight**: Row parallelism pairs naturally with column parallelism:
+
 - Column-parallel layer produces $[Y_1 | Y_2 | \cdots | Y_{N}]$
 - Row-parallel layer consumes this directly (with `input_is_parallel=True`)
 - All-reduce combines results into full output
 
 **Why This Pattern for Transformer FFN**:
 ```
+
 Input (replicated)
     |
 Column-Parallel Linear 1 → GELU → partitioned activations
     |
 Row-Parallel Linear 2 → All-Reduce → full output
-```
+
+```text
 
 This minimizes communication: only ONE all-reduce per FFN block (at the end), no all-gather needed.
 
@@ -960,6 +986,7 @@ Q = XW_{Q}, \quad K = XW_{K}, \quad V = XW_{V}
 ```
 
 **Key Insight**: Since heads are computed independently and only combined at the output projection, we can:
+
 1. Partition the QKV weight matrices by columns (each GPU gets a subset of heads)
 2. Compute attention for local heads independently (no communication)
 3. Use row-parallel output projection to combine results with a single all-reduce
@@ -1066,6 +1093,7 @@ class TensorParallelAttention(nn.Module):
 **Why This Specific Pattern?** The FFN has two linear layers with a non-linear activation in between. The key insight: element-wise activations (GELU, ReLU) don't require communication.
 
 **Optimal partitioning strategy**:
+
 1. $W_1$: Column parallel (split output features) - each GPU computes part of the intermediate activations
 2. Apply GELU independently on each GPU's partition (element-wise operation, no communication!)
 3. $W_2$: Row parallel (split input features, matching $W_1$ output) - combines with one all-reduce
@@ -1140,6 +1168,7 @@ For all-reduce with $N$ GPUs: $\frac{2(N-1)}{N} \cdot BSd_{\text{model}} \approx
 ### Motivation
 
 For long sequences, activation memory becomes the bottleneck:
+
 - Attention: $O(BS^2)$ memory for attention scores
 - Layer activations: $O(BSd)$ memory
 - For $S = 131072$ (128K), this can exceed parameter memory!
@@ -1214,8 +1243,10 @@ class SequenceParallelAttention(nn.Module):
     Multi-head attention with both tensor and sequence parallelism.
 
     Combines:
+
     - Tensor parallelism: Split heads across GPUs
     - Sequence parallelism: Split sequence across GPUs for memory efficiency
+
     """
     def __init__(self, d_model, num_heads, dropout=0.1):
         super().__init__()
@@ -1404,28 +1435,33 @@ def prepare_sequence_parallel_input(input_ids):
 For a transformer with sequence length $S$, batch size $B$, hidden dimension $d$, and $W$ GPUs:
 
 **Without sequence parallelism**:
+
 - LayerNorm activations: $BSd$ per GPU
 - Dropout activations: $BSd$ per GPU
 - Total non-tensor-parallel activations: $O(BSd)$ per GPU
 
 **With sequence parallelism**:
+
 - LayerNorm activations: $B(S/W)d$ per GPU
 - Dropout activations: $B(S/W)d$ per GPU
 - Memory reduction: $W\times$ for these operations
 
 **Communication cost**:
+
 - All-gather for attention: $2 \times \frac{BS}{W}d$ per layer
 - Relatively small compared to activation memory saved
 
 ### When to Use Sequence Parallelism
 
 **Use when**:
+
 - Very long sequences ($S > 32K$)
 - Activation memory exceeds model parameter memory
 - Already using tensor parallelism (they work together)
 - High-bandwidth interconnect available (for all-gather operations)
 
 **Example use cases**:
+
 - Long-document processing (128K+ tokens)
 - High-resolution image generation (ViT with many patches)
 - Long-context LLMs (coding, book processing)
@@ -1469,6 +1505,7 @@ calculate_sequence_parallel_memory_savings()
 ```
 
 **Combining with other parallelism strategies**:
+
 - **Tensor + Sequence Parallelism**: Split heads (tensor) and sequence together within a node
 - **3D + Sequence**: Add sequence parallelism to 3D parallelism for ultra-long contexts
 - **FSDP + Sequence**: Combine parameter sharding with sequence splitting
@@ -1486,6 +1523,7 @@ Split model layers across GPUs vertically (each GPU handles a subset of layers).
 **Why Pipeline Parallelism Matters**: Unlike data parallelism (replicate model, split data) and tensor parallelism (split layers horizontally), pipeline parallelism splits the model **vertically** by depth:
 
 **Naive Pipeline** (sequential):
+
 - GPU 0: Layers 1-4
 - GPU 1: Layers 5-8
 - GPU 2: Layers 9-12
@@ -1495,7 +1533,7 @@ However, naive sequential execution creates a critical efficiency problem.
 
 **The Pipeline Bubble Problem**: With sequential mini-batch processing, GPUs sit idle waiting for data:
 
-```
+```text
 Time -->
 GPU 0: [F0]    [B0]         [F1]    [B1]
 GPU 1:     [F0]    [B0]         [F1]    [B1]
@@ -1514,6 +1552,7 @@ The white space represents **bubble time** - wasted computation where GPUs are i
 ```
 
 This means we can:
+
 1. Process micro-batches through the pipeline sequentially
 2. Accumulate gradients across micro-batches
 3. Update parameters once at the end with accumulated gradients
@@ -1530,6 +1569,7 @@ This means we can:
 GPipe reduces bubble overhead from $O(P)$ to $O(P/M)$ by keeping the pipeline full with $M$ micro-batches.
 
 **Key Insights**:
+
 1. **Micro-batching**: Split batch into $M$ micro-batches where $M \gg P$ (rule of thumb: $M \geq 4P$)
 2. **Forward-backward interleaving**: While GPU $i$ computes forward for micro-batch $k$, GPU $i-1$ can compute backward for micro-batch $k-1$
 3. **Gradient accumulation**: Accumulate gradients from all micro-batches before a single parameter update
@@ -1639,28 +1679,33 @@ Bubble ratio: $\frac{P - 1}{M + P - 1} \approx \frac{P}{M}$ for large $M$
 ### Bubble Reduction Strategies
 
 **PipeDream** ([Microsoft, 2019](https://arxiv.org/abs/1806.03377)):
+
 - Interleave forward/backward passes
 - Maintain multiple versions of weights (weight stashing)
 
 **Interleaved schedules** (used in Megatron-LM):
+
 - Split each GPU's layers into multiple chunks
 - Reduces bubble time from $O(P)$ to $O(P/V)$ where $V$ is number of chunks
 
 **Problem Being Solved**: Even with micro-batching, GPipe still has pipeline bubbles proportional to the number of stages $P$. For very deep models requiring many pipeline stages, this becomes a significant efficiency bottleneck.
 
 **Theoretical Justification**: Instead of assigning consecutive layers to each GPU:
+
 - **Standard**: GPU 0 gets layers 1-4, GPU 1 gets layers 5-8, etc.
 - **Interleaved**: GPU 0 gets layers 1-2 AND 9-10, GPU 1 gets layers 3-4 AND 11-12, etc.
 
 This creates $V$ virtual pipeline stages per physical GPU. Each GPU appears in the pipeline $V$ times, allowing better overlap of forward and backward passes.
 
 **Bubble time analysis**:
+
 - Standard GPipe: Bubble ratio $\approx P/M$
 - Interleaved (V chunks): Bubble ratio $\approx (P/V)/M = P/(VM)$
 
 With $V=2$, we halve the bubble time!
 
 **Key Insight**: Interleaving works because:
+
 1. While GPU 0 computes backward for its first chunk (layers 1-2), it can compute forward for its second chunk (layers 9-10)
 2. This keeps GPUs busy during what would otherwise be bubble time
 3. Trade-off: Slightly more complex scheduling and need to store activations for multiple chunks
@@ -1719,6 +1764,7 @@ for i, (stage, op, mb, chunk) in enumerate(schedule[:20]):
 [DeepSpeed ZeRO](https://arxiv.org/abs/1910.02054) (Microsoft, 2020) eliminates memory redundancy in data parallelism.
 
 **Key Insight**: In standard DDP, each GPU stores:
+
 - Full model parameters
 - Full gradients
 - Full optimizer states
@@ -1736,6 +1782,7 @@ Each GPU stores optimizer states for only a subset of parameters.
 **Memory Savings**: Optimizer states reduced by $N$ where $N$ = number of GPUs
 
 For AdamW with $\Theta$ parameters:
+
 - Standard DDP: $12\Theta$ bytes per GPU
 - ZeRO-1: $12\Theta / N$ bytes per GPU
 
@@ -1749,8 +1796,10 @@ class ZeROStage1Optimizer:
     ZeRO Stage 1: Partition optimizer states.
 
     Each rank maintains:
+
     - Full copy of parameters (for forward/backward)
     - Partition of optimizer states
+
     """
     def __init__(self, params, lr=1e-3, betas=(0.9, 0.999), eps=1e-8):
         self.params = list(params)
@@ -1796,6 +1845,7 @@ class ZeROStage1Optimizer:
 
         1. Each rank updates its partition of parameters
         2. All-gather updated parameters
+
         """
         # Update local parameters
         self.optimizer.step()
@@ -1836,6 +1886,7 @@ def train_with_zero1():
 Partition both optimizer states AND gradients.
 
 **Memory Savings**:
+
 - Optimizer states: $12\Theta / N$ bytes
 - Gradients: $2\Theta / N$ bytes
 - Total: $(12\Theta + 2\Theta) / N = 14\Theta / N$ bytes
@@ -1846,9 +1897,11 @@ class ZeROStage2Optimizer(ZeROStage1Optimizer):
     ZeRO Stage 2: Partition optimizer states and gradients.
 
     Each rank maintains:
+
     - Full copy of parameters
     - Partition of gradients (only for its parameters)
     - Partition of optimizer states
+
     """
     def __init__(self, params, lr=1e-3, betas=(0.9, 0.999), eps=1e-8):
         super().__init__(params, lr, betas, eps)
@@ -1903,6 +1956,7 @@ class ZeROStage3Module(nn.Module):
     ZeRO Stage 3 / FSDP: Partition everything including parameters.
 
     Each rank maintains:
+
     - Partition of parameters (not full copy!)
     - Partition of gradients
     - Partition of optimizer states
@@ -1993,6 +2047,7 @@ class ZeROStage3Module(nn.Module):
         1. All-gather parameters
         2. Run forward pass
         3. Free full parameters (keep only shards)
+
         """
         # All-gather parameters
         full_params = self._all_gather_params()
@@ -2020,6 +2075,7 @@ class ZeROStage3Module(nn.Module):
 ## Fully Sharded Data Parallel (FSDP)
 
 **Problem Being Solved**: While ZeRO-3 provides massive memory savings through full parameter sharding, the conceptual implementation shown above is inefficient. Production systems need:
+
 1. **Communication-computation overlap**: All-gather parameters while previous layers compute
 2. **Efficient gradient handling**: Reduce-scatter gradients immediately when ready
 3. **Hierarchical sharding**: Respect GPU topology (intra-node vs inter-node communication)
@@ -2038,6 +2094,7 @@ class ZeROStage3Module(nn.Module):
 | Activation checkpointing | Separate | Integrated |
 
 **Key Insights**:
+
 1. **Lazy initialization**: FSDP can wrap modules automatically and shard them on-the-fly
 2. **Communication pre-fetching**: While layer $i$ computes, FSDP pre-fetches parameters for layer $i+1$
 3. **Gradient bucketing**: Like DDP, FSDP groups gradients for efficient reduce-scatter
@@ -2128,11 +2185,13 @@ def train_with_fsdp(rank, world_size):
 ```
 
 **FSDP Benefits**:
+
 - Can train models much larger than single GPU memory
 - Good scaling efficiency (communication overlap)
 - Works well with activation checkpointing
 
 **When to use FSDP**:
+
 - Model too large for DDP
 - Memory-constrained (can trade communication for memory)
 - Training very large models (> 10B parameters)
@@ -2371,6 +2430,7 @@ def train_fsdp_with_gradient_accumulation(rank, world_size):
 ### Memory-Compute Trade-offs
 
 **Memory benefits**:
+
 - **Micro-batch size**: Use smaller batches that fit in memory
 - **Effective batch size**: Achieve large batch benefits for optimization
 - **Example**: Micro-batch 8 × Accumulation 16 = Effective batch 128
@@ -2447,6 +2507,7 @@ def pipeline_with_gradient_accumulation(
     Pipeline parallelism with gradient accumulation.
 
     Key insight: Micro-batches for pipeline != Accumulation steps
+
     - Pipeline micro-batches: Fill pipeline bubbles
     - Gradient accumulation: Increase effective batch size
 
@@ -2470,6 +2531,7 @@ def pipeline_with_gradient_accumulation(
 ```
 
 **When to use gradient accumulation**:
+
 - Memory-constrained but need large effective batch sizes
 - Training stability requires larger batches (large learning rates)
 - Combining with pipeline parallelism (micro-batching)
@@ -2486,11 +2548,13 @@ Combine all three parallelism types:
 3. **Pipeline Parallelism** (PP): Split layers vertically
 
 **Problem Being Solved**: For the largest models (100B-500B+ parameters), no single parallelism strategy is sufficient:
+
 - **Data parallelism alone**: Requires entire model to fit on one GPU - impossible for 100B+ models
 - **Tensor parallelism alone**: Communication overhead grows with number of GPUs; limited by NVLink topology (typically 8-16 GPUs per node)
 - **Pipeline parallelism alone**: Requires many pipeline stages to fit large models, leading to large pipeline bubbles
 
 **Theoretical Justification**: Each parallelism dimension addresses orthogonal constraints:
+
 - **Tensor parallelism** reduces memory per GPU by splitting individual layers: $M_{\text{layer}} / T$
 - **Pipeline parallelism** reduces memory per GPU by splitting across layers: $M_{\text{model}} / P$
 - **Data parallelism** increases throughput by processing multiple batches: $\text{throughput} \times D$
@@ -2509,6 +2573,7 @@ Combined memory per GPU: $\frac{M_{\text{model}}}{P \times T \times D} \times D 
 | **3D Parallel** | $P \times T \times$ 1 GPU | Balanced | Largest models (100B+) |
 
 **Key Insights for 3D Parallelism**:
+
 1. **Hierarchical topology matching**: Tensor parallelism within nodes (fast NVLink), pipeline parallelism across nodes (slower InfiniBand), data parallelism for throughput
 2. **Communication-memory trade-off**: More tensor parallelism = less memory but more communication; more pipeline = less memory but more bubbles
 3. **Optimal ratios**: For $N$ GPUs, typically use $T = 4\text{-}8$ (tensor parallel within node), $P$ based on model size, $D = N/(P \times T)$ (remainder for data parallel)
@@ -2525,6 +2590,7 @@ Used for largest models (GPT-3, PaLM, etc.)
 Example: Train 175B parameter model on 1024 GPUs
 
 Organize GPUs in 3D grid:
+
 - Pipeline parallel size: 8 (P=8, 8 stages)
 - Tensor parallel size: 8 (T=8, split within stages)
 - Data parallel size: 16 (D=16, replicas)
@@ -2590,6 +2656,7 @@ calculate_3d_parallelism(128, 13)    # LLaMA-13B scale
 3. **Within Data Parallel Group**: All-reduce gradients (can use InfiniBand)
 
 **Optimal GPU Topology**:
+
 - Tensor parallel: Place on same node (NVLink)
 - Pipeline parallel: Can span nodes (InfiniBand OK)
 - Data parallel: Can span data centers (if needed)
@@ -2910,6 +2977,7 @@ Debugging distributed training is challenging due to multiple processes running 
 **Problem**: Training hangs indefinitely, often during collective operations (all-reduce, all-gather).
 
 **Common causes**:
+
 - Mismatched collective calls across ranks
 - Different number of iterations across ranks
 - Unbalanced workloads causing some ranks to reach barriers early
@@ -2963,6 +3031,7 @@ def train_with_deadlock_detection(rank, world_size):
 ```
 
 **Solutions**:
+
 1. Ensure all ranks execute same number of collective operations
 2. Use `DistributedSampler` with `drop_last=True` for consistent batch counts
 3. Add debug prints with `flush=True` to track progress
@@ -3273,6 +3342,7 @@ def measure_scaling_efficiency():
 ### Debugging Checklist
 
 Before training:
+
 - [ ] All ranks execute same number of collective operations
 - [ ] `DistributedSampler` used with `sampler.set_epoch(epoch)`
 - [ ] Batch sizes are consistent across ranks
@@ -3280,6 +3350,7 @@ Before training:
 - [ ] NCCL debug environment variables configured
 
 During training:
+
 - [ ] Monitor memory usage across ranks
 - [ ] Check for loss divergence early
 - [ ] Verify gradient synchronization
@@ -3314,6 +3385,8 @@ pkill -f "python.*train"
 2. **NVIDIA Nsight Systems**: Detailed GPU profiling
 3. **TensorBoard**: Visualize metrics across ranks
 4. **NCCL Tests**: Test network bandwidth and latency
+
+
    ```bash
    # Clone and build NCCL tests
    git clone https://github.com/NVIDIA/nccl-tests.git
@@ -3322,9 +3395,11 @@ pkill -f "python.*train"
 
    # Run all-reduce bandwidth test
    mpirun -np 8 ./build/all_reduce_perf -b 8 -e 256M -f 2 -g 1
-   ```
+```
 
 5. **Custom logging**: Log to separate files per rank
+
+
    ```python
    import logging
 
@@ -3338,7 +3413,7 @@ pkill -f "python.*train"
                logging.StreamHandler()
            ]
        )
-   ```
+```
 
 ---
 
@@ -3407,6 +3482,7 @@ def llama13b_memory_calculation():
 
 llama13b_memory_calculation()
 ```
+
 </details>
 
 ### Exercise 2: Implement ZeRO-2
@@ -3417,9 +3493,11 @@ Implement a simplified ZeRO-2 optimizer that partitions both optimizer states an
 <summary>Hint</summary>
 
 Extend `ZeROStage1Optimizer` by:
+
 1. Registering backward hooks on parameters
 2. In hooks, reduce-scatter gradients (each rank gets its partition)
 3. Free gradients for parameters not owned by this rank
+
 </details>
 
 ### Exercise 3: Pipeline Bubble Analysis
@@ -3471,6 +3549,7 @@ def analyze_pipeline_bubbles(num_stages=4):
 
 analyze_pipeline_bubbles(4)
 ```
+
 </details>
 
 ### Exercise 4: Communication Volume Comparison
@@ -3518,11 +3597,13 @@ def communication_volume_comparison():
 
 communication_volume_comparison()
 ```
+
 </details>
 
 ### Exercise 5: Optimal Parallelism Strategy
 
 Design a parallelism strategy for training a 70B parameter model on 256 GPUs (H100, 80GB each). Assume:
+
 - Hidden dimension: 8192
 - 80 layers
 - Batch size: 512
@@ -3535,6 +3616,7 @@ Justify your choice of DP, TP, and PP dimensions.
 <summary>Discussion Points</summary>
 
 Consider:
+
 1. Memory requirements (16 bytes/param × 70B = 1.12TB model states alone)
 2. Tensor parallel limited by interconnect (NVLink within node → TP ≤ 8)
 3. Pipeline parallel for layer distribution
@@ -3542,15 +3624,18 @@ Consider:
 5. Activation checkpointing necessity
 
 Reasonable configuration:
+
 - TP = 8 (within each node, use NVLink)
 - PP = 8 (80 layers / 8 = 10 layers per stage)
 - DP = 4 (256 / (8×8) = 4 replicas)
 
 This gives:
+
 - Memory per GPU: ~1.12TB / 64 ≈ 17.5GB (manageable with activation checkpointing)
 - Good use of fast interconnect (NVLink for TP)
 - Reasonable pipeline depth (10 layers per stage)
 - Some data parallelism for throughput
+
 </details>
 
 ---
@@ -3567,6 +3652,7 @@ This gives:
 8. **Gradient Accumulation**: Increase effective batch size without memory overhead
 
 **Choosing a strategy**:
+
 - Model fits in GPU memory → **DDP**
 - Model doesn't fit, good interconnect → **FSDP** or **Tensor Parallel**
 - Very long sequences → **Sequence Parallelism** + Tensor Parallel
@@ -3575,12 +3661,14 @@ This gives:
 - Need larger batch size → **Gradient Accumulation**
 
 **Memory optimization techniques** (can be combined):
+
 - Activation checkpointing: Reduce activation memory by ~50%
 - FSDP/ZeRO-3: Shard parameters, gradients, optimizer states
 - Gradient accumulation: Train with smaller micro-batches
 - Mixed precision (BF16/FP16): Reduce memory by ~2x
 
 **Communication optimization**:
+
 - Overlap communication with computation
 - Use gradient/activation checkpointing to reduce memory
 - Match parallelism to network topology (TP within nodes, DP across)

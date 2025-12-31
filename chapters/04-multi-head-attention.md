@@ -58,6 +58,7 @@ From [Basic Attention](03-basic-attention.md), recall that scaled dot-product at
 ```
 
 where:
+
 - $Q \in \mathbb{R}^{n \times d_k}$ are queries
 - $K \in \mathbb{R}^{m \times d_k}$ are keys
 - $V \in \mathbb{R}^{m \times d_v}$ are values
@@ -76,6 +77,7 @@ Multi-head attention runs $h$ attention operations in parallel, each with its ow
 ```
 
 The projection matrices are:
+
 - $W_i^{Q} \in \mathbb{R}^{d_{\text{model}} \times d_k}$ projects queries for head $i$
 - $W_i^{K} \in \mathbb{R}^{d_{\text{model}} \times d_k}$ projects keys for head $i$
 - $W_i^{V} \in \mathbb{R}^{d_{\text{model}} \times d_v}$ projects values for head $i$
@@ -84,11 +86,13 @@ The projection matrices are:
 ### Dimension Constraints
 
 Typically:
+
 - $d_k = d_v = d_{\text{model}} / h$ (the head dimension)
 - With $h$ heads, the total dimension is $h \times (d_{\text{model}} / h) = d_{\text{model}}$
 - This keeps the computational cost similar to single-head attention with full dimension
 
 **Example**: For GPT-2 with $d_{\text{model}} = 768$ and $h = 12$:
+
 - Each head has dimension $d_k = d_v = 768 / 12 = 64$
 - Total parameters: roughly the same as single-head attention
 
@@ -109,15 +113,18 @@ While the mathematical formulation gives us the blueprint, implementing multi-he
 The key insight is that all heads can share the same projection operations by using a larger projection matrix and then splitting:
 
 **Naive approach** (inefficient):
+
 - Create $h$ separate $d_{\text{model}} \times d_k$ projection matrices
 - Loop through heads sequentially
 
 **Efficient approach** (what we implement):
+
 - Create a single $d_{\text{model}} \times d_{\text{model}}$ projection matrix
 - Reshape to split into $h$ heads of dimension $d_k$
 - Process all heads in parallel using batch matrix operations
 
 This works because matrix multiplication is associative:
+
 ```math
 (XW)\text{.view}(h, d_k) \equiv X(W\text{.view}(h, d_k))
 ```
@@ -134,15 +141,18 @@ The implementation below uses the "project-then-split" approach because:
 ### Relationship to Alternatives
 
 **Alternative 1: Separate Linear Layers per Head**
+
 - More intuitive but slower
 - Each head is an explicit `nn.Linear` module
 - Sequential processing kills performance
 
 **Alternative 2: Grouped Convolutions**
+
 - Can achieve similar effect using grouped 1D convolutions
 - Less common in practice, harder to reason about
 
 **Alternative 3: Einsum Operations**
+
 - More concise notation using `torch.einsum`
 - Can be harder to optimize, less explicit about shapes
 
@@ -362,6 +372,7 @@ While our main implementation uses a unified projection matrix, understanding th
 With a shared projection matrix that we split, there's a subtle question: Are the heads really independent, or are they constrained by sharing the same input transformation?
 
 **Answer**: They are independent after the split because:
+
 1. Each head's parameters are separate subsets of the full weight matrix
 2. Gradients flow independently to each subset during backpropagation
 3. The split is just a computational trick; mathematically it's equivalent to separate matrices
@@ -411,6 +422,7 @@ In autoregressive inference (like in GPT models), the KV cache can become a memo
 - For long sequences and many heads, this becomes prohibitive
 
 **Concrete Example**: For a 70B parameter model with 64 attention heads serving a 2048-token context:
+
 - Each layer needs ~64 MB of KV cache (in FP16)
 - With 80 layers: ~5 GB per user
 - With 100 concurrent users: ~500 GB just for KV cache!
@@ -444,6 +456,7 @@ Why does sharing K and V across heads work?
 Key difference: All heads share the same $W^{K}$ and $W^{V}$ (no subscript $i$).
 
 **Parameter Reduction**:
+
 - MHA K,V params: $2 \times d_{\text{model}} \times d_{\text{model}}$
 - MQA K,V params: $2 \times d_{\text{model}} \times d_k$ where $d_k = d_{\text{model}} / h$
 - Reduction factor: $h$ (e.g., 32x for 32 heads)
@@ -568,11 +581,13 @@ if __name__ == "__main__":
 ### MQA Trade-offs
 
 **Advantages:**
+
 - Reduced KV cache size by factor of $h$ (number of heads)
 - Faster inference, especially for long sequences
 - Lower memory bandwidth requirements
 
 **Disadvantages:**
+
 - Slightly lower quality (empirically ~1% worse on some benchmarks)
 - Less expressive: heads must share the same key/value representations
 - Training time benefits are minimal (KV cache is an inference concern)
@@ -598,6 +613,7 @@ GQA aims to balance the quality of MHA with the efficiency of MQA:
 ### The Core Insight: Partial Sharing
 
 **Observation**: Attention heads often cluster into groups that learn similar patterns:
+
 - Some heads focus on local context (syntactic patterns)
 - Some heads focus on long-range dependencies (discourse structure)
 - Some heads focus on specific semantic relationships
@@ -631,12 +647,14 @@ With $h$ total heads divided into $g$ groups of size $h/g$:
 Here $j(i) = \lfloor i / (h/g) \rfloor$ maps head $i$ to its group.
 
 **Example**: With 32 query heads and 8 KV heads:
+
 - Heads 0-3 share KV head 0
 - Heads 4-7 share KV head 1
 - Heads 8-11 share KV head 2
 - ... and so on
 
 **Memory Savings**:
+
 - Cache size: $2 \times g \times \text{seq\_len} \times d_k$ (vs. $2 \times h \times \text{seq\_len} \times d_k$ for MHA)
 - Reduction factor: $h/g$ (e.g., 4x for 32 heads with 8 groups)
 
@@ -649,6 +667,7 @@ Here $j(i) = \lfloor i / (h/g) \rfloor$ maps head $i$ to its group.
 **MQA**: All query heads share one K,V head → Minimum memory, reduced expressiveness
 
 Think of it as a spectrum of sharing:
+
 - No sharing (MHA): Fine-grained specialization but expensive
 - Partial sharing (GQA): Group-level specialization with efficiency
 - Full sharing (MQA): Minimal specialization but very efficient
@@ -739,6 +758,7 @@ def test_gqa():
     Test GQA with different group configurations.
 
     This demonstrates the spectrum from MHA to MQA:
+
     - 8 heads, 8 KV heads = MHA (no sharing)
     - 8 heads, 4 KV heads = GQA (2 query heads per KV head)
     - 8 heads, 2 KV heads = GQA (4 query heads per KV head)
@@ -785,16 +805,19 @@ if __name__ == "__main__":
 ### GQA Trade-offs
 
 **Advantages:**
+
 - Flexible trade-off between quality and efficiency
 - Significantly reduces KV cache compared to MHA
 - Minimal quality loss compared to MHA (much better than MQA)
 - Can be chosen per model requirements
 
 **Disadvantages:**
+
 - More complex implementation than MHA or MQA
 - Requires careful tuning of the number of KV heads
 
 **Typical Configurations:**
+
 - **LLaMA 2 70B**: 64 query heads, 8 KV heads (8:1 ratio)
 - **LLaMA 3**: Similar ratios
 - **Mistral 7B**: 32 query heads, 8 KV heads (4:1 ratio)
@@ -833,17 +856,20 @@ This benchmark quantifies the three key trade-offs:
 Before running the benchmark, let's predict the results:
 
 **Parameter Count**:
+
 - MHA should have the most parameters (separate K,V for each head)
 - GQA should be in the middle (some sharing)
 - MQA should have the fewest (maximum sharing)
 
 **KV Cache**:
+
 - Scales linearly with number of KV heads
 - MHA: $2 \times h$ cache entries
 - GQA: $2 \times g$ cache entries
 - MQA: $2 \times 1$ cache entries
 
 **Speed**:
+
 - Smaller cache → better memory bandwidth utilization → faster
 - BUT: Differences are modest because compute (QK^T) dominates on small batches
 - Speedup is more pronounced for: long sequences, large batch sizes, memory-bound hardware
@@ -860,9 +886,11 @@ import time
 def benchmark_attention_variants():
     """
     Benchmark MHA, MQA, and GQA in terms of:
+
     - Parameter count
     - Memory usage
     - Inference speed
+
     """
     d_model = 4096
     num_heads = 32
@@ -951,9 +979,11 @@ def visualize_attention_heads():
 
     This demonstrates the diversity of attention patterns across heads.
     Different heads often specialize in different types of relationships:
+
     - Local patterns (adjacent tokens)
     - Long-range dependencies (distant tokens)
     - Specific syntactic/semantic relationships
+
     """
     import matplotlib.pyplot as plt
 
@@ -1011,7 +1041,8 @@ The KV cache is critical for efficient autoregressive generation in models like 
 **Scenario**: Generating text one token at a time (like ChatGPT does)
 
 **Naive Approach**:
-```
+
+```text
 Step 1: Process "Hello" → Generate "world"
 Step 2: Process "Hello world" → Generate "!"
 Step 3: Process "Hello world !" → Generate next token
@@ -1021,6 +1052,7 @@ Step 3: Process "Hello world !" → Generate next token
 At each step, we recompute attention for ALL previous tokens, even though their K,V representations never change!
 
 **Why This Is Wasteful**:
+
 - Token "Hello" gets recomputed 100 times for a 100-token generation
 - For a 2048-token context, we're doing $O(n^2)$ redundant K,V computations
 - For a large model, this can waste 90%+ of computation time
@@ -1031,6 +1063,7 @@ At each step, we recompute attention for ALL previous tokens, even though their 
 
 **Mathematical Justification**:
 For token position $i$, its key and value are:
+
 ```math
 K_i = W_{K} \cdot h_i, \quad V_i = W_{V} \cdot h_i
 ```
@@ -1038,7 +1071,8 @@ K_i = W_{K} \cdot h_i, \quad V_i = W_{V} \cdot h_i
 where $h_i$ is the hidden state at position $i$. Once computed, $h_i$ doesn't change when we generate position $i+1, i+2, \ldots$
 
 **Caching Strategy**:
-```
+
+```text
 Step 1: Compute K[0], V[0] for "Hello" → Cache them → Generate "world"
 Step 2: Compute K[1], V[1] for "world" → Append to cache → Generate "!"
 Step 3: Compute K[2], V[2] for "!" → Append to cache → Generate next
@@ -1047,11 +1081,13 @@ Step 3: Compute K[2], V[2] for "!" → Append to cache → Generate next
 #### Why This Works: Attention's Decomposability
 
 Attention is computed as:
+
 ```math
 \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
 ```
 
 For a new query $q_{\text{new}}$ attending to cached keys $K_{\text{cache}}$:
+
 ```math
 \text{scores} = q_{\text{new}} \cdot [K_{\text{cache}}, k_{\text{new}}]^T
 ```
@@ -1061,10 +1097,12 @@ This is exactly equivalent to recomputing everything, but we only compute $k_{\t
 #### Trade-offs and Practical Considerations
 
 **Benefits**:
+
 - Speedup: Linear in sequence length (10x for 10 tokens, 100x for 100 tokens)
 - Critical for interactive applications (chatbots, code completion)
 
 **Costs**:
+
 - Memory: Must store $2 \times \text{num\_kv\_heads} \times \text{seq\_len} \times d_k$ per layer
 - Implementation complexity: Need to manage cache state
 - Batch processing: Each sequence in batch needs its own cache
@@ -1271,6 +1309,7 @@ if __name__ == "__main__":
 ```
 
 **Key Points:**
+
 - **Without cache**: For each new token, we recompute K,V for all previous tokens (wasteful)
 - **With cache**: We only compute K,V for the new token and concatenate with cached values
 - **Speedup**: Approximately linear in sequence length (10x faster for 10 tokens, 100x for 100 tokens)
@@ -1289,6 +1328,7 @@ Choosing between MHA, MQA, and GQA depends on your specific requirements. Here's
 #### Detailed Guidelines
 
 **Use MHA when:**
+
 - Training from scratch with quality as primary goal
 - Model size is small to medium (< 7B parameters)
 - Inference speed is not critical (research, offline processing)
@@ -1296,22 +1336,26 @@ Choosing between MHA, MQA, and GQA depends on your specific requirements. Here's
 - You need the best possible performance on benchmarks
 
 **Example scenarios:**
+
 - Training BERT-style encoder models
 - Small fine-tuned models for specific tasks
 - Research experiments where quality matters most
 
 **Use GQA when:**
+
 - Deploying medium to large models (7B-70B parameters)
 - You need a balance between quality and efficiency
 - Serving many concurrent users (shared KV cache overhead)
 - You want near-MHA quality with significant memory savings
 
 **Recommended configurations:**
+
 - Small models (< 1B): 8-16 query heads, 2-4 KV heads (4:1 ratio)
 - Medium models (1B-10B): 32 query heads, 4-8 KV heads (4:1 to 8:1)
 - Large models (> 10B): 64 query heads, 8 KV heads (8:1 ratio)
 
 **Use MQA when:**
+
 - Deploying on memory-constrained devices (mobile, IoT)
 - Maximum inference throughput is critical
 - Serving extremely long contexts (> 32K tokens)
@@ -1319,6 +1363,7 @@ Choosing between MHA, MQA, and GQA depends on your specific requirements. Here's
 - Latency is more important than accuracy
 
 **Example scenarios:**
+
 - Code completion in IDEs (low latency critical)
 - Real-time chatbots with many concurrent users
 - Mobile deployment of LLMs
@@ -1342,17 +1387,20 @@ Choosing between MHA, MQA, and GQA depends on your specific requirements. Here's
 If you have a pre-trained MHA model and want to switch:
 
 **MHA → GQA:**
+
 - Merge groups of K,V heads by averaging their weights
 - Fine-tune for a small number of steps (~1-5% of original training)
 - Minimal quality loss (< 1%) with proper conversion
 - See "GQA: Training Generalized Multi-Query Transformer Models" paper
 
 **MHA → MQA:**
+
 - Average all K,V heads into a single head
 - Requires more extensive fine-tuning (~5-10% of original training)
 - Expect ~1-2% quality loss on downstream tasks
 
 **GQA → MHA:**
+
 - Duplicate each KV head to serve its query group
 - No fine-tuning needed (MHA is strictly more expressive)
 - Increases memory usage proportionally
@@ -1377,11 +1425,13 @@ Based on typical configurations (e.g., LLaMA-style models):
 ### 1. Choosing the Number of Heads
 
 **Common configurations:**
+
 - Small models (100M params): 8-12 heads
 - Medium models (1B params): 16-32 heads
 - Large models (10B+ params): 32-64 heads
 
 **Guidelines:**
+
 - More heads = more capacity but more memory
 - Ensure $d_k = d_{\text{model}} / h$ is not too small (typically 64-128)
 - Powers of 2 are preferred for hardware efficiency
@@ -1395,11 +1445,13 @@ Research shows many heads can be removed without significant performance loss:
 **Empirical Observation**: In trained transformers, some attention heads contribute much more to model performance than others.
 
 **Key Findings** (from "Are Sixteen Heads Really Better than One?"):
+
 - In BERT, up to 40% of heads can be pruned with <1% quality loss
 - Some layers have only 1-2 "important" heads
 - Some heads learn nearly identical patterns (redundancy)
 
 **Why Does This Happen?**
+
 1. **Over-parameterization**: Models are trained with excess capacity for optimization stability
 2. **Task Specificity**: Not all patterns learned during pretraining matter for downstream tasks
 3. **Redundancy**: Multiple heads sometimes converge to similar functions
@@ -1409,11 +1461,13 @@ Research shows many heads can be removed without significant performance loss:
 **The Idea**: If a head is important, removing it should significantly impact the loss.
 
 **Method**: Measure importance as the sensitivity of loss to removing that head:
+
 ```math
 \text{Importance}(h) = \left|\frac{\partial \mathcal{L}}{\partial h}\right|
 ```
 
 **Practical Approximation**: Use the magnitude of gradients flowing through the head as a proxy:
+
 ```math
 \text{Importance}(h) \approx \sum_{\text{params } \theta \in h} \|\nabla_\theta \mathcal{L}\|
 ```
@@ -1421,11 +1475,13 @@ Research shows many heads can be removed without significant performance loss:
 #### Why This Matters
 
 **For Deployment**:
+
 - Reduce model size and inference latency
 - Deploy smaller models on resource-constrained devices
 - Improve throughput by removing computational overhead
 
 **For Understanding**:
+
 - Reveals which linguistic phenomena the model finds important
 - Helps interpret what different heads learn
 - Guides architecture design for future models
@@ -1465,6 +1521,7 @@ Proper initialization is crucial for multi-head attention:
 #### The Problem: Training Instability Without Proper Initialization
 
 **Why Initialization Matters**:
+
 1. **Gradient Flow**: Poor initialization can cause vanishing or exploding gradients
 2. **Symmetry Breaking**: Attention heads need different starting points to learn different patterns
 3. **Residual Connections**: In transformers, attention outputs are added to residuals; improper scaling causes instability
@@ -1472,17 +1529,20 @@ Proper initialization is crucial for multi-head attention:
 #### Theoretical Foundation
 
 **Goal**: Initialize weights so that:
+
 1. Activations have reasonable variance throughout the network
 2. Gradients flow smoothly backward without vanishing/exploding
 3. The residual path doesn't dominate or get dominated
 
 **Xavier/Glorot Initialization**:
 For a layer with $n_{\text{in}}$ inputs and $n_{\text{out}}$ outputs:
+
 ```math
 W \sim \mathcal{N}(0, \sigma^2), \quad \sigma = \sqrt{\frac{2}{n_{\text{in}} + n_{\text{out}}}}
 ```
 
 **Why This Works**:
+
 - Preserves variance of activations forward and gradients backward
 - For linear layer: $\text{Var}(\text{output}) \approx \text{Var}(\text{input})$
 - Prevents activation magnitudes from exploding or vanishing
@@ -1490,6 +1550,7 @@ W \sim \mathcal{N}(0, \sigma^2), \quad \sigma = \sqrt{\frac{2}{n_{\text{in}} + n
 #### Special Consideration: Output Projection
 
 **The Problem**: In transformers, attention output is added to a residual:
+
 ```math
 \text{output} = \text{input} + \text{Attention}(\text{input})
 ```
@@ -1497,6 +1558,7 @@ W \sim \mathcal{N}(0, \sigma^2), \quad \sigma = \sqrt{\frac{2}{n_{\text{in}} + n
 If attention output has large magnitude, it can overwhelm the residual path, causing training instability.
 
 **Solution**: Scale down the output projection initialization:
+
 ```math
 W^{O} \sim \mathcal{N}(0, \sigma^2 / \sqrt{2})
 ```
@@ -1506,14 +1568,17 @@ The $1/\sqrt{2}$ factor accounts for the fact that we're adding two paths (resid
 #### How This Relates to Other Initialization Schemes
 
 **Kaiming Initialization**: Better for ReLU networks
+
 - Uses $\sigma = \sqrt{2/n_{\text{in}}}$
 - Not typically used for transformers (no ReLU in attention)
 
 **Small Constant Initialization**: Sometimes used for output projection
+
 - $W^{O} \sim \mathcal{N}(0, 0.01^2)$
 - Very conservative; can slow early training
 
 **Layer-wise Scaling**: Some models (e.g., GPT-2) scale by $1/\sqrt{N_{\text{layers}}}$
+
 - Compensates for accumulation through residual connections
 
 #### Implementation
@@ -1554,6 +1619,7 @@ For long sequences ($n > d$), the $O(n^2 \cdot d)$ term dominates, which motivat
 Standard attention has a memory problem with very long sequences:
 
 **Memory Requirement**: Storing the full attention matrix requires $O(n^2)$ memory
+
 - For $n = 1024$: ~1M elements
 - For $n = 4096$: ~16M elements
 - For $n = 16384$: ~268M elements per head!
@@ -1567,6 +1633,7 @@ The attention scores matrix $S = QK^T$ has shape `(seq_len, seq_len)`, and we ne
 
 **Mathematical Foundation**:
 Attention is computed row-wise (each query independently):
+
 ```math
 \text{Output}_i = \sum_{j} \text{softmax}(q_i K^T)_j \cdot v_j
 ```
@@ -1574,6 +1641,7 @@ Attention is computed row-wise (each query independently):
 This means we can compute rows $i$ to $i+c$ (a chunk) separately, never storing the full matrix.
 
 **Memory Reduction**:
+
 - Standard: $O(n^2)$ memory
 - Chunked: $O(n \cdot c)$ memory where $c$ is chunk size
 - Typical: $c = 512$ → ~32x memory reduction for $n = 16K$
@@ -1581,11 +1649,13 @@ This means we can compute rows $i$ to $i+c$ (a chunk) separately, never storing 
 #### How It Relates to Flash Attention
 
 **Chunking** (what we implement below): Simple approach, reduces memory by processing in chunks
+
 - Trade-off: Slightly slower due to repeated loads
 - Easy to implement
 - Good for extremely long sequences on limited hardware
 
 **Flash Attention** (see Chapter 12): Sophisticated approach using fused kernels
+
 - Trade-off: Faster AND more memory efficient
 - Requires custom CUDA kernels
 - State-of-the-art for production systems
@@ -1654,6 +1724,7 @@ When implementing and using multi-head attention, be aware of these common mista
 #### Pitfall 1: Forgetting to Scale Attention Scores
 
 **Problem:**
+
 ```python
 # WRONG: No scaling
 scores = torch.matmul(Q, K.transpose(-2, -1))
@@ -1663,6 +1734,7 @@ attention_weights = F.softmax(scores, dim=-1)
 **Why it's wrong:** Without scaling by $\sqrt{d_k}$, the dot products can have large magnitudes, pushing softmax into regions with very small gradients (vanishing gradients).
 
 **Correct:**
+
 ```python
 # CORRECT: Scale by sqrt(d_k)
 scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.d_k)
@@ -1674,6 +1746,7 @@ attention_weights = F.softmax(scores, dim=-1)
 #### Pitfall 2: Incorrect Mask Broadcasting
 
 **Problem:**
+
 ```python
 # WRONG: Mask shape doesn't broadcast correctly
 mask = torch.tril(torch.ones(seq_len, seq_len))  # Shape: (seq_len, seq_len)
@@ -1683,6 +1756,7 @@ scores = scores.masked_fill(mask == 0, float('-inf'))  # ERROR!
 **Why it's wrong:** The mask needs to broadcast to `(batch_size, num_heads, seq_len_q, seq_len_k)` but shape `(seq_len, seq_len)` doesn't have the batch and head dimensions.
 
 **Correct:**
+
 ```python
 # CORRECT: Add batch and head dimensions
 mask = torch.tril(torch.ones(seq_len, seq_len)).view(1, 1, seq_len, seq_len)
@@ -1691,6 +1765,7 @@ scores = scores.masked_fill(mask == 0, float('-inf'))
 ```
 
 **Common mask shapes:**
+
 - Causal mask: `(1, 1, seq_len, seq_len)` - broadcasts across batch and heads
 - Padding mask: `(batch_size, 1, 1, seq_len)` - broadcasts across heads and queries
 - Combined mask: `(batch_size, 1, seq_len, seq_len)` or `(batch_size, num_heads, seq_len, seq_len)`
@@ -1698,6 +1773,7 @@ scores = scores.masked_fill(mask == 0, float('-inf'))
 #### Pitfall 3: Missing `.contiguous()` Before `.view()`
 
 **Problem:**
+
 ```python
 # WRONG: view() after transpose() without contiguous()
 context = context.transpose(1, 2).view(batch_size, -1, self.d_model)  # May error!
@@ -1706,12 +1782,14 @@ context = context.transpose(1, 2).view(batch_size, -1, self.d_model)  # May erro
 **Why it's wrong:** After `transpose()`, the tensor is not stored contiguously in memory. `view()` requires contiguous memory.
 
 **Correct:**
+
 ```python
 # CORRECT: Add .contiguous()
 context = context.transpose(1, 2).contiguous().view(batch_size, -1, self.d_model)
 ```
 
 **Alternative:** Use `reshape()` instead of `view()` (automatically handles non-contiguous tensors)
+
 ```python
 context = context.transpose(1, 2).reshape(batch_size, -1, self.d_model)
 ```
@@ -1719,6 +1797,7 @@ context = context.transpose(1, 2).reshape(batch_size, -1, self.d_model)
 #### Pitfall 4: Wrong Softmax Dimension
 
 **Problem:**
+
 ```python
 # WRONG: Softmax over wrong dimension
 scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.d_k)
@@ -1728,13 +1807,15 @@ attention_weights = F.softmax(scores, dim=-2)  # WRONG!
 **Why it's wrong:** Softmax should be over the key dimension (last dimension), not the query dimension.
 
 **Correct:**
+
 ```python
 # CORRECT: Softmax over last dimension (keys)
 attention_weights = F.softmax(scores, dim=-1)
 ```
 
 **Visualization:**
-```
+
+```text
 scores shape: (batch, num_heads, seq_len_q, seq_len_k)
                                    ^^^^^^^    ^^^^^^^
                                    queries    keys
@@ -1745,6 +1826,7 @@ We want: for each query, softmax over all keys → dim=-1
 #### Pitfall 5: Incorrect Head Splitting
 
 **Problem:**
+
 ```python
 # WRONG: Incorrect reshape order
 Q = self.W_q(query)  # (batch, seq_len, d_model)
@@ -1755,6 +1837,7 @@ Q = Q.transpose(1, 2)
 **Why it's wrong:** This splits the heads incorrectly across the feature dimension.
 
 **Correct:**
+
 ```python
 # CORRECT: Split into (seq_len, num_heads, d_k)
 Q = self.W_q(query)  # (batch, seq_len, d_model)
@@ -1765,6 +1848,7 @@ Q = Q.transpose(1, 2)  # (batch, num_heads, seq_len, d_k)
 #### Pitfall 6: Not Using Dropout on Attention Weights
 
 **Problem:**
+
 ```python
 # SUBOPTIMAL: No dropout on attention weights
 attention_weights = F.softmax(scores, dim=-1)
@@ -1774,6 +1858,7 @@ context = torch.matmul(attention_weights, V)  # No regularization!
 **Why it's suboptimal:** Dropout on attention weights acts as regularization and prevents overfitting to specific attention patterns.
 
 **Correct:**
+
 ```python
 # BETTER: Apply dropout to attention weights
 attention_weights = F.softmax(scores, dim=-1)
@@ -1786,6 +1871,7 @@ context = torch.matmul(attention_weights, V)
 #### Pitfall 7: Dimension Mismatch in GQA
 
 **Problem:**
+
 ```python
 # WRONG: Forgetting to repeat K,V in GQA
 K = self.W_k(key).view(batch_size, -1, self.num_kv_heads, self.d_k).transpose(1, 2)
@@ -1795,6 +1881,7 @@ scores = torch.matmul(Q, K.transpose(-2, -1))  # ERROR: dimension mismatch!
 ```
 
 **Correct:**
+
 ```python
 # CORRECT: Repeat K,V to match Q's number of heads
 K = K.repeat_interleave(self.num_queries_per_kv, dim=1)
@@ -1806,6 +1893,7 @@ scores = torch.matmul(Q, K.transpose(-2, -1))  # Works!
 #### Pitfall 8: Inefficient KV Cache Concatenation
 
 **Problem:**
+
 ```python
 # INEFFICIENT: Creating new tensors repeatedly
 for step in range(1000):
@@ -1816,6 +1904,7 @@ for step in range(1000):
 **Why it's inefficient:** Each `cat()` allocates new memory and copies all data. For long sequences, this becomes very slow.
 
 **Better approach:**
+
 ```python
 # BETTER: Pre-allocate cache
 max_seq_len = 1000
@@ -1833,6 +1922,7 @@ for step in range(max_seq_len):
 **Problem:** Using standard MHA for a 70B parameter model with long context (32K tokens) can require 100+ GB of KV cache.
 
 **Solution:** Use GQA or MQA for large-scale deployment:
+
 ```python
 # For large models, prefer GQA
 model = GroupedQueryAttention(
@@ -1845,6 +1935,7 @@ model = GroupedQueryAttention(
 #### Pitfall 10: Not Initializing Output Projection Properly
 
 **Problem:**
+
 ```python
 # SUBOPTIMAL: Default initialization
 self.W_o = nn.Linear(d_model, d_model)  # Uses default init
@@ -1853,6 +1944,7 @@ self.W_o = nn.Linear(d_model, d_model)  # Uses default init
 **Why it's suboptimal:** When using residual connections, the output should have smaller initial variance to prevent instability.
 
 **Better:**
+
 ```python
 # BETTER: Scaled initialization for residual connections
 self.W_o = nn.Linear(d_model, d_model)
@@ -1875,6 +1967,7 @@ When your multi-head attention isn't working, check:
 8. ✓ Do all tensor shapes match at each operation?
 
 **Testing tip:** Add shape assertions throughout your code:
+
 ```python
 assert Q.shape == (batch_size, num_heads, seq_len_q, d_k)
 assert scores.shape == (batch_size, num_heads, seq_len_q, seq_len_k)
@@ -1895,9 +1988,11 @@ def analyze_attention_patterns(model, text_samples):
     Analyze attention patterns across different heads.
 
     Tasks:
+
     1. Compute average attention distance for each head
     2. Identify heads that focus on local vs global context
     3. Visualize attention patterns for sample inputs
+
     """
     # Your implementation here
     pass
@@ -1926,9 +2021,11 @@ Implement a benchmark comparing MHA, MQA, and GQA on a language modeling task:
 ```python
 def benchmark_on_language_modeling():
     """
+
     1. Train small transformers with MHA, MQA, and GQA
     2. Compare training time, memory usage, and final perplexity
     3. Analyze the trade-offs
+
     """
     # Your implementation here
     pass
@@ -1969,6 +2066,7 @@ def prune_attention_heads(model, keep_ratio=0.5):
     1. Compute head importance (e.g., gradient-based)
     2. Identify least important heads
     3. Remove them and adjust model architecture
+
     """
     # Your implementation here
     pass
@@ -2045,6 +2143,7 @@ Multi-head attention is a cornerstone of modern LLMs. Understanding the trade-of
 **Next Chapter**: [Bidirectional vs Causal Attention](05-bidirectional-causal-attention.md) - Learn about different attention masking patterns for different tasks.
 
 **Related Chapters**:
+
 - [Basic Attention](03-basic-attention.md) - Foundation of attention mechanisms
 - [Flash Attention](12-flash-attention.md) - Efficient attention computation
 - [The Transformer Block](09-transformer-block.md) - How MHA fits into the full architecture

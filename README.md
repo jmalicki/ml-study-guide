@@ -46,24 +46,28 @@ This guide is designed for ML practitioners preparing for interviews or deepenin
 ### Essential Prerequisites
 
 **Python and PyTorch**
+
 - Comfortable writing Python classes and functions
 - PyTorch tensor operations, autograd, and nn.Module
 - Building and training basic models (forward/backward passes)
 - Used throughout for all implementations
 
 **Linear Algebra**
+
 - Matrix multiplication, transpose operations
 - Vector dot products and norms
 - Understanding of high-dimensional spaces
 - Critical for understanding attention mechanisms and embeddings
 
 **Calculus and Optimization**
+
 - Gradients and partial derivatives
 - Chain rule for backpropagation
 - Basic gradient descent (SGD)
 - Foundation for training procedures and advanced optimizers
 
 **Deep Learning Fundamentals**
+
 - Multi-layer perceptrons (MLPs) and feed-forward networks
 - Backpropagation through neural networks
 - Loss functions (cross-entropy, MSE)
@@ -74,6 +78,7 @@ This guide is designed for ML practitioners preparing for interviews or deepenin
 ### Strongly Recommended
 
 **Probability and Statistics**
+
 - Gaussian/normal distributions
 - Expectation and variance
 - Maximum likelihood estimation
@@ -81,12 +86,14 @@ This guide is designed for ML practitioners preparing for interviews or deepenin
 - Required for RLHF, DPO, and diffusion models
 
 **Basic NLP Concepts**
+
 - Text as sequences of tokens
 - Language modeling intuition (predicting next words)
 - Concept of vocabulary and tokenization
 - While we cover tokenization in depth, basic familiarity helps
 
 **Optimization Beyond SGD**
+
 - Momentum and adaptive learning rates (RMSprop basics)
 - Understanding of why Adam exists
 - We review AdamW in detail, but basic optimizer intuition is assumed
@@ -94,12 +101,14 @@ This guide is designed for ML practitioners preparing for interviews or deepenin
 ### Helpful but Not Required
 
 **Advanced ML Concepts**
+
 - Attention mechanisms at a high level (we teach this from scratch)
 - Variational Autoencoders (VAEs) and ELBO framework
 - Helpful for diffusion models section, but not strictly required
 - Markov chains (useful for understanding diffusion processes)
 
 **Hardware Awareness**
+
 - Basic understanding of GPU memory and compute
 - Helpful for distributed training and optimization chapters
 - We explain specifics, but general awareness improves comprehension

@@ -4,7 +4,7 @@
 
 When all activation functions match the PyTorch implementations:
 
-```
+```text
 $ make validate-activation-svg
 Validating activation function SVG against PyTorch implementations...
 Validating activation function SVG...
@@ -24,7 +24,7 @@ Exit code: 0
 
 Example output when some points don't match:
 
-```
+```text
 $ make validate-activation-svg
 Validating activation function SVG against PyTorch implementations...
 Validating activation function SVG...
@@ -50,7 +50,7 @@ Exit code: 1
 
 When PyTorch is not installed:
 
-```
+```text
 $ python3 scripts/validate_activation_svg.py
 ERROR: PyTorch is required for this validation script.
 Install it with: pip install torch
@@ -62,7 +62,7 @@ Exit code: 1
 
 When the SVG file is not found:
 
-```
+```text
 $ python3 scripts/validate_activation_svg.py
 ERROR: SVG file not found: /home/jmalicki/src/ml-study-guide/assets/diagrams/ch10-activation-functions-comparison.svg
 ```
@@ -73,7 +73,7 @@ Exit code: 1
 
 Running the test suite:
 
-```
+```text
 $ python3 scripts/test_validate_activation_svg.py
 Testing SVG activation validation script...
 
@@ -111,6 +111,7 @@ For each activation function, the script:
 ### Example Point Validation
 
 **ReLU at x=2:**
+
 - SVG point: (560, 216)
 - Converts to data: (2.0, 2.0)
 - PyTorch ReLU(2.0) = 2.0
@@ -118,6 +119,7 @@ For each activation function, the script:
 - Result: ✓ PASS (within epsilon=0.05)
 
 **GELU at x=-0.85 (minimum point):**
+
 - SVG point: approximately (363, 371)
 - Converts to data: (-0.85, -0.17)
 - PyTorch GELU(-0.85) ≈ -0.169
@@ -143,6 +145,7 @@ data_y = 4.5 - (352 - 80) / (420 - 80) * (4.5 - (-0.5))
 ```
 
 Wait, let me recalculate:
+
 ```python
 data_y = 4.5 - (352 - 80) / (420 - 80) * (4.5 - (-0.5))
        = 4.5 - (272 / 340) * 5.0
@@ -151,6 +154,7 @@ data_y = 4.5 - (352 - 80) / (420 - 80) * (4.5 - (-0.5))
 ```
 
 Actually, for the zero line (y=0 in data), the SVG y should be 352:
+
 ```python
 0 = 4.5 - (y_px - 80) / (420 - 80) * 5.0
 4.5 = (y_px - 80) / 340 * 5.0
@@ -163,12 +167,14 @@ y_px = 80 + (4.5 / 5.0) * 340
 Hmm, wait. Let me verify: the y=0 line in the SVG is at y=352 according to the comment.
 
 Actually checking the SVG:
+
 ```xml
 <!-- Horizontal line at y=0 (dashed) -->
 <line x1="80" y1="352" x2="680" y2="352" .../>
 ```
 
 So y=0 is at SVG y=352. Let's verify:
+
 ```python
 data_y = 4.5 - (352 - 80) / (420 - 80) * (4.5 - (-0.5))
        = 4.5 - (272 / 340) * 5.0
@@ -177,23 +183,27 @@ data_y = 4.5 - (352 - 80) / (420 - 80) * (4.5 - (-0.5))
 ```
 
 That's wrong. Let me recalculate the range. Looking at the SVG:
+
 - y=4 is at SVG y=80 (top)
 - y=-0.5 is at SVG y=420 (bottom)
 
 So the range is 4.5 (from -0.5 to 4).
 
 For y=0:
+
 ```python
 0 = y_max - (y_px - plot_y_min) / (plot_y_max - plot_y_min) * (y_max - y_min)
 0 = 4.5 - (y_px - 80) / (420 - 80) * (4.5 - (-0.5))
 ```
 
 Wait, I see the issue. The comment says:
+
 ```xml
 <!-- Data range: x from -6 to 4, y from -0.5 to 4.5 -->
 ```
 
 But the y-axis labels show:
+
 - y=4 at SVG y=80
 - y=3 at SVG y=148
 - y=2 at SVG y=216

@@ -55,18 +55,21 @@
        trainer: DPOTrainer,  # ADD THIS
        num_samples: int = 100,
    ):
-   ```
+```
 
 2. **ORPO Odds Ratio Calculation** (lines 721-767):
    - The comment at line 749 mentions computing log odds correctly, but then line 754 uses a simplified approximation
    - While the simplification is reasonable, it would be helpful to explain why this approximation is acceptable or provide the exact formulation
    - Suggested addition:
+
    ```python
+
    # Note: For the full odds ratio formulation, we would compute:
    # log_odds = log(p / (1-p)) = log_prob - log(1 - exp(log_prob))
    # However, for average log probabilities (normalized by length),
    # the ratio of log probs is a reasonable approximation used in practice
-   ```
+
+```
 
 3. **Missing Device Handling**: The example training function (lines 407-478) moves models to device but doesn't show best practices for mixed precision training or multi-GPU scenarios, which are common in production.
 
@@ -81,16 +84,20 @@
 5. **Length Computation Missing**: Several variant implementations (SimPO, ORPO) require `chosen_lengths` and `rejected_lengths` tensors, but the dataset classes don't compute or return these. Should add:
 
    ```python
+
    # In __getitem__ method:
+
    chosen_length = (chosen_encodings['attention_mask'] == 1).sum()
    rejected_length = (rejected_encodings['attention_mask'] == 1).sum()
 
    return {
+
        # ... existing fields ...
+
        'chosen_length': chosen_length,
        'rejected_length': rejected_length,
    }
-   ```
+```
 
 6. **Missing Memory Optimization Discussion**: DPO requires keeping two models in memory (policy and reference). For large models, this could be problematic. Could add a subsection on:
    - Using LoRA/PEFT for the policy model while keeping full reference model
@@ -137,6 +144,7 @@ All mathematical formulations have been verified:
 ### Code Quality Assessment
 
 **Strengths:**
+
 - Proper type hints throughout
 - Good separation of concerns (dataset, trainer, loss computation)
 - Comprehensive docstrings
@@ -146,6 +154,7 @@ All mathematical formulations have been verified:
 **Improvements needed:**
 
 1. **Add model save/load functionality**:
+
    ```python
    def save_checkpoint(self, path: str, epoch: int):
        torch.save({
@@ -154,27 +163,35 @@ All mathematical formulations have been verified:
            'optimizer_state_dict': self.optimizer.state_dict(),
            'beta': self.beta,
        }, path)
-   ```
+```
 
 2. **Add validation loop**:
+
    The training example doesn't show how to evaluate on a validation set, which is important for interview discussions.
 
 3. **Better error handling**:
+
    ```python
+
    # In get_log_probs, add:
+
    if labels.shape != input_ids.shape:
        raise ValueError(f"Labels shape {labels.shape} doesn't match input_ids shape {input_ids.shape}")
-   ```
+```
 
 4. **Add model.eval() toggle**:
+
    ```python
+
    # At the end of train_step:
+
    self.model.eval()  # Return to eval mode after training
-   ```
+```
 
 ### Writing Quality
 
 The writing is exceptional:
+
 - Clear progression from motivation → theory → implementation → variants → advanced topics
 - Excellent use of formatting (bold, code blocks, tables)
 - Good balance of mathematical rigor and intuitive explanation
@@ -184,11 +201,13 @@ The writing is exceptional:
 ### Cross-Reference Quality
 
 Good references to related chapters:
+
 - ✅ Links to RLHF chapter (lines 5, 18, 1214)
 - ✅ Links to SFT chapter (lines 20, 1216)
 - ✅ Forward reference to safety chapter (line 1095, though chapter 22 link)
 
 **Missing cross-references that could be added:**
+
 - Could reference tokenization chapter when discussing prompt/completion separation
 - Could reference attention mechanisms when discussing model architecture requirements
 - The reference to "23-safety-alignment.md" (line 1095) should be verified to exist
@@ -198,7 +217,8 @@ Good references to related chapters:
 1. **Add a "Quick Reference" section** at the top with the key DPO formula and typical hyperparameters for interview rapid review.
 
 2. **Add pseudocode** for the main algorithm:
-   ```
+
+```text
    Algorithm: DPO Training
    Input: Preference dataset D = {(x, y_w, y_l)}, reference model π_ref, β
    Output: Aligned policy π_θ
@@ -211,25 +231,28 @@ Good references to related chapters:
            6. Compute loss = -log σ(β[log π_θ(y_w|x)/π_ref(y_w|x) - log π_θ(y_l|x)/π_ref(y_l|x)])
            7. Update θ with gradient descent
    8. Return π_θ
-   ```
+
+```
 
 3. **Add comparison with RLAIF**: Since RLAIF (RL from AI Feedback) is becoming popular, a brief mention would be timely.
 
 4. **Expand the "When to Use Each" section** with concrete examples:
-   ```
+
+```text
    Example: Use DPO when training a chatbot to be more helpful based on user ratings
    Example: Use RLHF when optimizing for multiple objectives like "maximize engagement AND minimize toxicity AND stay factual"
-   ```
+```
 
 5. **Add a troubleshooting table**:
-   ```
+
+```text
    | Symptom | Likely Cause | Solution |
    |---------|--------------|----------|
    | Accuracy < 55% | Poor data quality | Review preference labels |
    | Reward margin → 0 | Beta too low | Increase beta |
    | Model = reference | Beta too high | Decrease beta |
    | Loss not decreasing | Learning rate issue | Try 1e-7 or 1e-5 |
-   ```
+```
 
 ### Errors Found
 
@@ -254,6 +277,7 @@ This chapter is **excellent** for interview preparation because it:
 7. ✅ Has exercises that mirror actual interview questions
 
 **What would make it even better:**
+
 - Add a "Common Interview Questions" section:
   - "Why does DPO work without a reward model?"
   - "When would you choose DPO over RLHF?"
@@ -269,17 +293,20 @@ The chapter would be incredibly valuable for someone preparing for ML/LLM interv
 ### Recommended Priority Fixes
 
 **High Priority:**
+
 1. Fix the undefined `trainer` variable in `analyze_preference_data_quality` (line 974)
 2. Add length computations to dataset classes for variant implementations
 3. Add missing model save/load functionality
 
 **Medium Priority:**
+
 4. Add computational complexity analysis
 5. Add debugging/troubleshooting guide
 6. Clarify ORPO odds ratio approximation
 7. Add device handling best practices
 
 **Low Priority (Nice to Have):**
+
 8. Add real-world dataset examples
 9. Add "Common Interview Questions" section
 10. Add comparison with RLAIF

@@ -51,6 +51,7 @@ Original classifier guidance (Dhariwal & Nichol, 2021) required training a separ
 where $s$ is the guidance scale.
 
 **Problems:**
+
 - Requires training a separate classifier on noisy images
 - Classifier must be noise-robust across all timesteps
 - Additional computational cost and complexity
@@ -60,6 +61,7 @@ where $s$ is the guidance scale.
 Classifier-Free Guidance (Ho & Salimans, 2021) eliminates the need for a separate classifier by training a single conditional model that can perform both conditional and unconditional generation.
 
 **Key Insight:** Train one model that learns both:
+
 - Conditional distribution: $\epsilon_\theta(x_t, t, c)$ (with condition $c$)
 - Unconditional distribution: $\epsilon_\theta(x_t, t, \emptyset)$ (without condition)
 
@@ -70,6 +72,7 @@ During sampling, interpolate between conditional and unconditional predictions:
 ```
 
 where:
+
 - $s$ is the guidance scale (typically 7.5 for Stable Diffusion)
 - $s = 0$: unconditional generation
 - $s = 1$: standard conditional generation
@@ -78,6 +81,7 @@ where:
 **Mathematical Intuition:**
 
 The CFG formulation approximates:
+
 ```math
 \nabla_{x_t} \log p(x_t|c) \approx \nabla_{x_t} \log p(x_t) + s \cdot (\nabla_{x_t} \log p(x_t|c) - \nabla_{x_t} \log p(x_t))
 ```
@@ -91,6 +95,7 @@ The diagram above illustrates how CFG interpolates between unconditional and con
 ![Guidance Scale Trade-offs](../assets/diagrams/ch26-guidance-scale-tradeoffs.svg)
 
 Different guidance scale values produce different trade-offs:
+
 - **Low scale (s=1)**: High diversity but weak prompt adherence
 - **Medium scale (s=7.5)**: Balanced between diversity and prompt fidelity (typical for Stable Diffusion)
 - **High scale (s=20)**: Strong prompt adherence but may produce oversaturated images or artifacts
@@ -107,12 +112,15 @@ class ClassifierFreeGuidanceMixin:
     Mixin for classifier-free guidance in diffusion models.
 
     During training:
+
     - Randomly drop condition with probability p_uncond
     - Model learns both conditional and unconditional distributions
 
     During sampling:
+
     - Compute both conditional and unconditional predictions
     - Interpolate with guidance scale
+
     """
 
     def __init__(self, p_uncond: float = 0.1):
@@ -330,6 +338,7 @@ def cfg_sampling_example():
 ```
 
 **Key Papers:**
+
 - [Classifier-Free Diffusion Guidance](https://arxiv.org/abs/2207.12598) (Ho & Salimans, 2022)
 - [Diffusion Models Beat GANs on Image Synthesis](https://arxiv.org/abs/2105.05233) (Dhariwal & Nichol, 2021) - Original classifier guidance
 
@@ -342,6 +351,7 @@ Latent Diffusion Models (LDMs) perform diffusion in a compressed latent space ra
 ### Motivation
 
 **Pixel-Space Diffusion Problems:**
+
 1. **Computational Cost**: High-resolution images require massive compute
    - 1024×1024 RGB image = 3.1M dimensions
    - Each denoising step processes all pixels
@@ -349,11 +359,13 @@ Latent Diffusion Models (LDMs) perform diffusion in a compressed latent space ra
 3. **Redundancy**: Natural images have high redundancy
 
 **Latent Diffusion Solution:**
+
 - Train VAE to compress images to latent space (4-8× smaller)
 - Run diffusion in latent space
 - Decode final latent to pixel space
 
 **Benefits:**
+
 - 4-8× faster than pixel diffusion
 - Same quality with much less compute
 - Can train on consumer GPUs
@@ -369,6 +381,7 @@ Stable Diffusion consists of three main components:
 ![Latent Diffusion Model Architecture](../assets/diagrams/ch26-latent-diffusion-architecture.svg)
 
 The architecture above shows the complete Latent Diffusion pipeline:
+
 - **VAE Encoder** compresses the 512×512×3 image (786k dimensions) to a 64×64×4 latent (16k dimensions) - a 48× reduction
 - **U-Net** performs diffusion in this compact latent space, conditioned on text embeddings from CLIP
 - **VAE Decoder** reconstructs the final image from the denoised latent
@@ -384,14 +397,17 @@ class LatentDiffusionModel(nn.Module):
     Latent Diffusion Model architecture (Stable Diffusion style).
 
     Components:
+
     1. VAE encoder: Image → Latent (compression)
     2. U-Net: Diffusion in latent space
     3. VAE decoder: Latent → Image (decompression)
     4. Text encoder: Text → Embeddings (conditioning)
 
     Latent space is typically 8× smaller per dimension:
+
     - 512×512 image → 64×64×4 latent
     - Compression ratio: 8×8×3/4 = 48×
+
     """
 
     def __init__(
@@ -549,6 +565,7 @@ class VAEEncoder(nn.Module):
     VAE Encoder for Latent Diffusion.
 
     Architecture (simplified):
+
     - Series of downsampling blocks (conv + downsample)
     - ResNet blocks at each resolution
     - Final conv to latent distribution parameters
@@ -754,10 +771,12 @@ class DiagonalGaussianDistribution:
             # KL between two Gaussians
             return 0.5 * torch.sum(
                 (self.mean - other.mean) ** 2 / other.std ** 2
+
                 + self.std ** 2 / other.std ** 2
                 - 1.0
                 - self.logvar
                 + other.logvar,
+
                 dim=[1, 2, 3]
             )
 
@@ -850,6 +869,7 @@ class AttentionBlock(nn.Module):
 ```
 
 **Key Papers:**
+
 - [High-Resolution Image Synthesis with Latent Diffusion Models](https://arxiv.org/abs/2112.10752) (Rombach et al., 2022) - Stable Diffusion
 - [Auto-Encoding Variational Bayes](https://arxiv.org/abs/1312.6114) (Kingma & Welling, 2013) - VAE
 
@@ -866,6 +886,7 @@ The DDPM (Denoising Diffusion Probabilistic Model) scheduler is the original dif
 **The Problem Being Solved:**
 
 Noise schedulers determine how noise is added during training and removed during sampling. The choice of schedule critically impacts:
+
 1. **Training stability**: Poor schedules lead to mode collapse or training instability
 2. **Sample quality**: Different noise levels capture different frequency information
 3. **Sampling efficiency**: Some schedules enable faster sampling with fewer steps
@@ -905,9 +926,12 @@ This enables efficient training by sampling any timestep directly without iterat
    - Simplify the training objective to pure noise prediction
 
 3. **Posterior Variance**: The scheduler also defines the posterior $q(x_{t-1}|x_t, x_0)$ variance:
+
+
    ```math
 \tilde{\beta}_t = \frac{1-\bar{\alpha}_{t-1}}{1-\bar{\alpha}_t}\beta_t
 ```
+
    This is crucial for proper sampling dynamics.
 
 ```python
@@ -922,6 +946,7 @@ class DDPMScheduler:
     "Denoising Diffusion Probabilistic Models" (Ho et al., 2020).
 
     Key components:
+
     - Beta schedule: Controls noise level at each timestep
     - Alpha_bar: Cumulative product for efficient noise addition
     - Sampling: Step-by-step denoising
@@ -1103,6 +1128,7 @@ class DDIMScheduler(DDPMScheduler):
     while maintaining quality.
 
     Key difference from DDPM:
+
     - Deterministic (no noise added during sampling)
     - Supports arbitrary timestep schedules
     - Can interpolate in latent space
@@ -1228,6 +1254,7 @@ def scheduler_comparison_example():
 | Euler | 30-50 | No | Fast | Good | Quick sampling |
 
 **Key Papers:**
+
 - [Denoising Diffusion Probabilistic Models](https://arxiv.org/abs/2006.11239) (Ho et al., 2020) - DDPM
 - [Denoising Diffusion Implicit Models](https://arxiv.org/abs/2010.02502) (Song et al., 2021) - DDIM
 - [Improved Denoising Diffusion Probabilistic Models](https://arxiv.org/abs/2102.09672) (Nichol & Dhariwal, 2021) - Cosine schedule
@@ -1253,6 +1280,7 @@ class CLIPTextEncoder(nn.Module):
     text and image representations. We use only the text encoder.
 
     Architecture:
+
     - Token embedding
     - Positional embedding
     - Transformer encoder (12 layers for CLIP-ViT-L)
@@ -1360,6 +1388,7 @@ The U-Net uses cross-attention to incorporate text conditioning at each layer.
 **The Problem Being Solved:**
 
 How do we condition image generation on text in a way that:
+
 1. **Preserves spatial structure**: Different image regions should attend to different text concepts
 2. **Scales efficiently**: Must work for high-resolution images and long text sequences
 3. **Is learnable**: The model should learn which text features are relevant for which image regions
@@ -1374,6 +1403,7 @@ Cross-attention provides a **differentiable routing mechanism** that lets the mo
 **Mathematical Formulation:**
 
 Self-attention (within image features):
+
 ```math
 \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d}}\right)V
 ```
@@ -1381,11 +1411,13 @@ Self-attention (within image features):
 where $Q, K, V$ all come from image features.
 
 Cross-attention (image conditioned on text):
+
 ```math
 \text{CrossAttention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d}}\right)V
 ```
 
 where:
+
 - $Q$ comes from image features (queries) - "what does this image region need?"
 - $K, V$ come from text embeddings (keys, values) - "what text concepts are available?"
 
@@ -1442,6 +1474,7 @@ class CrossAttentionBlock(nn.Module):
     Cross-attention block for conditioning U-Net on text.
 
     Architecture:
+
     1. Self-attention on image features
     2. Cross-attention from image to text
     3. Feed-forward network
@@ -1592,6 +1625,7 @@ For tasks like inpainting, super-resolution, or image-to-image translation, we c
 **The Problem Being Solved:**
 
 Text conditioning provides semantic guidance, but many applications require **spatial** conditioning:
+
 1. **Inpainting**: Fill missing regions while preserving surrounding context
 2. **Super-resolution**: Upscale while staying faithful to input
 3. **Image-to-image translation**: Transform while preserving structure (e.g., sketch to photo)
@@ -1602,11 +1636,13 @@ The challenge is to provide strong spatial conditioning without destroying the p
 **Theoretical Justification:**
 
 Image conditioning requires injecting spatial information at the right level of abstraction. We need the model to:
+
 - **Respect** the conditioning signal (high fidelity to input structure)
 - **Generalize** beyond the conditioning (fill in missing details)
 - **Balance** between copying and generating
 
 Different tasks require different levels of conditioning strength:
+
 - **Strong conditioning** (ControlNet): Strict adherence to spatial structure (pose, edges)
 - **Weak conditioning** (concatenation): Flexible interpretation (style transfer)
 
@@ -1664,9 +1700,11 @@ class ImageConditionedUNet(nn.Module):
     U-Net with image conditioning via concatenation.
 
     Used for:
+
     - Inpainting: Concatenate masked image + mask
     - Super-resolution: Concatenate low-resolution image
     - Image-to-image: Concatenate source image
+
     """
 
     def __init__(
@@ -1719,6 +1757,7 @@ class ControlNet(nn.Module):
     main U-Net at corresponding layers.
 
     Benefits:
+
     - Precise spatial control (e.g., pose, edges, depth)
     - Preserves pretrained model quality
     - Fast to train (only trains ControlNet, freezes main model)
@@ -1858,6 +1897,7 @@ class ControlNet(nn.Module):
 ```
 
 **Key Papers:**
+
 - [Learning Transferable Visual Models From Natural Language Supervision](https://arxiv.org/abs/2103.00020) (Radford et al., 2021) - CLIP
 - [Adding Conditional Control to Text-to-Image Diffusion Models](https://arxiv.org/abs/2302.05543) (Zhang et al., 2023) - ControlNet
 
@@ -1874,6 +1914,7 @@ FID measures the distance between distributions of generated and real images in 
 **Mathematical Formulation:**
 
 Given real images $x_r$ and generated images $x_g$, extract features using a pretrained InceptionV3 network:
+
 - $\mu_r, \Sigma_r$: Mean and covariance of real image features
 - $\mu_g, \Sigma_g$: Mean and covariance of generated image features
 
@@ -1882,6 +1923,7 @@ Given real images $x_r$ and generated images $x_g$, extract features using a pre
 ```
 
 **Properties:**
+
 - Lower is better (0 = perfect match)
 - Captures both quality and diversity
 - Requires many samples (typically 10k-50k)
@@ -2159,10 +2201,12 @@ Inception Score measures quality and diversity of generated images.
 ```
 
 where:
+
 - $p(y|x)$: Class distribution for image $x$ (from InceptionV3)
 - $p(y)$: Marginal class distribution
 
 **Properties:**
+
 - Higher is better
 - Captures both quality (confident predictions) and diversity (varied classes)
 - Biased toward ImageNet classes
@@ -2173,6 +2217,7 @@ class InceptionScore:
     Inception Score for generative model evaluation.
 
     Higher scores indicate:
+
     1. Quality: Each image has confident class prediction
     2. Diversity: Images span different classes
 
@@ -2245,15 +2290,18 @@ class InceptionScore:
 ### Other Important Metrics
 
 **Precision and Recall:**
+
 - Precision: What fraction of generated images are realistic?
 - Recall: What fraction of real data modes are covered?
 
 **Kernel Inception Distance (KID):**
+
 - Similar to FID but uses polynomial kernel
 - More robust to small sample sizes
 - Unbiased estimator
 
 **Human Evaluation:**
+
 - Still gold standard for perceptual quality
 - Common metrics:
   - Photorealism (1-5 scale)
@@ -2297,6 +2345,7 @@ def evaluate_diffusion_model_example():
 ```
 
 **Key Papers:**
+
 - [GANs Trained by a Two Time-Scale Update Rule Converge to a Local Nash Equilibrium](https://arxiv.org/abs/1706.08500) (Heusel et al., 2017) - FID
 - [CLIPScore: A Reference-free Evaluation Metric for Image Captioning](https://arxiv.org/abs/2104.08718) (Hessel et al., 2021)
 - [Improved Techniques for Training GANs](https://arxiv.org/abs/1606.03498) (Salimans et al., 2016) - Inception Score
@@ -2348,6 +2397,7 @@ class FlowMatching(nn.Module):
     Flow Matching for generative modeling.
 
     Key advantages over diffusion:
+
     1. Simpler training (direct regression, no noise schedules)
     2. Faster sampling (fewer ODE steps needed)
     3. More flexible (can use any interpolation path)
@@ -2545,6 +2595,7 @@ Standard diffusion/flow paths are curved. Rectified flows iteratively straighten
 4. Repeat 2-3 until paths are nearly straight
 
 **Benefits:**
+
 - 1-step generation possible after rectification
 - Better FID scores with fewer steps
 - Simpler sampling (straight lines easier to integrate)
@@ -2555,10 +2606,13 @@ class RectifiedFlow:
     Rectified Flow - Straightening probability flows.
 
     Algorithm:
+
     1. Train flow matching model M_0
     2. For k = 1, 2, ...
+
        a. Sample x_0 ~ data, generate x_1 by running M_{k-1}
        b. Train M_k on straight paths from x_0 to x_1
+
     3. M_k has increasingly straight paths
 
     After enough reflows, can do 1-step generation!
@@ -2615,6 +2669,7 @@ class RectifiedFlow:
 
         1. Generate (x_0, x_1) pairs from current model
         2. Retrain on straight paths between them
+
         """
         print(f"Reflow iteration {self.reflow_iterations + 1}")
 
@@ -2699,10 +2754,12 @@ class ConsistencyModel(nn.Module):
     f(x_t, t) = x_0 for all t
 
     Training:
+
     - Consistency Distillation: Distill from pretrained diffusion
     - Consistency Training: Train from scratch
 
     Inference:
+
     - 1-step: f(x_T, T) = x_0
     - Multi-step: Can still use multiple steps for quality
 
@@ -2785,6 +2842,7 @@ class SDXLTextEncoder(nn.Module):
     SDXL dual text encoder architecture.
 
     Key insight: Different text encoders capture different aspects
+
     - CLIP ViT-L/14: General semantic understanding
     - OpenCLIP ViT-bigG: Detailed visual concepts
 
@@ -2829,10 +2887,12 @@ class SDXLUNet(nn.Module):
     SDXL U-Net with dual text conditioning.
 
     Modifications from SD 1.5:
+
     - Accepts concatenated dual text embeddings
     - Larger channel counts: [320, 640, 1280] → [320, 640, 1280, 1280]
     - More transformer blocks at each resolution
     - Micro-conditioning on resolution and crop coordinates
+
     """
 
     def __init__(
@@ -2910,6 +2970,7 @@ class SDXLRefinementModel(nn.Module):
     SDXL Refiner - second stage for quality enhancement.
 
     Pipeline:
+
     1. Base model generates 1024×1024 at lower quality (25-40 steps)
     2. Refiner enhances details (15-25 steps)
 
@@ -3152,6 +3213,7 @@ class EDMSampler:
 DPM-Solver++ is a fast ODE solver specifically designed for diffusion models, achieving high quality with 10-20 steps.
 
 **Key Features:**
+
 - Analytically solves parts of the ODE
 - Multi-step predictor-corrector approach
 - Works with any diffusion model (drop-in replacement)
@@ -3294,7 +3356,9 @@ class DPMSolverPlusPlus:
         h = lambda_next - lambda_cur
         x_next = (
             (torch.exp(h)) * x
+
             - (torch.exp(h) - 1.0) * noise
+
         )
 
         return x_next
@@ -3317,8 +3381,10 @@ class DPMSolverPlusPlus:
         # Multi-step predictor with current and previous noise
         x_next = (
             torch.exp(h) * x
+
             - (torch.exp(h) - 1.0) * noise_cur
             - 0.5 * (torch.exp(h) - 1.0 - h) * (noise_cur - noise_prev)
+
         )
 
         return x_next
@@ -3358,6 +3424,7 @@ def dpmsolver_example():
 | Consistency Models | 1-4 | Fastest | Good | Complex |
 
 **Key Papers:**
+
 - [SDXL: Improving Latent Diffusion Models for High-Resolution Image Synthesis](https://arxiv.org/abs/2307.01952) (Podell et al., 2023)
 - [Elucidating the Design Space of Diffusion-Based Generative Models](https://arxiv.org/abs/2206.00364) (Karras et al., 2022) - EDM
 - [DPM-Solver++: Fast Solver for Guided Sampling of Diffusion Probabilistic Models](https://arxiv.org/abs/2211.01095) (Lu et al., 2023)
@@ -3373,6 +3440,7 @@ Applying diffusion to text is challenging because text is discrete (tokens), not
 **The Problem Being Solved:**
 
 Diffusion models excel at continuous data (images, audio) but language is fundamentally discrete (tokens). We need diffusion for text because:
+
 1. **Non-autoregressive generation**: Generate entire sequences in parallel (faster inference)
 2. **Controllability**: Easier to inject constraints than in autoregressive models
 3. **Iterative refinement**: Natural fit for editing and revision workflows
@@ -3406,6 +3474,8 @@ where $x_t$ is a one-hot encoded token and $Q_t[i,j]$ is the probability of toke
 **Common transition matrix designs:**
 
 1. **Absorbing State**: Gradually replace all tokens with [MASK]
+
+
    ```math
 Q_t[i,j] = \begin{cases}
    \alpha_t & \text{if } i=j \\
@@ -3415,6 +3485,8 @@ Q_t[i,j] = \begin{cases}
 ```
 
 2. **Uniform**: Replace with random tokens
+
+
    ```math
 Q_t[i,j] = \begin{cases}
    \alpha_t & \text{if } i=j \\
@@ -3476,6 +3548,7 @@ class DiscreteDiscreteDiffusion:
     Discrete diffusion in token space.
 
     Forward process: Gradually corrupt tokens
+
     - Replace tokens with [MASK]
     - Replace with random tokens
     - Delete tokens
@@ -3505,9 +3578,11 @@ class DiscreteDiscreteDiffusion:
         Build transition matrices for discrete diffusion.
 
         Common choices:
+
         1. Uniform: All tokens equally likely
         2. Absorbing: Gradual transition to [MASK]
         3. Discretized Gaussian: Nearby tokens more likely
+
         """
         matrices = []
 
@@ -3586,6 +3661,7 @@ class ContinuousEmbeddingDiffusion(nn.Module):
     Diffusion in continuous embedding space (Diffusion-LM approach).
 
     Key idea:
+
     1. Embed discrete tokens to continuous space
     2. Add Gaussian noise (standard diffusion)
     3. Denoise in embedding space
@@ -3728,11 +3804,13 @@ Some approaches use continuous relaxations of discrete distributions.
 **The Problem Being Solved:**
 
 Pure discrete diffusion (with transition matrices) has challenges:
+
 1. **Sampling complexity**: Requires multinomial sampling at each step (slow)
 2. **Gradient estimation**: Discrete operations break gradients
 3. **Exploration**: Hard to explore token space smoothly
 
 Continuous relaxations solve this by representing discrete distributions as **continuous** objects that we can:
+
 - Add noise to smoothly
 - Compute gradients through
 - Sample from efficiently
@@ -3746,6 +3824,7 @@ y_i = \frac{\exp((\log \pi_i + g_i)/\tau)}{\sum_j \exp((\log \pi_j + g_j)/\tau)}
 ```
 
 where:
+
 - $\pi$ is the categorical distribution (logits)
 - $g_i \sim \text{Gumbel}(0,1)$ adds stochasticity
 - $\tau$ is temperature (controls how "discrete" the distribution is)
@@ -3754,6 +3833,7 @@ As $\tau \to 0$, Gumbel-Softmax approaches a true one-hot distribution (discrete
 As $\tau \to \infty$, it becomes uniform (maximum entropy).
 
 This allows us to:
+
 1. Sample from categorical distributions **differentiably**
 2. Backpropagate through sampling operations
 3. Gradually anneal from continuous to discrete
@@ -3796,6 +3876,7 @@ class GumbelSoftmaxDiffusion:
     Diffusion with Gumbel-Softmax relaxation.
 
     Key idea:
+
     - Represent discrete distribution as Gumbel-Softmax
     - Diffusion operates on logits
     - Can use reparameterization trick for gradients
@@ -3866,6 +3947,7 @@ As of 2024/2025, autoregressive models (GPT-style) still dominate for text gener
 However, some recent work like **WeDLM** (see [Architecture Comparison: Modern LLMs](30-model-architectures.md)) shows promise by using causal attention in diffusion models, making them compatible with standard LLM infrastructure.
 
 **Key Papers:**
+
 - [Structured Denoising Diffusion Models in Discrete State-Spaces](https://arxiv.org/abs/2107.03006) (Austin et al., 2021)
 - [Diffusion-LM Improves Controllable Text Generation](https://arxiv.org/abs/2205.14217) (Li et al., 2022)
 - [Categorical Reparameterization with Gumbel-Softmax](https://arxiv.org/abs/1611.01144) (Jang et al., 2017)
@@ -3882,10 +3964,12 @@ class StableDiffusionTrainer:
     Complete training pipeline for Latent Diffusion Model.
 
     Components:
+
     1. VAE (pretrained or train separately)
     2. U-Net with cross-attention
     3. Text encoder (CLIP, pretrained)
     4. Noise scheduler
+
     """
 
     def __init__(
@@ -4118,24 +4202,29 @@ def train_stable_diffusion_example():
 ## References
 
 ### Classifier-Free Guidance
+
 1. [Classifier-Free Diffusion Guidance](https://arxiv.org/abs/2207.12598) (Ho & Salimans, 2022)
 2. [Diffusion Models Beat GANs on Image Synthesis](https://arxiv.org/abs/2105.05233) (Dhariwal & Nichol, 2021)
 
 ### Latent Diffusion
+
 3. [High-Resolution Image Synthesis with Latent Diffusion Models](https://arxiv.org/abs/2112.10752) (Rombach et al., 2022)
 4. [Stable Diffusion GitHub](https://github.com/Stability-AI/stablediffusion)
 
 ### Conditioning
+
 5. [Learning Transferable Visual Models From Natural Language Supervision](https://arxiv.org/abs/2103.00020) (Radford et al., 2021) - CLIP
 6. [Adding Conditional Control to Text-to-Image Diffusion Models](https://arxiv.org/abs/2302.05543) (Zhang et al., 2023) - ControlNet
 
 ### Recent Advances
+
 7. [Flow Matching for Generative Modeling](https://arxiv.org/abs/2210.02747) (Lipman et al., 2023)
 8. [Improving and Generalizing Flow-Based Generative Models with Minibatch Optimal Transport](https://arxiv.org/abs/2302.00482) (Tong et al., 2023)
 9. [Flow Straight and Fast: Learning to Generate and Transfer Data with Rectified Flow](https://arxiv.org/abs/2209.03003) (Liu et al., 2023)
 10. [Consistency Models](https://arxiv.org/abs/2303.01469) (Song et al., 2023)
 
 ### Diffusion for Language
+
 11. [Structured Denoising Diffusion Models in Discrete State-Spaces](https://arxiv.org/abs/2107.03006) (Austin et al., 2021)
 12. [Diffusion-LM Improves Controllable Text Generation](https://arxiv.org/abs/2205.14217) (Li et al., 2022)
 13. [Categorical Reparameterization with Gumbel-Softmax](https://arxiv.org/abs/1611.01144) (Jang et al., 2017)

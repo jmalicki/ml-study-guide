@@ -98,21 +98,25 @@
 #### Minor Technical Issues
 
 1. **Line 1401: Bug in `calculate_3d_parallelism`**
+
    ```python
    model_memory_gb = model_size_billions * 16 / self.world_size
-   ```
+```
+
    - Uses `self.world_size` but this is a function, not a class method
    - Should be: `model_memory_gb = model_size_billions * 16`
    - The division by world_size doesn't make sense in this context anyway
 
 2. **ZeRO Stage 2 Gradient Hook (lines 1105-1127)**
+
    ```python
    def _gradient_hook(self, grad, param):
        ...
        else:
            ...
            return None  # This will cause issues in PyTorch
-   ```
+```
+
    - Returning `None` from a gradient hook can cause problems
    - Should return the gradient or a zero tensor
    - Better approach: use `reduce` instead of trying to free memory this way
@@ -131,9 +135,13 @@
 #### Documentation Issues
 
 5. **DDP Example (line 353)**
+
    ```python
+
    # Run with: run_ddp_demo(world_size=torch.cuda.device_count())
-   ```
+
+```
+
    - This comment suggests calling the function, but the code uses `mp.spawn`
    - Should clarify: "Example usage: run_ddp_demo(world_size=2)"
 
@@ -155,16 +163,19 @@
 ### Specific Suggestions for Improvement
 
 1. **Add Sequence Parallelism Section**
+
    ```python
+
    ## Sequence Parallelism
 
    For very long sequences, split along sequence dimension.
    Complements tensor parallelism by reducing activation memory.
 
    [Implementation example]
-   ```
+```
 
 2. **Expand Activation Checkpointing**
+
    ```python
    from torch.utils.checkpoint import checkpoint
 
@@ -173,18 +184,24 @@
            return checkpoint(self._forward_impl, x, use_reentrant=False)
 
        def _forward_impl(self, x):
+
            # Actual computation
+
            ...
-   ```
+```
 
 3. **Add Communication Overlap Example**
+
    ```python
+
    # Show how DDP overlaps gradient all-reduce with backward pass
    # Demonstrate bucket_cap_mb parameter
+
    model = DDP(model, bucket_cap_mb=25)  # Tune for overlap
-   ```
+```
 
 4. **Fix the `calculate_3d_parallelism` Bug**
+
    ```python
    def calculate_3d_parallelism(
        total_gpus,
@@ -192,48 +209,65 @@
        memory_per_gpu_gb=80,
        activation_checkpointing=True
    ):
+
        # Estimate memory needed per GPU for model states
        # 16 bytes per param (mixed precision with Adam)
+
        base_model_memory_gb = model_size_billions * 16
 
        # Rule of thumb: tensor parallel size
+
        tensor_parallel = min(8, total_gpus)
 
        # Pipeline parallel size based on memory
+
        required_parallelism = base_model_memory_gb / memory_per_gpu_gb
        pipeline_parallel = max(1, int(required_parallelism / tensor_parallel))
 
        # Data parallel size (remaining GPUs)
+
        data_parallel = total_gpus // (pipeline_parallel * tensor_parallel)
 
        # ... rest of function
-   ```
+
+```
 
 5. **Add Debugging Tips Section**
+
    ```python
+
    ## Debugging Distributed Training
 
    1. **NCCL Debugging**:
-      ```bash
-      export NCCL_DEBUG=INFO  # Verbose NCCL logging
-      export NCCL_DEBUG_SUBSYS=ALL
+
       ```
 
+      export NCCL_DEBUG=INFO  # Verbose NCCL logging
+      export NCCL_DEBUG_SUBSYS=ALL
+
+```text
+
    2. **Deadlock Detection**:
+
       Set `TORCH_DISTRIBUTED_DEBUG=DETAIL`
 
    3. **Memory Monitoring**:
-      ```python
-      torch.cuda.memory_summary()  # On each rank
+
       ```
-   ```
+
+      torch.cuda.memory_summary()  # On each rank
+
+```text
+```
 
 6. **Clarify ZeRO Stage 3 Implementation**
    - Add a note: "Note: This is a simplified conceptual implementation. For production use, use PyTorch FSDP or DeepSpeed."
    - Or provide a more correct implementation
 
 7. **Add Gradient Accumulation Example**
+
    ```python
+
    ## Gradient Accumulation with Parallelism
 
    accumulation_steps = 4
@@ -245,7 +279,7 @@
        if (i + 1) % accumulation_steps == 0:
            optimizer.step()
            optimizer.zero_grad()
-   ```
+```
 
 8. **Enhance Pipeline Parallelism Visualization**
    - The ASCII diagram is good but could add a second one showing the improved schedule with micro-batches
@@ -254,17 +288,20 @@
 ### Cross-Reference Quality
 
 **Good References:**
+
 - Links to previous chapter (15-lm-training.md) for single-GPU training
 - Links to next chapter (17-scaling-optimization.md) for learning rate schedules
 - Links to hardware chapter (32-hardware-quantization-optimization.md)
 - Good external references (arXiv papers, PyTorch docs)
 
 **Missing References:**
+
 - Could reference attention chapter for understanding what's being parallelized
 - Could reference transformer architecture chapter
 - No reference to any flash attention chapter (if it exists) regarding memory optimization
 
 **Suggestions:**
+
 - Add reference to tokenization chapter when discussing batch preparation
 - Link to any optimization chapter when discussing Adam optimizer details
 - Cross-reference with any existing quantization chapter for combining with distributed training
@@ -272,12 +309,14 @@
 ### Interview Preparation Value
 
 **Strengths:**
+
 - Covers all major questions about distributed training in ML interviews
 - Provides the "why" behind each technique, not just the "how"
 - Memory calculations are exactly what interviewers ask about
 - Trade-off discussions demonstrate deep understanding
 
 **Could Add:**
+
 - Common interview questions section:
   - "How would you train a 100B parameter model?"
   - "Explain the difference between DDP and FSDP"
@@ -290,6 +329,7 @@
 ### Code Quality Deep Dive
 
 **Excellent Examples:**
+
 1. `ColumnParallelLinear` and `RowParallelLinear` (lines 444-615)
    - Production-quality implementation
    - Proper weight initialization
@@ -303,6 +343,7 @@
    - Mixed precision configuration
 
 **Good but Could Improve:**
+
 1. `GPipeSimple` (lines 817-886)
    - The forward pass is correct but oversimplified
    - Backward pass implementation is just a stub
@@ -314,6 +355,7 @@
    - Could show learning rate scheduling
 
 **Needs Improvement:**
+
 1. `ZeROStage3Module` (lines 1139-1252)
    - As mentioned, the parameter replacement logic is fragile
    - Should either fix or clearly mark as pseudocode
@@ -331,12 +373,13 @@
 3. **Type Hints**
    - Most functions lack type hints
    - Adding them would improve code clarity:
+
    ```python
    def calculate_model_memory(
        num_params_billions: float,
        bytes_per_param: int = 2
    ) -> float:
-   ```
+```
 
 ### Missing Real-World Considerations
 
@@ -361,11 +404,13 @@
 ### Mathematical Rigor
 
 **Strong Points:**
+
 - Memory formulas are correct and well-explained
 - Communication cost analysis is accurate
 - Bubble ratio derivation is correct
 
 **Could Improve:**
+
 1. **Derive Communication Costs More Rigorously**
    - Show how ring all-reduce achieves $O(n)$ complexity
    - Derive the $\frac{2(N-1)}{N}$ factor step by step
@@ -377,10 +422,11 @@
 
 3. **Scaling Efficiency**
    - Could add formulas for scaling efficiency:
-   ```
+
+```text
    Efficiency = (Speedup / Num_GPUs)
    Speedup = T_1GPU / T_NGPU
-   ```
+```
 
 ### Additional Exercise Suggestions
 
@@ -404,17 +450,20 @@
 ### Final Recommendations
 
 **Must Fix:**
+
 1. Bug in `calculate_3d_parallelism` function (line 1401)
 2. Clarify ZeRO Stage 3 implementation as conceptual
 3. Fix or remove the buggy gradient hook in ZeRO Stage 2
 
 **Should Add:**
+
 1. Activation checkpointing code example
 2. Sequence parallelism section (emerging importance)
 3. Debugging tips section
 4. Gradient accumulation example
 
 **Nice to Have:**
+
 1. More real-world case studies
 2. Cost analysis section
 3. Extended communication overlap discussion
@@ -426,6 +475,7 @@
 This is an **excellent chapter** that comprehensively covers distributed training for LLMs. The content is technically accurate, well-organized, and highly practical for interview preparation. The code examples are mostly production-quality and runnable. The progression from simple (DDP) to complex (3D parallelism) is pedagogically sound.
 
 The main areas for improvement are:
+
 1. Fixing a few bugs in conceptual code examples
 2. Adding coverage of emerging techniques (sequence parallelism)
 3. Expanding practical aspects (debugging, checkpointing, gradient accumulation)

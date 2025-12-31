@@ -131,6 +131,7 @@ All technical content appears correct:
 ### Cross-Reference Quality
 
 Excellent cross-referencing:
+
 - Flash Attention (chapter 12) - exists ✓
 - Multi-Head Attention (chapter 04) - exists ✓
 - Architecture Comparison (chapter 29) - exists ✓
@@ -171,6 +172,7 @@ All code should run without modifications (assuming PyTorch installed).
 ### Writing Quality
 
 The writing is excellent:
+
 - Clear progression from problem → solutions
 - Good use of headers and structure
 - Appropriate technical depth for interview preparation
@@ -178,6 +180,7 @@ The writing is excellent:
 - Code comments are informative without being verbose
 
 Minor style notes:
+
 - Consistent use of references and citations
 - Good use of tables for comparison
 - LaTeX formatting is clean and readable
@@ -204,14 +207,17 @@ None of these are critical omissions for an interview study guide, but PagedAtte
 ### Recommended Additions (Optional)
 
 1. **Brief PagedAttention Section** (~50 lines):
+
    ```python
    """
    PagedAttention (vLLM): Manages KV cache in fixed-size blocks
+
    - Reduces memory fragmentation
    - Enables efficient batching of variable-length requests
    - Near-zero memory waste
+
    """
-   ```
+```
 
 2. **Note on Combining Techniques**:
    - Flash Attention + GQA (standard in LLaMA 2/3)
@@ -227,12 +233,14 @@ None of these are critical omissions for an interview study guide, but PagedAtte
 **Zero critical errors found.** The chapter is technically sound.
 
 Minor presentation suggestions:
+
 - Line 1282: "Linear Attention" quality at 85% is approximate; varies by task (90%+ for some, 70% for others)
 - Line 1294: Could clarify that "Cache Reduction" applies during inference/generation, not training
 
 ### Final Assessment
 
 This is an **exceptional chapter** that demonstrates:
+
 - Deep technical understanding
 - Strong pedagogical skill
 - Awareness of production systems
@@ -243,6 +251,7 @@ It successfully bridges theory and practice, making it invaluable for ML intervi
 ### Comparison to Study Guide Goals
 
 From CLAUDE.md, the goals are:
+
 1. ✓ Describe algorithms - Excellent coverage of all major algorithms
 2. ✓ Use LaTeX math notation - Proper mathematical formulations throughout
 3. ✓ Include sample PyTorch code - Production-quality implementations

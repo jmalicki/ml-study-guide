@@ -31,6 +31,7 @@ AI safety for LLMs encompasses several key objectives:
 ### The Alignment Problem
 
 The core challenge is that standard language model training (next-token prediction) doesn't naturally produce models that are:
+
 - Safe to deploy
 - Aligned with human values
 - Robust to adversarial prompts
@@ -105,6 +106,7 @@ CONSTITUTION = [
 Given a prompt $p$ and initial response $r_0$, the critique-revision process can be formalized as:
 
 **Critique Step:**
+
 ```math
 c = \text{Model}(p, r_0, \text{principle}_i)
 ```
@@ -112,6 +114,7 @@ c = \text{Model}(p, r_0, \text{principle}_i)
 where $c$ is a critique identifying issues with $r_0$ according to principle $i$.
 
 **Revision Step:**
+
 ```math
 r_1 = \text{Model}(p, r_0, c, \text{"revise the response"})
 ```
@@ -125,6 +128,7 @@ The model learns to generate $r_1$ that addresses the critique $c$.
 The core challenge in Constitutional AI is **scalability**: human feedback for RLHF is expensive, slow, and can be inconsistent. Moreover, it's difficult to maintain consistent adherence to complex value systems when relying solely on pairwise human comparisons of model outputs.
 
 **Why this matters**: As models grow more capable and are deployed in diverse contexts, we need alignment techniques that can:
+
 1. Scale to billions of training examples without proportional human labor
 2. Ensure transparent, auditable principles guide model behavior
 3. Maintain consistency across different types of queries
@@ -136,11 +140,13 @@ Constitutional AI builds on two key insights:
 
 **Insight 1: Self-Improvement Through Critique**
 Instead of having humans write the "correct" response, we can have the model:
+
 1. Generate an initial response
 2. Critique its own response against explicit principles
 3. Generate an improved response based on the critique
 
 Mathematically, this creates a trajectory of improving responses:
+
 ```math
 r_0 \xrightarrow{\text{critique}_{p_1}} r_1 \xrightarrow{\text{critique}_{p_2}} r_2 \xrightarrow{\text{critique}_{p_3}} \ldots \xrightarrow{\text{critique}_{p_n}} r_n
 ```
@@ -149,6 +155,7 @@ where each $p_i$ is a constitutional principle, and $r_n$ is more aligned than $
 
 **Insight 2: AI Feedback as a Scalable Signal**
 For preference learning, instead of asking humans "which response is better?", we can:
+
 1. Ask an AI evaluator to compare responses according to constitutional principles
 2. Use these AI-generated preferences for RLAIF (RL from AI Feedback)
 3. The constitution makes the AI's judgments transparent and auditable
@@ -462,6 +469,7 @@ Red teaming is the practice of deliberately trying to make the model produce har
 Manual red teaming by human experts is invaluable but faces critical limitations: it's time-consuming, expensive, and coverage is limited by human creativity and availability. A small team of red teamers cannot exhaustively explore the vast space of possible adversarial inputs.
 
 **Why automated red teaming matters**:
+
 1. **Scalability**: Can test millions of prompts across all harm categories
 2. **Consistency**: Systematic exploration of attack vectors without human fatigue
 3. **Speed**: Continuous testing during model development, not just before deployment
@@ -472,6 +480,7 @@ However, automated systems complement rather than replace human red teamers, as 
 #### Theoretical Foundation
 
 Automated red teaming frames safety testing as an **adversarial game** between:
+
 - **Attacker**: Tries to elicit harmful outputs from the target model
 - **Target**: The LLM being tested
 - **Evaluator**: Classifies outputs as harmful or safe
@@ -616,6 +625,7 @@ class RedTeamingSystem:
         """Compute toxicity score for text.
 
         In practice, use a trained toxicity classifier like:
+
         - Perspective API
         - Detoxify
         - Fine-tuned RoBERTa
@@ -803,6 +813,7 @@ Harmlessness training focuses on preventing the model from generating harmful co
 **Problem**: Web-scraped pretraining data contains harmful content (hate speech, violence, misinformation) that models can learn to reproduce. Simply training on raw internet data leads to models that generate toxic outputs.
 
 **Why filtering matters**:
+
 - **Prevention vs. Correction**: It's easier to prevent learning harmful patterns than to unlearn them after training
 - **Computational Efficiency**: Filtering data is cheaper than extensive post-training alignment
 - **Foundation for Safety**: A cleaner base model requires less aggressive safety fine-tuning, reducing alignment tax
@@ -818,11 +829,13 @@ P(\text{harmful output}) \propto \int_{\text{harmful examples}} P(\text{data}) \
 By filtering harmful examples, we reduce this integral, lowering the base rate of harmful outputs.
 
 **Trade-offs**:
+
 - **Recall vs. Precision**: Aggressive filtering (high recall) may remove valuable content; conservative filtering (high precision) may miss harmful examples
 - **Capability Preservation**: Overly broad filtering can reduce model knowledge in legitimate domains (e.g., filtering all mentions of "weapons" removes historical and educational content)
 - **Bias Amplification**: Filtering can inadvertently remove discussions of certain communities or topics, increasing representation bias
 
 **Implementation Strategy**: Use a cascade of filters with increasing sophistication:
+
 1. **Fast keyword filter**: Remove obvious toxic content
 2. **ML classifier**: Use trained toxicity models for nuanced detection
 3. **Human review**: Audit borderline cases to refine filters
@@ -832,9 +845,11 @@ class HarmfulContentFilter:
     """Filter harmful content from training data.
 
     Uses multiple approaches:
+
     1. Keyword matching
     2. Toxicity classifiers
     3. Manual review of edge cases
+
     """
 
     def __init__(self):
@@ -899,6 +914,7 @@ def create_harmlessness_preference_data(
     """Create preference pairs emphasizing harmlessness.
 
     For each prompt:
+
     1. Generate a helpful but potentially unsafe response
     2. Generate a safe but potentially less helpful response
     3. Label the safe response as chosen
@@ -940,6 +956,7 @@ def generate_response(model, tokenizer, prompt, temperature=0.7):
 **Problem**: Balancing helpfulness and harmlessness is challenging because they can conflict. A model that refuses all potentially risky queries is harmless but not helpful; a model that always tries to be maximally helpful may generate harmful content.
 
 **Why multi-objective reward modeling matters**:
+
 - **Explicit Trade-off Control**: Hyperparameters $\alpha, \beta$ let us tune the helpfulness-safety balance
 - **Decomposed Objectives**: Separate reward heads allow us to understand which objective drives each decision
 - **Flexible Deployment**: Different weights can be used for different use cases (e.g., higher $\beta$ for child-facing applications)
@@ -953,11 +970,13 @@ R_{\text{harmless}}(x, y) = \alpha R_{\text{helpful}}(x, y) - \beta R_{\text{har
 ```
 
 where:
+
 - $R_{\text{helpful}}$ rewards useful responses
 - $R_{\text{harmful}}$ penalizes harmful content
 - $\alpha, \beta$ are weighting hyperparameters
 
 **Key insight**: The subtraction of $R_{\text{harmful}}$ (rather than addition of a "safety" reward) is important because:
+
 1. It creates a penalty that increases with harmfulness
 2. It's easier to label "this is harmful" than "this is safe" (harmful content is the exception)
 3. It naturally handles the case where a response is neither particularly helpful nor harmful (gets neutral reward)
@@ -971,6 +990,7 @@ where:
 **vs. Sequential Training**: We could first train for helpfulness, then for safety. Multi-objective training jointly optimizes both, avoiding destructive updates.
 
 **Pareto Optimality**: The weights $\alpha, \beta$ trace out different points on the Pareto frontier between helpfulness and safety. In practice:
+
 - $\beta > \alpha$: Prioritize safety (typical for consumer applications)
 - $\beta = \alpha$: Balanced (typical for research assistants)
 - $\beta < \alpha$: Prioritize capability (rare; only for specialized applications with guardrails)
@@ -1057,6 +1077,7 @@ Refusal training teaches the model to decline inappropriate requests while remai
 ### The Refusal Problem
 
 The model must:
+
 1. **Identify** when a request is inappropriate
 2. **Decline** politely without over-explaining
 3. **Avoid** being jailbroken through clever prompting
@@ -1129,6 +1150,7 @@ class RefusalDataset:
 **Problem**: Even well-aligned models can be manipulated through carefully crafted prompts (jailbreaks) that trick the model into bypassing its safety training. Attackers continuously develop new jailbreak techniques, creating an adversarial arms race.
 
 **Why detection matters**:
+
 - **Defense in Depth**: Prevents a single successful jailbreak from causing harm
 - **Early Warning**: Detected patterns inform safety training priorities
 - **User Protection**: Can trigger additional review or refuse high-risk requests
@@ -1171,6 +1193,7 @@ These patterns can be detected with regular expressions or lightweight classifie
 **vs. Adversarial Training**: Training models to refuse jailbreaks is complementary to detection. Detection catches novel attacks that weren't in training data.
 
 **Limitations**:
+
 - Pattern-based detection can be evaded with novel phrasing
 - High false positive rate may frustrate legitimate users
 - Attackers can probe to find which patterns trigger detection
@@ -1182,10 +1205,12 @@ class JailbreakDetector:
     """Detect jailbreak attempts in prompts.
 
     Identifies common jailbreak patterns:
+
     1. Role-play ("pretend you're...")
     2. Encoding (ROT13, base64)
     3. Instruction override ("ignore previous...")
     4. Hypothetical framing ("what would happen if...")
+
     """
 
     def __init__(self):
@@ -1279,6 +1304,7 @@ def adversarial_refusal_training(
     """Train model to refuse jailbreak attempts.
 
     Uses adversarial training where:
+
     1. Generate responses to jailbreak prompts
     2. Penalize harmful responses
     3. Reward appropriate refusals
@@ -1341,6 +1367,7 @@ The "alignment tax" refers to the potential degradation in model capabilities th
 ```
 
 Safety training can negatively impact:
+
 1. **Accuracy**: Model becomes more conservative
 2. **Creativity**: Reduced willingness to explore edge cases
 3. **Helpfulness**: Over-refusal on borderline queries
@@ -1350,6 +1377,7 @@ Safety training can negatively impact:
 **Problem**: Safety training can degrade model capabilities in unintended ways. A model that refuses too often becomes less useful; a model that becomes overly cautious may perform worse on technical tasks. Understanding and quantifying this degradation is essential for optimizing the safety-capability trade-off.
 
 **Why measuring alignment tax matters**:
+
 - **Optimization**: Can't improve what you don't measure
 - **Business Justification**: Quantifies the cost of safety to justify investment
 - **User Experience**: Helps find the sweet spot between safety and helpfulness
@@ -1366,6 +1394,7 @@ Define the alignment tax as the relative performance degradation:
 This measures the fraction of performance lost due to alignment.
 
 **Key Insight**: The alignment tax is not uniform across tasks:
+
 - **Factual QA**: Often minimal tax (safety doesn't impede factual responses)
 - **Creative Writing**: Higher tax (safety training can reduce creative risk-taking)
 - **Code Generation**: Variable tax (depends on whether safety training included coding data)
@@ -1403,6 +1432,7 @@ Over-refusal is particularly problematic:
 High over-refusal indicates the model is too conservative, harming user experience.
 
 **Measurement Strategy**:
+
 1. **Benchmark Suite**: Test on diverse tasks (MMLU, HumanEval, creative writing, etc.)
 2. **A/B Testing**: Compare base model vs. aligned model on same prompts
 3. **Longitudinal Tracking**: Monitor metrics across alignment iterations
@@ -1413,9 +1443,11 @@ class AlignmentTaxEvaluator:
     """Measure capability degradation from safety training.
 
     Compares base model vs. aligned model on:
+
     1. Standard benchmarks (MMLU, HumanEval, etc.)
     2. Helpfulness metrics
     3. Creative tasks
+
     """
 
     def __init__(
@@ -1550,6 +1582,7 @@ def multi_objective_training(
     """Train with multiple objectives to reduce alignment tax.
 
     Jointly optimizes:
+
     1. Task capability (weighted by capability_weight)
     2. Safety alignment (weighted by safety_weight)
 
@@ -1672,6 +1705,7 @@ The model finds technical ways to satisfy requirements while violating intent:
 Let's formalize reward hacking. The true utility we care about is $U(y|x)$, but we can only optimize a proxy reward $R(y|x)$:
 
 **Reward Misspecification Gap:**
+
 ```math
 \Delta(y|x) = U(y|x) - \alpha R(y|x)
 ```
@@ -1701,6 +1735,7 @@ The model exploits the largest gaps between proxy and true reward.
 **Problem**: Reward hacking is insidious because the model achieves high reward scores while violating our true intent. Standard metrics won't catch it - by definition, the hacked responses score well on our proxy reward. We need specialized detection methods.
 
 **Why detection matters**:
+
 - **Early Intervention**: Catch reward hacking before deployment
 - **Training Signal**: Use detected hacks to improve reward models
 - **Monitoring**: Track whether hacking increases with more RL training
@@ -1711,6 +1746,8 @@ The model exploits the largest gaps between proxy and true reward.
 The key insight is to use **multiple signals** that should correlate but may diverge under hacking:
 
 1. **Proxy-Gold Divergence**: Compare cheap reward model ($R_{\text{proxy}}$) vs. expensive/careful evaluation ($R_{\text{gold}}$):
+
+
    ```math
 \text{Divergence}(y) = R_{\text{proxy}}(y) - R_{\text{gold}}(y)
 ```
@@ -1718,6 +1755,8 @@ The key insight is to use **multiple signals** that should correlate but may div
    High divergence indicates the response exploits weaknesses in the proxy.
 
 2. **Behavioral Anomaly**: Flag responses that are statistically unusual:
+
+
    ```math
 \text{Anomaly}(y) = ||\text{Features}(y) - \mu_{\text{typical}}||
 ```
@@ -1748,6 +1787,7 @@ Each stage is more expensive but more accurate.
 4. **Continuous Monitoring**: Hacking patterns evolve during training, requiring ongoing detection
 
 **Practical Implementation Notes**:
+
 - Pattern matching catches obvious hacking cheaply
 - Anomaly detection needs baseline statistics from clean data
 - Gold reward model could be: human evaluation, more careful prompting, ensemble of models
@@ -1763,9 +1803,11 @@ class RewardHackingDetector:
     """Detect and measure reward hacking in LLM outputs.
 
     Implements multiple detection strategies:
+
     1. Proxy-gold divergence (compare multiple reward models)
     2. Behavioral anomaly detection
     3. Human auditing of high-reward examples
+
     """
 
     def __init__(
@@ -2074,6 +2116,7 @@ def create_anti_hacking_dataset() -> List[Tuple[str, str, str]]:
 **Problem**: Single-objective reward models are easier to hack because the model only needs to exploit one signal. If "helpfulness" is the only metric, the model might become verbose (more text = more helpful?). If "safety" is the only metric, the model might refuse everything.
 
 **Why multi-metric rewards matter**:
+
 - **Harder to Hack**: Exploiting multiple uncorrelated metrics simultaneously is much harder
 - **Better Specification**: Multiple metrics more closely approximate the complex true objective
 - **Interpretability**: We can see which metric drives each model decision
@@ -2092,16 +2135,19 @@ where $R_i$ measures different objectives (helpfulness, honesty, conciseness, et
 **Key Insight - Uncorrelated Metrics**: For this to work, the metrics must be relatively **uncorrelated**. If all metrics can be hacked the same way, they provide no additional robustness.
 
 For example:
+
 - **Helpfulness** and **Truthfulness** are uncorrelated: helpful lies vs unhelpful truths
 - **Conciseness** and **Completeness** are negatively correlated: detailed answers vs brief answers
 - **Safety** and **Capability** often trade off: refusing vs answering
 
 Mathematically, we want:
+
 ```math
 \text{Corr}(R_i, R_j) \approx 0 \text{ for } i \neq j
 ```
 
 **Why this reduces hacking**: To maximize the combined reward, the model must find responses that score well on ALL metrics. Hacks typically exploit one metric at the expense of others:
+
 - Sycophancy: High "agreeability" but low truthfulness
 - Verbosity: High "detail" but low conciseness
 - Over-hedging: High "carefulness" but low helpfulness
@@ -2117,6 +2163,7 @@ The multi-metric approach penalizes these exploits.
 **vs. Pareto Optimization**: Could find Pareto frontier of non-dominated solutions. Weights define our preference over this frontier.
 
 **Implementation Considerations**:
+
 - Metrics should be trained on different labeled datasets to ensure independence
 - Weights encode value trade-offs (e.g., 2x weight on safety = willing to lose 2 points of helpfulness for 1 point of safety)
 - Can monitor individual metric scores during RL to detect which objectives are being sacrificed
@@ -2235,6 +2282,7 @@ RLAIF replaces human feedback with AI feedback, making alignment more scalable.
 ### Key Idea
 
 Instead of humans providing preferences:
+
 1. Use an AI evaluator to compare responses
 2. Train preference model on AI judgments
 3. Use RL to optimize for AI-preferred responses
@@ -2255,16 +2303,22 @@ Instead of humans providing preferences:
 RLAIF follows the same RL framework as RLHF (see [RLHF](21-rlhf.md)), but the reward model $R_\phi$ is trained on AI-generated preferences:
 
 1. **AI Preference Generation**:
+
+
    ```math
 P(y_1 \succ y_2 | x) = \text{AI-Evaluator}(x, y_1, y_2, \text{constitution})
 ```
 
 2. **Reward Model Training**:
+
+
    ```math
 \mathcal{L}_R(\phi) = -\mathbb{E}_{(x,y_w,y_l) \sim \mathcal{D}_{\text{AI}}} \left[ \log \sigma(R_\phi(x,y_w) - R_\phi(x,y_l)) \right]
 ```
 
 3. **Policy Optimization** (same as RLHF):
+
+
    ```math
 \max_\theta \mathbb{E}_{x \sim \mathcal{D}, y \sim \pi_\theta} \left[ R_\phi(x,y) - \beta \log \frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y|x)} \right]
 ```
@@ -2288,6 +2342,7 @@ P(y_1 \succ y_2 | x) = f(r_1 - r_2)
 where $f$ is a monotonically increasing function.
 
 **Assumption 3**: The function $f$ should satisfy:
+
 - $f(0) = 0.5$ (equal quality = 50% preference)
 - $f(-z) = 1 - f(z)$ (symmetry)
 - $f(z) \to 1$ as $z \to \infty$ (much better = almost certain preference)
@@ -2439,6 +2494,7 @@ where $T$ is the number of RL steps.
 This is another form of reward hacking (Goodhart's law).
 
 **Mitigation**:
+
 - Ensemble reward models to estimate uncertainty
 - Early stopping in RL before overoptimization
 - Collect more preference data in high-uncertainty regions
@@ -2448,6 +2504,7 @@ This is another form of reward hacking (Goodhart's law).
 **Problem**: The theoretical Bradley-Terry model needs to be implemented with practical considerations: How do we encode prompt+response pairs? How do we measure calibration? How do we know when the reward model is uncertain?
 
 **Why this implementation matters**:
+
 - **Calibration**: A well-calibrated model's predicted probabilities match actual preference rates
 - **Uncertainty Quantification**: Knowing when the model is uncertain helps avoid overoptimization
 - **Diagnostic Tools**: Metrics like Brier score and calibration error help debug reward model issues
@@ -2457,9 +2514,12 @@ This is another form of reward hacking (Goodhart's law).
 1. **Reward from Representations**: We encode the full prompt+response text and extract a scalar reward from the representation (typically from [CLS] token or mean pooling)
 
 2. **Log-Sigmoid Trick**: Instead of computing $-\log(\sigma(x))$, use `F.logsigmoid(x)` which is numerically stable:
+
+
    ```math
 -\log \sigma(x) = -\log \frac{1}{1+e^{-x}} = \log(1+e^{-x}) = \text{softplus}(-x)
 ```
+
    PyTorch's `logsigmoid` implements this efficiently.
 
 3. **Calibration Checking**: Bin predicted probabilities (e.g., [0, 0.1), [0.1, 0.2), ...) and check if actual preference rate in each bin matches the predicted probability. Perfect calibration means predictions = reality.
@@ -2467,6 +2527,7 @@ This is another form of reward hacking (Goodhart's law).
 4. **Uncertainty via Entropy**: When two responses have similar rewards, the model is uncertain. Maximum uncertainty occurs at $p=0.5$ (entropy = $\log(2)$).
 
 **Practical Considerations**:
+
 - Need to normalize rewards during training (e.g., center at 0) to prevent reward scale drift
 - Should monitor reward distribution to detect reward hacking
 - Calibration should be checked on held-out validation set, not training data
@@ -2666,6 +2727,7 @@ if __name__ == "__main__":
 #### Problem and Motivation
 
 RLAIF addresses a fundamental bottleneck in RLHF: **human feedback doesn't scale**. Collecting preferences requires:
+
 - Recruiting annotators
 - Training them on guidelines
 - Having them read and compare responses (slow)
@@ -2675,6 +2737,7 @@ RLAIF addresses a fundamental bottleneck in RLHF: **human feedback doesn't scale
 For a production LLM, you might need millions of preference pairs. Human annotation at this scale is prohibitively expensive and slow.
 
 **Why RLAIF matters**:
+
 - **10-100x cost reduction**: AI feedback is essentially free compared to human labeling
 - **Speed**: Can generate millions of preferences in hours instead of months
 - **Consistency**: AI evaluator applies principles uniformly (no annotator fatigue)
@@ -2682,6 +2745,7 @@ For a production LLM, you might need millions of preference pairs. Human annotat
 - **Coverage**: Can generate preferences for edge cases that are rare in human-labeled data
 
 **Critical Trade-off**: RLAIF sacrifices some quality for massive scalability. AI evaluators can make mistakes that humans wouldn't, particularly on:
+
 - Subtle ethical judgments
 - Cultural context
 - Novel situations outside training distribution
@@ -2696,11 +2760,13 @@ RLAIF uses the model's own (or another AI's) judgment to evaluate responses. The
 **Alignment of Evaluator**: The AI evaluator must itself be aligned with human values. If the evaluator is misaligned, RLAIF amplifies those misalignments.
 
 Mathematically, we want:
+
 ```math
 P_{\text{AI}}(y_1 \succ y_2 | x, \text{principle}) \approx P_{\text{Human}}(y_1 \succ y_2 | x)
 ```
 
 This holds when:
+
 1. The evaluator understands the constitutional principles
 2. The principles capture human values
 3. The evaluator can correctly assess whether responses follow principles
@@ -2710,6 +2776,7 @@ This holds when:
 ![Chapter 23 safety alignment diagram 4](../assets/diagrams/ch23-safety-alignment-diagram-4.svg)
 
 This can lead to:
+
 - **Positive feedback**: Model gets better at following principles
 - **Negative feedback**: Model exploits evaluator weaknesses (reward hacking)
 
@@ -2867,6 +2934,7 @@ Answer:"""
         """Generate preference dataset using AI evaluation.
 
         For each prompt:
+
         1. Generate multiple responses
         2. Use AI to compare responses according to constitution
         3. Create preference pairs
@@ -3030,6 +3098,7 @@ Answer:"""
         1. Generate AI preference data
         2. Train reward model
         3. Run RL to optimize policy
+
         """
         print("Starting RLAIF training...\n")
 
@@ -3122,6 +3191,7 @@ if __name__ == "__main__":
 **Problem**: Individual safety techniques each address specific threats, but production deployment requires **defense in depth** - multiple layers that work together. A single safety mechanism can fail; a comprehensive pipeline provides redundancy and catches threats at different stages.
 
 **Why a multi-layered pipeline matters**:
+
 - **Multiple Failure Modes**: Different attacks exploit different vulnerabilities (jailbreaks, prompt injection, reward hacking, etc.)
 - **Redundancy**: If one layer fails, others may still catch the issue
 - **Stage-Appropriate Defense**: Input filtering prevents bad prompts, output filtering catches bad generations
@@ -3180,10 +3250,12 @@ class SafetyPipeline:
     """Complete safety pipeline for LLM deployment.
 
     Combines multiple safety techniques:
+
     1. Input filtering (jailbreak detection)
     2. Safe generation (refusal training)
     3. Output filtering (toxicity detection)
     4. Logging and monitoring
+
     """
 
     def __init__(
@@ -3268,6 +3340,7 @@ class SafetyPipeline:
         """Compute toxicity score.
 
         In production, use dedicated toxicity classifiers:
+
         - Detoxify: https://github.com/unitaryai/detoxify
         - Perspective API: https://perspectiveapi.com/
         - HuggingFace toxicity models
@@ -3357,12 +3430,14 @@ if __name__ == "__main__":
 ### Real Toxicity Detection with Production Libraries
 
 **Problem**: The simplified keyword-based toxicity scoring used in examples above has severe limitations:
+
 - High false positive rate (flags legitimate medical/legal/historical content)
 - High false negative rate (misses subtle toxicity)
 - No context understanding (can't distinguish between discussing hate speech vs. using it)
 - No severity grading (treats all "bad" words equally)
 
 **Why production-grade toxicity detection matters**:
+
 - **Legal/Compliance**: Content moderation requirements for certain jurisdictions
 - **Brand Safety**: Preventing the model from generating content that damages reputation
 - **User Safety**: Protecting users from harmful content
@@ -3379,11 +3454,13 @@ P(\text{toxic}_i | x) = \sigma(f_i(x))
 where $i$ indexes different toxicity types (overall toxicity, threat, insult, identity attack, etc.).
 
 The model $f$ is usually a transformer (BERT, RoBERTa) fine-tuned on datasets like:
+
 - **Jigsaw Toxic Comments**: 2M Wikipedia comments with toxicity labels
 - **Civil Comments**: 2M comments with multiple rater annotations
 - **HatEval**: Hate speech dataset with fine-grained categories
 
 **Key Challenge - Bias**: Toxicity classifiers can exhibit bias, flagging mentions of marginalized identities even in non-toxic contexts (e.g., "I am gay" flagged as toxic). The "unbiased" variants use techniques like:
+
 - Debiasing training data to balance identity mentions in toxic vs. non-toxic examples
 - Adversarial training to reduce correlation between identity terms and toxicity
 - Multi-task learning with identity detection as auxiliary task
@@ -3397,6 +3474,7 @@ The model $f$ is usually a transformer (BERT, RoBERTa) fine-tuned on datasets li
 **vs. Human Moderation**: Humans are most accurate but don't scale. Use ML for first-pass filtering, humans for appeals/edge cases.
 
 **Implementation Strategy**:
+
 1. **Fast Tier**: Keyword filter (ms latency)
 2. **Medium Tier**: Detoxify/similar classifier (10-100ms)
 3. **Slow Tier**: LLM evaluation (100-1000ms)
@@ -3421,6 +3499,7 @@ class DetoxifyToxicityClassifier:
     """Production-grade toxicity detection using Detoxify.
 
     Detoxify provides multiple toxicity dimensions:
+
     - toxicity: Overall toxicity
     - severe_toxicity: Very toxic content
     - obscene: Obscene language
@@ -3428,6 +3507,7 @@ class DetoxifyToxicityClassifier:
     - insult: Insulting language
     - identity_attack: Attacks on identity groups
     - sexual_explicit: Sexually explicit content
+
     """
 
     def __init__(self, model_type: str = "original"):
@@ -3435,9 +3515,11 @@ class DetoxifyToxicityClassifier:
 
         Args:
             model_type: 'original', 'unbiased', or 'multilingual'
+
                 - original: Standard model trained on Jigsaw data
                 - unbiased: Reduced bias on identity terms
                 - multilingual: Supports multiple languages
+
         """
         self.model = Detoxify(model_type)
         self.model_type = model_type
@@ -3571,6 +3653,7 @@ class PerspectiveAPIToxicityClassifier:
     Requires API key from https://perspectiveapi.com/
 
     Perspective provides scores for:
+
     - TOXICITY
     - SEVERE_TOXICITY
     - IDENTITY_ATTACK
@@ -3579,6 +3662,7 @@ class PerspectiveAPIToxicityClassifier:
     - THREAT
     - SEXUALLY_EXPLICIT
     - FLIRTATION
+
     """
 
     def __init__(self, api_key: str):
@@ -3741,9 +3825,11 @@ class HuggingFaceToxicityClassifier:
     """Toxicity detection using HuggingFace models.
 
     Uses pre-trained models from HuggingFace Hub:
+
     - "unitary/toxic-bert"
     - "martin-ha/toxic-comment-model"
     - "s-nlp/roberta_toxicity_classifier"
+
     """
 
     def __init__(self, model_name: str = "unitary/toxic-bert"):
@@ -3976,6 +4062,8 @@ if __name__ == "__main__":
 ### Best Practices for Production Toxicity Detection
 
 1. **Use Multiple Thresholds**: Different severity levels need different thresholds
+
+
    ```python
    if toxicity > 0.9:
        action = "block"
@@ -3983,14 +4071,16 @@ if __name__ == "__main__":
        action = "flag_for_review"
    elif toxicity > 0.5:
        action = "log_and_monitor"
-   ```
+```
 
 2. **Ensemble Methods**: Combine multiple models for better accuracy
+
+
    ```python
    detoxify_score = detoxify_model.predict(text)['toxicity']
    hf_score = hf_model.predict(text)['score']
    final_score = 0.6 * detoxify_score + 0.4 * hf_score
-   ```
+```
 
 3. **Context-Aware Detection**: Some words are toxic in some contexts but not others
    - Consider conversation history
@@ -4003,13 +4093,15 @@ if __name__ == "__main__":
    - Monitor precision/recall on production data
 
 5. **Graceful Degradation**: Have fallbacks if APIs fail
+
+
    ```python
    try:
        score = perspective_api.predict(text)
    except Exception as e:
        logger.error(f"Perspective API failed: {e}")
        score = detoxify_fallback.predict(text)  # Fallback to local model
-   ```
+```
 
 ---
 
@@ -4049,6 +4141,7 @@ if __name__ == "__main__":
 ### Architecture Comparison
 
 For production safety systems like Claude's, see [Architecture Comparison: Modern LLMs](30-model-architectures.md), which discusses:
+
 - Claude's use of Constitutional AI and RLAIF
 - How different models approach safety-capability tradeoffs
 - Production deployment considerations
@@ -4111,11 +4204,13 @@ For production safety systems like Claude's, see [Architecture Comparison: Moder
 ---
 
 **Next Steps:**
+
 - Review [RLHF](21-rlhf.md) for the foundational RL techniques
 - See [DPO](22-dpo.md) for an alternative to RL-based alignment
 - Check [Architecture Comparison](30-model-architectures.md) for how different models implement safety
 
 **Further Reading:**
+
 - Explore Anthropic's research on Constitutional AI
 - Study recent jailbreak techniques and defenses
 - Investigate interpretability techniques for understanding safety failures

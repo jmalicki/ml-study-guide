@@ -46,10 +46,12 @@ Understanding how language models scale is one of the most important questions i
 - When do emergent capabilities appear and are they predictable?
 
 **Prerequisites:** This chapter assumes familiarity with:
+
 - Basic neural network training ([Chapter 15](15-lm-training.md))
 - Understanding of optimization and training dynamics ([Chapter 17](17-scaling-optimization.md))
 
 ---
+
 ## Scaling Laws for Neural Language Models
 
 Scaling laws describe how model performance (typically measured by loss) changes as we vary model parameters, training data, and compute budget. These empirical relationships help us predict performance and make informed architectural decisions.
@@ -126,6 +128,7 @@ N_{opt} \approx \left(\frac{C}{6}\right)^{0.49}, \quad D_{opt} \approx 20 \times
 #### The Chinchilla Model
 
 The paper's namesake model, Chinchilla:
+
 - **Parameters**: 70B (4× smaller than Gopher's 280B)
 - **Training tokens**: 1.4T (4× more than Gopher)
 - **Performance**: Outperformed Gopher on most benchmarks
@@ -142,11 +145,13 @@ L(N, D) = \frac{a}{N^\alpha} + \frac{b}{D^\beta} + L_\infty
 ```
 
 Optimizing this under the compute constraint $C = 6ND$ shows that $N_{opt}$ and $D_{opt}$ should both scale as $C^{0.5}$, rather than prioritizing one over the other. This is derived by:
+
 1. Taking partial derivatives: $\frac{\partial L}{\partial N}$ and $\frac{\partial L}{\partial D}$
 2. Setting them equal (for optimal allocation)
 3. Solving under the constraint $C = 6ND$
 
 **How This Relates to Alternatives:**
+
 - **Kaplan scaling**: Recommended $N \propto C^{0.73}$ and $D \propto C^{0.27}$ (heavily favoring model size)
 - **Chinchilla scaling**: Recommends $N \propto C^{0.5}$ and $D \propto C^{0.5}$ (balanced allocation)
 - **Impact**: For the same compute, Chinchilla approach trains a 4× smaller model on 4× more data, achieving better performance
@@ -181,6 +186,7 @@ The shift from Kaplan to Chinchilla scaling laws had major implications:
 | **Model size trend** | Maximize size | Smaller models OK | Enabled efficient models |
 
 **Modern practice** (2024-2025):
+
 - Most models follow Chinchilla or train even longer
 - LLaMA 3 8B: trained on 15T tokens (~1875 tokens/param)
 - Extended training beyond Chinchilla optimal is common
@@ -207,6 +213,7 @@ C \approx 6ND
 ```
 
 where:
+
 - $N$ = number of parameters (non-embedding)
 - $D$ = number of training tokens
 - Factor of 6 accounts for forward pass (2ND) and backward pass (4ND)
@@ -216,16 +223,19 @@ where:
 **Problem:** Before committing to a training run, we need to estimate how long it will take and how much it will cost. Underestimating leads to incomplete training; overestimating wastes budget planning.
 
 **Theoretical Justification:** The $C \approx 6ND$ formula comes from counting floating-point operations in transformers:
+
 - **Forward pass**: Each matrix multiplication of size $d \times d$ with batch size $B$ and sequence length $L$ requires $\approx 2BLd^2$ FLOPs (2 FLOPs per multiply-add)
 - **Backward pass**: Requires computing gradients w.r.t. inputs and weights, which is roughly 2× the forward pass compute
 - **Total**: Forward (1×) + Backward (2×) = 3×, and each operation processes 2 FLOPs per parameter, giving $6ND$
 
 **Real-World Adjustments:**
+
 - **Efficiency factor**: GPUs rarely achieve 100% utilization. Typical: 30-60% for LLM training
 - **Attention overhead**: Flash Attention is near-optimal, but standard attention adds overhead
 - **Communication**: Multi-GPU training has data transfer costs (typically 10-20% overhead)
 
 **How This Relates to Alternatives:**
+
 - **Simple estimate** ($C = ND$): Ignores backward pass, off by 6×
 - **Detailed counting**: Track every operation in every layer (too complex, gives similar result)
 - **Empirical measurement**: Profile actual runs (most accurate, but requires training to start)
@@ -235,6 +245,7 @@ where:
 **Example Compute Calculations:**
 
 For a 70B parameter model trained on 1.4T tokens (Chinchilla):
+
 - Total FLOPs: $C \approx 6 \times 70 \times 10^9 \times 1.4 \times 10^{12} = 5.88 \times 10^{23}$ FLOPs
 - With efficiency factor of 0.4: $\approx 1.47 \times 10^{24}$ FLOPs actual
 - On 1024 A100 GPUs (312 TFLOPS each): $\approx 1.47 \times 10^{24} / (312 \times 10^{12} \times 1024) \approx 4.6$ million seconds $\approx 53$ days
@@ -265,17 +276,20 @@ This transition can happen thousands or even millions of steps after achieving p
 Grokking was first observed on algorithmic tasks, particularly modular arithmetic:
 
 **Task: Modular Addition**
+
 - Input: Two integers $a, b \in \{0, 1, \ldots, p-1\}$
 - Output: $(a + b) \mod p$
 - Dataset: All $p^2$ possible pairs (for small primes like $p=97$ or $p=113$)
 - Split: Random 50% train, 50% validation
 
 **Why this task?**
+
 - Small, finite dataset (easy to memorize)
 - Clear generalization signal (modular structure)
 - Algorithmic task requires learning the underlying rule, not just pattern matching
 
 **Typical observation:**
+
 - Training accuracy → 100% after 50-200 epochs
 - Validation accuracy stays ~random (1/p) for 1000-10000 epochs
 - Then suddenly jumps to ~100% (grokking!)
@@ -285,12 +299,14 @@ Grokking was first observed on algorithmic tasks, particularly modular arithmeti
 **Problem:** During training, we observe three distinct phases. Understanding what the model is doing in each phase reveals how it transitions from memorization to true understanding.
 
 **Phase 1: Memorization (epochs 0-50)**
+
 - Model learns to map specific training examples to outputs
 - Uses lookup-table-like approach
 - Training loss → 0, validation loss stays high
 - Internal representations are scattered, not structured
 
 **Phase 2: Circuit Formation (epochs 50-5000)**
+
 - *This is the key mysterious phase*
 - Training metrics plateau (appears converged)
 - Model is actually still learning, but imperceptibly
@@ -298,6 +314,7 @@ Grokking was first observed on algorithmic tasks, particularly modular arithmeti
 - Weight decay is crucial here (see below)
 
 **Phase 3: Generalization (epochs 5000+)**
+
 - Sudden transition to algorithmic solution
 - Validation accuracy → 100%
 - Internal circuits now implement the modular arithmetic operation
@@ -314,6 +331,7 @@ Why does the model eventually prefer the algorithmic solution over memorization?
 3. **Representation Learning**: During the plateau phase, the model gradually reorganizes its internal representations. This happens through tiny weight updates that don't affect training loss but build toward the structured solution.
 
 **How This Relates to Alternatives:**
+
 - **Early stopping**: Would prevent grokking by stopping during Phase 2
 - **No weight decay**: Grokking often doesn't occur (model stays in memorization mode)
 - **Larger models**: Can grok faster (more capacity to find efficient representations)
@@ -329,6 +347,7 @@ Several mechanisms have been proposed to explain grokking:
 **Observation:** Grokking rarely happens without weight decay (or other regularization).
 
 **Why?** 
+
 - Memorization solutions have high complexity (many parameters, large weights)
 - Algorithmic solutions have low complexity (structured, sparse)
 - Weight decay provides gradient toward simpler solutions
@@ -343,6 +362,7 @@ Even when $L_{\text{train}} = 0$, the weight decay term keeps driving updates.
 #### 2. Circuit Formation and Lottery Tickets
 
 **Connection to Lottery Ticket Hypothesis:**
+
 - During memorization, model explores many subnetworks
 - Weight decay prunes ineffective pathways
 - Eventually discovers a "winning ticket" - a subnetwork that implements the algorithm
@@ -351,11 +371,13 @@ Even when $L_{\text{train}} = 0$, the weight decay term keeps driving updates.
 #### 3. Representation Reorganization
 
 **Mechanistic interpretability studies show:**
+
 - Early training: representations are basis-aligned (one neuron per training example)
 - Late training: representations are Fourier-aligned (neurons represent frequency components)
 - Transition is gradual but acceleration is sudden
 
 For modular arithmetic, the final solution often uses Fourier features:
+
 ```math
 \text{Embedding}(x) = [\cos(2\pi kx/p), \sin(2\pi kx/p)]_{k=1}^{K}
 ```
@@ -437,9 +459,11 @@ class ModularMLP(nn.Module):
     Simple MLP for modular arithmetic.
     
     Architecture:
+
     - Embedding layer for inputs
     - Hidden layers
     - Output layer (logits over p classes)
+
     """
     
     def __init__(self, p: int, d_model: int = 128, n_layers: int = 2, dropout: float = 0.0):
@@ -655,6 +679,7 @@ Does grokking happen in large language models?
 3. **Compositional generalization**: Models suddenly compose learned concepts
 
 **Difference from toy examples:**
+
 - LLMs have massive, diverse data (not small algorithmic datasets)
 - Emergence happens during pre-training, not just memorization → generalization
 - Scale-dependent: larger models grok faster or at different points
@@ -679,11 +704,13 @@ The classical recipe: Use cross-validation to find the sweet spot and stop there
 **Modern Deep Learning Reality:**
 
 Large neural networks violate this wisdom:
+
 - Massively overparameterized (far beyond classical "sweet spot")
 - Train to zero training error (perfect interpolation)
 - Yet generalize well on test data
 
 **Key Papers:**
+
 - [Reconciling modern machine learning practice and the bias-variance trade-off](https://arxiv.org/abs/1812.11118) (Belkin et al., 2019)
 - [Deep Double Descent: Where Bigger Models and More Data Hurt](https://arxiv.org/abs/1912.02292) (Nakkiran et al., 2019)
 
@@ -696,6 +723,7 @@ Nakkiran et al. (2019) identified three distinct manifestations of double descen
 **Setup:** Fix dataset and training epochs, vary model size.
 
 **Observation:** Test error follows a double-descent curve:
+
 1. **First descent**: Increasing model size from small → optimal reduces test error (classical regime)
 2. **Peak**: At the interpolation threshold (model barely large enough to fit training data), test error spikes
 3. **Second descent**: Increasing model size beyond interpolation threshold reduces test error again
@@ -713,6 +741,7 @@ Why does this happen?
 **Setup:** Fix model size and dataset, vary training epochs.
 
 **Observation:** For certain model sizes (near interpolation threshold), test error can:
+
 1. Decrease during early training
 2. Increase as model starts to overfit
 3. Decrease again with more training (!)
@@ -728,6 +757,7 @@ This is especially counterintuitive: training *longer* after overfitting can imp
 **Observation:** Adding more training data can sometimes *hurt* test performance!
 
 Specifically:
+
 - Small dataset: Model underfits or barely interpolates
 - Medium dataset (near interpolation threshold): Model overfits badly
 - Large dataset: Model regularized by data quantity, generalizes well
@@ -737,6 +767,7 @@ Specifically:
 **Definition:** The interpolation threshold is the critical point where the model has just enough capacity to perfectly fit the training data.
 
 **Mathematical intuition:**
+
 - Let $N$ = number of model parameters
 - Let $n$ = number of training examples
 - Interpolation threshold: $N \approx n$
@@ -748,6 +779,7 @@ When $N \approx n$, the model must use *all* of its parameters to fit the data, 
 When $N \gg n$, the model has many degrees of freedom. SGD's implicit bias toward simple solutions means it can find an interpolant that is smooth and generalizes well.
 
 **Connection to linear algebra:**
+
 - $N < n$: Underdetermined system, can't fit all data
 - $N = n$: Exactly determined, unique solution (often high-norm, poor generalization)
 - $N > n$: Overdetermined, infinitely many interpolating solutions (SGD finds good ones)
@@ -959,6 +991,7 @@ Emergent capabilities are abilities that appear in large language models that ar
 ### What is Emergence?
 
 **Definition:** A capability is **emergent** if it is:
+
 1. Not present in smaller models
 2. Appears in larger models
 3. Not explicitly trained for or directly predictable from training
@@ -966,6 +999,7 @@ Emergent capabilities are abilities that appear in large language models that ar
 **Key Paper:** [Emergent Abilities of Large Language Models](https://arxiv.org/abs/2206.07682) (Wei et al., 2022)
 
 **Philosophical questions:**
+
 - Are emergent capabilities truly discontinuous, or do they emerge gradually?
 - Are they artifacts of our evaluation metrics?
 - Can we predict which capabilities will emerge at what scale?
@@ -977,12 +1011,14 @@ Emergent capabilities are abilities that appear in large language models that ar
 **What is it?** The ability to learn from examples provided in the prompt without gradient updates.
 
 **Emergence:**
+
 - GPT-2 (1.5B): Minimal in-context learning
 - GPT-3 (175B): Strong few-shot learning on many tasks
 - Threshold: ~10-100B parameters
 
 **Example:**
-```
+
+```text
 Translate English to French:
 sea otter => loutre de mer
 peppermint => menthe poivrée
@@ -999,12 +1035,14 @@ Small models fail this task. Large models generalize the pattern.
 **Key Paper:** [Chain-of-Thought Prompting Elicits Reasoning in Large Language Models](https://arxiv.org/abs/2201.11903) (Wei et al., 2022)
 
 **Emergence:**
+
 - Models <10B parameters: Chain-of-thought prompting doesn't help (sometimes hurts)
 - Models >50B parameters: Significant improvements with chain-of-thought
 - Sharp transition around 10-50B parameters
 
 **Example:**
-```
+
+```text
 Q: Roger has 5 tennis balls. He buys 2 more cans of tennis balls. 
 Each can has 3 tennis balls. How many tennis balls does he have now?
 
@@ -1019,12 +1057,14 @@ Small models either don't produce the reasoning chain or produce nonsensical one
 #### 3. Multi-Step Reasoning
 
 **Tasks where emergence is observed:**
+
 - Multi-digit arithmetic
 - Logical deduction
 - Physical reasoning
 - Code synthesis
 
 **Pattern:**
+
 - <1B parameters: Random or near-random performance
 - 1-10B: Slight improvement, still poor
 - 10-100B: Rapid improvement
@@ -1035,6 +1075,7 @@ Small models either don't produce the reasoning chain or produce nonsensical one
 **What is it?** The ability to follow complex, multi-step instructions from natural language prompts.
 
 **Emergence:**
+
 - Enhanced by instruction tuning (SFT), but base capability emerges with scale
 - Smaller models struggle with multi-part instructions
 - Larger models can parse and execute complex instruction sequences
@@ -1044,6 +1085,7 @@ Small models either don't produce the reasoning chain or produce nonsensical one
 Emergent capabilities often show **phase transition** behavior:
 
 **Smooth scaling:** Loss decreases smoothly with model size (predictable)
+
 ```math
 L(N) = a N^{-b} + c
 ```
@@ -1087,6 +1129,7 @@ Recent work has challenged whether emergent capabilities are truly discontinuous
 3. **Mechanism changes**: Larger models may use fundamentally different algorithms (e.g., memorization → reasoning)
 
 **Current consensus:**
+
 - Some "emergent" capabilities are indeed artifacts of measurement
 - Some capabilities show genuine phase transitions
 - The distinction is important for predicting future model capabilities
@@ -1126,6 +1169,7 @@ Beyond specific capabilities, several general phenomena characterize neural scal
 **Observation:** Training and validation loss curves are remarkably predictable across scales.
 
 **Chinchilla scaling law for loss:**
+
 ```math
 L(N, D) = \frac{A}{N^\alpha} + \frac{B}{D^\beta} + L_\infty
 ```
@@ -1135,6 +1179,7 @@ L(N, D) = \frac{A}{N^\alpha} + \frac{B}{D^\beta} + L_\infty
 - Enables planning without expensive experiments
 
 **Practical use:**
+
 - Predict final loss before training
 - Decide whether to increase model size or training tokens
 - Estimate ROI of additional compute
@@ -1144,6 +1189,7 @@ L(N, D) = \frac{A}{N^\alpha} + \frac{B}{D^\beta} + L_\infty
 **Question:** Do scaling laws learned on one domain transfer to others?
 
 **Findings:**
+
 - Exponents ($\alpha$, $\beta$) are relatively universal across domains
 - Coefficients (A, B) vary by domain
 - Can calibrate with small-scale experiments, then extrapolate
@@ -1160,6 +1206,7 @@ L(N, D) = \frac{A}{N^\alpha} + \frac{B}{D^\beta} + L_\infty
 4. **Compositional generalization** (100B+): Combining concepts in novel ways
 
 **Why this order?**
+
 - Simpler capabilities require less model capacity
 - Complex capabilities build on simpler ones
 - Data distribution: more examples of simple tasks
@@ -1169,11 +1216,13 @@ L(N, D) = \frac{A}{N^\alpha} + \frac{B}{D^\beta} + L_\infty
 **Observation:** Scaling is not uniformly smooth. Some capabilities improve gradually, others show sudden jumps.
 
 **Patterns:**
+
 - **Smooth improvement**: Basic language modeling, next-token prediction
 - **Sudden improvement**: Reasoning, compositional tasks, specialized knowledge
 - **Plateaus**: Some capabilities plateau at certain scales (may need architectural changes)
 
 **Example - Arithmetic:**
+
 - 1-digit addition: smooth scaling
 - 2-digit addition: sharp transition around 10B
 - 3-digit addition: sharp transition around 100B

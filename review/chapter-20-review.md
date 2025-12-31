@@ -80,10 +80,12 @@
 
 1. **Code Completeness**
    - Line 2369: `prepare_dataset()` is referenced but not implemented
+
      ```python
      train_dataset = prepare_dataset(tokenizer, "train")
      eval_dataset = prepare_dataset(tokenizer, "validation")
-     ```
+```
+
    - Suggestion: Add a simple example implementation or comment that this is task-specific
 
 2. **LoRA+ Example**
@@ -152,50 +154,65 @@
 #### Code Errors:
 
 1. **Prefix Tuning Implementation** (Line 1023-1054)
+
    ```python
+
    # Current code has shape mismatch:
+
    prefix_flat = self.prefix[layer_idx].view(2, self.prefix_length, -1)
    prefix_hidden = self.prefix_mlp(prefix_flat)  # MLP expects [*, hidden_size]
-   ```
+```
+
    Should be:
+
    ```python
+
    # Apply MLP to each position separately
+
    prefix_flat = self.prefix[layer_idx].view(2 * self.prefix_length, -1)
    prefix_hidden = self.prefix_mlp(prefix_flat)
    prefix_kv = prefix_hidden.view(2, self.prefix_length, self.n_heads, self.head_dim)
-   ```
+```
 
 2. **DoRA Weight Computation** (Line 1845)
+
    ```python
    weight = self.magnitude.unsqueeze(1) * direction
-   ```
+```
+
    This broadcasts magnitude correctly, but should include a comment about the shape for clarity.
 
 3. **Multi-LoRA Batched Inference** (Line 2064)
+
    ```python
    final_output = torch.zeros(len(x), *outputs[0][1].shape[1:])
-   ```
+```
+
    Should specify device and dtype:
+
    ```python
    final_output = torch.zeros(len(x), *outputs[0][1].shape[1:],
                                device=x.device, dtype=x.dtype)
-   ```
+```
 
 #### Technical Issues:
 
 4. **NF4 Quantization Performance** (Line 669-676)
    - The nested loop for finding nearest quantile is very slow
    - Should use vectorized operations:
+
    ```python
    distances = torch.abs(nf4_levels.unsqueeze(0).unsqueeze(0) -
                         normalized.unsqueeze(-1))
    quantized = torch.argmin(distances, dim=-1).to(torch.uint8)
-   ```
+```
 
 5. **Memory Calculation** (Line 64)
+
    ```python
    optimizer_memory = model_params_billions * 1e9 * 4 * 2
-   ```
+```
+
    Comment says "2x for first and second moments" but should mention these are in FP32 (4 bytes each)
 
 #### Minor Typos/Clarity:
@@ -209,7 +226,9 @@
 ### Specific Suggestions for Improvement
 
 1. **Add Performance Benchmarks Section**
+
    ```markdown
+
    ### Empirical Performance Comparison
 
    | Task Type | Full FT | LoRA r=8 | LoRA r=16 | QLoRA r=16 | Prompt Tuning |
@@ -219,10 +238,12 @@
    | Code Generation | 100% | 94-97% | 96-98% | 95-97% | 80-88% |
 
    *Approximate performance relative to full fine-tuning baseline*
-   ```
+```
 
 2. **Add Failure Modes Section**
+
    ```markdown
+
    ### When PEFT Methods Struggle
 
    1. **Large Domain Shift**: Medical/Legal domain adaptation from general pretrained model
@@ -236,27 +257,32 @@
    3. **Small Model, Small Rank**: Models <3B with r<8
       - Limited capacity may not be sufficient
       - Consider higher rank or full FT
-   ```
+
+```
 
 3. **Fix Prefix Tuning MLP Implementation**
 
 4. **Add Training Time Comparison**
+
    ```python
    def compare_training_time():
        """
        Training time comparison (approximate, single A100):
 
        7B model, 10K examples:
+
        - Full FT: ~8 hours
        - LoRA (r=8): ~3 hours (2.7x faster)
        - QLoRA (r=8): ~5 hours (1.6x faster, slower due to quantization overhead)
 
        Speedup factors depend on:
+
        - Batch size (memory-constrained in full FT)
        - Model architecture
        - Number of LoRA target modules
+
        """
-   ```
+```
 
 5. **Add Visual Diagrams**
    - Consider adding ASCII art or references to diagrams for:
@@ -272,11 +298,13 @@
 ### Cross-Reference Quality
 
 **Excellent cross-references:**
+
 - References to Chapter 18 (SFT) are appropriate
 - Reference to Chapter 20 (RLHF) makes sense
 - Reference to Chapter 31 (Hardware/Quantization) is relevant
 
 **Suggestions:**
+
 - Could reference attention chapters when discussing applying LoRA to Q/K/V projections
 - Could reference tokenization chapter when discussing embedding layer adaptation
 - Links should be verified to ensure chapter numbers match the outline
@@ -284,6 +312,7 @@
 ### Summary Assessment
 
 This is an **exceptional chapter** that would be extremely valuable for ML interviews. The combination of:
+
 - Clear mathematical explanations
 - Comprehensive, runnable code
 - Practical guidance and decision frameworks
@@ -293,11 +322,13 @@ This is an **exceptional chapter** that would be extremely valuable for ML inter
 makes this one of the best technical references for PEFT methods.
 
 The few issues identified are minor and mostly involve:
+
 - Small implementation details that could be optimized
 - Missing helper functions in examples
 - Opportunities for additional content (benchmarks, failure modes)
 
 **For interview preparation**, this chapter provides:
+
 1. ✅ Deep understanding of LoRA mathematics
 2. ✅ Ability to implement from scratch
 3. ✅ Knowledge of when to use different methods
@@ -309,17 +340,20 @@ The few issues identified are minor and mostly involve:
 ### Priority Fixes
 
 **High Priority:**
+
 1. Fix Prefix Tuning MLP shape issue (technical correctness)
 2. Add implementation for `prepare_dataset()` or mark as placeholder
 3. Optimize NF4 quantization loop (performance)
 
 **Medium Priority:**
+
 4. Add performance benchmarks table
 5. Fix `unmerge_weights()` logic
 6. Add failure modes section
 7. Verify cross-reference links
 
 **Low Priority:**
+
 8. Add diagrams/visualizations
 9. Improve table formatting
 10. Add training time comparisons
@@ -327,6 +361,7 @@ The few issues identified are minor and mostly involve:
 ### Interview Readiness Score: 9.5/10
 
 This chapter fully prepares someone for interview questions about:
+
 - LoRA theory and implementation
 - PEFT method selection
 - Memory optimization for LLM fine-tuning

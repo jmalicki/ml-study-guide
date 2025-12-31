@@ -119,10 +119,12 @@
 **No Major Errors Found** - The chapter is remarkably accurate. Minor issues:
 
 1. **Line 299 (cfg_sampling_example)**
+
    ```python
    alpha_t = 1 - i / num_steps
    x = (x - (1 - alpha_t) * noise_pred) / torch.sqrt(torch.tensor(alpha_t))
-   ```
+```
+
    - This is an oversimplified DDPM step; real implementation needs proper alpha_bar handling
    - Comment says "(simplified)" which is good, but might confuse readers
 
@@ -135,9 +137,11 @@
    - Should be `self._tokenize()` and needs implementation or comment
 
 4. **Line 1379 (FlowMatching.training_step)**
+
    ```python
    x_t, u_t = self.get_conditional_flow(x0, x1, t.view(-1, 1, 1, 1))
-   ```
+```
+
    - This assumes 4D tensors (images) but should be flexible for different dimensions
    - Should reshape based on actual dimensions or document image-only assumption
 
@@ -148,6 +152,7 @@
 ### Specific Suggestions for Improvement
 
 1. **Add a Scheduler Implementation**
+
    ```python
    class DDPMScheduler:
        """Simple DDPM scheduler for completeness"""
@@ -156,8 +161,10 @@
            self.betas = torch.linspace(beta_start, beta_end, num_train_timesteps)
            self.alphas = 1.0 - self.betas
            self.alphas_cumprod = torch.cumprod(self.alphas, dim=0)
+
        # ... etc
-   ```
+
+```
 
 2. **Enhance U-Net Example**
    - Add at least downsampling/upsampling blocks
@@ -180,13 +187,16 @@
 
 6. **Improve Discrete Diffusion Efficiency**
    - Vectorize the forward_diffusion loop:
+
    ```python
+
    # Instead of token-by-token loop:
+
    batch_indices = torch.arange(batch_size).repeat_interleave(seq_len)
    token_indices = x0.flatten()
    probs = Q_t[token_indices]
    x_t = torch.multinomial(probs, 1).reshape(x0.shape)
-   ```
+```
 
 7. **Add Memory Optimization Tips**
    - Brief subsection on gradient checkpointing
@@ -223,6 +233,7 @@
 **Runnability Score: 7/10**
 
 **What Works:**
+
 - Individual classes are well-structured and would run
 - ClassifierFreeGuidanceMixin is fully functional
 - VAE encoder/decoder architecture is complete
@@ -230,6 +241,7 @@
 - CrossAttention is production-ready
 
 **What Prevents Full Runnability:**
+
 - Missing scheduler implementation
 - Missing tokenizer helper methods
 - ConditionalUNet is too simplified (acknowledged)
@@ -238,6 +250,7 @@
 - Some helper classes (ResnetBlock in ConditionalUNet) not fully defined
 
 **To Make Fully Runnable:**
+
 1. Implement DDPMScheduler or import from diffusers
 2. Add tokenizer utilities or import from transformers
 3. Either complete simplified implementations or add import statements
@@ -269,6 +282,7 @@
    - Can compare approaches
 
 **Perfect Interview Topics Covered:**
+
 - "Explain Classifier-Free Guidance" ✅
 - "How does Stable Diffusion work?" ✅
 - "What are the latest advances in diffusion models?" ✅
@@ -279,6 +293,7 @@
 ### Comparison to Other Chapters
 
 Without seeing all chapters, this one appears to be:
+
 - More advanced than chapters 23-24 (as intended)
 - Excellent code-to-theory ratio
 - Strong practical focus appropriate for interviews
@@ -287,18 +302,21 @@ Without seeing all chapters, this one appears to be:
 ### Final Recommendations
 
 **High Priority:**
+
 1. Add scheduler implementation (critical for runnability)
 2. Add tokenization utilities
 3. Brief section on evaluation metrics
 4. Complete or remove ControlNet stub methods
 
 **Medium Priority:**
+
 5. Mention SDXL improvements
 6. Add memory optimization subsection
 7. Vectorize discrete diffusion code
 8. Enhance cross-references to earlier chapters
 
 **Low Priority (Nice to Have):**
+
 9. Add more complete U-Net example
 10. Add EDM noise schedule discussion
 11. Add DPM-Solver++ mention
@@ -309,6 +327,7 @@ Without seeing all chapters, this one appears to be:
 This is an **exceptional chapter** that demonstrates mastery of advanced diffusion techniques. The writing is clear, the code is high-quality, and the organization is perfect for interview preparation. The mathematical rigor is appropriate, and the practical insights are valuable.
 
 The chapter successfully covers:
+
 - ✅ Production techniques (CFG, Latent Diffusion, Stable Diffusion)
 - ✅ State-of-the-art research (Flow Matching, Rectified Flows, Consistency Models)
 - ✅ Novel applications (Diffusion for language)
@@ -319,6 +338,7 @@ The few areas for improvement are minor and mostly around making code fully runn
 **Would I hire someone who deeply understood this chapter?** Absolutely. This demonstrates both theoretical knowledge and practical implementation skills at a high level.
 
 **Score justification:**
+
 - -0.5 for missing scheduler/tokenizer (runnability)
 - Perfect scores for accuracy, writing, and math
 - Near-perfect for completeness (just missing a few recent topics)

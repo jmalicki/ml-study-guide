@@ -26,7 +26,7 @@ Autoregressive language models generate text one token at a time. Without cachin
 
 **Generation without cache:**
 
-```
+```text
 Step 1: Process "Hello"           → Generate "world"
 Step 2: Process "Hello world"     → Generate "!"
 Step 3: Process "Hello world !"   → Generate next token
@@ -46,6 +46,7 @@ where $h_i$ is the hidden state at position $i$. Once computed, $K_i$ and $V_i$ 
 ### From O(N²) to O(N)
 
 **Without caching:**
+
 - Token 1: Compute 1 KV pair
 - Token 2: Recompute 2 KV pairs (including token 1 again)
 - Token 3: Recompute 3 KV pairs (including tokens 1 and 2 again)
@@ -54,6 +55,7 @@ where $h_i$ is the hidden state at position $i$. Once computed, $K_i$ and $V_i$ 
 Total: $1 + 2 + 3 + \cdots + N = O(N^2)$ KV computations
 
 **With caching:**
+
 - Token 1: Compute 1 KV pair, cache it
 - Token 2: Compute 1 new KV pair, append to cache
 - Token 3: Compute 1 new KV pair, append to cache
@@ -92,6 +94,7 @@ For a single layer, the KV cache stores:
 ```
 
 where:
+
 - Factor of 2: separate storage for keys and values
 - `n_kv_heads`: number of key-value heads (can differ from query heads in GQA)
 - `seq_len`: current sequence length
@@ -183,6 +186,7 @@ For a serving system with $U$ concurrent users:
 ```
 
 **Example**: Serving 100 users with 7B model (32 layers, 32 heads):
+
 - Sequence length: 4096 tokens
 - FP16 (2 bytes)
 - Memory: $100 \times 32 \times 2 \times 32 \times 4096 \times 128 \times 2 / (1024^3) \approx 200$ GB
@@ -396,6 +400,7 @@ KV caching creates two distinct phases during generation:
    - Memory-bound (loading cached K, V from memory)
 
 **Performance characteristics**:
+
 - Prefill: High GPU utilization, throughput-oriented
 - Decode: Low GPU utilization (single token), latency-oriented
 
@@ -613,6 +618,7 @@ Group query heads to share K, V. With $g$ groups:
 **Used in**: LLaMA 2/3, Mistral, Qwen
 
 **Example**: LLaMA 2 70B
+
 - 64 query heads
 - 8 KV heads
 - Reduction: 8x smaller cache than MHA
@@ -716,6 +722,7 @@ K_{\text{INT8}} = \text{round}\left(\frac{K_{\text{FP16}}}{\text{scale}}\right),
 ```
 
 **Benefits**:
+
 - 2x memory reduction
 - <1% quality loss
 - Hardware support on most GPUs
@@ -729,6 +736,7 @@ K_{\text{FP8}} = \text{cast}(K_{\text{FP16}}, \text{FP8})
 ```
 
 **Benefits**:
+
 - 2x memory reduction
 - Better dynamic range than INT8
 - Native support on H100+ GPUs
@@ -967,6 +975,7 @@ PagedAttention (from vLLM) applies virtual memory concepts to KV cache managemen
 **Theoretical context**: This is analogous to the classic memory fragmentation problem in operating systems - but worse, because we're fragmenting GPU VRAM (a scarce resource) rather than abundant CPU RAM.
 
 **Why existing solutions don't work**:
+
 - **Dynamic allocation**: Can't easily resize GPU tensors without expensive copies
 - **Separate buffers**: Creates even more fragmentation
 - **Padding**: Wastes computation in addition to memory
@@ -982,9 +991,11 @@ def illustrate_kv_cache_fragmentation():
 
     Problem: Each request allocates a contiguous memory block for its
     entire KV cache. This leads to:
+
     1. Memory fragmentation (wasted space)
     2. Cannot batch requests with different lengths efficiently
     3. Memory bound by max_length, not actual length
+
     """
 
     # Traditional approach
@@ -1040,6 +1051,7 @@ PagedAttention borrows ideas from virtual memory in operating systems:
 **The key insight**: Just like virtual memory in OS, we can decouple the logical sequence of KV vectors from their physical storage location. Each sequence maintains a **block table** (like a page table) that maps logical positions to physical blocks.
 
 **Why this works for attention**: Attention computation is:
+
 ```math
 \text{Attention}(Q, K, V) = \text{softmax}(QK^T)V
 ```
@@ -1047,6 +1059,7 @@ PagedAttention borrows ideas from virtual memory in operating systems:
 The key observation: we can gather K and V from non-contiguous blocks because matrix multiplication doesn't require contiguous memory - we're doing random access anyway!
 
 **Theoretical advantages**:
+
 1. **Near-zero internal fragmentation**: Only waste memory within the last block of each sequence (average $\frac{\text{block\_size}}{2}$ tokens)
 2. **Perfect external fragmentation**: All free blocks can be used by any request
 3. **Dynamic batching**: Can batch any mix of sequence lengths without waste
@@ -1066,6 +1079,7 @@ class PagedAttention(nn.Module):
     Each sequence's KV cache is a list of block pointers (like virtual memory).
 
     Benefits:
+
     - Near-zero memory waste (internal fragmentation only within last block)
     - Efficient batching of variable-length sequences
     - Easy memory sharing for parallel sampling (beam search, etc.)
@@ -1378,11 +1392,13 @@ def demonstrate_prefix_sharing():
 ### Production Impact
 
 vLLM (which implements PagedAttention) has become the standard for LLM serving because:
+
 - 2-4x higher throughput than traditional serving systems
 - Better GPU utilization
 - Supports continuous batching (add/remove requests dynamically)
 
 **Key Paper:**
+
 - [Efficient Memory Management for Large Language Model Serving with PagedAttention](https://arxiv.org/abs/2309.06180) (Kwon et al., 2023)
 
 ---
@@ -1407,6 +1423,7 @@ class StreamingKVCache:
     Rolling KV cache with attention sinks for infinite streaming.
 
     Maintains:
+
     - First k tokens (attention sinks)
     - Most recent w tokens (sliding window)
 
@@ -1456,11 +1473,13 @@ class RollingKVCache:
 Production systems optimize these phases differently:
 
 **Prefill** (process prompt):
+
 - **Goal**: Maximize throughput (tokens/second)
 - **Optimization**: Batch multiple prompts, use large batches
 - **Bottleneck**: Compute (matrix multiplication)
 
 **Decode** (generate tokens):
+
 - **Goal**: Minimize latency (time per token)
 - **Optimization**: Serve one token at a time, optimize memory bandwidth
 - **Bottleneck**: Memory (loading KV cache from HBM)
@@ -1469,7 +1488,7 @@ Production systems optimize these phases differently:
 
 Traditional batching waits for all sequences in batch to finish. **Continuous batching** adds new requests as others finish:
 
-```
+```text
 Traditional:
 [Req1, Req2, Req3] → all finish → [Req4, Req5, Req6]
 (GPU idle while waiting)
@@ -1493,12 +1512,14 @@ M = M_{\text{weights}} + M_{\text{KV cache}} + M_{\text{activations}} + M_{\text
 ```
 
 Typical allocation:
+
 - Model weights: 40-50%
 - KV cache: 30-40%
 - Activations: 10-20%
 - Buffer: 5-10%
 
 **Example**: A100 (80GB)
+
 - 70B model (FP16): ~140 GB → need 2 GPUs minimum
 - With tensor parallelism across 2 GPUs:
   - Weights: 70 GB per GPU
@@ -1513,6 +1534,7 @@ Given fixed memory, there's a tradeoff:
 ```
 
 **Example**: 10 GB for KV cache
+
 - Batch 1, 100K context: Possible
 - Batch 10, 10K context: Possible
 - Batch 100, 1K context: Possible
@@ -1530,6 +1552,7 @@ Choose based on serving pattern!
 ### Q2: How much memory does KV cache use?
 
 **A**: For one layer:
+
 ```math
 2 \times \text{n\_kv\_heads} \times \text{seq\_len} \times \text{head\_dim} \times \text{bytes}
 ```
@@ -1539,6 +1562,7 @@ For a full model, multiply by number of layers. For LLaMA 2 70B with 100K contex
 ### Q3: How do MQA and GQA reduce cache size?
 
 **A**: They reduce the number of KV heads:
+
 - MHA: n_kv_heads = n_heads (no reduction)
 - GQA: n_kv_heads = n_heads / g (g-way reduction, e.g., 8x)
 - MQA: n_kv_heads = 1 (maximum reduction, e.g., 64x)
@@ -1552,6 +1576,7 @@ This directly reduces cache size by the same factor.
 ### Q5: What's the difference between prefill and decode?
 
 **A**:
+
 - **Prefill**: Process initial prompt in parallel. Compute-bound (high GPU utilization).
 - **Decode**: Generate one token at a time. Memory-bound (loading cached K, V dominates).
 
@@ -1564,6 +1589,7 @@ They have different optimization strategies: prefill wants throughput, decode wa
 ### Q7: What is PagedAttention and how does it work?
 
 **A**: PagedAttention applies virtual memory concepts to KV cache management:
+
 - **Problem**: Traditional allocation reserves contiguous memory for max sequence length, wasting 60-80%
 - **Solution**: Divide KV cache into fixed-size blocks (e.g., 16 tokens per block)
 - **Block tables**: Each sequence has a table mapping logical positions to physical blocks (like OS page tables)
@@ -1573,6 +1599,7 @@ They have different optimization strategies: prefill wants throughput, decode wa
 ### Q8: How do you handle very long contexts with limited memory?
 
 **A**: Several strategies:
+
 1. **StreamingLLM**: Keep attention sink tokens + rolling window
 2. **Sparse attention**: Only attend to subset of tokens
 3. **Compression**: Quantize cache to INT8/FP8
