@@ -12,7 +12,7 @@ Understanding these techniques is crucial for ML interviews, as production LLMs 
    - [BigBird](#bigbird)
    - [Longformer](#longformer)
 4. [Sliding Window Attention](#sliding-window-attention)
-5. [PagedAttention (vLLM)](#pagedattention-vllm)
+5. [KV-Cache Memory Management](#kv-cache-memory-management)
 6. [Multi-Query Attention (MQA)](#multi-query-attention-mqa)
 7. [Grouped-Query Attention (GQA)](#grouped-query-attention-gqa)
 8. [Multi-head Latent Attention (MLA)](#multi-head-latent-attention-mla)
@@ -879,338 +879,11 @@ class RollingBufferCache:
 
 ---
 
-## PagedAttention (vLLM)
+## KV-Cache Memory Management
 
-PagedAttention doesn't change the attention computation itself, but revolutionizes how KV cache is managed in memory. It's crucial for efficient LLM serving systems.
+**Note**: PagedAttention and other KV-cache memory management techniques have been moved to [Chapter 14: KV-Cache](14-kv-cache.md), where they are covered comprehensively alongside other KV-cache concepts.
 
-### The KV Cache Fragmentation Problem
-
-#### Why Traditional KV Caching Fails at Scale
-
-**Problem**: Traditional serving systems allocate a contiguous memory block for each request's KV cache, sized for the maximum possible sequence length. This leads to severe memory waste because:
-
-1. **Variable length requests**: Real requests have highly variable lengths (100 tokens to 2K tokens), but we must allocate for the maximum (e.g., 2048 tokens)
-2. **Cannot batch efficiently**: Can't batch a 100-token request with a 1000-token request without wasting memory
-3. **Memory-bound throughput**: The wasted memory prevents serving more requests, reducing GPU utilization
-
-**Theoretical context**: This is analogous to the classic memory fragmentation problem in operating systems - but worse, because we're fragmenting GPU VRAM (a scarce resource) rather than abundant CPU RAM.
-
-**Why existing solutions don't work**:
-- **Dynamic allocation**: Can't easily resize GPU tensors without expensive copies
-- **Separate buffers**: Creates even more fragmentation
-- **Padding**: Wastes computation in addition to memory
-
-**Quantifying the waste**: In production workloads, traditional caching wastes 60-80% of allocated KV cache memory. On a 40GB A100, this means only ~10GB effectively used!
-
-The code below demonstrates how quickly this waste accumulates:
-
-```python
-def illustrate_kv_cache_fragmentation():
-    """
-    Traditional KV cache allocation suffers from fragmentation.
-
-    Problem: Each request allocates a contiguous memory block for its
-    entire KV cache. This leads to:
-    1. Memory fragmentation (wasted space)
-    2. Cannot batch requests with different lengths efficiently
-    3. Memory bound by max_length, not actual length
-    """
-
-    # Traditional approach
-    class TraditionalKVCache:
-        def __init__(self, max_seq_len, n_layers, n_heads, head_dim, max_batch):
-            # Preallocate for worst case
-            self.max_seq_len = max_seq_len
-            self.cache = torch.zeros(
-                max_batch, n_layers, 2, n_heads, max_seq_len, head_dim
-            )
-
-        def get_memory_usage(self, batch_size, actual_lengths):
-            """Calculate memory waste."""
-            total_capacity = batch_size * self.max_seq_len
-            actual_used = sum(actual_lengths)
-            waste = total_capacity - actual_used
-            waste_pct = (waste / total_capacity) * 100
-            return waste_pct
-
-    # Example: LLaMA-13B serving
-    n_layers, n_heads, head_dim = 40, 40, 128
-    max_seq_len = 2048
-    max_batch = 8
-
-    cache = TraditionalKVCache(max_seq_len, n_layers, n_heads, head_dim, max_batch)
-
-    # Real request lengths vary widely
-    actual_lengths = [128, 512, 256, 1024, 64, 2048, 300, 450]
-
-    waste_pct = cache.get_memory_usage(len(actual_lengths), actual_lengths)
-
-    print("Traditional KV Cache Problems:")
-    print("-" * 60)
-    print(f"Max sequence length:     {max_seq_len}")
-    print(f"Batch size:              {len(actual_lengths)}")
-    print(f"Actual lengths:          {actual_lengths}")
-    print(f"Total capacity:          {max_seq_len * len(actual_lengths):,} tokens")
-    print(f"Actually used:           {sum(actual_lengths):,} tokens")
-    print(f"Wasted memory:           {waste_pct:.1f}%")
-    print("\nThis waste prevents batching more requests!")
-```
-
-### PagedAttention Solution
-
-PagedAttention borrows ideas from virtual memory in operating systems:
-
-1. **Block-based allocation**: Divide KV cache into fixed-size blocks (pages)
-2. **Non-contiguous storage**: Request's KV cache doesn't need contiguous memory
-3. **On-demand allocation**: Allocate blocks as needed, not upfront
-
-#### How PagedAttention Transforms the Problem
-
-**The key insight**: Just like virtual memory in OS, we can decouple the logical sequence of KV vectors from their physical storage location. Each sequence maintains a **block table** (like a page table) that maps logical positions to physical blocks.
-
-**Why this works for attention**: Attention computation is:
-```math
-\text{Attention}(Q, K, V) = \text{softmax}(QK^T)V
-```
-
-The key observation: we can gather K and V from non-contiguous blocks because matrix multiplication doesn't require contiguous memory - we're doing random access anyway!
-
-**Theoretical advantages**:
-1. **Near-zero internal fragmentation**: Only waste memory within the last block of each sequence (average $\frac{\text{block\_size}}{2}$ tokens)
-2. **Perfect external fragmentation**: All free blocks can be used by any request
-3. **Dynamic batching**: Can batch any mix of sequence lengths without waste
-
-**Implementation complexity**: Requires custom CUDA kernels to efficiently gather K/V from scattered blocks. The naive PyTorch implementation below shows the concept but is slow - production uses optimized kernels.
-
-**Production impact**: vLLM reports 2-4x higher throughput than traditional serving systems on real workloads, purely from better memory utilization enabling larger batch sizes.
-
-```python
-class PagedAttention(nn.Module):
-    """
-    PagedAttention with block-based KV cache management.
-
-    Key innovation: KV cache is divided into fixed-size blocks.
-    Each sequence's KV cache is a list of block pointers (like virtual memory).
-
-    Benefits:
-    - Near-zero memory waste (internal fragmentation only within last block)
-    - Efficient batching of variable-length sequences
-    - Easy memory sharing for parallel sampling (beam search, etc.)
-
-    Used by: vLLM serving system (widely adopted in production)
-
-    Reference: Kwon et al., "Efficient Memory Management for Large Language
-    Model Serving with PagedAttention" (SOSP 2023)
-    https://arxiv.org/abs/2309.06180
-
-    See also: [Hardware and Optimization](32-hardware-quantization-optimization.md)
-    for integration with quantization and other optimizations.
-    """
-
-    def __init__(
-        self,
-        dim: int,
-        n_heads: int = 8,
-        block_size: int = 16,  # Typical: 16-64 tokens per block
-    ):
-        super().__init__()
-        self.n_heads = n_heads
-        self.head_dim = dim // n_heads
-        self.block_size = block_size
-
-        self.qkv = nn.Linear(dim, 3 * dim, bias=False)
-        self.out = nn.Linear(dim, dim, bias=False)
-        self.scale = self.head_dim ** -0.5
-
-    def forward(
-        self,
-        x: torch.Tensor,
-        block_tables: torch.Tensor,
-        k_cache: torch.Tensor,
-        v_cache: torch.Tensor,
-        context_lens: torch.Tensor,
-    ) -> torch.Tensor:
-        """
-        PagedAttention forward pass.
-
-        Args:
-            x: [batch, seq_len, dim] - Query tokens
-            block_tables: [batch, max_num_blocks] - Block pointers for each sequence
-            k_cache: [num_blocks, block_size, n_heads, head_dim] - All K blocks
-            v_cache: [num_blocks, block_size, n_heads, head_dim] - All V blocks
-            context_lens: [batch] - Actual context length for each sequence
-
-        Returns:
-            output: [batch, seq_len, dim]
-        """
-        batch, seq_len, _ = x.shape
-
-        # Project to Q, K, V
-        qkv = self.qkv(x).reshape(batch, seq_len, 3, self.n_heads, self.head_dim)
-        q, k_new, v_new = qkv.permute(2, 0, 3, 1, 4)  # [batch, n_heads, seq, head_dim]
-
-        # Gather K, V from blocks (simplified - real implementation uses custom CUDA)
-        outputs = []
-        for i in range(batch):
-            # Get blocks for this sequence
-            num_blocks = (context_lens[i] + self.block_size - 1) // self.block_size
-            seq_blocks = block_tables[i, :num_blocks]
-
-            # Gather K, V from these blocks
-            k_seq = k_cache[seq_blocks].reshape(-1, self.n_heads, self.head_dim)
-            v_seq = v_cache[seq_blocks].reshape(-1, self.n_heads, self.head_dim)
-
-            # Truncate to actual length
-            k_seq = k_seq[:context_lens[i]]
-            v_seq = v_seq[:context_lens[i]]
-
-            # Concatenate with new K, V
-            k_full = torch.cat([k_seq, k_new[i]], dim=0)
-            v_full = torch.cat([v_seq, v_new[i]], dim=0)
-
-            # Standard attention for this sequence
-            scores = torch.matmul(q[i], k_full.transpose(-2, -1)) * self.scale
-            attn = torch.softmax(scores, dim=-1)
-            out = torch.matmul(attn, v_full)
-
-            outputs.append(out)
-
-        # Stack and reshape
-        out = torch.stack(outputs)  # [batch, n_heads, seq_len, head_dim]
-        out = out.transpose(1, 2).contiguous().view(batch, seq_len, -1)
-
-        return self.out(out)
-
-
-class BlockAllocator:
-    """
-    Block allocator for PagedAttention KV cache.
-
-    Manages a pool of fixed-size blocks, allocating and freeing them
-    as requests come and go.
-    """
-
-    def __init__(
-        self,
-        num_blocks: int,
-        block_size: int,
-        n_heads: int,
-        head_dim: int,
-        device: str = 'cuda'
-    ):
-        self.num_blocks = num_blocks
-        self.block_size = block_size
-        self.free_blocks = list(range(num_blocks))
-
-        # Preallocate all blocks
-        self.k_cache = torch.zeros(
-            num_blocks, block_size, n_heads, head_dim,
-            device=device, dtype=torch.float16
-        )
-        self.v_cache = torch.zeros(
-            num_blocks, block_size, n_heads, head_dim,
-            device=device, dtype=torch.float16
-        )
-
-    def allocate(self, num_blocks_needed: int) -> list[int]:
-        """
-        Allocate blocks for a new sequence.
-
-        Returns:
-            List of block IDs
-        """
-        if len(self.free_blocks) < num_blocks_needed:
-            raise MemoryError(f"Out of KV cache blocks")
-
-        allocated = self.free_blocks[:num_blocks_needed]
-        self.free_blocks = self.free_blocks[num_blocks_needed:]
-        return allocated
-
-    def free(self, block_ids: list[int]):
-        """Free blocks when sequence is done."""
-        self.free_blocks.extend(block_ids)
-
-    def get_utilization(self) -> float:
-        """Get cache utilization percentage."""
-        used = self.num_blocks - len(self.free_blocks)
-        return (used / self.num_blocks) * 100
-
-
-def compare_traditional_vs_paged():
-    """
-    Compare memory efficiency: traditional vs paged.
-    """
-    # Configuration
-    n_layers, n_heads, head_dim = 32, 32, 128
-    max_seq_len = 2048
-    block_size = 16
-    dtype_bytes = 2  # FP16
-
-    # Sample batch with varying lengths
-    requests = [
-        ("req1", 128),
-        ("req2", 512),
-        ("req3", 256),
-        ("req4", 1024),
-        ("req5", 64),
-        ("req6", 2048),
-        ("req7", 300),
-        ("req8", 450),
-    ]
-
-    # Traditional: each request needs max_seq_len
-    traditional_memory = (
-        len(requests) * n_layers * 2 * n_heads * max_seq_len * head_dim * dtype_bytes
-    ) / 1e9
-
-    # Paged: only allocate blocks needed
-    total_blocks_needed = 0
-    for name, length in requests:
-        blocks = (length + block_size - 1) // block_size
-        total_blocks_needed += blocks
-
-    paged_memory = (
-        total_blocks_needed * n_layers * 2 * n_heads * block_size * head_dim * dtype_bytes
-    ) / 1e9
-
-    # Actual tokens used
-    actual_tokens = sum(length for _, length in requests)
-
-    print("Traditional vs PagedAttention Memory Comparison")
-    print("=" * 70)
-    print(f"{'Method':<20} {'Memory (GB)':<15} {'Tokens Used':<15} {'Waste':<10}")
-    print("-" * 70)
-
-    traditional_waste = ((len(requests) * max_seq_len - actual_tokens) /
-                        (len(requests) * max_seq_len)) * 100
-    paged_waste = ((total_blocks_needed * block_size - actual_tokens) /
-                   (total_blocks_needed * block_size)) * 100
-
-    print(f"{'Traditional':<20} {traditional_memory:<15.2f} "
-          f"{actual_tokens:<15,} {traditional_waste:<10.1f}%")
-    print(f"{'PagedAttention':<20} {paged_memory:<15.2f} "
-          f"{actual_tokens:<15,} {paged_waste:<10.1f}%")
-
-    print(f"\nMemory savings: {traditional_memory / paged_memory:.2f}x")
-    print(f"This allows {traditional_memory / paged_memory:.1f}x more requests in same memory!")
-```
-
-### Key Advantages of PagedAttention
-
-1. **Memory efficiency**: ~3-4x improvement in real workloads
-2. **Flexible batching**: Easily batch requests of different lengths
-3. **Memory sharing**: Efficient parallel sampling (multiple beams share prefix)
-4. **Preemption**: Can pause long requests to handle short ones
-
-### Production Impact
-
-vLLM (which implements PagedAttention) has become the standard for LLM serving because:
-- 2-4x higher throughput than traditional serving systems
-- Better GPU utilization
-- Supports continuous batching (add/remove requests dynamically)
-
-**Key Paper:**
-- [Efficient Memory Management for Large Language Model Serving with PagedAttention](https://arxiv.org/abs/2309.06180) (Kwon et al., 2023)
+This chapter focuses on attention mechanism variants (MQA, GQA, linear attention, sparse attention). For memory management techniques including PagedAttention, block allocation, and copy-on-write, see Chapter 14.
 
 ---
 
@@ -1882,7 +1555,7 @@ def combining_techniques_example():
     - Flash Attention: Memory hierarchy optimization (speeds up training)
     - GQA/MQA: Reduces KV cache size (speeds up inference)
     - Sliding Window: Reduces computational complexity
-    - PagedAttention: Optimizes memory management (serving efficiency)
+    - KV-Cache Management: Optimizes memory allocation (see Chapter 14)
     """
 
     combinations = [
@@ -1930,7 +1603,7 @@ def combining_techniques_example():
     print("\nKey Takeaway: Combining techniques is standard practice!")
     print("  - Flash Attention 2 natively supports GQA")
     print("  - Sliding window works with any KV cache reduction method")
-    print("  - PagedAttention is orthogonal to all attention variants")
+    print("  - KV-cache management (Chapter 14) is orthogonal to all attention variants")
 
 
 # Flash Attention 2 specifically optimized for GQA
@@ -2009,7 +1682,7 @@ class QuantizedKVCache:
     Can be combined with:
     - GQA: 8x from GQA × 2x from INT8 = 16x total!
     - MLA: 20x from MLA × 2x from INT8 = 40x total!
-    - PagedAttention: Works transparently with paged blocks
+    - Memory management: Works with any allocation scheme (see Chapter 14)
 
     Used in production serving systems for extreme efficiency.
 
@@ -2150,9 +1823,9 @@ Quality impact is task-dependent. For production serving:
 | **Gemma 2** | GQA + Interleaved local/global + Flash 2 | Hybrid approach |
 
 **Serving Systems** (orthogonal to model choice):
-- **vLLM**: PagedAttention + optional INT8 KV cache
+- **vLLM**: PagedAttention (see [Chapter 14](14-kv-cache.md)) + optional INT8 KV cache
 - **TensorRT-LLM**: Flash Attention + INT8/FP8 KV cache
-- **Text Generation Inference**: Flash Attention + PagedAttention
+- **Text Generation Inference**: Flash Attention + PagedAttention (see [Chapter 14](14-kv-cache.md))
 
 See [Architecture Comparison](30-model-architectures.md) for detailed model specifications.
 
@@ -2245,8 +1918,8 @@ See [Architecture Comparison](30-model-architectures.md) for detailed model spec
 ### Sliding Window
 7. [Mistral 7B](https://arxiv.org/abs/2310.06825) (Jiang et al., 2023)
 
-### PagedAttention
-8. [Efficient Memory Management for Large Language Model Serving with PagedAttention](https://arxiv.org/abs/2309.06180) (Kwon et al., 2023)
+### KV-Cache Memory Management
+8. PagedAttention and related techniques are covered in [Chapter 14: KV-Cache](14-kv-cache.md)
 
 ### MQA/GQA
 9. [Fast Transformer Decoding: One Write-Head is All You Need](https://arxiv.org/abs/1911.02150) (Shazeer, 2019)

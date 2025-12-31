@@ -2906,7 +2906,7 @@ print(f"Perplexity: {perplexity:.2f}")
 4. **Data**:
    - Large, diverse corpus (trillions of tokens for large models)
    - Careful deduplication and filtering
-   - See [Data Curation and Preprocessing](14-data-curation.md)
+   - See [Data Curation and Preprocessing](../appendices/data-curation.md)
 
 5. **Efficiency**:
    - Mixed precision training (BF16/FP16) - see training section above

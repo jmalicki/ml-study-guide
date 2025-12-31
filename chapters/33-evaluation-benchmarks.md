@@ -2640,7 +2640,7 @@ class PreferenceCollector:
 
 ## 32.6 Contamination Detection and Mitigation
 
-Test set contamination is a critical issue when models are trained on web-scale data. See [Data Curation and Preprocessing](14-data-curation.md) for related techniques.
+Test set contamination is a critical issue when models are trained on web-scale data. See [Data Curation and Preprocessing](../appendices/data-curation.md) for related techniques.
 
 ### 32.6.1 N-gram Overlap Detection
 

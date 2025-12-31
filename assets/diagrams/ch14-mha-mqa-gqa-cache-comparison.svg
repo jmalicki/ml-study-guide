@@ -1,0 +1,207 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 550">
+  <defs>
+    <style>
+      @media (prefers-color-scheme: dark) {
+        .diagram-bg { fill: #1a1a1a; }
+        .diagram-text { fill: #e0e0e0; }
+        .diagram-subtext { fill: #b0b0b0; }
+        .diagram-box { fill: #2a2a2a; stroke: #4a9eff; }
+        .diagram-query { fill: #4a9eff; stroke: #4a9eff; }
+        .diagram-kv { fill: #ff6b6b; stroke: #ff6b6b; }
+        .diagram-shared { fill: #ffd43b; stroke: #ffd43b; }
+        .diagram-arrow { stroke: #b0b0b0; }
+        .diagram-title { fill: #4a9eff; }
+        .diagram-quality { fill: #51cf66; }
+        .diagram-memory { fill: #ff6b6b; }
+      }
+      @media (prefers-color-scheme: light) {
+        .diagram-bg { fill: #ffffff; }
+        .diagram-text { fill: #2a2a2a; }
+        .diagram-subtext { fill: #666666; }
+        .diagram-box { fill: #f5f5f5; stroke: #2563eb; }
+        .diagram-query { fill: #2563eb; stroke: #2563eb; }
+        .diagram-kv { fill: #dc2626; stroke: #dc2626; }
+        .diagram-shared { fill: #ea580c; stroke: #ea580c; }
+        .diagram-arrow { stroke: #666666; }
+        .diagram-title { fill: #2563eb; }
+        .diagram-quality { fill: #16a34a; }
+        .diagram-memory { fill: #dc2626; }
+      }
+      text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+      .mono { font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace; }
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" class="diagram-arrow" fill="currentColor"/>
+    </marker>
+  </defs>
+
+  <rect class="diagram-bg" width="900" height="550"/>
+
+  <!-- Title -->
+  <text x="450" y="30" class="diagram-text" font-size="20" font-weight="bold" text-anchor="middle">
+    MHA vs GQA vs MQA: KV Cache Comparison
+  </text>
+
+  <!-- MHA -->
+  <g transform="translate(50, 70)">
+    <text x="100" y="0" class="diagram-title" font-size="14" font-weight="bold" text-anchor="middle">
+      Multi-Head Attention (MHA)
+    </text>
+
+    <!-- Query heads -->
+    <text x="0" y="35" class="diagram-text" font-size="11">Query heads:</text>
+    <rect x="0" y="40" width="20" height="30" class="diagram-query" opacity="0.7" rx="2"/>
+    <rect x="25" y="40" width="20" height="30" class="diagram-query" opacity="0.7" rx="2"/>
+    <rect x="50" y="40" width="20" height="30" class="diagram-query" opacity="0.7" rx="2"/>
+    <rect x="75" y="40" width="20" height="30" class="diagram-query" opacity="0.7" rx="2"/>
+    <text x="105" y="60" class="diagram-text" font-size="10">... (8 heads)</text>
+
+    <!-- KV heads (same count) -->
+    <text x="0" y="100" class="diagram-text" font-size="11">KV heads:</text>
+    <rect x="0" y="105" width="20" height="30" class="diagram-kv" opacity="0.7" rx="2"/>
+    <rect x="25" y="105" width="20" height="30" class="diagram-kv" opacity="0.7" rx="2"/>
+    <rect x="50" y="105" width="20" height="30" class="diagram-kv" opacity="0.7" rx="2"/>
+    <rect x="75" y="105" width="20" height="30" class="diagram-kv" opacity="0.7" rx="2"/>
+    <text x="105" y="125" class="diagram-text" font-size="10">... (8 heads)</text>
+
+    <!-- Arrows showing 1:1 mapping -->
+    <path d="M 10 70 L 10 105" class="diagram-arrow" stroke-width="1" stroke-dasharray="2,2" marker-end="url(#arrow)"/>
+    <path d="M 35 70 L 35 105" class="diagram-arrow" stroke-width="1" stroke-dasharray="2,2" marker-end="url(#arrow)"/>
+    <path d="M 60 70 L 60 105" class="diagram-arrow" stroke-width="1" stroke-dasharray="2,2" marker-end="url(#arrow)"/>
+    <path d="M 85 70 L 85 105" class="diagram-arrow" stroke-width="1" stroke-dasharray="2,2" marker-end="url(#arrow)"/>
+
+    <!-- Stats -->
+    <text x="0" y="165" class="diagram-text" font-size="10" font-weight="bold">Cache size: 8 KV heads</text>
+    <text x="0" y="178" class="diagram-quality" font-size="9">Quality: Best</text>
+    <text x="0" y="191" class="diagram-memory" font-size="9">Memory: Baseline</text>
+  </g>
+
+  <!-- GQA -->
+  <g transform="translate(350, 70)">
+    <text x="100" y="0" class="diagram-title" font-size="14" font-weight="bold" text-anchor="middle">
+      Grouped-Query Attention (GQA)
+    </text>
+
+    <!-- Query heads -->
+    <text x="0" y="35" class="diagram-text" font-size="11">Query heads:</text>
+    <rect x="0" y="40" width="20" height="30" class="diagram-query" opacity="0.7" rx="2"/>
+    <rect x="25" y="40" width="20" height="30" class="diagram-query" opacity="0.7" rx="2"/>
+    <rect x="50" y="40" width="20" height="30" class="diagram-query" opacity="0.7" rx="2"/>
+    <rect x="75" y="40" width="20" height="30" class="diagram-query" opacity="0.7" rx="2"/>
+    <text x="105" y="60" class="diagram-text" font-size="10">... (8 heads)</text>
+
+    <!-- KV heads (reduced count) -->
+    <text x="0" y="100" class="diagram-text" font-size="11">KV heads:</text>
+    <rect x="12.5" y="105" width="30" height="30" class="diagram-shared" opacity="0.7" rx="2"/>
+    <rect x="62.5" y="105" width="30" height="30" class="diagram-shared" opacity="0.7" rx="2"/>
+    <text x="105" y="125" class="diagram-text" font-size="10">(2 heads)</text>
+
+    <!-- Arrows showing 4:1 mapping -->
+    <path d="M 10 70 L 27 105" class="diagram-arrow" stroke-width="1" stroke-dasharray="2,2" marker-end="url(#arrow)"/>
+    <path d="M 35 70 L 27 105" class="diagram-arrow" stroke-width="1" stroke-dasharray="2,2" marker-end="url(#arrow)"/>
+    <path d="M 60 70 L 77 105" class="diagram-arrow" stroke-width="1" stroke-dasharray="2,2" marker-end="url(#arrow)"/>
+    <path d="M 85 70 L 77 105" class="diagram-arrow" stroke-width="1" stroke-dasharray="2,2" marker-end="url(#arrow)"/>
+
+    <text x="100" y="87" class="diagram-subtext" font-size="8">4 queries share</text>
+    <text x="100" y="96" class="diagram-subtext" font-size="8">1 KV head</text>
+
+    <!-- Stats -->
+    <text x="0" y="165" class="diagram-text" font-size="10" font-weight="bold">Cache size: 2 KV heads</text>
+    <text x="0" y="178" class="diagram-quality" font-size="9">Quality: ~99.5%</text>
+    <text x="0" y="191" class="diagram-memory" font-size="9">Memory: 4x reduction</text>
+  </g>
+
+  <!-- MQA -->
+  <g transform="translate(650, 70)">
+    <text x="100" y="0" class="diagram-title" font-size="14" font-weight="bold" text-anchor="middle">
+      Multi-Query Attention (MQA)
+    </text>
+
+    <!-- Query heads -->
+    <text x="0" y="35" class="diagram-text" font-size="11">Query heads:</text>
+    <rect x="0" y="40" width="20" height="30" class="diagram-query" opacity="0.7" rx="2"/>
+    <rect x="25" y="40" width="20" height="30" class="diagram-query" opacity="0.7" rx="2"/>
+    <rect x="50" y="40" width="20" height="30" class="diagram-query" opacity="0.7" rx="2"/>
+    <rect x="75" y="40" width="20" height="30" class="diagram-query" opacity="0.7" rx="2"/>
+    <text x="105" y="60" class="diagram-text" font-size="10">... (8 heads)</text>
+
+    <!-- Single shared KV head -->
+    <text x="0" y="100" class="diagram-text" font-size="11">KV head:</text>
+    <rect x="32.5" y="105" width="35" height="30" class="diagram-shared" opacity="0.7" rx="2"/>
+    <text x="105" y="125" class="diagram-text" font-size="10">(1 head)</text>
+
+    <!-- Arrows showing all sharing one -->
+    <path d="M 10 70 L 50 105" class="diagram-arrow" stroke-width="1" stroke-dasharray="2,2" marker-end="url(#arrow)"/>
+    <path d="M 35 70 L 50 105" class="diagram-arrow" stroke-width="1" stroke-dasharray="2,2" marker-end="url(#arrow)"/>
+    <path d="M 60 70 L 50 105" class="diagram-arrow" stroke-width="1" stroke-dasharray="2,2" marker-end="url(#arrow)"/>
+    <path d="M 85 70 L 50 105" class="diagram-arrow" stroke-width="1" stroke-dasharray="2,2" marker-end="url(#arrow)"/>
+
+    <text x="80" y="87" class="diagram-subtext" font-size="8">All queries</text>
+    <text x="80" y="96" class="diagram-subtext" font-size="8">share 1 KV</text>
+
+    <!-- Stats -->
+    <text x="0" y="165" class="diagram-text" font-size="10" font-weight="bold">Cache size: 1 KV head</text>
+    <text x="0" y="178" class="diagram-quality" font-size="9">Quality: ~98.5%</text>
+    <text x="0" y="191" class="diagram-memory" font-size="9">Memory: 8x reduction</text>
+  </g>
+
+  <!-- Comparison table -->
+  <g transform="translate(50, 320)">
+    <rect x="0" y="0" width="800" height="180" class="diagram-box" stroke-width="2" rx="8"/>
+
+    <text x="400" y="25" class="diagram-title" font-size="15" font-weight="bold" text-anchor="middle">
+      Quantitative Comparison (32-head model, 8K context, FP16)
+    </text>
+
+    <!-- Table headers -->
+    <text x="20" y="55" class="diagram-text" font-size="11" font-weight="bold">Architecture</text>
+    <text x="180" y="55" class="diagram-text" font-size="11" font-weight="bold">Q Heads</text>
+    <text x="280" y="55" class="diagram-text" font-size="11" font-weight="bold">KV Heads</text>
+    <text x="380" y="55" class="diagram-text" font-size="11" font-weight="bold">Cache (per layer)</text>
+    <text x="550" y="55" class="diagram-text" font-size="11" font-weight="bold">Reduction</text>
+    <text x="680" y="55" class="diagram-text" font-size="11" font-weight="bold">Used In</text>
+
+    <!-- Divider -->
+    <line x1="10" y1="62" x2="790" y2="62" class="diagram-subtext" stroke-width="1" opacity="0.3"/>
+
+    <!-- MHA row -->
+    <text x="20" y="85" class="diagram-text" font-size="11">MHA</text>
+    <text x="180" y="85" class="diagram-text" font-size="11">32</text>
+    <text x="280" y="85" class="diagram-text" font-size="11">32</text>
+    <text x="380" y="85" class="diagram-text mono" font-size="10">4.19 MB</text>
+    <text x="550" y="85" class="diagram-text" font-size="11">Baseline</text>
+    <text x="680" y="85" class="diagram-text" font-size="10">GPT-2/3, BERT</text>
+
+    <!-- GQA-8 row -->
+    <text x="20" y="110" class="diagram-text" font-size="11">GQA-8</text>
+    <text x="180" y="110" class="diagram-text" font-size="11">32</text>
+    <text x="280" y="110" class="diagram-text" font-size="11">8</text>
+    <text x="380" y="110" class="diagram-text mono" font-size="10">1.05 MB</text>
+    <text x="550" y="110" class="diagram-quality" font-size="11" font-weight="bold">4.0x</text>
+    <text x="680" y="110" class="diagram-text" font-size="10">LLaMA 2/3, Mistral</text>
+
+    <!-- GQA-4 row -->
+    <text x="20" y="135" class="diagram-text" font-size="11">GQA-4</text>
+    <text x="180" y="135" class="diagram-text" font-size="11">32</text>
+    <text x="280" y="135" class="diagram-text" font-size="11">4</text>
+    <text x="380" y="135" class="diagram-text mono" font-size="10">0.52 MB</text>
+    <text x="550" y="135" class="diagram-quality" font-size="11" font-weight="bold">8.0x</text>
+    <text x="680" y="135" class="diagram-text" font-size="10">Qwen</text>
+
+    <!-- MQA row -->
+    <text x="20" y="160" class="diagram-text" font-size="11">MQA</text>
+    <text x="180" y="160" class="diagram-text" font-size="11">32</text>
+    <text x="280" y="160" class="diagram-text" font-size="11">1</text>
+    <text x="380" y="160" class="diagram-text mono" font-size="10">0.13 MB</text>
+    <text x="550" y="160" class="diagram-quality" font-size="11" font-weight="bold">32.0x</text>
+    <text x="680" y="160" class="diagram-text" font-size="10">PaLM, Falcon</text>
+  </g>
+
+  <!-- Key insight -->
+  <g transform="translate(50, 515)">
+    <text x="0" y="0" class="diagram-title" font-size="12" font-weight="bold">Key Insight:</text>
+    <text x="90" y="0" class="diagram-text" font-size="11">
+      GQA provides the best quality/efficiency tradeoff - used by most modern LLMs
+    </text>
+  </g>
+</svg>

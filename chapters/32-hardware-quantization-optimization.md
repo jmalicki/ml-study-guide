@@ -1590,6 +1590,8 @@ class KVCacheQuantization:
 
 ### PagedAttention
 
+**Note**: For comprehensive coverage of PagedAttention including full implementation details, see [Chapter 14: KV-Cache](14-kv-cache.md). This section provides a brief overview focused on hardware optimization context.
+
 PagedAttention manages KV cache memory like virtual memory pages.
 
 **Problem and Motivation:**

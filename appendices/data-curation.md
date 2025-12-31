@@ -1,8 +1,8 @@
-# Chapter 14: Data Curation and Preprocessing
+# Appendix: Data Curation and Preprocessing
 
 ## Introduction
 
-Data quality is often the most important factor in training high-performing language models. As the saying goes in machine learning: "garbage in, garbage out." This chapter covers the entire pipeline of preparing data for large language model training, from raw web scrapes to carefully curated and filtered datasets.
+Data quality is often the most important factor in training high-performing language models. As the saying goes in machine learning: "garbage in, garbage out." This appendix covers the entire pipeline of preparing data for large language model training, from raw web scrapes to carefully curated and filtered datasets.
 
 Modern LLMs are typically trained on trillions of tokens from diverse sources. The [GPT-3 paper](https://arxiv.org/abs/2005.14165) used 300B tokens from various sources, while more recent models like [LLaMA 2](https://arxiv.org/abs/2307.09288) used 2T tokens and [Qwen 2.5](https://arxiv.org/abs/2412.15115) used over 18T tokens. The curation process for these datasets involves sophisticated filtering, deduplication, and quality scoring techniques.
 
@@ -2571,7 +2571,7 @@ for batch_idx in range(300):  # Process 300 batches
 - **Frequency-based**: Common sequences get dedicated tokens; rare sequences are decomposed
 - **Sample representativeness**: Training sample statistics should match full dataset statistics
 
-The data used to train your tokenizer affects model performance. See [Chapter 1: Tokenization](01-tokenization.md) for implementation details.
+The data used to train your tokenizer affects model performance. See [Chapter 1: Tokenization](../chapters/01-tokenization.md) for implementation details.
 
 ### Key Considerations
 
@@ -4376,6 +4376,6 @@ Build a complete pipeline:
 
 ---
 
-**Next Chapter**: [Language Model Training](15-lm-training.md) - Learn how to train language models on curated data
+**Related Chapter**: [Language Model Training](../chapters/15-lm-training.md) - Learn how to train language models on curated data
 
-**Previous Chapter**: [Other Efficient Attention Variants](13-efficient-attention.md) - Efficient attention mechanisms
+**Related Chapter**: [Other Efficient Attention Variants](../chapters/13-efficient-attention.md) - Efficient attention mechanisms

@@ -460,6 +460,46 @@ def check_dark_text_in_dark_mode(content: str) -> List[str]:
     return issues
 
 
+def check_important_flag_prevents_dark_mode(content: str) -> List[str]:
+    """Check for text with !important that prevents dark mode CSS from working.
+
+    Detects text elements with dark fill colors using !important in their style attribute,
+    which will prevent dark mode CSS overrides from working.
+    """
+    issues = []
+
+    if not has_dark_mode_css(content):
+        return issues
+
+    # Find all text elements with style="fill: <color> !important"
+    # This pattern matches text elements with !important in their fill style
+    # We need to check both dark colors (black, #000, #333, etc.) and any color with !important
+    important_text_pattern = r'<text[^>]*\bstyle\s*=\s*["\']([^"\']*fill:\s*([^;!]+)\s*!important[^"\']*)["\'][^>]*>'
+
+    matches = re.finditer(important_text_pattern, content, re.IGNORECASE)
+
+    for match in matches:
+        style_content = match.group(1)
+        color_value = match.group(2).strip()
+
+        # Normalize the color
+        normalized_color = normalize_color(color_value)
+
+        # Check if it's a dark color that would be invisible in dark mode
+        if is_dark_color_value(normalized_color):
+            issues.append(
+                f"  ERROR: Text with 'fill: {color_value} !important' will be invisible in dark mode"
+            )
+            issues.append(
+                f"    The !important flag prevents dark mode CSS from overriding this dark color"
+            )
+            issues.append(
+                f"    Remove !important and add attribute selector: text[fill=\"{normalized_color}\"] {{ fill: #ffffff; }}"
+            )
+
+    return issues
+
+
 def check_svg_file(svg_path: Path) -> List[str]:
     """Check a single SVG file for contrast issues.
 
@@ -475,6 +515,10 @@ def check_svg_file(svg_path: Path) -> List[str]:
     # NEW CHECK: Check for dark text that won't be visible in dark mode
     dark_text_issues = check_dark_text_in_dark_mode(content)
     issues.extend(dark_text_issues)
+
+    # NEW CHECK: Check for text with !important that prevents dark mode CSS from working
+    important_issues = check_important_flag_prevents_dark_mode(content)
+    issues.extend(important_issues)
 
     # Check for dark mode CSS
     has_dark_mode = has_dark_mode_css(content)
@@ -580,14 +624,28 @@ def check_svg_file(svg_path: Path) -> List[str]:
 
 
 def main():
-    """Check all SVG files in assets/diagrams/."""
-    diagrams_dir = Path(__file__).parent.parent / 'assets' / 'diagrams'
+    """Check SVG files for contrast issues.
 
-    if not diagrams_dir.exists():
-        print(f"ERROR: Directory not found: {diagrams_dir}")
-        return 1
+    If command-line arguments are provided, check those specific files.
+    Otherwise, check all SVG files in assets/diagrams/.
+    """
+    if len(sys.argv) > 1:
+        # Check specific files from command line
+        svg_files = [Path(arg) for arg in sys.argv[1:]]
+        # Validate all files exist
+        for svg_file in svg_files:
+            if not svg_file.exists():
+                print(f"ERROR: File not found: {svg_file}")
+                return 1
+    else:
+        # Check all SVG files in assets/diagrams/
+        diagrams_dir = Path(__file__).parent.parent / 'assets' / 'diagrams'
 
-    svg_files = sorted(diagrams_dir.glob('*.svg'))
+        if not diagrams_dir.exists():
+            print(f"ERROR: Directory not found: {diagrams_dir}")
+            return 1
+
+        svg_files = sorted(diagrams_dir.glob('*.svg'))
 
     if not svg_files:
         print("No SVG files found")

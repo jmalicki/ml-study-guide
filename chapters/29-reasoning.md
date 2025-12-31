@@ -4,23 +4,23 @@ Reasoning is a critical capability for large language models to solve complex pr
 
 ## Table of Contents
 
-1. [Introduction to Reasoning in LLMs](#introduction)
+1. [Introduction to Reasoning in LLMs](#introduction-to-reasoning-in-llms)
 2. [Chain-of-Thought Prompting](#chain-of-thought-prompting)
-3. [Self-Consistency and Voting](#self-consistency)
-4. [Least-to-Most Prompting](#least-to-most)
-5. [Program-Aided Language Models (PAL)](#program-aided)
-6. [ReAct: Reasoning and Acting](#react)
-7. [Tree-of-Thought Reasoning](#tree-of-thought)
-8. [Process Reward Models (PRMs)](#process-reward-models)
-9. [Reasoning Traces and Verification](#reasoning-traces)
-10. [Test-Time Compute Scaling](#test-time-compute)
-11. [Method Selection Guide](#method-selection)
-12. [Failure Modes and Mitigation](#failure-modes)
+3. [Self-Consistency and Voting](#self-consistency-and-voting)
+4. [Least-to-Most Prompting](#least-to-most-prompting)
+5. [Program-Aided Language Models (PAL)](#program-aided-language-models-pal)
+6. [ReAct: Reasoning and Acting](#react-reasoning-and-acting)
+7. [Tree-of-Thought Reasoning](#tree-of-thought-reasoning)
+8. [Process Reward Models (PRMs)](#process-reward-models-prms)
+9. [Reasoning Traces and Verification](#reasoning-traces-and-verification)
+10. [Test-Time Compute Scaling](#test-time-compute-scaling)
+11. [Method Selection Guide](#method-selection-guide)
+12. [Failure Modes and Mitigation](#failure-modes-and-mitigation)
 13. [Benchmark Results](#benchmark-results)
-14. [Implementation: Building a Reasoning System](#implementation)
+14. [Implementation: Building a Reasoning System](#implementation-building-a-reasoning-system)
 15. [Exercises](#exercises)
 
-## Introduction to Reasoning in LLMs {#introduction}
+## Introduction to Reasoning in LLMs
 
 Traditional language models generate responses in a single forward pass, potentially missing intermediate reasoning steps that would lead to better answers. Reasoning techniques address this by:
 
@@ -38,7 +38,7 @@ For complex tasks like multi-step mathematics, code generation, or logical puzzl
 - **Verify** intermediate results
 - **Scale compute** at test time (more computation → better results)
 
-## Chain-of-Thought Prompting {#chain-of-thought-prompting}
+## Chain-of-Thought Prompting
 
 Chain-of-Thought (CoT) prompting, introduced by Wei et al. (2022), demonstrates that LLMs can be prompted to generate intermediate reasoning steps before producing a final answer.
 
@@ -270,7 +270,7 @@ a^* \approx \arg\max_a P(a|r^*, q) \text{ where } r^* = \arg\max_r P(r|q)
 - [Chain-of-Thought Prompting Elicits Reasoning in Large Language Models (Wei et al., 2022)](https://arxiv.org/abs/2201.11903)
 - [Large Language Models are Zero-Shot Reasoners (Kojima et al., 2022)](https://arxiv.org/abs/2205.11916)
 
-## Self-Consistency and Voting {#self-consistency}
+## Self-Consistency and Voting
 
 Self-consistency, proposed by Wang et al. (2022), improves CoT by sampling multiple reasoning paths and taking a majority vote on the final answer.
 
@@ -439,7 +439,7 @@ Self-consistency typically improves accuracy by 5-20% over single-path CoT, espe
 **Reference:**
 - [Self-Consistency Improves Chain of Thought Reasoning in Language Models (Wang et al., 2022)](https://arxiv.org/abs/2203.11171)
 
-## Least-to-Most Prompting {#least-to-most}
+## Least-to-Most Prompting
 
 Least-to-Most prompting, proposed by Zhou et al. (2022), breaks down complex problems into simpler subproblems and solves them sequentially. This approach is particularly effective for compositional generalization tasks.
 
@@ -671,7 +671,7 @@ Least-to-Most prompting excels at:
 **Reference:**
 - [Least-to-Most Prompting Enables Complex Reasoning in Large Language Models (Zhou et al., 2022)](https://arxiv.org/abs/2205.10625)
 
-## Program-Aided Language Models (PAL) {#program-aided}
+## Program-Aided Language Models (PAL)
 
 Program-Aided Language Models (PAL), introduced by Gao et al. (2023), use code generation and execution to solve reasoning problems. Instead of solving problems in natural language, the model generates Python code that performs the computation.
 
@@ -1033,7 +1033,7 @@ print(f"Answer: {result['answer']}")
 **Reference:**
 - [PAL: Program-aided Language Models (Gao et al., 2023)](https://arxiv.org/abs/2211.10435)
 
-## ReAct: Reasoning and Acting {#react}
+## ReAct: Reasoning and Acting
 
 ReAct (Reasoning + Acting), proposed by Yao et al. (2023), interleaves reasoning traces with action execution, enabling LLMs to interact with external environments and tools.
 
@@ -1428,7 +1428,7 @@ result = web_agent.solve(task, max_steps=10)
 **Reference:**
 - [ReAct: Synergizing Reasoning and Acting in Language Models (Yao et al., 2023)](https://arxiv.org/abs/2210.03629)
 
-## Tree-of-Thought Reasoning {#tree-of-thought}
+## Tree-of-Thought Reasoning
 
 Tree-of-Thought (ToT), proposed by Yao et al. (2023), generalizes CoT by exploring a tree of reasoning steps rather than a single chain.
 
@@ -1721,7 +1721,7 @@ print(f"\nConfidence score: {score:.2f}")
 **Reference:**
 - [Tree of Thoughts: Deliberate Problem Solving with Large Language Models (Yao et al., 2023)](https://arxiv.org/abs/2305.10601)
 
-## Process Reward Models (PRMs) {#process-reward-models}
+## Process Reward Models (PRMs)
 
 Process Reward Models (PRMs), introduced by OpenAI for improving mathematical reasoning, reward each step of the reasoning process rather than just the final answer.
 
@@ -2060,7 +2060,7 @@ def best_of_n_with_prm(model, prm, tokenizer, question, n=8, device="cuda"):
 **Reference:**
 - [Let's Verify Step by Step (OpenAI, Lightman et al., 2023)](https://arxiv.org/abs/2305.20050)
 
-## Reasoning Traces and Verification {#reasoning-traces}
+## Reasoning Traces and Verification
 
 Reasoning traces are the explicit intermediate steps a model generates. Verification involves checking whether these steps are correct.
 
@@ -2239,7 +2239,7 @@ print(f"Code answer: {result['code_answer']}")
 print(f"Verified: {result['verified']}")
 ```
 
-## Test-Time Compute Scaling {#test-time-compute}
+## Test-Time Compute Scaling
 
 Test-time compute scaling refers to using more computation at inference time to improve answer quality. This is a key principle behind models like OpenAI's o1.
 
@@ -2604,7 +2604,7 @@ Key principles:
 - [Learning to Reason with LLMs (OpenAI o1 announcement)](https://openai.com/index/learning-to-reason-with-llms/)
 - [Scaling LLM Test-Time Compute Optimally (Snell et al., 2024)](https://arxiv.org/abs/2408.03314)
 
-## Method Selection Guide {#method-selection}
+## Method Selection Guide
 
 Choosing the right reasoning strategy depends on your task requirements, constraints, and resources. Here's a comprehensive guide to help you decide.
 
@@ -2815,7 +2815,7 @@ def adaptive_reasoning(question: str, difficulty: str, budget: float) -> Reasoni
             )
 ```
 
-## Failure Modes and Mitigation {#failure-modes}
+## Failure Modes and Mitigation
 
 Understanding how reasoning systems fail is crucial for building robust applications. Here we examine common failure modes and strategies to mitigate them.
 
@@ -3176,7 +3176,7 @@ def reason_with_fallback(question, max_attempts=3):
     }
 ```
 
-## Benchmark Results {#benchmark-results}
+## Benchmark Results
 
 Here we present real-world benchmark results for different reasoning methods across standard datasets.
 
@@ -3404,7 +3404,7 @@ print(f"Avg time per question: {results['avg_time_per_question']:.2f}s")
 print(f"Avg cost per question: ${results['avg_cost_per_question']:.4f}")
 ```
 
-## Implementation: Building a Reasoning System {#implementation}
+## Implementation: Building a Reasoning System
 
 Let's build a complete reasoning system that combines multiple techniques:
 
@@ -3683,7 +3683,7 @@ for i, question in enumerate(questions, 1):
     print()
 ```
 
-## Exercises {#exercises}
+## Exercises
 
 ### Exercise 1: Implement Answer Extraction
 

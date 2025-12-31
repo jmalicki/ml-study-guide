@@ -1,19 +1,21 @@
-.PHONY: help lint validate check-svg validate-svg check-svg-contrast check-latex check install-hooks install-claude-hooks clean
+.PHONY: help lint validate check-svg validate-svg validate-activation-svg check-svg-contrast check-latex check-markdown-syntax check install-hooks install-claude-hooks clean
 
 help:
 	@echo "ML Study Guide - Development Commands"
 	@echo ""
 	@echo "Available targets:"
-	@echo "  make lint                - Run markdown linting"
-	@echo "  make validate            - Run link validation"
-	@echo "  make check-svg           - Check for inline SVG (not supported on GitHub)"
-	@echo "  make validate-svg        - Validate SVG files with SVGO"
-	@echo "  make check-svg-contrast  - Check SVG text contrast accessibility"
-	@echo "  make check-latex         - Validate LaTeX syntax in markdown files"
-	@echo "  make check               - Run all checks (lint + validate + svg + latex + contrast)"
-	@echo "  make install-hooks       - Install standard git pre-commit hooks"
-	@echo "  make install-claude-hooks - Install Claude Code hooks"
-	@echo "  make clean               - Clean temporary files"
+	@echo "  make lint                     - Run markdown linting"
+	@echo "  make validate                 - Run link validation"
+	@echo "  make check-svg                - Check for inline SVG (not supported on GitHub)"
+	@echo "  make validate-svg             - Validate SVG files with SVGO"
+	@echo "  make validate-activation-svg  - Validate activation function SVG against PyTorch"
+	@echo "  make check-svg-contrast       - Check SVG text contrast accessibility"
+	@echo "  make check-latex              - Validate LaTeX syntax in markdown files"
+	@echo "  make check-markdown-syntax    - Check for suspicious markdown rendering patterns"
+	@echo "  make check                    - Run all checks (lint + validate + svg + latex + contrast + markdown)"
+	@echo "  make install-hooks            - Install standard git pre-commit hooks"
+	@echo "  make install-claude-hooks     - Install Claude Code hooks"
+	@echo "  make clean                    - Clean temporary files"
 	@echo ""
 
 lint:
@@ -40,6 +42,10 @@ validate-svg:
 	done
 	@echo "All SVG files are valid!"
 
+validate-activation-svg:
+	@echo "Validating activation function SVG against PyTorch implementations..."
+	python3 scripts/validate_activation_svg.py
+
 check-svg-contrast:
 	@echo "Checking SVG text contrast accessibility..."
 	python3 scripts/check_svg_contrast.py
@@ -48,7 +54,11 @@ check-latex:
 	@echo "Validating LaTeX syntax..."
 	python3 scripts/check_latex.py
 
-check: lint validate check-svg validate-svg check-svg-contrast check-latex
+check-markdown-syntax:
+	@echo "Checking markdown syntax..."
+	python3 scripts/check_markdown_syntax.py
+
+check: lint validate check-svg validate-svg check-svg-contrast check-latex check-markdown-syntax
 	@echo ""
 	@echo "All checks passed!"
 

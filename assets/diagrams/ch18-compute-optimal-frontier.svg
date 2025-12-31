@@ -85,13 +85,11 @@
 
   <!-- Chinchilla optimal line (slope 1 in log space, ~20 tokens/param) -->
   <path d="M 100,400 L 600,100" class="chinchilla-line"/>
-  <text x="500" y="90" text-anchor="middle" class="annotation" fill="#2E7D32" font-weight="600">Chinchilla Optimal</text>
-  <text x="500" y="105" text-anchor="middle" class="annotation" fill="#2E7D32">~20 tokens/param</text>
+  <text x="440" y="155" text-anchor="start" class="annotation" fill="#2E7D32" font-weight="600">Chinchilla: N, D ∝ C^0.5 (~20 tok/param)</text>
 
   <!-- Kaplan line (steeper, favoring larger models) -->
   <path d="M 100,390 L 600,200" class="kaplan-line"/>
-  <text x="520" y="210" text-anchor="middle" class="annotation" fill="#F57C00" font-weight="600">Kaplan Scaling</text>
-  <text x="520" y="225" text-anchor="middle" class="annotation" fill="#F57C00">~2-3 tokens/param</text>
+  <text x="550" y="195" text-anchor="start" class="annotation" fill="#F57C00" font-weight="600">Kaplan: N ∝ C^0.73 (~2-3 tok/param)</text>
 
   <!-- Model points -->
   <!-- GPT-3 -->
@@ -120,18 +118,7 @@
 
   <!-- Regions -->
   <rect x="100" y="260" width="550" height="160" class="kaplan-region"/>
-  <text x="250" y="350" text-anchor="middle" class="annotation" fill="#F57C00" font-size="11">Undertrained</text>
-  <text x="250" y="365" text-anchor="middle" class="annotation" fill="#F57C00" font-size="11">(Kaplan region)</text>
-
-  <!-- Info box -->
-  <rect x="110" y="110" width="230" height="125" fill="white" stroke="#333" stroke-width="1" rx="5" opacity="0.95"/>
-  <text x="120" y="130" class="annotation" font-weight="600">Key Insights:</text>
-  <text x="120" y="148" class="annotation">• Chinchilla: Scale N and D equally</text>
-  <text x="125" y="163" class="annotation">(N, D ∝ C^0.5)</text>
-  <text x="120" y="181" class="annotation">• Kaplan: Prioritize model size</text>
-  <text x="125" y="196" class="annotation">(N ∝ C^0.73, undertrained)</text>
-  <text x="120" y="214" class="annotation">• Modern trend: Train even</text>
-  <text x="125" y="229" class="annotation">beyond Chinchilla optimal</text>
+  <text x="220" y="395" text-anchor="middle" class="annotation" fill="#F57C00" font-size="11" font-style="italic">Undertrained region (insufficient tokens)</text>
 
   <!-- Arrows showing improvement direction -->
   <defs>
@@ -140,8 +127,7 @@
     </marker>
   </defs>
   <path d="M 480,340 L 410,230" stroke="#2E7D32" stroke-width="2" fill="none" marker-end="url(#arrowGreen)"/>
-  <text x="450" y="290" text-anchor="middle" class="annotation" fill="#2E7D32" font-size="11">Better performance</text>
-  <text x="450" y="305" text-anchor="middle" class="annotation" fill="#2E7D32" font-size="11">same compute</text>
+  <text x="450" y="295" text-anchor="middle" class="annotation" fill="#2E7D32" font-size="11" font-style="italic">Better: same compute</text>
 
   <!-- Compute budget iso-curves (optional, add visual richness) -->
   <ellipse cx="300" cy="300" rx="120" ry="80" fill="none" stroke="#9C27B0" stroke-width="1" stroke-dasharray="2,2" opacity="0.4"/>

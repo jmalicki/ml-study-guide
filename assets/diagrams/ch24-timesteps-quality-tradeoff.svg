@@ -38,6 +38,11 @@
           fill: #ffffff;
         }
 
+        /* Override colored text to lighter versions */
+        text[fill="#C62828"] { fill: #ef5350; }
+        text[fill="#1565C0"] { fill: #42a5f5; }
+        text[fill="#E65100"] { fill: #ff8a65; }
+
         line[stroke="#333"] { stroke: #cccccc; }
         rect[stroke="#333"] { stroke: #cccccc; }
         rect[fill="white"] { fill: #1a1a1a; }
@@ -128,30 +133,30 @@
 
   <!-- Zone annotations -->
   <!-- Few steps -->
-  <text x="150" y="310" text-anchor="middle" class="annotation" style="fill: #C62828 !important;" font-weight="600">Too Few Steps</text>
-  <text x="150" y="325" text-anchor="middle" class="annotation" style="fill: #C62828 !important;">• Fast generation</text>
-  <text x="150" y="340" text-anchor="middle" class="annotation" style="fill: #C62828 !important;">• Poor quality</text>
-  <text x="150" y="355" text-anchor="middle" class="annotation" style="fill: #C62828 !important;">• Artifacts visible</text>
+  <text x="150" y="310" text-anchor="middle" class="annotation" fill="#C62828" font-weight="600">Too Few Steps</text>
+  <text x="150" y="325" text-anchor="middle" class="annotation" fill="#C62828">• Fast generation</text>
+  <text x="150" y="340" text-anchor="middle" class="annotation" fill="#C62828">• Poor quality</text>
+  <text x="150" y="355" text-anchor="middle" class="annotation" fill="#C62828">• Artifacts visible</text>
 
   <!-- Many steps -->
-  <text x="550" y="150" text-anchor="middle" class="annotation" style="fill: #1565C0 !important;" font-weight="600">Too Many Steps</text>
-  <text x="550" y="165" text-anchor="middle" class="annotation" style="fill: #1565C0 !important;">• Excellent quality</text>
-  <text x="550" y="180" text-anchor="middle" class="annotation" style="fill: #1565C0 !important;">• Very slow (100s)</text>
-  <text x="550" y="195" text-anchor="middle" class="annotation" style="fill: #1565C0 !important;">• Diminishing returns</text>
+  <text x="550" y="150" text-anchor="middle" class="annotation" fill="#1565C0" font-weight="600">Too Many Steps</text>
+  <text x="550" y="165" text-anchor="middle" class="annotation" fill="#1565C0">• Excellent quality</text>
+  <text x="550" y="180" text-anchor="middle" class="annotation" fill="#1565C0">• Very slow (100s)</text>
+  <text x="550" y="195" text-anchor="middle" class="annotation" fill="#1565C0">• Diminishing returns</text>
 
   <!-- Optimal zone -->
-  <text x="300" y="200" text-anchor="middle" class="annotation" style="fill: #E65100 !important;" font-weight="600">Practical Range</text>
-  <text x="300" y="215" text-anchor="middle" class="annotation" style="fill: #E65100 !important;">25-100 steps</text>
+  <text x="300" y="200" text-anchor="middle" class="annotation" fill="#E65100" font-weight="600">Practical Range</text>
+  <text x="300" y="215" text-anchor="middle" class="annotation" fill="#E65100">25-100 steps</text>
 
   <!-- Key insights box -->
   <rect x="110" y="110" width="240" height="120" fill="white" stroke="#333" stroke-width="1" rx="5" opacity="0.95"/>
-  <text x="120" y="130" class="annotation" style="fill: #000 !important;" font-weight="600">Key Insights:</text>
-  <text x="120" y="148" class="annotation" style="fill: #000 !important;">• DDPM: 1000 steps (slow, high quality)</text>
-  <text x="120" y="163" class="annotation" style="fill: #000 !important;">• DDIM: 50 steps (fast, good quality)</text>
-  <text x="120" y="178" class="annotation" style="fill: #000 !important;">• Modern: 20-50 steps typical</text>
-  <text x="120" y="193" class="annotation" style="fill: #000 !important;">• Quality improves logarithmically</text>
-  <text x="120" y="208" class="annotation" style="fill: #000 !important;">• Time cost is linear</text>
-  <text x="120" y="223" class="annotation" style="fill: #000 !important;">• Returns diminish after ~100 steps</text>
+  <text x="120" y="130" class="annotation" fill="#000" font-weight="600">Key Insights:</text>
+  <text x="120" y="148" class="annotation" fill="#000">• DDPM: 1000 steps (slow, high quality)</text>
+  <text x="120" y="163" class="annotation" fill="#000">• DDIM: 50 steps (fast, good quality)</text>
+  <text x="120" y="178" class="annotation" fill="#000">• Modern: 20-50 steps typical</text>
+  <text x="120" y="193" class="annotation" fill="#000">• Quality improves logarithmically</text>
+  <text x="120" y="208" class="annotation" fill="#000">• Time cost is linear</text>
+  <text x="120" y="223" class="annotation" fill="#000">• Returns diminish after ~100 steps</text>
 
   <!-- Arrows showing diminishing returns -->
   <defs>
@@ -160,6 +165,6 @@
     </marker>
   </defs>
   <path d="M 480,140 L 540,115" stroke="#1565C0" stroke-width="2" fill="none" marker-end="url(#arrowBlue)"/>
-  <text x="500" y="135" text-anchor="middle" class="annotation" style="fill: #1565C0 !important;" font-size="11">Diminishing</text>
-  <text x="500" y="148" text-anchor="middle" class="annotation" style="fill: #1565C0 !important;" font-size="11">returns</text>
+  <text x="500" y="135" text-anchor="middle" class="annotation" fill="#1565C0" font-size="11">Diminishing</text>
+  <text x="500" y="148" text-anchor="middle" class="annotation" fill="#1565C0" font-size="11">returns</text>
 </svg>

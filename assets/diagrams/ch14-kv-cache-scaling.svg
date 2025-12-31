@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <defs>
+    <style>
+      @media (prefers-color-scheme: dark) {
+        .diagram-bg { fill: #1a1a1a; }
+        .diagram-text { fill: #e0e0e0; }
+        .diagram-subtext { fill: #b0b0b0; }
+        .diagram-axis { stroke: #666666; }
+        .diagram-grid { stroke: #333333; }
+        .diagram-model-7b { stroke: #51cf66; fill: none; }
+        .diagram-model-13b { stroke: #4a9eff; fill: none; }
+        .diagram-model-70b { stroke: #ff6b6b; fill: none; }
+        .diagram-weights { stroke: #ffd43b; fill: none; stroke-dasharray: 5,5; }
+        .diagram-title { fill: #4a9eff; }
+        .diagram-legend { fill: #2a2a2a; stroke: #666666; }
+      }
+      @media (prefers-color-scheme: light) {
+        .diagram-bg { fill: #ffffff; }
+        .diagram-text { fill: #2a2a2a; }
+        .diagram-subtext { fill: #666666; }
+        .diagram-axis { stroke: #999999; }
+        .diagram-grid { stroke: #e0e0e0; }
+        .diagram-model-7b { stroke: #16a34a; fill: none; }
+        .diagram-model-13b { stroke: #2563eb; fill: none; }
+        .diagram-model-70b { stroke: #dc2626; fill: none; }
+        .diagram-weights { stroke: #ea580c; fill: none; stroke-dasharray: 5,5; }
+        .diagram-title { fill: #2563eb; }
+        .diagram-legend { fill: #f9f9f9; stroke: #cccccc; }
+      }
+      text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+      .mono { font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace; }
+    </style>
+  </defs>
+
+  <rect class="diagram-bg" width="800" height="600"/>
+
+  <!-- Title -->
+  <text x="400" y="30" class="diagram-text" font-size="20" font-weight="bold" text-anchor="middle">
+    KV Cache Memory vs Sequence Length
+  </text>
+  <text x="400" y="50" class="diagram-subtext" font-size="12" text-anchor="middle">
+    (FP16, batch_size=1, GQA with 8 KV heads)
+  </text>
+
+  <!-- Graph area -->
+  <g transform="translate(80, 80)">
+    <!-- Grid lines -->
+    <line x1="0" y1="0" x2="0" y2="400" class="diagram-axis" stroke-width="2"/>
+    <line x1="0" y1="400" x2="600" y2="400" class="diagram-axis" stroke-width="2"/>
+
+    <!-- Grid -->
+    <line x1="0" y1="300" x2="600" y2="300" class="diagram-grid" stroke-width="1" opacity="0.5"/>
+    <line x1="0" y1="200" x2="600" y2="200" class="diagram-grid" stroke-width="1" opacity="0.5"/>
+    <line x1="0" y1="100" x2="600" y2="100" class="diagram-grid" stroke-width="1" opacity="0.5"/>
+
+    <line x1="150" y1="0" x2="150" y2="400" class="diagram-grid" stroke-width="1" opacity="0.5"/>
+    <line x1="300" y1="0" x2="300" y2="400" class="diagram-grid" stroke-width="1" opacity="0.5"/>
+    <line x1="450" y1="0" x2="450" y2="400" class="diagram-grid" stroke-width="1" opacity="0.5"/>
+
+    <!-- Y-axis labels (Memory GB) -->
+    <text x="-10" y="5" class="diagram-text" font-size="11" text-anchor="end">200</text>
+    <text x="-10" y="105" class="diagram-text" font-size="11" text-anchor="end">150</text>
+    <text x="-10" y="205" class="diagram-text" font-size="11" text-anchor="end">100</text>
+    <text x="-10" y="305" class="diagram-text" font-size="11" text-anchor="end">50</text>
+    <text x="-10" y="405" class="diagram-text" font-size="11" text-anchor="end">0</text>
+
+    <!-- X-axis labels (Sequence Length) -->
+    <text x="0" y="420" class="diagram-text" font-size="11" text-anchor="middle">0</text>
+    <text x="150" y="420" class="diagram-text" font-size="11" text-anchor="middle">32K</text>
+    <text x="300" y="420" class="diagram-text" font-size="11" text-anchor="middle">64K</text>
+    <text x="450" y="420" class="diagram-text" font-size="11" text-anchor="middle">96K</text>
+    <text x="600" y="420" class="diagram-text" font-size="11" text-anchor="middle">128K</text>
+
+    <!-- Axis labels -->
+    <text x="-50" y="200" class="diagram-text" font-size="13" font-weight="bold"
+          text-anchor="middle" transform="rotate(-90, -50, 200)">
+      Memory (GB)
+    </text>
+    <text x="300" y="450" class="diagram-text" font-size="13" font-weight="bold" text-anchor="middle">
+      Sequence Length
+    </text>
+
+    <!-- Data lines -->
+    <!-- 7B model: 32 layers, 8 KV heads, 128 head_dim = ~1 GB per 32K tokens -->
+    <polyline points="0,400 150,370 300,340 450,310 600,280"
+              class="diagram-model-7b" stroke-width="3"/>
+
+    <!-- 13B model: 40 layers, 8 KV heads = ~1.25 GB per 32K -->
+    <polyline points="0,400 150,362 300,325 450,287 600,250"
+              class="diagram-model-13b" stroke-width="3"/>
+
+    <!-- 70B model: 80 layers, 8 KV heads = ~2.5 GB per 32K -->
+    <polyline points="0,400 150,350 300,300 450,250 600,200"
+              class="diagram-model-70b" stroke-width="3"/>
+
+    <!-- Model weights reference lines (horizontal) -->
+    <!-- 7B = 14 GB -->
+    <line x1="0" y1="365" x2="600" y2="365" class="diagram-weights" stroke-width="2" opacity="0.6"/>
+    <text x="610" y="369" class="diagram-subtext" font-size="9">7B weights (14GB)</text>
+
+    <!-- 13B = 26 GB -->
+    <line x1="0" y1="335" x2="600" y2="335" class="diagram-weights" stroke-width="2" opacity="0.6"/>
+    <text x="610" y="339" class="diagram-subtext" font-size="9">13B weights</text>
+
+    <!-- 70B = 140 GB -->
+    <line x1="0" y1="100" x2="600" y2="100" class="diagram-weights" stroke-width="2" opacity="0.6"/>
+    <text x="610" y="104" class="diagram-subtext" font-size="9">70B weights (140GB)</text>
+
+    <!-- Annotation: Cache exceeds weights -->
+    <circle cx="390" cy="250" r="5" class="diagram-model-70b" fill="currentColor" opacity="0.7"/>
+    <line x1="395" y1="250" x2="480" y2="200" class="diagram-subtext" stroke-width="1"/>
+    <text x="485" y="195" class="diagram-text" font-size="10" font-weight="bold">Cache exceeds</text>
+    <text x="485" y="207" class="diagram-text" font-size="10" font-weight="bold">model weights!</text>
+  </g>
+
+  <!-- Legend -->
+  <g transform="translate(80, 520)">
+    <rect x="0" y="0" width="280" height="60" class="diagram-legend" rx="5" stroke-width="1"/>
+
+    <line x1="10" y1="15" x2="40" y2="15" class="diagram-model-7b" stroke-width="3"/>
+    <text x="50" y="19" class="diagram-text" font-size="11">7B model (32 layers)</text>
+
+    <line x1="10" y1="32" x2="40" y2="32" class="diagram-model-13b" stroke-width="3"/>
+    <text x="50" y="36" class="diagram-text" font-size="11">13B model (40 layers)</text>
+
+    <line x1="10" y1="49" x2="40" y2="49" class="diagram-model-70b" stroke-width="3"/>
+    <text x="50" y="53" class="diagram-text" font-size="11">70B model (80 layers)</text>
+
+    <line x1="160" y1="32" x2="190" y2="32" class="diagram-weights" stroke-width="2"/>
+    <text x="200" y="36" class="diagram-text" font-size="11">Model weights</text>
+  </g>
+
+  <!-- Key insights box -->
+  <g transform="translate(400, 520)">
+    <rect x="0" y="0" width="320" height="60" class="diagram-legend" rx="5" stroke-width="1"/>
+
+    <text x="160" y="18" class="diagram-title" font-size="12" font-weight="bold" text-anchor="middle">
+      Key Insights
+    </text>
+
+    <text x="10" y="35" class="diagram-text" font-size="10">
+      • Cache grows linearly with sequence length
+    </text>
+    <text x="10" y="50" class="diagram-text" font-size="10">
+      • At 100K+ context, cache exceeds weights for large models
+    </text>
+  </g>
+</svg>

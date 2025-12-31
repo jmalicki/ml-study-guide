@@ -85,14 +85,18 @@
     - Sliding window attention
     - Multi-query and grouped-query attention
 
-## Part 6: Training Large Language Models
+14. [KV Cache](chapters/14-kv-cache.md)
+    - Why KV cache exists
+    - Memory analysis and scaling
+    - Basic implementation
+    - Position encoding interactions (RoPE)
+    - Reducing cache size (MQA, GQA)
+    - KV cache quantization (INT8, FP8)
+    - Memory management (PagedAttention reference)
+    - Streaming and long context
+    - Production considerations
 
-14. [Data Curation and Preprocessing](chapters/14-data-curation.md)
-    - Data collection and filtering
-    - Deduplication strategies
-    - Quality filtering and scoring
-    - Data mixing and curriculum learning
-    - Tokenizer training data considerations
+## Part 6: Training Large Language Models
 
 15. [Language Model Training](chapters/15-lm-training.md)
     - Causal language modeling objective
@@ -272,3 +276,12 @@
     - Safety and alignment evaluations
     - Human evaluation methods
     - Contamination detection and mitigation
+
+## Appendices
+
+- [Data Curation and Preprocessing](appendices/data-curation.md)
+    - Data collection and filtering
+    - Deduplication strategies
+    - Quality filtering and scoring
+    - Data mixing and curriculum learning
+    - Tokenizer training data considerations

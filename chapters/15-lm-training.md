@@ -3245,7 +3245,7 @@ def main():
         weight_decay=0.1
     )
 
-    # Data loaders (see [Data Curation and Preprocessing](14-data-curation.md))
+    # Data loaders (see [Data Curation and Preprocessing](../appendices/data-curation.md))
     train_dataloader = DataLoader(train_dataset, batch_size=32, shuffle=True)
     val_dataloader = DataLoader(val_dataset, batch_size=32)
 

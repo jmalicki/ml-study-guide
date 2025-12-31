@@ -1,0 +1,151 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
+  <defs>
+    <style>
+      @media (prefers-color-scheme: dark) {
+        .diagram-bg { fill: #1a1a1a; }
+        .diagram-text { fill: #e0e0e0; }
+        .diagram-subtext { fill: #b0b0b0; }
+        .diagram-box { fill: #2a2a2a; stroke: #4a9eff; }
+        .diagram-compute { fill: #ff6b6b; }
+        .diagram-cache { fill: #4a9eff; }
+        .diagram-new { fill: #51cf66; }
+        .diagram-arrow { stroke: #e0e0e0; fill: #e0e0e0; }
+        .diagram-title { fill: #4a9eff; }
+      }
+      @media (prefers-color-scheme: light) {
+        .diagram-bg { fill: #ffffff; }
+        .diagram-text { fill: #2a2a2a; }
+        .diagram-subtext { fill: #666666; }
+        .diagram-box { fill: #f5f5f5; stroke: #2563eb; }
+        .diagram-compute { fill: #dc2626; }
+        .diagram-cache { fill: #2563eb; }
+        .diagram-new { fill: #16a34a; }
+        .diagram-arrow { stroke: #2a2a2a; fill: #2a2a2a; }
+        .diagram-title { fill: #2563eb; }
+      }
+      text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+      .mono { font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" class="diagram-arrow"/>
+    </marker>
+  </defs>
+
+  <rect class="diagram-bg" width="800" height="500"/>
+
+  <!-- Title -->
+  <text x="400" y="30" class="diagram-text" font-size="20" font-weight="bold" text-anchor="middle">
+    KV Cache: Token-by-Token Generation
+  </text>
+
+  <!-- Step 1: Initial token -->
+  <g>
+    <text x="50" y="80" class="diagram-text" font-size="14" font-weight="bold">Step 1: Process Token 0</text>
+
+    <rect x="50" y="90" width="100" height="40" class="diagram-box" stroke-width="2" rx="5"/>
+    <text x="100" y="115" class="diagram-text" font-size="12" text-anchor="middle">"Hello"</text>
+
+    <path d="M 150 110 L 180 110" class="diagram-arrow" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+    <rect x="180" y="90" width="120" height="40" class="diagram-compute" opacity="0.3" stroke-width="2" rx="5"/>
+    <text x="240" y="115" class="diagram-text" font-size="11" text-anchor="middle">Compute K₀, V₀</text>
+
+    <path d="M 300 110 L 330 110" class="diagram-arrow" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+    <rect x="330" y="90" width="100" height="40" class="diagram-cache" opacity="0.3" stroke-width="2" rx="5"/>
+    <text x="380" y="110" class="diagram-text" font-size="11" text-anchor="middle">Cache</text>
+    <text x="380" y="124" class="diagram-text mono" font-size="10" text-anchor="middle">[K₀, V₀]</text>
+  </g>
+
+  <!-- Step 2: Second token -->
+  <g>
+    <text x="50" y="180" class="diagram-text" font-size="14" font-weight="bold">Step 2: Process Token 1</text>
+
+    <rect x="50" y="190" width="100" height="40" class="diagram-box" stroke-width="2" rx="5"/>
+    <text x="100" y="215" class="diagram-text" font-size="12" text-anchor="middle">"world"</text>
+
+    <path d="M 150 210 L 180 210" class="diagram-arrow" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+    <rect x="180" y="190" width="120" height="40" class="diagram-new" opacity="0.3" stroke-width="2" rx="5"/>
+    <text x="240" y="215" class="diagram-text" font-size="11" text-anchor="middle">Compute K₁, V₁</text>
+
+    <path d="M 300 210 L 330 210" class="diagram-arrow" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+    <rect x="330" y="190" width="160" height="40" class="diagram-cache" opacity="0.3" stroke-width="2" rx="5"/>
+    <text x="410" y="205" class="diagram-text" font-size="11" text-anchor="middle">Cache (append)</text>
+    <text x="410" y="224" class="diagram-text mono" font-size="10" text-anchor="middle">[K₀,V₀] + [K₁,V₁]</text>
+
+    <text x="520" y="215" class="diagram-subtext" font-size="10">← No recompute!</text>
+  </g>
+
+  <!-- Step 3: Third token -->
+  <g>
+    <text x="50" y="280" class="diagram-text" font-size="14" font-weight="bold">Step 3: Process Token 2</text>
+
+    <rect x="50" y="290" width="100" height="40" class="diagram-box" stroke-width="2" rx="5"/>
+    <text x="100" y="315" class="diagram-text" font-size="12" text-anchor="middle">"!"</text>
+
+    <path d="M 150 310 L 180 310" class="diagram-arrow" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+    <rect x="180" y="290" width="120" height="40" class="diagram-new" opacity="0.3" stroke-width="2" rx="5"/>
+    <text x="240" y="315" class="diagram-text" font-size="11" text-anchor="middle">Compute K₂, V₂</text>
+
+    <path d="M 300 310 L 330 310" class="diagram-arrow" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+    <rect x="330" y="290" width="200" height="40" class="diagram-cache" opacity="0.3" stroke-width="2" rx="5"/>
+    <text x="430" y="305" class="diagram-text" font-size="11" text-anchor="middle">Cache (append)</text>
+    <text x="430" y="324" class="diagram-text mono" font-size="9" text-anchor="middle">[K₀,V₀,K₁,V₁] + [K₂,V₂]</text>
+  </g>
+
+  <!-- Comparison box -->
+  <g>
+    <rect x="50" y="370" width="350" height="100" class="diagram-box" stroke-width="2" rx="5"/>
+
+    <text x="225" y="395" class="diagram-title" font-size="13" font-weight="bold" text-anchor="middle">
+      Complexity Comparison
+    </text>
+
+    <text x="70" y="420" class="diagram-text" font-size="11">
+      <tspan font-weight="bold">Without cache:</tspan> O(N²) - recompute all K,V each step
+    </text>
+    <text x="70" y="438" class="diagram-compute" font-size="11" font-weight="bold">
+      Step N: Compute N K,V pairs → 1+2+3+...+N = O(N²)
+    </text>
+
+    <line x1="70" y1="445" x2="380" y2="445" class="diagram-subtext" stroke-width="1" opacity="0.3"/>
+
+    <text x="70" y="460" class="diagram-text" font-size="11">
+      <tspan font-weight="bold">With cache:</tspan> O(N) - compute only new K,V
+    </text>
+    <text x="70" y="478" class="diagram-cache" font-size="11" font-weight="bold">
+      Step N: Compute 1 K,V pair → N total operations
+    </text>
+  </g>
+
+  <!-- Memory growth visualization -->
+  <g transform="translate(450, 370)">
+    <text x="150" y="0" class="diagram-title" font-size="13" font-weight="bold" text-anchor="middle">
+      Cache Growth
+    </text>
+
+    <!-- Bar chart showing cache growth -->
+    <rect x="20" y="20" width="40" height="10" class="diagram-cache" opacity="0.5"/>
+    <text x="10" y="30" class="diagram-text" font-size="9">Step 1</text>
+
+    <rect x="20" y="40" width="80" height="10" class="diagram-cache" opacity="0.5"/>
+    <text x="10" y="50" class="diagram-text" font-size="9">Step 2</text>
+
+    <rect x="20" y="60" width="120" height="10" class="diagram-cache" opacity="0.5"/>
+    <text x="10" y="70" class="diagram-text" font-size="9">Step 3</text>
+
+    <rect x="20" y="80" width="160" height="10" class="diagram-cache" opacity="0.5"/>
+    <text x="10" y="90" class="diagram-text" font-size="9">Step 4</text>
+
+    <text x="200" y="60" class="diagram-subtext" font-size="9">
+      Memory grows
+    </text>
+    <text x="200" y="72" class="diagram-subtext" font-size="9">
+      linearly: O(N)
+    </text>
+  </g>
+</svg>

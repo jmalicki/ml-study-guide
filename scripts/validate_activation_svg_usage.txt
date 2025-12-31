@@ -1,0 +1,76 @@
+================================================================================
+  ACTIVATION FUNCTION SVG VALIDATION - QUICK REFERENCE
+================================================================================
+
+INSTALLATION
+------------
+pip install torch
+
+USAGE
+-----
+# Via Makefile (recommended)
+make validate-activation-svg
+
+# Direct execution
+python3 scripts/validate_activation_svg.py
+
+# Run tests
+python3 scripts/test_validate_activation_svg.py
+
+WHAT IT VALIDATES
+-----------------
+SVG File: assets/diagrams/ch10-activation-functions-comparison.svg
+
+Functions validated:
+  - ReLU: max(0, x)
+  - GELU: Gaussian Error Linear Unit
+  - SiLU (Swish): x * sigmoid(x)
+  - Sigmoid: 1 / (1 + exp(-x))
+  - Tanh: (exp(x) - exp(-x)) / (exp(x) + exp(-x))
+
+COORDINATE MAPPING
+------------------
+SVG Plot Area:  x=[80, 680] px,  y=[80, 420] px
+Data Range:     x=[-6, 4],       y=[-0.5, 4]
+
+ERROR TOLERANCE
+---------------
+Default epsilon: 0.05 (data units)
+Location: main() function in validate_activation_svg.py
+
+EXIT CODES
+----------
+0: All validations passed
+1: One or more validation errors or script error
+
+OUTPUT INTERPRETATION
+---------------------
+"OK (all N points within epsilon=0.05)"
+  -> All points match PyTorch implementation within tolerance
+
+"ERROR - X/N points exceed epsilon=0.05"
+  -> X points differ from PyTorch by more than epsilon
+  -> First 5 errors shown with x, SVG value, expected value, and diff
+
+TROUBLESHOOTING
+---------------
+Q: "ModuleNotFoundError: No module named 'torch'"
+A: Install PyTorch with: pip install torch
+
+Q: "ERROR: SVG file not found"
+A: Run script from project root or check SVG path
+
+Q: High error rates on smooth curves
+A: Check SVG polyline resolution or increase epsilon
+
+Q: Zero points for a function
+A: Check that polyline class name matches in SVG
+
+FILES
+-----
+validate_activation_svg.py     - Main validation script
+test_validate_activation_svg.py - Unit tests
+README_validation.md           - Detailed documentation
+VALIDATION_SUMMARY.md          - Implementation summary
+
+================================================================================
