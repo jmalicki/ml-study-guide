@@ -28,6 +28,14 @@
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
 
+      /* Override dark inline text colors */
+      text[fill="#000"],
+      text[fill="#000000"],
+      text[fill="#333"],
+      text[fill="#666"] {
+        fill: #ffffff;
+      }
+
       /* Darken colored backgrounds for white text visibility */
       rect[fill="#4A90A4"] { fill: #2d5f6f; }
       rect[fill="#1A4D5C"] { fill: #0f2d36; }

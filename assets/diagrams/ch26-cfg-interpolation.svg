@@ -22,6 +22,14 @@
         fill: #ffffff;
       }
 
+      /* Override dark inline text colors */
+      text[fill="#000"],
+      text[fill="#000000"],
+      text[fill="#333"],
+      text[fill="#666"] {
+        fill: #ffffff;
+      }
+
       /* Keep colored text readable in dark mode */
       text[fill="#E57373"] { fill: #ef5350; }
       text[fill="#81C784"] { fill: #66bb6a; }

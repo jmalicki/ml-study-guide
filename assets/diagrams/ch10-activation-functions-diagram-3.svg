@@ -30,6 +30,15 @@
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
 
+      /* Override dark inline text colors */
+      text[fill="#000"],
+      text[fill="#000000"],
+      text[fill="#333"],
+      text[fill="#555"],
+      text[fill="#666"] {
+        fill: #ffffff;
+      }
+
       .bg-box { fill: #2d2d2d; }
     }
   </style><rect x="20" y="120" width="60" height="40" class="bg-box" stroke="#4A90A4" stroke-width="2" rx="5" />

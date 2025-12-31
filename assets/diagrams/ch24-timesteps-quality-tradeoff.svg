@@ -30,6 +30,14 @@
         .small { fill: #cccccc; }
         .annotation { fill: #cccccc; }
 
+        /* Override dark inline text colors */
+        text[fill="#000"],
+        text[fill="#000000"],
+        text[fill="#333"],
+        text[fill="#666"] {
+          fill: #ffffff;
+        }
+
         line[stroke="#333"] { stroke: #cccccc; }
         rect[stroke="#333"] { stroke: #cccccc; }
         rect[fill="white"] { fill: #1a1a1a; }

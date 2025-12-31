@@ -30,6 +30,15 @@
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
 
+      /* Override dark inline text colors */
+      text[fill="#000"],
+      text[fill="#000000"],
+      text[fill="#333"],
+      text[fill="#555"],
+      text[fill="#666"] {
+        fill: #ffffff;
+      }
+
       /* Darken backgrounds in dark mode */
       rect[fill="#fff0f0"] { fill: #4a2d2d; }
       rect[fill="#f0fff0"] { fill: #2d4a2d; }

@@ -43,6 +43,13 @@
 
       /* Handle #333 text in dark mode */
       text[fill="#333"] { fill: #ffffff; }
+
+      /* Override dark inline text colors */
+      text[fill="#000"],
+      text[fill="#000000"],
+      text[fill="#666"] {
+        fill: #ffffff;
+      }
     }
   </style><text x="400" y="30" text-anchor="middle" font-size="20" font-weight="bold" fill="#333">
     Sinusoidal Encoding: Position × Dimension Heatmap

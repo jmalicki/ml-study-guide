@@ -31,6 +31,14 @@
       text[fill="#81C784"] { fill: #66bb6a; }
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
+
+      /* Override dark inline text colors */
+      text[fill="#000"],
+      text[fill="#000000"],
+      text[fill="#333"],
+      text[fill="#666"] {
+        fill: #ffffff;
+      }
     }
   </style><text x="400" y="30" text-anchor="middle" font-size="18" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#333">
     Tokenization Trade-off: Vocabulary Size vs Sequence Length

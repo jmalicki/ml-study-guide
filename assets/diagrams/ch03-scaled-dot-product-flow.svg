@@ -32,6 +32,15 @@
 
       .bg-box { fill: #2d2d2d; }
 
+      /* Override dark inline text colors */
+      text[fill="#000"],
+      text[fill="#000000"],
+      text[fill="#333"],
+      text[fill="#555"],
+      text[fill="#666"] {
+        fill: #ffffff;
+      }
+
       /* Darken colored backgrounds for white text visibility */
       rect[fill="#9FA8DA"] { fill: #4a5278; }
       rect[fill="#FFB74D"] { fill: #9a6b2d; }

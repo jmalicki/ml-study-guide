@@ -31,6 +31,14 @@
       text[fill="#4A90A4"] { fill: #4fc3f7; }
 
       .bg-white { fill: #1a1a1a; }
+
+      /* Override dark inline text colors */
+      text[fill="#000"],
+      text[fill="#000000"],
+      text[fill="#333"],
+      text[fill="#666"] {
+        fill: #ffffff;
+      }
     }
   </style><text x="400" y="25" text-anchor="middle" font-size="18" font-weight="bold" fill="#333">
     Sinusoidal Positional Encoding Pattern

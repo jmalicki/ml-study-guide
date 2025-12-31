@@ -34,6 +34,14 @@
 
       /* Darken colored shapes for better visibility in dark mode */
       circle[fill="#81C784"] { fill: #4a7c4e; }
+
+      /* Override dark inline text colors */
+      text[fill="#000"],
+      text[fill="#000000"],
+      text[fill="#333"],
+      text[fill="#666"] {
+        fill: #ffffff;
+      }
     }
   </style><rect width="600" height="400" fill="white" />
 

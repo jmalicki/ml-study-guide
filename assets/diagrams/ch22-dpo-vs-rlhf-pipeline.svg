@@ -40,6 +40,14 @@
       rect[fill="#4A90A4"] { fill: #2d5f6f; }
       rect[fill="#81C784"] { fill: #4a7c4e; }
       rect[fill="#757575"] { fill: #3d3d3d; }
+
+      /* Override dark inline text colors */
+      text[fill="#000"],
+      text[fill="#000000"],
+      text[fill="#333"],
+      text[fill="#666"] {
+        fill: #ffffff;
+      }
     }
   </style><text x="450" y="30" font-size="20" font-weight="bold" text-anchor="middle" fill="#333">
     DPO vs RLHF: Pipeline Comparison

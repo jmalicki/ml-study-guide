@@ -16,6 +16,14 @@
       .label-text { fill: #cccccc; }
       line[stroke="#333"] { stroke: #cccccc; }
 
+      /* Override dark inline text colors */
+      text[fill="#000"],
+      text[fill="#000000"],
+      text[fill="#333"],
+      text[fill="#666"] {
+        fill: #ffffff;
+      }
+
       /* Keep white text white in dark mode (for colored backgrounds) */
       text[fill="#fff"],
       text[fill="#ffffff"],

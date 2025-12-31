@@ -37,6 +37,14 @@
       rect[fill="#FFF3E0"] { fill: #4a3a1a; }
       rect[fill="#C8E6C9"] { fill: #2d4a2e; }
       rect[fill="#FFEBEE"] { fill: #4a2d2d; }
+
+      /* Override dark inline text colors */
+      text[fill="#000"],
+      text[fill="#000000"],
+      text[fill="#333"],
+      text[fill="#666"] {
+        fill: #ffffff;
+      }
     }
   </style><rect width="700" height="450" class="bg-main" />
 
