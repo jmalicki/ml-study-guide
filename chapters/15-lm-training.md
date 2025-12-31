@@ -152,25 +152,25 @@ labels = torch.tensor([[3857, 3332, 319, 262, 2603]])     # "cat sat on the mat"
 Given a sequence of tokens $\mathbf{x} = (x_1, x_2, \ldots, x_T)$, the probability of the sequence is factorized as:
 
 ```math
-P(\mathbf{x}) = \prod_{t=1}^{T} P(x_t \mid x_1, \ldots, x_{t-1})
+P(\mathbf{x}) = \prod_{t=1}^T P(x_t \mid x_1, \ldots, x_{t-1})
 ```
 
 The training objective is to maximize the log-likelihood:
 
 ```math
-\mathcal{L} = \sum_{t=1}^{T} \log P(x_t \mid x_1, \ldots, x_{t-1})
+\mathcal{L} = \sum_{t=1}^T \log P(x_t \mid x_1, \ldots, x_{t-1})
 ```
 
 In practice, we minimize the negative log-likelihood (NLL):
 
 ```math
-\text{Loss} = -\frac{1}{T} \sum_{t=1}^{T} \log P(x_t \mid x_1, \ldots, x_{t-1})
+\text{Loss} = -\frac{1}{T} \sum_{t=1}^T \log P(x_t \mid x_1, \ldots, x_{t-1})
 ```
 
-The model outputs logits $\mathbf{z}_t \in \mathbb{R}^{V}$ at each position, which are converted to probabilities via softmax:
+The model outputs logits $\mathbf{z}_t \in \mathbb{R}^V$ at each position, which are converted to probabilities via softmax:
 
 ```math
-P(x_t = i \mid x_{<t}) = \frac{\exp(z_{t,i})}{\sum_{j=1}^{V} \exp(z_{t,j})}
+P(x_t = i \mid x_{<t}) = \frac{\exp(z_{t,i})}{\sum_{j=1}^V \exp(z_{t,j})}
 ```
 
 where $V$ is the vocabulary size.
