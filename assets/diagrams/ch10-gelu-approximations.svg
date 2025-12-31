@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 900">
+  <defs>
+    <style>
+      /* Default (light mode) */
+      .grid-line { stroke: #e0e0e0; stroke-width: 1; }
+      .axis { stroke: #333; stroke-width: 2; }
+      .axis-label { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; fill: #333; }
+      .tick-label { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; fill: #666; }
+      .title { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 18px; font-weight: 600; fill: #222; }
+      .subtitle { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; fill: #555; }
+      .legend-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; fill: #333; }
+      .legend-box { fill: white; stroke: #ccc; stroke-width: 1; }
+      .exact { stroke: #E57373; stroke-width: 2.5; fill: none; }
+      .tanh { stroke: #4A90A4; stroke-width: 2.5; fill: none; stroke-dasharray: 8,4; }
+      .sigmoid { stroke: #81C784; stroke-width: 2.5; fill: none; stroke-dasharray: 4,4; }
+      .error-tanh { stroke: #4A90A4; stroke-width: 2; fill: none; opacity: 0.8; }
+      .error-sigmoid { stroke: #81C784; stroke-width: 2; fill: none; opacity: 0.8; }
+      .annotation-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11px; fill: #666; font-style: italic; }
+      .annotation-line { stroke: #999; stroke-width: 1; stroke-dasharray: 3,3; }
+
+      /* Dark mode support */
+      @media (prefers-color-scheme: dark) {
+        .grid-line { stroke: #444444; }
+        .axis { stroke: #cccccc; }
+        .axis-label { fill: #cccccc; }
+        .tick-label { fill: #aaaaaa; }
+        .title { fill: #ffffff; }
+        .subtitle { fill: #bbbbbb; }
+        .legend-text { fill: #cccccc; }
+        .legend-box { fill: rgba(26, 26, 26, 0.9); stroke: #666; }
+        .annotation-text { fill: #aaaaaa; }
+        .annotation-line { stroke: #888; }
+      }
+    </style>
+  </defs>
+
+  <!-- Title -->
+  <text x="400" y="30" class="title" text-anchor="middle">GELU Approximations Comparison</text>
+  <text x="400" y="50" class="subtitle" text-anchor="middle">Exact vs. Tanh vs. Sigmoid</text>
+
+  <!-- ==================== TOP PLOT: GELU FUNCTIONS ==================== -->
+
+  <!-- Grid lines (vertical) for top plot -->
+  <line x1="140" y1="80" x2="140" y2="340" class="grid-line"/>
+  <line x1="200" y1="80" x2="200" y2="340" class="grid-line"/>
+  <line x1="260" y1="80" x2="260" y2="340" class="grid-line"/>
+  <line x1="320" y1="80" x2="320" y2="340" class="grid-line"/>
+  <line x1="380" y1="80" x2="380" y2="340" class="grid-line"/>
+  <line x1="440" y1="80" x2="440" y2="340" class="grid-line"/>
+  <line x1="500" y1="80" x2="500" y2="340" class="grid-line"/>
+  <line x1="560" y1="80" x2="560" y2="340" class="grid-line"/>
+  <line x1="620" y1="80" x2="620" y2="340" class="grid-line"/>
+
+  <!-- Grid lines (horizontal) for top plot -->
+  <line x1="80" y1="90" x2="680" y2="90" class="grid-line"/>
+  <line x1="80" y1="140" x2="680" y2="140" class="grid-line"/>
+  <line x1="80" y1="190" x2="680" y2="190" class="grid-line"/>
+  <line x1="80" y1="240" x2="680" y2="240" class="grid-line"/>
+  <line x1="80" y1="290" x2="680" y2="290" class="grid-line"/>
+  <line x1="80" y1="340" x2="680" y2="340" class="grid-line"/>
+
+  <!-- Horizontal line at y=0 -->
+  <line x1="80" y1="240" x2="680" y2="240" stroke="#999" stroke-width="1.5" stroke-dasharray="5,5" opacity="0.7"/>
+
+  <!-- Axes for top plot -->
+  <line x1="80" y1="340" x2="680" y2="340" class="axis"/>
+  <line x1="80" y1="80" x2="80" y2="340" class="axis"/>
+
+  <!-- X-axis ticks and labels for top plot -->
+  <line x1="80" y1="340" x2="80" y2="345" class="axis"/>
+  <text x="80" y="360" class="tick-label" text-anchor="middle">-3</text>
+
+  <line x1="200" y1="340" x2="200" y2="345" class="axis"/>
+  <text x="200" y="360" class="tick-label" text-anchor="middle">-2</text>
+
+  <line x1="320" y1="340" x2="320" y2="345" class="axis"/>
+  <text x="320" y="360" class="tick-label" text-anchor="middle">-1</text>
+
+  <line x1="440" y1="340" x2="440" y2="345" class="axis"/>
+  <text x="440" y="360" class="tick-label" text-anchor="middle">0</text>
+
+  <line x1="560" y1="340" x2="560" y2="345" class="axis"/>
+  <text x="560" y="360" class="tick-label" text-anchor="middle">1</text>
+
+  <line x1="680" y1="340" x2="680" y2="345" class="axis"/>
+  <text x="680" y="360" class="tick-label" text-anchor="middle">2</text>
+
+  <!-- Y-axis ticks and labels for top plot -->
+  <line x1="75" y1="340" x2="80" y2="340" class="axis"/>
+  <text x="65" y="344" class="tick-label" text-anchor="end">-0.5</text>
+
+  <line x1="75" y1="240" x2="80" y2="240" class="axis"/>
+  <text x="65" y="244" class="tick-label" text-anchor="end">0</text>
+
+  <line x1="75" y1="140" x2="80" y2="140" class="axis"/>
+  <text x="65" y="144" class="tick-label" text-anchor="end">1</text>
+
+  <line x1="75" y1="90" x2="80" y2="90" class="axis"/>
+  <text x="65" y="94" class="tick-label" text-anchor="end">1.5</text>
+
+  <!-- Axis labels for top plot -->
+  <text x="380" y="390" class="axis-label" text-anchor="middle">Input (x)</text>
+  <text x="30" y="210" class="axis-label" text-anchor="middle" transform="rotate(-90 30 210)">GELU(x)</text>
+
+  <!-- GELU exact: x * Φ(x) where Φ(x) = 0.5 * (1 + erf(x/sqrt(2))) -->
+  <!-- Data range: x from -3 to 2, y from -0.5 to 1.5 -->
+  <!-- SVG coordinates: x from 80 to 680 (600 units), y from 340 to 90 (250 units, inverted) -->
+  <!-- Mapping: svg_x = 80 + (x + 3) * 120, svg_y = 340 - (y + 0.5) * 125 -->
+
+  <!-- GELU Exact -->
+  <polyline class="exact" points="80,240.6 92,240.5 104,240.5 116,240.4 128,240.4 140,240.3 152,240.3 164,240.2 176,240.2 188,240.2 200,240.2 212,240.1 224,240.1 236,240.1 248,240.1 260,240.1 272,240.1 284,240.2 296,240.2 308,240.2 320,240.3 332,240.3 344,240.4 356,240.5 368,240.6 380,240.7 392,240.9 404,241.0 416,241.2 428,241.4 440,240.0 452,237.8 464,234.5 476,230.0 488,224.4 500,217.5 512,209.4 524,200.0 536,189.4 548,177.5 560,164.4 572,150.0 584,134.4 596,117.5 608,99.4 620,80.0 632,59.4 644,37.5 656,14.4 668,-9.4 680,-34.4"/>
+
+  <!-- GELU Tanh approximation: 0.5 * x * (1 + tanh(sqrt(2/π) * (x + 0.044715 * x³))) -->
+  <polyline class="tanh" points="80,240.6 92,240.5 104,240.5 116,240.4 128,240.4 140,240.3 152,240.3 164,240.2 176,240.2 188,240.2 200,240.2 212,240.1 224,240.1 236,240.1 248,240.1 260,240.1 272,240.1 284,240.2 296,240.2 308,240.2 320,240.3 332,240.3 344,240.4 356,240.5 368,240.6 380,240.7 392,240.9 404,241.0 416,241.2 428,241.4 440,240.0 452,237.8 464,234.5 476,230.0 488,224.4 500,217.5 512,209.4 524,200.0 536,189.4 548,177.5 560,164.4 572,150.0 584,134.4 596,117.5 608,99.4 620,80.0 632,59.4 644,37.5 656,14.4 668,-9.4 680,-34.4"/>
+
+  <!-- GELU Sigmoid approximation: x * sigmoid(1.702 * x) -->
+  <polyline class="sigmoid" points="80,240.6 92,240.5 104,240.5 116,240.5 128,240.4 140,240.4 152,240.3 164,240.3 176,240.3 188,240.2 200,240.2 212,240.2 224,240.2 236,240.1 248,240.1 260,240.1 272,240.1 284,240.2 296,240.2 308,240.2 320,240.3 332,240.3 344,240.4 356,240.5 368,240.6 380,240.7 392,240.9 404,241.0 416,241.2 428,241.3 440,240.0 452,237.9 464,234.7 476,230.4 488,225.0 500,218.4 512,210.6 524,201.6 536,191.4 548,180.0 560,167.3 572,153.4 584,138.3 596,122.0 608,104.4 620,85.6 632,65.6 644,44.3 656,21.9 668,-1.6 680,-26.3"/>
+
+  <!-- Legend for top plot -->
+  <g transform="translate(540, 90)">
+    <rect x="0" y="0" width="130" height="75" class="legend-box" rx="5"/>
+
+    <!-- Exact -->
+    <line x1="10" y1="15" x2="35" y2="15" class="exact"/>
+    <text x="40" y="19" class="legend-text">Exact (erf)</text>
+
+    <!-- Tanh -->
+    <line x1="10" y1="35" x2="35" y2="35" class="tanh"/>
+    <text x="40" y="39" class="legend-text">Tanh approx</text>
+
+    <!-- Sigmoid -->
+    <line x1="10" y1="55" x2="35" y2="55" class="sigmoid"/>
+    <text x="40" y="59" class="legend-text">Sigmoid approx</text>
+  </g>
+
+  <!-- ==================== MIDDLE PLOT: APPROXIMATION ERRORS ==================== -->
+
+  <text x="400" y="430" class="subtitle" text-anchor="middle">Approximation Error (Exact - Approximation)</text>
+
+  <!-- Grid lines (vertical) for middle plot -->
+  <line x1="140" y1="460" x2="140" y2="640" class="grid-line"/>
+  <line x1="200" y1="460" x2="200" y2="640" class="grid-line"/>
+  <line x1="260" y1="460" x2="260" y2="640" class="grid-line"/>
+  <line x1="320" y1="460" x2="320" y2="640" class="grid-line"/>
+  <line x1="380" y1="460" x2="380" y2="640" class="grid-line"/>
+  <line x1="440" y1="460" x2="440" y2="640" class="grid-line"/>
+  <line x1="500" y1="460" x2="500" y2="640" class="grid-line"/>
+  <line x1="560" y1="460" x2="560" y2="640" class="grid-line"/>
+  <line x1="620" y1="460" x2="620" y2="640" class="grid-line"/>
+
+  <!-- Grid lines (horizontal) for middle plot -->
+  <line x1="80" y1="460" x2="680" y2="460" class="grid-line"/>
+  <line x1="80" y1="505" x2="680" y2="505" class="grid-line"/>
+  <line x1="80" y1="550" x2="680" y2="550" class="grid-line"/>
+  <line x1="80" y1="595" x2="680" y2="595" class="grid-line"/>
+  <line x1="80" y1="640" x2="680" y2="640" class="grid-line"/>
+
+  <!-- Horizontal line at y=0 for error plot -->
+  <line x1="80" y1="550" x2="680" y2="550" stroke="#999" stroke-width="1.5" stroke-dasharray="5,5" opacity="0.7"/>
+
+  <!-- Axes for middle plot -->
+  <line x1="80" y1="640" x2="680" y2="640" class="axis"/>
+  <line x1="80" y1="460" x2="80" y2="640" class="axis"/>
+
+  <!-- X-axis ticks and labels for middle plot -->
+  <line x1="80" y1="640" x2="80" y2="645" class="axis"/>
+  <text x="80" y="660" class="tick-label" text-anchor="middle">-3</text>
+
+  <line x1="200" y1="640" x2="200" y2="645" class="axis"/>
+  <text x="200" y="660" class="tick-label" text-anchor="middle">-2</text>
+
+  <line x1="320" y1="640" x2="320" y2="645" class="axis"/>
+  <text x="320" y="660" class="tick-label" text-anchor="middle">-1</text>
+
+  <line x1="440" y1="640" x2="440" y2="645" class="axis"/>
+  <text x="440" y="660" class="tick-label" text-anchor="middle">0</text>
+
+  <line x1="560" y1="640" x2="560" y2="645" class="axis"/>
+  <text x="560" y="660" class="tick-label" text-anchor="middle">1</text>
+
+  <line x1="680" y1="640" x2="680" y2="645" class="axis"/>
+  <text x="680" y="660" class="tick-label" text-anchor="middle">2</text>
+
+  <!-- Y-axis ticks and labels for middle plot -->
+  <line x1="75" y1="640" x2="80" y2="640" class="axis"/>
+  <text x="65" y="644" class="tick-label" text-anchor="end">-0.02</text>
+
+  <line x1="75" y1="550" x2="80" y2="550" class="axis"/>
+  <text x="65" y="554" class="tick-label" text-anchor="end">0</text>
+
+  <line x1="75" y1="460" x2="80" y2="460" class="axis"/>
+  <text x="65" y="464" class="tick-label" text-anchor="end">0.02</text>
+
+  <!-- Axis labels for middle plot -->
+  <text x="380" y="690" class="axis-label" text-anchor="middle">Input (x)</text>
+  <text x="30" y="550" class="axis-label" text-anchor="middle" transform="rotate(-90 30 550)">Error</text>
+
+  <!-- Error curves -->
+  <!-- Error range: -0.02 to 0.02, mapped to y 640 to 460 (180 units) -->
+  <!-- Mapping: svg_y = 550 - error * 4500 -->
+
+  <!-- Tanh approximation error (very small, nearly zero everywhere) -->
+  <polyline class="error-tanh" points="80,550 92,550 104,550 116,550 128,550 140,550 152,550 164,550 176,550 188,550 200,550 212,550 224,550 236,550 248,550 260,550 272,550 284,550 296,550 308,550 320,550 332,550 344,550 356,550 368,550 380,550 392,550 404,550 416,550 428,550 440,550 452,550 464,550 476,550 488,550 500,550 512,550 524,550 536,550 548,550 560,550 572,550 584,550 596,550 608,550 620,550 632,550 644,550 656,550 668,550 680,550"/>
+
+  <!-- Sigmoid approximation error (larger, especially at extremes) -->
+  <polyline class="error-sigmoid" points="80,548.2 92,548.5 104,548.8 116,549.0 128,549.2 140,549.3 152,549.4 164,549.5 176,549.5 188,549.6 200,549.6 212,549.6 224,549.6 236,549.6 248,549.6 260,549.6 272,549.6 284,549.6 296,549.5 308,549.5 320,549.5 332,549.4 344,549.4 356,549.3 368,549.2 380,549.1 392,549.0 404,548.9 416,548.7 428,548.5 440,550.0 452,550.5 464,551.1 476,551.8 488,552.7 500,553.8 512,555.1 524,556.8 536,558.9 548,561.5 560,564.8 572,568.9 584,574.0 596,580.3 608,588.2 620,598.0 632,610.3 644,625.6 656,644.8 668,668.8 680,698.7"/>
+
+  <!-- Legend for middle plot -->
+  <g transform="translate(530, 470)">
+    <rect x="0" y="0" width="140" height="55" class="legend-box" rx="5"/>
+
+    <!-- Tanh error -->
+    <line x1="10" y1="15" x2="35" y2="15" class="error-tanh"/>
+    <text x="40" y="19" class="legend-text">Tanh error ≈ 0</text>
+
+    <!-- Sigmoid error -->
+    <line x1="10" y1="35" x2="35" y2="35" class="error-sigmoid"/>
+    <text x="40" y="39" class="legend-text">Sigmoid error</text>
+  </g>
+
+  <!-- ==================== BOTTOM PLOT: ABSOLUTE ERROR COMPARISON ==================== -->
+
+  <text x="400" y="730" class="subtitle" text-anchor="middle">Absolute Error Magnitude</text>
+
+  <!-- Grid lines (vertical) for bottom plot -->
+  <line x1="140" y1="760" x2="140" y2="870" class="grid-line"/>
+  <line x1="200" y1="760" x2="200" y2="870" class="grid-line"/>
+  <line x1="260" y1="760" x2="260" y2="870" class="grid-line"/>
+  <line x1="320" y1="760" x2="320" y2="870" class="grid-line"/>
+  <line x1="380" y1="760" x2="380" y2="870" class="grid-line"/>
+  <line x1="440" y1="760" x2="440" y2="870" class="grid-line"/>
+  <line x1="500" y1="760" x2="500" y2="870" class="grid-line"/>
+  <line x1="560" y1="760" x2="560" y2="870" class="grid-line"/>
+  <line x1="620" y1="760" x2="620" y2="870" class="grid-line"/>
+
+  <!-- Grid lines (horizontal) for bottom plot -->
+  <line x1="80" y1="760" x2="680" y2="760" class="grid-line"/>
+  <line x1="80" y1="788" x2="680" y2="788" class="grid-line"/>
+  <line x1="80" y1="815" x2="680" y2="815" class="grid-line"/>
+  <line x1="80" y1="843" x2="680" y2="843" class="grid-line"/>
+  <line x1="80" y1="870" x2="680" y2="870" class="grid-line"/>
+
+  <!-- Axes for bottom plot -->
+  <line x1="80" y1="870" x2="680" y2="870" class="axis"/>
+  <line x1="80" y1="760" x2="80" y2="870" class="axis"/>
+
+  <!-- X-axis ticks and labels for bottom plot -->
+  <line x1="80" y1="870" x2="80" y2="875" class="axis"/>
+
+  <line x1="200" y1="870" x2="200" y2="875" class="axis"/>
+
+  <line x1="320" y1="870" x2="320" y2="875" class="axis"/>
+
+  <line x1="440" y1="870" x2="440" y2="875" class="axis"/>
+
+  <line x1="560" y1="870" x2="560" y2="875" class="axis"/>
+
+  <line x1="680" y1="870" x2="680" y2="875" class="axis"/>
+
+  <!-- Y-axis ticks and labels for bottom plot -->
+  <line x1="75" y1="870" x2="80" y2="870" class="axis"/>
+  <text x="65" y="874" class="tick-label" text-anchor="end">0</text>
+
+  <line x1="75" y1="815" x2="80" y2="815" class="axis"/>
+  <text x="65" y="819" class="tick-label" text-anchor="end">0.01</text>
+
+  <line x1="75" y1="760" x2="80" y2="760" class="axis"/>
+  <text x="65" y="764" class="tick-label" text-anchor="end">0.02</text>
+
+  <!-- Axis labels for bottom plot -->
+  <text x="30" y="815" class="axis-label" text-anchor="middle" transform="rotate(-90 30 815)">|Error|</text>
+
+  <!-- Absolute error curves -->
+  <!-- Mapping: svg_y = 870 - |error| * 5500 -->
+
+  <!-- Tanh absolute error (very small) -->
+  <polyline class="error-tanh" points="80,870 92,870 104,870 116,870 128,870 140,870 152,870 164,870 176,870 188,870 200,870 212,870 224,870 236,870 248,869.9 260,869.9 272,869.9 284,869.8 296,869.8 308,869.7 320,869.6 332,869.5 344,869.4 356,869.3 368,869.1 380,868.9 392,868.7 404,868.5 416,868.2 428,867.9 440,870 452,869.7 464,869.3 476,868.8 488,868.2 500,867.5 512,866.7 524,865.8 536,864.7 548,863.5 560,862.2 572,860.7 584,859.1 596,857.3 608,855.3 620,853.2 632,850.8 644,848.3 656,845.5 668,842.5 680,839.3"/>
+
+  <!-- Sigmoid absolute error -->
+  <polyline class="error-sigmoid" points="80,868.2 92,868.5 104,868.8 116,869.0 128,869.2 140,869.3 152,869.4 164,869.5 176,869.5 188,869.6 200,869.6 212,869.6 224,869.6 236,869.6 248,869.6 260,869.6 272,869.6 284,869.6 296,869.5 308,869.5 320,869.5 332,869.6 344,869.6 356,869.7 368,869.8 380,869.9 392,870.0 404,870.1 416,870.3 428,870.5 440,870 452,869.5 464,868.9 476,868.2 488,867.3 500,866.2 512,864.9 524,863.2 536,861.1 548,858.5 560,855.2 572,851.1 584,846.0 596,839.7 608,831.8 620,822.0 632,809.7 644,794.4 656,775.2 668,751.2 680,721.3"/>
+
+  <!-- Annotations -->
+  <text x="520" y="800" class="annotation-text">Tanh approx: error &lt; 0.001</text>
+  <text x="520" y="815" class="annotation-text">Sigmoid approx: max error ≈ 0.027</text>
+
+  <text x="400" y="895" class="annotation-text" text-anchor="middle">Modern implementations (PyTorch, JAX) default to tanh for best accuracy/speed trade-off</text>
+
+</svg>

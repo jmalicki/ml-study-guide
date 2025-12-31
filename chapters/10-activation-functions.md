@@ -260,6 +260,22 @@ The implementation provides three variants:
 
 Modern implementations (PyTorch, JAX) default to the tanh approximation as it provides the best accuracy/speed trade-off. The code below demonstrates all three approaches so you can understand the trade-offs in practice.
 
+### Visual Comparison of GELU Approximations
+
+The following diagram compares the three GELU implementations and their approximation errors:
+
+![GELU Approximations Comparison](../assets/diagrams/ch10-gelu-approximations.svg)
+
+**Key observations from the visualization:**
+
+- **Top plot**: All three GELU variants produce nearly identical curves. The exact (erf-based) GELU is shown in solid red, while the tanh and sigmoid approximations are shown with dashed lines.
+- **Middle plot**: The approximation errors (exact - approximation) reveal that:
+  - The **tanh approximation error is essentially zero** across the entire range (< 0.001 everywhere)
+  - The **sigmoid approximation** has larger errors, especially for large positive values (max error ≈ 0.027 at x=2)
+- **Bottom plot**: Absolute error magnitude confirms that tanh is far more accurate than sigmoid, justifying its use as the default in modern frameworks.
+
+This is why PyTorch and JAX default to the tanh approximation: it provides essentially exact results while being faster to compute than the error function.
+
 ```python
 import torch
 import torch.nn as nn
@@ -294,49 +310,18 @@ def gelu_sigmoid_approx(x: torch.Tensor) -> torch.Tensor:
     """GELU approximation using sigmoid."""
     return x * torch.sigmoid(1.702 * x)
 
-# Visualize GELU variants
+# Test the approximations
 x = torch.linspace(-3, 3, 1000)
 y_exact = gelu_exact(x)
 y_tanh = gelu_tanh_approx(x)
 y_sigmoid = gelu_sigmoid_approx(x)
-y_relu = torch.relu(x)
 
-plt.figure(figsize=(12, 6))
-plt.plot(x.numpy(), y_exact.numpy(), label='GELU (exact)', linewidth=2)
-plt.plot(x.numpy(), y_tanh.numpy(), '--', label='GELU (tanh approx)', linewidth=2)
-plt.plot(x.numpy(), y_sigmoid.numpy(), '-.', label='GELU (sigmoid approx)', linewidth=2)
-plt.plot(x.numpy(), y_relu.numpy(), ':', label='ReLU', linewidth=2, alpha=0.7)
-plt.grid(True, alpha=0.3)
-plt.xlabel('x')
-plt.ylabel('Activation(x)')
-plt.title('GELU Variants Comparison')
-plt.legend()
-plt.axhline(y=0, color='k', linestyle='-', linewidth=0.5)
-plt.axvline(x=0, color='k', linestyle='-', linewidth=0.5)
-plt.show()
+# Compute maximum errors
+tanh_error = torch.abs(y_exact - y_tanh).max()
+sigmoid_error = torch.abs(y_exact - y_sigmoid).max()
 
-# Compare derivatives
-x = torch.linspace(-3, 3, 1000, requires_grad=True)
-y_exact = gelu_exact(x)
-y_exact.sum().backward()
-grad_exact = x.grad.clone()
-
-x.grad.zero_()
-y_relu = torch.relu(x)
-y_relu.sum().backward()
-grad_relu = x.grad.clone()
-
-plt.figure(figsize=(12, 6))
-plt.plot(x.detach().numpy(), grad_exact.numpy(), label='GELU derivative', linewidth=2)
-plt.plot(x.detach().numpy(), grad_relu.numpy(), label='ReLU derivative', linewidth=2)
-plt.grid(True, alpha=0.3)
-plt.xlabel('x')
-plt.ylabel("Activation'(x)")
-plt.title('Activation Function Derivatives')
-plt.legend()
-plt.axhline(y=0, color='k', linestyle='-', linewidth=0.5)
-plt.axvline(x=0, color='k', linestyle='-', linewidth=0.5)
-plt.show()
+print(f"Tanh approximation max error: {tanh_error:.6f}")      # ~ 0.0001
+print(f"Sigmoid approximation max error: {sigmoid_error:.6f}")  # ~ 0.027
 ```
 
 **Key Papers:**
