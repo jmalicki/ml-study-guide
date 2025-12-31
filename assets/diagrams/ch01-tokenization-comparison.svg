@@ -33,6 +33,12 @@
       text[fill="#81C784"] { fill: #66bb6a; }
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
+
+      /* Darken colored backgrounds for dark mode */
+      rect[fill="#E57373"] { fill: #8b3d3d; }
+      rect[fill="#FFB74D"] { fill: #8b5e28; }
+      rect[fill="#81C784"] { fill: #4a7c4e; }
+      rect[fill="#9575CD"] { fill: #5c4a7a; }
     }
   </style><text x="400" y="30" text-anchor="middle" font-size="18" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#333">
     Tokenization Methods Compared: Same Text, Different Splits

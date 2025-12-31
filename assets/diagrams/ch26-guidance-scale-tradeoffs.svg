@@ -33,6 +33,11 @@
       text[fill="#81C784"] { fill: #66bb6a; }
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
+
+      /* Darken colored backgrounds for dark mode */
+      rect[fill="#E57373"] { fill: #8b3d3d; }
+      rect[fill="#81C784"] { fill: #4a7c4e; }
+      rect[fill="#4A90A4"] { fill: #2d5f6f; }
     }
   </style><text x="400" y="30" font-size="18" font-weight="bold" text-anchor="middle" fill="#333">
     Guidance Scale Trade-offs

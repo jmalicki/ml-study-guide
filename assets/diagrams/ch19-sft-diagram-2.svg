@@ -17,6 +17,9 @@
       line[stroke="#333"] { stroke: #cccccc; }
       .bg-box { fill: #2d2d2d; }
 
+      /* Darken colored backgrounds in dark mode for proper contrast */
+      rect[fill="#e8f4f8"] { fill: #2d5f6f; }
+
       /* Keep white text white in dark mode (for colored backgrounds) */
       text[fill="#fff"],
       text[fill="#ffffff"],

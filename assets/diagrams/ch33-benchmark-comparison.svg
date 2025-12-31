@@ -27,6 +27,10 @@
       text[fill="#81C784"] { fill: #66bb6a; }
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
+
+      /* Darken colored backgrounds for white text contrast */
+      rect[fill="#9575CD"] { fill: #5c4a7a; }
+      rect[fill="#4A90A4"] { fill: #2d5f6f; }
     }
   </style><text x="400" y="30" font-family="Arial, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#333">
     LLM Benchmark Performance Comparison

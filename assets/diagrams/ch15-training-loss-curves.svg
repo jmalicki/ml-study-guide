@@ -31,6 +31,9 @@
       /* Legend box dark mode */
       rect[fill="white"] { fill: #1a1a1a; }
       rect[stroke="#333"] { stroke: #cccccc; }
+
+      /* Darken colored shapes for better visibility in dark mode */
+      circle[fill="#81C784"] { fill: #4a7c4e; }
     }
   </style><rect width="600" height="400" fill="white" />
 
@@ -102,8 +105,8 @@
   </text>
 
   
-  <line x1="485" y1="268" x2="485" y2="256" stroke="#E57373" stroke-width="1" stroke-dasharray="2,2" />
-  <text x="490" y="240" font-family="Arial, sans-serif" font-size="10" fill="#E57373">
+  <line x1="485" y1="268" x2="485" y2="256" stroke="#C62828" stroke-width="1" stroke-dasharray="2,2" />
+  <text x="490" y="240" font-family="Arial, sans-serif" font-size="10" fill="#C62828">
     Val loss plateaus
   </text>
 </svg>

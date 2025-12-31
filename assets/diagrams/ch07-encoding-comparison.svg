@@ -31,6 +31,16 @@
       text[fill="#4A90A4"] { fill: #4fc3f7; }
 
       .bg-main { fill: #2d2d2d; }
+
+      /* Darken colored backgrounds for better contrast with white text */
+      rect[fill="#E57373"] { fill: #8b3d3d; }
+      rect[fill="#4A90A4"] { fill: #2d5f6f; }
+      rect[fill="#81C784"] { fill: #4a7c4e; }
+      rect[fill="#BA68C8"] { fill: #5c4a7a; }
+      rect[fill="#FFB74D"] { fill: #9b6b2e; }
+      rect[fill="#78909C"] { fill: #455a64; }
+      rect[fill="#A1887F"] { fill: #5d4e47; }
+      rect[fill="#9E9E9E"] { fill: #424242; }
     }
   </style><text x="450" y="30" text-anchor="middle" font-size="20" font-weight="bold" fill="#333">
     Positional Encoding Methods Comparison

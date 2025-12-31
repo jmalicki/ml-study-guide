@@ -27,6 +27,20 @@
       text[fill="#81C784"] { fill: #66bb6a; }
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
+
+      /* Darken line and circle colors for better visibility */
+      polyline[stroke="#9575CD"] { stroke: #9575CD; }
+      polyline[stroke="#4A90A4"] { stroke: #4fc3f7; }
+      polyline[stroke="#81C784"] { stroke: #66bb6a; }
+      polyline[stroke="#E57373"] { stroke: #ef5350; }
+      circle[fill="#9575CD"] { fill: #9575CD; }
+      circle[fill="#4A90A4"] { fill: #4fc3f7; }
+      circle[fill="#81C784"] { fill: #66bb6a; }
+      circle[fill="#E57373"] { fill: #ef5350; }
+      line[stroke="#9575CD"] { stroke: #9575CD; }
+      line[stroke="#4A90A4"] { stroke: #4fc3f7; }
+      line[stroke="#81C784"] { stroke: #66bb6a; }
+      line[stroke="#E57373"] { stroke: #ef5350; }
     }
   </style><text x="400" y="30" font-family="Arial, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#333">
     Elo Rating Evolution Over Battles

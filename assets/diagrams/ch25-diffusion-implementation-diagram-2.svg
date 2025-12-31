@@ -26,6 +26,11 @@
       text[fill="#81C784"] { fill: #66bb6a; }
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
+
+      /* Darken colored backgrounds for dark mode */
+      rect[fill="#e8f4f8"] { fill: #2d4550; }
+      rect[fill="#fff4e6"] { fill: #4a3d2d; }
+      rect[fill="#f5f5f5"] { fill: #2d2d2d; }
     }
   </style><defs>
         <marker id="arrow-res" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">

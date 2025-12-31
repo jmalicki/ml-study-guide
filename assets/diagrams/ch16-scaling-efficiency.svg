@@ -9,6 +9,15 @@
         text { fill: #ffffff; }
         .axis-line { stroke: #ffffff; }
         .grid-line { stroke: #444444; }
+        /* Darken colored elements for better contrast in dark mode */
+        .line-dp { stroke: #4a7c4e; }
+        .line-tp { stroke: #2d5f6f; }
+        .line-pp { stroke: #9d7d3d; }
+        .line-fsdp { stroke: #8b3d3d; }
+        circle[fill="#81C784"] { fill: #4a7c4e; }
+        circle[fill="#4A90A4"] { fill: #2d5f6f; }
+        circle[fill="#FFB74D"] { fill: #9d7d3d; }
+        circle[fill="#E57373"] { fill: #8b3d3d; }
       }
       .axis-line { stroke: #000000; stroke-width: 2; }
       .grid-line { stroke: #cccccc; stroke-width: 1; stroke-dasharray: 4,4; }

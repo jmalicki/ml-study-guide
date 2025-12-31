@@ -38,6 +38,11 @@
 
       /* Keep dark text dark on light-colored backgrounds */
       text[style*="fill: #333"] { fill: #333333; }
+
+      /* Darken colored backgrounds for dark mode */
+      rect[fill="#81C784"] { fill: #4a7c4e; }
+      rect[fill="#FFB74D"] { fill: #8b5e28; }
+      rect[fill="#9575CD"] { fill: #5c4a7a; }
     }
   </style><text x="400" y="30" text-anchor="middle" font-size="18" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#333">
     BPE Merge Process: Building Subwords from Characters

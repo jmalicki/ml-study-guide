@@ -8,6 +8,7 @@
     .label-text { fill: #666666; }
     line[stroke="#333"] { stroke: #333333; }
 
+
     /* Dark mode */
     @media (prefers-color-scheme: dark) {
       text { fill: #ffffff; }
@@ -23,10 +24,15 @@
       }
 
       /* Keep colored text readable in dark mode */
-      text[fill="#E57373"] { fill: #ef5350; }
-      text[fill="#81C784"] { fill: #66bb6a; }
-      text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
+
+      /* Darken colored backgrounds for white text contrast */
+      rect[fill="#c62828"] { fill: #8b3d3d; }
+      rect[fill="#e65100"] { fill: #a66a2a; }
+      rect[fill="#ba8500"] { fill: #9e7a25; }
+      rect[fill="#4A90A4"] { fill: #2d5f6f; }
+      rect[fill="#388e3c"] { fill: #4a7c4e; }
+      rect[fill="#616161"] { fill: #5a5a5a; }
     }
   </style><text x="400" y="30" font-size="22" font-weight="bold" fill="#333" text-anchor="middle">
     GPU Memory Hierarchy
@@ -49,7 +55,7 @@
 
   
   <g transform="translate(100, 90)">
-    <rect x="0" y="0" width="600" height="70" fill="#E57373" stroke="#333" stroke-width="2" rx="5" />
+    <rect x="0" y="0" width="600" height="70" fill="#c62828" stroke="#333" stroke-width="2" rx="5" />
     <text x="20" y="25" font-size="16" font-weight="bold" fill="#fff">Registers</text>
     <text x="20" y="45" font-size="13" fill="#fff">~20 TB/s bandwidth</text>
     <text x="20" y="62" font-size="12" fill="#fff">Per-thread, ~256 KB per SM</text>
@@ -59,7 +65,7 @@
 
   
   <g transform="translate(100, 180)">
-    <rect x="0" y="0" width="600" height="75" fill="#FFB74D" stroke="#333" stroke-width="2" rx="5" />
+    <rect x="0" y="0" width="600" height="75" fill="#e65100" stroke="#333" stroke-width="2" rx="5" />
     <text x="20" y="25" font-size="16" font-weight="bold" fill="#333">L1 Cache / Shared Memory (SRAM)</text>
     <text x="20" y="45" font-size="13" fill="#333">~19 TB/s bandwidth</text>
     <text x="20" y="62" font-size="12" fill="#333">Per-SM, 128-256 KB (configurable split)</text>
@@ -69,7 +75,7 @@
 
   
   <g transform="translate(100, 275)">
-    <rect x="0" y="0" width="600" height="75" fill="#FFD54F" stroke="#333" stroke-width="2" rx="5" />
+    <rect x="0" y="0" width="600" height="75" fill="#ba8500" stroke="#333" stroke-width="2" rx="5" />
     <text x="20" y="25" font-size="16" font-weight="bold" fill="#333">L2 Cache</text>
     <text x="20" y="45" font-size="13" fill="#333">~4 TB/s bandwidth</text>
     <text x="20" y="62" font-size="12" fill="#333">Shared across GPU, 40-60 MB (H100: 50 MB)</text>
@@ -89,7 +95,7 @@
 
   
   <g transform="translate(100, 475)">
-    <rect x="0" y="0" width="600" height="75" fill="#81C784" stroke="#333" stroke-width="2" rx="5" />
+    <rect x="0" y="0" width="600" height="75" fill="#388e3c" stroke="#333" stroke-width="2" rx="5" />
     <text x="20" y="25" font-size="16" font-weight="bold" fill="#333">CPU Memory (DRAM)</text>
     <text x="20" y="45" font-size="13" fill="#333">~100 GB/s bandwidth via PCIe 4.0</text>
     <text x="20" y="62" font-size="12" fill="#333">Host memory: 128 GB - 2 TB</text>
@@ -99,7 +105,7 @@
 
   
   <g transform="translate(100, 570)">
-    <rect x="0" y="0" width="600" height="65" fill="#9E9E9E" stroke="#333" stroke-width="2" rx="5" />
+    <rect x="0" y="0" width="600" height="65" fill="#616161" stroke="#333" stroke-width="2" rx="5" />
     <text x="20" y="25" font-size="16" font-weight="bold" fill="#fff">Disk Storage (NVMe SSD)</text>
     <text x="20" y="45" font-size="13" fill="#fff">~7 GB/s bandwidth (PCIe 4.0 NVMe)</text>
 

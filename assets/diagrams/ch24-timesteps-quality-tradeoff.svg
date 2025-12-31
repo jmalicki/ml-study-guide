@@ -37,6 +37,10 @@
 
         .grid { stroke: #444444; }
         .axis { stroke: #cccccc; }
+
+        /* Darken colored backgrounds for dark mode */
+        rect[fill="white"] { fill: #1a1a1a; }
+        rect[fill="#ffffff"] { fill: #1a1a1a; }
       }
     </style>
   </defs>

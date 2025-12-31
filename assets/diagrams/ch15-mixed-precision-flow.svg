@@ -31,6 +31,15 @@
       text[fill="#81C784"] { fill: #66bb6a; }
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
+
+      /* Darken colored backgrounds for better contrast in dark mode */
+      rect[fill="#E3F2FD"] { fill: #1a3a4a; }
+      rect[fill="#FFF3E0"] { fill: #4a3a1a; }
+      rect[fill="#FFEBEE"] { fill: #4a2d2d; }
+      rect[fill="#FFCDD2"] { fill: #4a2d2d; }
+      rect[fill="#C8E6C9"] { fill: #2d4a2e; }
+      rect[fill="#4A90A4"] { fill: #2d5f6f; }
+      rect[fill="#E57373"] { fill: #8b3d3d; }
     }
   </style><rect width="650" height="500" class="bg-main" />
 

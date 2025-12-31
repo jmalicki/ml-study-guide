@@ -27,6 +27,12 @@
       text[fill="#81C784"] { fill: #66bb6a; }
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
+
+      /* Darken colored backgrounds for contrast with white text */
+      rect[fill="#4A90A4"] { fill: #2d5f6f; }
+      rect[fill="#5FA4B8"] { fill: #3a6a7a; }
+      rect[fill="#81C784"] { fill: #4a7c4e; }
+      rect[fill="#E57373"] { fill: #8b3d3d; }
     }
   </style><text x="450" y="30" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#333" text-anchor="middle">
     RoPE Scaling Methods Comparison

@@ -9,6 +9,11 @@
         text { fill: #ffffff; }
         .axis-line { stroke: #ffffff; }
         .grid-line { stroke: #444444; }
+        /* Darken colored backgrounds for better contrast in dark mode */
+        .bar-dp { fill: #4a7c4e; }
+        .bar-tp { fill: #2d5f6f; }
+        .bar-pp { fill: #9d7d3d; }
+        .bar-fsdp { fill: #8b3d3d; }
       }
       .axis-line { stroke: #000000; stroke-width: 2; }
       .grid-line { stroke: #cccccc; stroke-width: 1; stroke-dasharray: 4,4; }

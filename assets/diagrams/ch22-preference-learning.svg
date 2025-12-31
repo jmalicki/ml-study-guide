@@ -43,6 +43,10 @@
       text[fill="#81C784"] { fill: #66bb6a; }
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
+
+      /* Darken colored backgrounds for dark mode */
+      rect[fill="#4A90A4"] { fill: #2d5f6f; }
+      rect[fill="#757575"] { fill: #3d3d3d; }
     }
   </style><text x="400" y="30" font-size="20" font-weight="bold" text-anchor="middle" fill="#333">
     DPO Preference Learning

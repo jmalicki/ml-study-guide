@@ -31,6 +31,10 @@
       text[fill="#4A90A4"] { fill: #4fc3f7; }
 
       .bg-main { fill: #2d2d2d; }
+
+      /* Darken colored backgrounds for better contrast with white text */
+      rect[fill="#E3F2FD"] { fill: #2d5f6f; }
+      rect[fill="#FFF3E0"] { fill: #9b6b2e; }
     }
   </style><rect width="600" height="380" class="bg-main" rx="4" />
 

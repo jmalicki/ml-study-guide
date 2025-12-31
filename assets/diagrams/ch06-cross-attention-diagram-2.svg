@@ -31,6 +31,9 @@
       text[fill="#4A90A4"] { fill: #4fc3f7; }
 
       .bg-box { fill: #2d2d2d; }
+
+      /* Darken colored backgrounds for better contrast with white text */
+      rect[fill="#e8f4f8"] { fill: #2d5f6f; }
     }
   </style><text x="180" y="25" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="bold" fill="#333" text-anchor="middle">Post-LN (Original)</text>
 

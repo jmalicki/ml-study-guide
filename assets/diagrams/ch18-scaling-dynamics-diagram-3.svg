@@ -15,6 +15,12 @@
       .label-text { fill: #cccccc; }
       line[stroke="#333"] { stroke: #cccccc; }
 
+      /* Darken backgrounds in dark mode */
+      rect[fill="#f5f5f5"] { fill: #1a1a1a; }
+      rect[fill="white"] { fill: #2d2d2d; }
+      rect[stroke="#ddd"] { stroke: #555555; }
+      line[stroke="#ddd"] { stroke: #555555; }
+
       /* Keep white text white in dark mode (for colored backgrounds) */
       text[fill="#fff"],
       text[fill="#ffffff"],
@@ -24,9 +30,14 @@
 
       /* Keep colored text readable in dark mode */
       text[fill="#E57373"] { fill: #ef5350; }
+      text[fill="#C62828"] { fill: #ef5350; }
       text[fill="#81C784"] { fill: #66bb6a; }
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
+      text[fill="#888"] { fill: #bbbbbb; }
+      line[stroke="#888"] { stroke: #bbbbbb; }
+      line[stroke="#C62828"] { stroke: #ef5350; }
+      polygon[fill="#C62828"] { fill: #ef5350; }
     }
   </style><rect width="800" height="400" fill="#f5f5f5" />
 
@@ -58,8 +69,8 @@
     <line x1="40" y1="35" x2="680" y2="35" stroke="#666" stroke-width="1" stroke-dasharray="3,3" />
     <text x="685" y="40" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">100%</text>
 
-    <line x1="40" y1="270" x2="680" y2="270" stroke="#999" stroke-width="1" stroke-dasharray="3,3" />
-    <text x="685" y="275" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#999">~1% (Random)</text>
+    <line x1="40" y1="270" x2="680" y2="270" stroke="#888" stroke-width="1" stroke-dasharray="3,3" />
+    <text x="685" y="275" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#888">~1% (Random)</text>
 
     
     <text x="360" y="335" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">Training Epoch</text>
@@ -81,17 +92,17 @@
     <text x="600" y="295" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">10000</text>
   </g>
 
-  
+
   <g transform="translate(570, 140)">
-    <path d="M 0 0 L -30 -20" stroke="#E57373" stroke-width="2" marker-end="url(#arrowhead)" />
-    <text x="5" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="600" fill="#E57373">Sudden</text>
-    <text x="5" y="12" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="600" fill="#E57373">Generalization!</text>
+    <path d="M 0 0 L -30 -20" stroke="#C62828" stroke-width="2" marker-end="url(#arrowhead)" />
+    <text x="5" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="600" fill="#C62828">Sudden</text>
+    <text x="5" y="12" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="600" fill="#C62828">Generalization!</text>
   </g>
 
-  
+
   <defs>
     <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-      <polygon points="0 0, 10 3, 0 6" fill="#E57373" />
+      <polygon points="0 0, 10 3, 0 6" fill="#C62828" />
     </marker>
   </defs>
 </svg>

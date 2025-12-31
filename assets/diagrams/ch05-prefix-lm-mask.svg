@@ -27,6 +27,10 @@
       text[fill="#81C784"] { fill: #66bb6a; }
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
+
+      /* Darken colored backgrounds for white text visibility */
+      rect[fill="#81C784"] { fill: #4a7c4e; }
+      rect[fill="#4A90A4"] { fill: #2d5f6f; }
     }
   </style><text x="250" y="30" font-family="Arial, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="#333">Prefix Language Modeling</text>
   <text x="250" y="50" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#666">Hybrid attention pattern (prefix_len = 3)</text>

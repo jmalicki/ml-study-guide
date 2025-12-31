@@ -27,6 +27,9 @@
       text[fill="#81C784"] { fill: #66bb6a; }
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
+
+      /* Darken backgrounds in dark mode */
+      rect[fill="#e8f4f8"] { fill: #2d5f6f; }
     }
   </style>
 

@@ -27,6 +27,9 @@
       text[fill="#81C784"] { fill: #66bb6a; }
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
+
+      /* Darken colored backgrounds for white text visibility */
+      rect[fill="#4A90A4"] { fill: #2d5f6f; }
     }
   </style><g id="bidirectional">
     <text x="150" y="30" font-family="Arial, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="#333">Bidirectional Attention</text>

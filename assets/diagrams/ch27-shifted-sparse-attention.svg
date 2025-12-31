@@ -27,6 +27,10 @@
       text[fill="#81C784"] { fill: #66bb6a; }
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
+
+      /* Darken colored backgrounds for contrast with white text */
+      rect[fill="#4A90A4"] { fill: #2d5f6f; }
+      rect[fill="#81C784"] { fill: #4a7c4e; }
     }
   </style><text x="450" y="30" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#333" text-anchor="middle">
     LongLoRA: Shifted Sparse Attention

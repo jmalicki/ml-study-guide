@@ -17,6 +17,12 @@
       line[stroke="#333"] { stroke: #cccccc; }
       .bg-info { fill: #2d2d2d; }
 
+      /* Darken colored backgrounds in dark mode for proper contrast with white text */
+      rect[fill="#4A90A4"] { fill: #2d5f6f; }
+      rect[fill="#81C784"] { fill: #4a7c4e; }
+      rect[fill="#6ba56e"] { fill: #4a7c4e; }
+      rect[fill="#9575CD"] { fill: #5c4a7a; }
+
       /* Keep white text white in dark mode (for colored backgrounds) */
       text[fill="#fff"],
       text[fill="#ffffff"],
@@ -85,8 +91,8 @@
 
     <line x1="350" y1="240" x2="350" y2="265" stroke="#81C784" stroke-width="3" marker-end="url(#arrowhead-green)" />
 
-    
-    <rect x="300" y="275" width="100" height="40" fill="#81C784" fill-opacity="0.8" stroke="#333" stroke-width="2" rx="5" />
+
+    <rect x="300" y="275" width="100" height="40" fill="#6ba56e" stroke="#333" stroke-width="2" rx="5" />
     <text x="350" y="295" font-size="13" font-weight="bold" text-anchor="middle" fill="#FFF">Bottleneck</text>
     <text x="350" y="308" font-size="11" text-anchor="middle" fill="#FFF">(r dimensions)</text>
 

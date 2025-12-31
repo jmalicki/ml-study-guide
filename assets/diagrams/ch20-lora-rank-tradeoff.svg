@@ -29,6 +29,13 @@
         rect[stroke="#333"] { stroke: #cccccc; }
         rect[fill="white"] { fill: #1a1a1a; }
         line[stroke="#333"] { stroke: #cccccc; }
+
+        /* Keep white text white in dark mode (for colored backgrounds) */
+        text[fill="#fff"],
+        text[fill="#ffffff"],
+        text[fill="white"] {
+          fill: #ffffff;
+        }
       }
     </style>
   </defs>

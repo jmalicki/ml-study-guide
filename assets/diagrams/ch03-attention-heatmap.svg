@@ -27,6 +27,11 @@
       text[fill="#81C784"] { fill: #66bb6a; }
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
+
+      /* Darken colored backgrounds for white text visibility */
+      rect[fill="#4A90A4"] { fill: #2d5f6f; }
+      rect[fill="#1A4D5C"] { fill: #0f2d36; }
+      rect[fill="#E8EAF6"] { fill: #3d3d4d; }
     }
   </style><text x="350" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#333">
     Attention Weights Heatmap: "The cat sat on the mat"
