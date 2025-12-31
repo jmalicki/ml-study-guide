@@ -382,6 +382,84 @@ def check_dark_mode_consistency(content: str) -> List[str]:
     return issues
 
 
+def check_dark_text_in_dark_mode(content: str) -> List[str]:
+    """Check for dark text that won't be visible in dark mode.
+
+    Detects text elements with dark fill colors that aren't updated to light colors
+    when the SVG has dark mode CSS.
+    """
+    issues = []
+
+    if not has_dark_mode_css(content):
+        return issues
+
+    # Extract and parse CSS
+    css = extract_css_from_svg(content)
+    dark_mode_rules = parse_dark_mode_css(css)
+
+    # Find all text elements with dark inline fill colors
+    # Match text elements with fill="#000", fill="#333", fill="#666", etc.
+    # Also match text elements with style="fill: #000" or style="fill: #333", etc.
+    dark_text_patterns = [
+        r'<text[^>]*\bfill\s*=\s*["\']?\s*(#(?:000(?:000)?|111|1a1a1a|222|333|444|555|666|777))\s*["\']?[^>]*>',
+        r'<text[^>]*\bstyle\s*=\s*["\'][^"\']*fill:\s*(#(?:000(?:000)?|111|1a1a1a|222|333|444|555|666|777))[^"\']*["\'][^>]*>',
+    ]
+
+    found_dark_text = []
+    for pattern in dark_text_patterns:
+        matches = re.finditer(pattern, content, re.IGNORECASE)
+        for match in matches:
+            color = match.group(1)
+            # Get the full text element for context
+            text_element = match.group(0)
+            found_dark_text.append((color, text_element))
+
+    if not found_dark_text:
+        return issues
+
+    # Check if dark mode CSS overrides these dark colors to light colors
+    # Look for selectors that would apply to text elements
+    text_going_light_in_dark_mode = False
+
+    for selector, props in dark_mode_rules.items():
+        if 'fill' in props:
+            fill_value = props['fill']
+            # Check if this selector applies to text and makes it light
+            if 'text' in selector and is_light_color_value(fill_value):
+                # Check if it's a general selector (not attribute-specific)
+                if selector.strip() == 'text' or selector.strip() == '.axis-text' or selector.strip() == '.label-text':
+                    text_going_light_in_dark_mode = True
+                    break
+
+    # If we found dark text but no general light override in dark mode, that's a problem
+    # Even if there IS a general override, inline fills with specific colors may not be caught
+    # We need to check if the specific dark colors are overridden
+    dark_colors_found = set(color.lower() for color, _ in found_dark_text)
+
+    for dark_color in dark_colors_found:
+        color_overridden = False
+
+        # Check if this specific color is overridden in dark mode
+        for selector, props in dark_mode_rules.items():
+            if 'fill' in props:
+                fill_value = props['fill']
+                # Check for attribute selectors like text[fill="#333"]
+                if dark_color in selector.lower() and is_light_color_value(fill_value):
+                    color_overridden = True
+                    break
+
+        # If this specific dark color isn't overridden, report it
+        if not color_overridden:
+            issues.append(
+                f"  ERROR: Dark text ({dark_color}) will be invisible in dark mode - needs light color override"
+            )
+            issues.append(
+                f"    Add to dark mode CSS: text[fill=\"{dark_color}\"] {{ fill: #ffffff; }}"
+            )
+
+    return issues
+
+
 def check_svg_file(svg_path: Path) -> List[str]:
     """Check a single SVG file for contrast issues.
 
@@ -393,6 +471,10 @@ def check_svg_file(svg_path: Path) -> List[str]:
     # Check for dark mode consistency issues
     dark_mode_issues = check_dark_mode_consistency(content)
     issues.extend(dark_mode_issues)
+
+    # NEW CHECK: Check for dark text that won't be visible in dark mode
+    dark_text_issues = check_dark_text_in_dark_mode(content)
+    issues.extend(dark_text_issues)
 
     # Check for dark mode CSS
     has_dark_mode = has_dark_mode_css(content)
