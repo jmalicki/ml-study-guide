@@ -624,21 +624,20 @@ class RMSNorm(nn.Module):
     RMSNorm(x) = (x / RMS(x)) * γ
 
     where:
-    RMS(x) = sqrt((1/d) * Σ(x_i^2) + ε)
+    RMS(x) = sqrt((1/d) * Σ($x_i$^2) + ε)
 
     In LaTeX notation:
+
+    ```math
+    \text{RMSNorm}(\mathbf{x}) = \frac{\mathbf{x}}{\sqrt{\frac{1}{d}\sum_{i=1}^d x_i^2 + \epsilon}} \odot \boldsymbol{\gamma}
     ```
-
-\text{RMSNorm}(\mathbf{x}) = \frac{\mathbf{x}}{\sqrt{\frac{1}{d}\sum_{i=1}^d x_i^2 + \epsilon}} \odot \boldsymbol{\gamma}
-
-```text
 
     where:
 
-    - x ∈ R^d is the input vector
-    - γ ∈ R^d is the learned scale parameter
-    - ⊙ denotes element-wise multiplication
-    - ε is a small constant for numerical stability
+    - $x \in \mathbb{R}^d$ is the input vector
+    - $\gamma \in \mathbb{R}^d$ is the learned scale parameter
+    - $\odot$ denotes element-wise multiplication
+    - $\epsilon$ is a small constant for numerical stability
 
     Compared to LayerNorm, RMSNorm:
 
@@ -666,37 +665,33 @@ class SwiGLU(nn.Module):
     """SwiGLU activation function.
 
     Mathematical definition:
-    SwiGLU(x, W, V, b, c) = Swish(xW + b) ⊙ (xV + c)
+    SwiGLU(x, W, V, b, c) = Swish(xW + b) $\odot$ (xV + c)
 
     where:
     Swish(x) = x · σ(x) = x · sigmoid(x)
 
     In LaTeX notation:
+
+    ```math
+    \text{SwiGLU}(\mathbf{x}, \mathbf{W}, \mathbf{V}, \mathbf{b}, \mathbf{c}) = \text{Swish}(\mathbf{x}\mathbf{W} + \mathbf{b}) \odot (\mathbf{x}\mathbf{V} + \mathbf{c})
     ```
 
-\text{SwiGLU}(\mathbf{x}, \mathbf{W}, \mathbf{V}, \mathbf{b}, \mathbf{c}) = \text{Swish}(\mathbf{x}\mathbf{W} + \mathbf{b}) \odot (\mathbf{x}\mathbf{V} + \mathbf{c})
-
-```text
-
+    ```math
+    \text{Swish}(\mathbf{x}) = \mathbf{x} \odot \sigma(\mathbf{x})
     ```
-
-\text{Swish}(\mathbf{x}) = \mathbf{x} \odot \sigma(\mathbf{x})
-
-```text
 
     Complete FFN architecture:
+
+    ```math
+    \text{FFN}_{\text{SwiGLU}}(\mathbf{x}) = (\text{Swish}(\mathbf{x}\mathbf{W}_1) \odot \mathbf{x}\mathbf{W}_3)\mathbf{W}_2
     ```
-
-\text{FFN}_{\text{SwiGLU}}(\mathbf{x}) = (\text{Swish}(\mathbf{x}\mathbf{W}_1) \odot \mathbf{x}\mathbf{W}_3)\mathbf{W}_2
-
-```text
 
     where:
 
-    - W₁ ∈ R^(d × h) is the gate projection (typically h = (8/3)d)
-    - W₂ ∈ R^(h × d) is the down projection
-    - W₃ ∈ R^(d × h) is the up projection
-    - ⊙ denotes element-wise multiplication
+    - $W_1 \in \mathbb{R}^{d \times h}$ is the gate projection (typically $h = (8/3)d$)
+    - $W_2 \in \mathbb{R}^{h \times d}$ is the down projection
+    - $W_3 \in \mathbb{R}^{d \times h}$ is the up projection
+    - $\odot$ denotes element-wise multiplication
 
     Benefits over GELU:
 
@@ -787,34 +782,31 @@ class GroupedQueryAttention(nn.Module):
     - GQA: Groups of query heads share K,V heads (1 < n_kv_heads < n_heads)
 
     Mathematical definition:
-    Let G = n_heads / n_kv_heads be the group size.
+    Let $G = n_{\text{heads}} / n_{\text{kv\_heads}}$ be the group size.
 
     For standard MHA:
+
+    ```math
+    \text{head}_i = \text{Attention}(\mathbf{Q}_i, \mathbf{K}_i, \mathbf{V}_i)
     ```
-
-\text{head}_i = \text{Attention}(\mathbf{Q}_i, \mathbf{K}_i, \mathbf{V}_i)
-
-```text
 
     For GQA with G query heads per KV head:
+
+    ```math
+    \text{head}_i = \text{Attention}(\mathbf{Q}_i, \mathbf{K}_{\lfloor i/G \rfloor}, \mathbf{V}_{\lfloor i/G \rfloor})
     ```
-
-\text{head}_i = \text{Attention}(\mathbf{Q}_i, \mathbf{K}_{\lfloor i/G \rfloor}, \mathbf{V}_{\lfloor i/G \rfloor})
-
-```text
 
     where:
 
-    - Q_i ∈ R^(s × d_h) for each of n_heads query heads
-    - K_j, V_j ∈ R^(s × d_h) for each of n_kv_heads KV heads
-    - s is sequence length, d_h is head dimension
+    - $Q_i \in \mathbb{R}^{s \times d_h}$ for each of $n_{\text{heads}}$ query heads
+    - $K_j, V_j \in \mathbb{R}^{s \times d_h}$ for each of $n_{\text{kv\_heads}}$ KV heads
+    - $s$ is sequence length, $d_h$ is head dimension
 
     KV Cache Reduction Ratio:
+
+    ```math
+    r = \frac{n_{\text{heads}}}{n_{\text{kv\_heads}}}
     ```
-
-r = \frac{n_{\text{heads}}}{n_{\text{kv\_heads}}}
-
-```text
 
     Memory savings example:
 
@@ -826,7 +818,7 @@ r = \frac{n_{\text{heads}}}{n_{\text{kv\_heads}}}
 
     - Reduces KV cache memory by factor of (n_heads / n_kv_heads)
     - Faster inference with minimal quality loss
-    - For LLaMA 2 70B: 32 Q heads, 8 KV heads → 4x KV cache reduction
+    - For LLaMA 2 70B: 32 Q heads, 8 KV heads $\to$ 4x KV cache reduction
 
     See [Multi-Head Attention](04-multi-head-attention.md) for detailed explanation.
     """
@@ -1311,36 +1303,33 @@ class MultiHeadLatentAttention(nn.Module):
     into a smaller latent space. At inference, decompress on-the-fly.
 
     Mathematical definition:
-    Standard attention caches K, V ∈ R^(s × n_h × d_h)
-    MLA caches c ∈ R^(s × d_c) where d_c << n_h × d_h
+    Standard attention caches $K, V \in \mathbb{R}^{s \times n_h \times d_h}$
+    MLA caches $c \in \mathbb{R}^{s \times d_c}$ where $d_c \ll n_h \times d_h$
 
     Compression phase:
+
+    ```math
+    \mathbf{c}_t = \mathbf{W}_c \mathbf{x}_t
     ```
-
-\mathbf{c}_t = \mathbf{W}_c \mathbf{x}_t
-
-```text
 
     Decompression phase:
+
+    ```math
+    \mathbf{K}_t = \mathbf{W}_k \mathbf{c}_t, \quad \mathbf{V}_t = \mathbf{W}_v \mathbf{c}_t
     ```
-
-\mathbf{K}_t = \mathbf{W}_k \mathbf{c}_t, \quad \mathbf{V}_t = \mathbf{W}_v \mathbf{c}_t
-
-```text
 
     where:
 
-    - W_c ∈ R^(d × d_c) is compression matrix
-    - W_k, W_v ∈ R^(d_c × n_h·d_h) are decompression matrices
-    - d is model dimension, d_c is latent dimension
-    - n_h is number of heads, d_h is head dimension
+    - $W_c \in \mathbb{R}^{d \times d_c}$ is compression matrix
+    - $W_k, W_v \in \mathbb{R}^{d_c \times n_h \cdot d_h}$ are decompression matrices
+    - $d$ is model dimension, $d_c$ is latent dimension
+    - $n_h$ is number of heads, $d_h$ is head dimension
 
     Compression ratio:
+
+    ```math
+    \rho = \frac{2 \cdot n_h \cdot d_h}{d_c}
     ```
-
-\rho = \frac{2 \cdot n_h \cdot d_h}{d_c}
-
-```text
 
     Example (DeepSeek V3):
 
@@ -1660,22 +1649,21 @@ def soft_cap(logits: torch.Tensor, cap: float = 50.0) -> torch.Tensor:
     """Soft-cap logits to prevent extreme values.
 
     Mathematical definition:
+
+    ```math
+    \text{soft-cap}(x, c) = c \cdot \tanh(x / c)
     ```
-
-\text{soft-cap}(x, c) = c \cdot \tanh(x / c)
-
-```text
 
     where:
 
-    - x is the input logit
-    - c is the cap value (typically 50.0)
-    - tanh ensures output is bounded: -c < output < c
+    - $x$ is the input logit
+    - $c$ is the cap value (typically 50.0)
+    - tanh ensures output is bounded: $-c < \text{output} < c$
 
     Properties:
 
-    - For small |x|: soft-cap(x, c) ≈ x (linear region)
-    - For large |x|: soft-cap(x, c) → ±c (saturates)
+    - For small $|x|$: $\text{soft-cap}(x, c) \approx x$ (linear region)
+    - For large $|x|$: $\text{soft-cap}(x, c) \to \pm c$ (saturates)
     - Smooth transition (differentiable everywhere)
 
     Used in Gemma 2 for both attention logits and final logits.
@@ -2295,7 +2283,7 @@ Output:
 
 2. **RMSNorm vs LayerNorm**: Implement both RMSNorm and LayerNorm. Measure the forward pass time for a tensor of shape `(32, 2048, 4096)`. What's the speedup? Why?
 
-3. **SwiGLU Parameter Count**: Calculate the exact number of parameters for a SwiGLU FFN vs. a GELU FFN, both targeting the same FLOPs budget. If `d_model = 4096`, what should `d_ff` be for each to match parameter counts?
+3. **SwiGLU Parameter Count**: Calculate the exact number of parameters for a SwiGLU FFN vs. a GELU FFN, both targeting the same FLOPs budget. If `d_model = 4096`, what should `$d_{ff}$` be for each to match parameter counts?
 
 ### Memory Analysis
 

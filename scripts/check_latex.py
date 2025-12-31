@@ -416,6 +416,152 @@ class LatexValidator:
             return "; ".join(errors)
         return None
 
+    def check_latex_outside_math_mode(self, content: str, file_path: Path) -> None:
+        r"""
+        Check for LaTeX syntax that appears outside of math mode delimiters.
+        This includes:
+        - LaTeX commands like \alpha, \beta, \times, \frac, etc.
+        - Subscripts and superscripts outside math mode (e.g., x_i, 2^n)
+        - Mathematical symbols like ∈, ⊙, Σ, ≈, etc. combined with LaTeX-like syntax
+        """
+        lines = content.split('\n')
+
+        # Track code blocks and math blocks to avoid false positives
+        in_code_block = False
+        in_math_block = False
+        code_block_pattern = re.compile(r'^```')
+
+        # Common LaTeX commands that should be in math mode
+        latex_commands = [
+            r'\\alpha', r'\\beta', r'\\gamma', r'\\delta', r'\\epsilon', r'\\zeta',
+            r'\\eta', r'\\theta', r'\\iota', r'\\kappa', r'\\lambda', r'\\mu',
+            r'\\nu', r'\\xi', r'\\pi', r'\\rho', r'\\sigma', r'\\tau',
+            r'\\upsilon', r'\\phi', r'\\chi', r'\\psi', r'\\omega',
+            r'\\Alpha', r'\\Beta', r'\\Gamma', r'\\Delta', r'\\Epsilon', r'\\Zeta',
+            r'\\Eta', r'\\Theta', r'\\Iota', r'\\Kappa', r'\\Lambda', r'\\Mu',
+            r'\\Nu', r'\\Xi', r'\\Pi', r'\\Rho', r'\\Sigma', r'\\Tau',
+            r'\\Upsilon', r'\\Phi', r'\\Chi', r'\\Psi', r'\\Omega',
+            r'\\times', r'\\div', r'\\pm', r'\\mp', r'\\cdot',
+            r'\\frac', r'\\sqrt', r'\\sum', r'\\prod', r'\\int',
+            r'\\partial', r'\\nabla', r'\\infty', r'\\forall', r'\\exists',
+            r'\\in', r'\\notin', r'\\subset', r'\\subseteq', r'\\supset', r'\\supseteq',
+            r'\\cup', r'\\cap', r'\\wedge', r'\\vee', r'\\neg',
+            r'\\mathbb', r'\\mathcal', r'\\mathbf', r'\\mathrm', r'\\text',
+            r'\\left', r'\\right', r'\\begin', r'\\end',
+            r'\\leq', r'\\geq', r'\\neq', r'\\approx', r'\\equiv',
+        ]
+
+        # Compile pattern for LaTeX commands
+        latex_cmd_pattern = re.compile('(' + '|'.join(latex_commands) + r')\b')
+
+        for line_num, line in enumerate(lines, 1):
+            # Track code blocks and math blocks
+            stripped_line = line.strip()
+            if code_block_pattern.match(stripped_line):
+                # Check if it's opening a math block
+                if stripped_line.startswith('```math'):
+                    in_math_block = True
+                    continue
+                # Check if closing any block
+                elif stripped_line == '```':
+                    if in_math_block:
+                        in_math_block = False
+                    elif in_code_block:
+                        in_code_block = False
+                    continue
+                # Opening a non-math code block
+                else:
+                    in_code_block = True
+                    continue
+
+            # Skip lines inside code blocks or math blocks
+            if in_code_block or in_math_block:
+                continue
+
+            # Remove inline math ($...$) and display math ($$...$$) from the line
+            # to check what remains
+            line_without_math = line
+
+            # Remove $$...$$ first
+            line_without_math = re.sub(r'\$\$[^$]*\$\$', '', line_without_math)
+
+            # Remove $...$ (but not escaped \$)
+            line_without_math = re.sub(r'(?<!\\)\$[^$]+\$', '', line_without_math)
+
+            # Also remove ```math blocks (though we already skip code blocks)
+            # This is for inline references
+
+            # Check for LaTeX commands outside math mode
+            matches = latex_cmd_pattern.finditer(line_without_math)
+            for match in matches:
+                # Get context around the match
+                start = max(0, match.start() - 20)
+                end = min(len(line_without_math), match.end() + 20)
+                context = line_without_math[start:end].strip()
+
+                self.errors.append(LatexError(
+                    file_path=file_path,
+                    line_num=line_num,
+                    error_type="LaTeX command outside math mode",
+                    message=f"LaTeX command '{match.group(0)}' found outside math mode delimiters ($...$)",
+                    latex_snippet=context
+                ))
+
+            # Check for subscripts/superscripts that look like math
+            # Pattern: word_letter or word^letter (not in URLs, not in code)
+            # Avoid false positives in variable_names, URLs, etc.
+
+            # Pattern for potential math subscripts: single_letter or word_digit
+            subscript_pattern = re.compile(r'(?<![a-zA-Z_])([a-zA-Z])_([a-zA-Z0-9]+)(?![a-zA-Z0-9_])')
+            superscript_pattern = re.compile(r'(?<![a-zA-Z_])([a-zA-Z0-9]+)\^([a-zA-Z0-9]+)(?![a-zA-Z0-9_])')
+
+            # Check subscripts
+            for match in subscript_pattern.finditer(line_without_math):
+                # Additional heuristics to reduce false positives
+                full_match = match.group(0)
+
+                # Skip if it looks like part of a longer identifier
+                # Skip URLs
+                if 'http://' in line or 'https://' in line:
+                    continue
+
+                # Check if this is in a context that looks like math
+                # (e.g., followed by math symbols or in a bullet point describing math)
+                context_start = max(0, match.start() - 10)
+                context_end = min(len(line_without_math), match.end() + 10)
+                context = line_without_math[context_start:context_end]
+
+                # If the subscript looks like math notation (short subscript)
+                if len(match.group(2)) <= 3:  # Short subscripts are more likely math
+                    self.errors.append(LatexError(
+                        file_path=file_path,
+                        line_num=line_num,
+                        error_type="Subscript outside math mode",
+                        message=f"Subscript '{full_match}' should be in math mode: ${full_match}$",
+                        latex_snippet=context.strip()
+                    ))
+
+            # Check superscripts
+            for match in superscript_pattern.finditer(line_without_math):
+                full_match = match.group(0)
+
+                # Skip URLs
+                if 'http://' in line or 'https://' in line:
+                    continue
+
+                context_start = max(0, match.start() - 10)
+                context_end = min(len(line_without_math), match.end() + 10)
+                context = line_without_math[context_start:context_end]
+
+                # Superscripts are more likely to be math
+                self.errors.append(LatexError(
+                    file_path=file_path,
+                    line_num=line_num,
+                    error_type="Superscript outside math mode",
+                    message=f"Superscript '{full_match}' should be in math mode: ${full_match}$",
+                    latex_snippet=context.strip()
+                ))
+
     def validate_latex(self, latex: str, file_path: Path, line_num: int, math_type: str) -> None:
         """Validate a single LaTeX expression and record any errors."""
         # Check balanced braces
@@ -483,6 +629,10 @@ class LatexValidator:
             print(f"Error reading {file_path}: {e}", file=sys.stderr)
             return
 
+        # Check for LaTeX syntax outside math mode
+        self.check_latex_outside_math_mode(content, file_path)
+
+        # Extract and validate math blocks
         math_expressions = self.extract_math_blocks(content, file_path)
 
         for line_num, math_type, latex_code in math_expressions:

@@ -1046,164 +1046,30 @@ def transformer_engine_usage():
 
 ### Flash Attention
 
-Flash Attention is an IO-aware attention algorithm that reduces memory usage from O(N²) to O(N) and speeds up computation by 2-4x.
+Flash Attention is a critical IO-aware optimization that reduces attention's memory usage from O(N²) to O(N) and achieves 2-15x speedup depending on the version and hardware.
 
-![GPU Memory Hierarchy](../assets/diagrams/ch33-gpu-memory-hierarchy.svg)
+**For comprehensive coverage of Flash Attention, see [Chapter 12: Flash Attention](12-flash-attention.md)**, which includes:
 
-```python
-class FlashAttentionConcept:
-    """
-    Flash Attention conceptual implementation.
+- Detailed explanation of the memory bottleneck problem
+- GPU memory hierarchy and IO-aware algorithm design
+- Tiling strategy and online softmax algorithm
+- Forward and backward pass implementation
+- FlashAttention versions (FA1, FA2, FA3) with performance comparisons
+- Practical usage with PyTorch's `scaled_dot_product_attention`
+- Debugging, troubleshooting, and deployment considerations
 
-    Key insight: Standard attention is memory-bound, not compute-bound.
-    The N×N attention matrix must be:
-
-    1. Written to HBM (slow)
-    2. Read back for softmax (slow)
-    3. Written again after softmax (slow)
-    4. Read for matmul with V (slow)
-
-    Flash Attention solution: Never materialize the full N×N matrix.
-    Instead, compute attention in blocks using online softmax.
-
-    See [Flash Attention](12-flash-attention.md) for detailed explanation.
-    """
-
-    @staticmethod
-    def standard_attention(Q, K, V):
-        """
-        Standard attention: O(N²) memory.
-
-        Memory accesses:
-
-        1. Load Q, K -> Compute QK^T -> Store N×N matrix to HBM
-        2. Load N×N matrix -> Softmax -> Store back
-        3. Load attention weights, V -> Compute output
-
-        Total HBM access: O(N² + Nd) reads/writes
-        """
-        d = Q.shape[-1]
-        scores = torch.matmul(Q, K.transpose(-2, -1)) / (d ** 0.5)
-        attention = torch.softmax(scores, dim=-1)
-        return torch.matmul(attention, V)
-
-    @staticmethod
-    def flash_attention_tiled(Q, K, V, block_size=64):
-        """
-        Flash Attention (simplified tiled version).
-
-        Key techniques:
-
-        1. Tiling: Process Q, K, V in blocks that fit in SRAM
-        2. Online softmax: Compute softmax incrementally
-        3. Recomputation: Recompute in backward instead of storing
-
-        Memory: O(N) - only store final output
-        """
-        batch, n_heads, seq_len, head_dim = Q.shape
-
-        # Initialize output and softmax statistics
-        O = torch.zeros_like(Q)
-        L = torch.zeros(batch, n_heads, seq_len, 1, device=Q.device)  # log-sum-exp
-
-        # Process K, V in blocks
-        for j in range(0, seq_len, block_size):
-            K_block = K[:, :, j:j+block_size]
-            V_block = V[:, :, j:j+block_size]
-
-            # Compute attention scores for this K block
-            scores = torch.matmul(Q, K_block.transpose(-2, -1)) / (head_dim ** 0.5)
-
-            # Online softmax update
-            # This is the key: we can update running softmax incrementally
-            block_max = scores.max(dim=-1, keepdim=True).values
-            exp_scores = torch.exp(scores - block_max)
-            block_sum = exp_scores.sum(dim=-1, keepdim=True)
-
-            # Update output using online softmax formula
-            # (Details omitted - see paper for exact formulation)
-            O = O + torch.matmul(exp_scores, V_block)
-            L = L + block_sum
-
-        # Normalize
-        O = O / L
-        return O
-
-
-def flash_attention_versions():
-    """
-    Flash Attention version comparison.
-
-    Flash Attention 1 (2022):
-
-    - Original algorithm
-    - 2-4x speedup over PyTorch
-    - O(N) memory
-
-    Flash Attention 2 (2023):
-
-    - Better parallelism (across sequence length)
-    - Non-matmul FLOPs reduction
-    - ~2x faster than FA1
-    - Support for head dim up to 256
-
-    Flash Attention 3 (2024):
-
-    - Optimized for Hopper (H100)
-    - Uses asynchronous operations (warp specialization)
-    - FP8 support
-    - ~75% Tensor Core utilization (vs 35% for FA2 on H100)
-
-    Hardware requirements:
-
-    - FA2: Ampere+ (A100, RTX 3090, RTX 4090, H100)
-    - FA3: Hopper (H100, H200)
-
-    """
-    pass
-```
-
-**Using Flash Attention in PyTorch:**
+**Quick usage example:**
 
 ```python
-import torch
 import torch.nn.functional as F
 
-def use_flash_attention():
-    """
-    Flash Attention in PyTorch (2.0+).
+# PyTorch 2.0+ automatically uses Flash Attention when available
+Q = torch.randn(2, 8, 1024, 64, device='cuda', dtype=torch.float16)
+K = torch.randn(2, 8, 1024, 64, device='cuda', dtype=torch.float16)
+V = torch.randn(2, 8, 1024, 64, device='cuda', dtype=torch.float16)
 
-    PyTorch 2.0+ includes scaled_dot_product_attention which
-    automatically uses Flash Attention when available.
-    """
-    Q = torch.randn(2, 8, 1024, 64, device='cuda', dtype=torch.float16)
-    K = torch.randn(2, 8, 1024, 64, device='cuda', dtype=torch.float16)
-    V = torch.randn(2, 8, 1024, 64, device='cuda', dtype=torch.float16)
-
-    # This automatically uses Flash Attention on compatible hardware
-    output = F.scaled_dot_product_attention(
-        Q, K, V,
-        attn_mask=None,
-        dropout_p=0.0,
-        is_causal=True  # For autoregressive models
-    )
-
-    # To force a specific backend:
-    with torch.backends.cuda.sdp_kernel(
-        enable_flash=True,
-        enable_math=False,
-        enable_mem_efficient=False
-    ):
-        output = F.scaled_dot_product_attention(Q, K, V, is_causal=True)
-
-    return output
+output = F.scaled_dot_product_attention(Q, K, V, is_causal=True)
 ```
-
-**Key Papers:**
-
-- [FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness](https://arxiv.org/abs/2205.14135) (Dao et al., 2022)
-- [FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning](https://arxiv.org/abs/2307.08691) (Dao, 2023)
-- [FlashAttention-3: Fast and Accurate Attention with Asynchrony and Low-precision](https://arxiv.org/abs/2407.08608) (Shah et al., 2024)
 
 ### Gradient Checkpointing
 
