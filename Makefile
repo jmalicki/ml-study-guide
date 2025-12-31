@@ -1,4 +1,4 @@
-.PHONY: help lint validate check-svg validate-svg check-latex check install-hooks install-claude-hooks clean
+.PHONY: help lint validate check-svg validate-svg check-svg-contrast check-latex check install-hooks install-claude-hooks clean
 
 help:
 	@echo "ML Study Guide - Development Commands"
@@ -8,8 +8,9 @@ help:
 	@echo "  make validate            - Run link validation"
 	@echo "  make check-svg           - Check for inline SVG (not supported on GitHub)"
 	@echo "  make validate-svg        - Validate SVG files with SVGO"
+	@echo "  make check-svg-contrast  - Check SVG text contrast accessibility"
 	@echo "  make check-latex         - Validate LaTeX syntax in markdown files"
-	@echo "  make check               - Run all checks (lint + validate + svg + latex)"
+	@echo "  make check               - Run all checks (lint + validate + svg + latex + contrast)"
 	@echo "  make install-hooks       - Install standard git pre-commit hooks"
 	@echo "  make install-claude-hooks - Install Claude Code hooks"
 	@echo "  make clean               - Clean temporary files"
@@ -39,11 +40,15 @@ validate-svg:
 	done
 	@echo "All SVG files are valid!"
 
+check-svg-contrast:
+	@echo "Checking SVG text contrast accessibility..."
+	python3 scripts/check_svg_contrast.py
+
 check-latex:
 	@echo "Validating LaTeX syntax..."
 	python3 scripts/check_latex.py
 
-check: lint validate check-svg validate-svg check-latex
+check: lint validate check-svg validate-svg check-svg-contrast check-latex
 	@echo ""
 	@echo "All checks passed!"
 

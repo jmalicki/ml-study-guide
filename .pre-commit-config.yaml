@@ -37,3 +37,11 @@ repos:
         pass_filenames: false
         files: '\.(md)$'
         additional_dependencies: []
+
+      - id: check-svg-contrast
+        name: Check SVG contrast accessibility
+        entry: python scripts/check_svg_contrast.py
+        language: python
+        pass_filenames: false
+        files: '\.(svg)$'
+        additional_dependencies: []
