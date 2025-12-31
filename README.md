@@ -9,6 +9,10 @@ and have been correcting it as I have gone along (and there have been many huge,
 narrative to compare papers to, and when the Claude AI output has been wrong, that has even sharpened my skills, as Claude mistakes are reasonably likely to be common misconceptions - testing myself against that
 IMO strengthens my knowledge.
 
+Part of the value of this method of study for me has been, rather than merely correcting things I feel are wrong, I have to actively *argue* with the LLM into correcting the guide for me once I find an error.
+This, to me, aligns with the model of learning of "see one, do one, teach one" - I have to actively teach and explain to the LLM why it is wrong in a convincing way - if I can't eloquently convince the LLM
+to do the right thing, do I actually understand what I am talking about?  To me, that identifies a weakness in my understanding rather than a problem with the LLMs (most of the time, at least).
+
 ## What's Covered
 
 This guide covers the complete stack of modern LLM development:
