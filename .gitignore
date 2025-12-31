@@ -75,5 +75,7 @@ Thumbs.db
 *.tmp
 *.bak
 *~
-.claude/
 CLAUDE.md~
+
+# Claude Code local settings (keep settings.json, ignore local overrides)
+.claude/settings.local.json
