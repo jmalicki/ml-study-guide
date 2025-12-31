@@ -7,12 +7,18 @@
     .label-text { fill: #666666; }
     line[stroke="#333"] { stroke: #333333; }
 
+    /* Adaptive backgrounds */
+    .bg-main { fill: #f5f5f5; }
+
     /* Dark mode */
     @media (prefers-color-scheme: dark) {
       text { fill: #ffffff; }
       .axis-text { fill: #ffffff; }
       .label-text { fill: #cccccc; }
       line[stroke="#333"] { stroke: #cccccc; }
+
+      /* Adaptive backgrounds for dark mode */
+      .bg-main { fill: #2d2d2d; }
 
       /* Keep white text white in dark mode (for colored backgrounds) */
       text[fill="#fff"],
@@ -34,25 +40,25 @@
   </defs>
 
   
-  <rect x="20" y="30" width="120" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5" />
+  <rect x="20" y="30" width="120" height="40" class="bg-main" stroke="#4A90A4" stroke-width="2" rx="5" />
   <text x="80" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">Initial Model</text>
 
-  <rect x="190" y="30" width="160" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5" />
+  <rect x="190" y="30" width="160" height="40" class="bg-main" stroke="#4A90A4" stroke-width="2" rx="5" />
   <text x="270" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">Generate Responses</text>
 
-  <rect x="400" y="30" width="130" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5" />
+  <rect x="400" y="30" width="130" height="40" class="bg-main" stroke="#4A90A4" stroke-width="2" rx="5" />
   <text x="465" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">AI Evaluates</text>
 
-  <rect x="580" y="30" width="150" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5" />
+  <rect x="580" y="30" width="150" height="40" class="bg-main" stroke="#4A90A4" stroke-width="2" rx="5" />
   <text x="655" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">Preference Data</text>
 
-  <rect x="780" y="30" width="130" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5" />
+  <rect x="780" y="30" width="130" height="40" class="bg-main" stroke="#4A90A4" stroke-width="2" rx="5" />
   <text x="845" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">Train Reward</text>
 
-  <rect x="960" y="30" width="60" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5" />
+  <rect x="960" y="30" width="60" height="40" class="bg-main" stroke="#4A90A4" stroke-width="2" rx="5" />
   <text x="990" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">RL</text>
 
-  <rect x="1070" y="30" width="140" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5" />
+  <rect x="1070" y="30" width="140" height="40" class="bg-main" stroke="#4A90A4" stroke-width="2" rx="5" />
   <text x="1140" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">Improved Model</text>
 
   

@@ -1,0 +1,279 @@
+<svg viewBox="0 0 1000 700" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .bg-main { fill: #f5f5f5; }
+    .text-color { fill: #333; }
+    .image-area { fill: #FFE0B2; stroke: #FF6F00; stroke-width: 2; }
+    .patch { fill: #FFF3E0; stroke: #F57C00; stroke-width: 1.5; }
+    .patch-highlight { fill: #FFB74D; stroke: #E65100; stroke-width: 2; }
+    .text-token { fill: #C8E6C9; stroke: #388E3C; stroke-width: 2; }
+    .embedding { fill: #B3E5FC; stroke: #0277BD; stroke-width: 2; }
+    .sequence { fill: #E1BEE7; stroke: #7B1FA2; stroke-width: 2; }
+    .arrow { stroke: #666; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+    .title-text { font-size: 22px; font-weight: bold; }
+    .heading-text { font-size: 16px; font-weight: 600; }
+    .label-text { font-size: 13px; }
+    .small-text { font-size: 11px; }
+    .tiny-text { font-size: 9px; }
+    text { fill: #333; font-family: Arial, sans-serif; }
+
+    @media (prefers-color-scheme: dark) {
+      .bg-main { fill: #1a1a1a; }
+      .text-color { fill: #fff; }
+      text { fill: #fff; }
+      .image-area { fill: #4A3000; stroke: #FFB74D; }
+      .patch { fill: #5A4000; stroke: #FFA726; }
+      .patch-highlight { fill: #6A5000; stroke: #FF9800; }
+      .text-token { fill: #1A3A1A; stroke: #66BB6A; }
+      .embedding { fill: #0A2A3A; stroke: #29B6F6; }
+      .sequence { fill: #3A1E5F; stroke: #9C27B0; }
+      .arrow { stroke: #999; }
+    }
+  </style>
+
+  <!-- Background -->
+  <rect class="bg-main" width="1000" height="700" rx="8"/>
+
+  <!-- Title -->
+  <text x="500" y="35" class="title-text text-color" text-anchor="middle">Multimodal Tokenization: From Pixels and Text to Unified Sequence</text>
+
+  <!-- Section 1: Image Patching -->
+  <g id="image-section">
+    <text x="200" y="75" class="heading-text text-color" text-anchor="middle">1. Image Patching</text>
+
+    <!-- Original image representation -->
+    <rect class="image-area" x="50" y="90" width="120" height="120" rx="4"/>
+    <text x="110" y="115" class="label-text text-color" text-anchor="middle">Input Image</text>
+    <text x="110" y="135" class="small-text text-color" text-anchor="middle">224×224×3</text>
+
+    <!-- Grid overlay showing patches -->
+    <g opacity="0.6">
+      <line stroke="#FF6F00" stroke-width="2" x1="80" y1="90" x2="80" y2="210"/>
+      <line stroke="#FF6F00" stroke-width="2" x1="110" y1="90" x2="110" y2="210"/>
+      <line stroke="#FF6F00" stroke-width="2" x1="140" y1="90" x2="140" y2="210"/>
+      <line stroke="#FF6F00" stroke-width="2" x1="50" y1="120" x2="170" y2="120"/>
+      <line stroke="#FF6F00" stroke-width="2" x1="50" y1="150" x2="170" y2="150"/>
+      <line stroke="#FF6F00" stroke-width="2" x1="50" y1="180" x2="170" y2="180"/>
+    </g>
+
+    <text x="110" y="165" class="label-text text-color" text-anchor="middle" font-weight="bold">16×16</text>
+    <text x="110" y="180" class="small-text text-color" text-anchor="middle">patches</text>
+
+    <!-- Arrow -->
+    <path class="arrow" d="M 180 150 L 230 150"/>
+
+    <!-- Extracted patches -->
+    <g transform="translate(240, 100)">
+      <rect class="patch-highlight" x="0" y="0" width="50" height="50" rx="3"/>
+      <text x="25" y="27" class="tiny-text text-color" text-anchor="middle">P₁</text>
+      <text x="25" y="38" class="tiny-text text-color" text-anchor="middle">16×16×3</text>
+
+      <rect class="patch" x="55" y="0" width="50" height="50" rx="3"/>
+      <text x="80" y="27" class="tiny-text text-color" text-anchor="middle">P₂</text>
+
+      <rect class="patch" x="110" y="0" width="50" height="50" rx="3"/>
+      <text x="135" y="27" class="tiny-text text-color" text-anchor="middle">P₃</text>
+
+      <text x="80" y="70" class="small-text text-color" text-anchor="middle">... (196 patches total)</text>
+    </g>
+  </g>
+
+  <!-- Section 2: Patch Embedding -->
+  <g id="embedding-section">
+    <text x="600" y="75" class="heading-text text-color" text-anchor="middle">2. Linear Projection</text>
+
+    <!-- Patch to embedding -->
+    <g transform="translate(480, 100)">
+      <rect class="patch-highlight" x="0" y="0" width="50" height="50" rx="3"/>
+      <text x="25" y="27" class="tiny-text text-color" text-anchor="middle">P₁</text>
+      <text x="25" y="38" class="tiny-text text-color" text-anchor="middle">768 dims</text>
+    </g>
+
+    <path class="arrow" d="M 540 125 L 590 125"/>
+    <text x="565" y="115" class="tiny-text text-color" text-anchor="middle">Linear</text>
+
+    <g transform="translate(600, 95)">
+      <rect class="embedding" x="0" y="0" width="100" height="60" rx="4"/>
+      <text x="50" y="25" class="label-text text-color" text-anchor="middle">Vision</text>
+      <text x="50" y="42" class="label-text text-color" text-anchor="middle">Embedding</text>
+      <text x="50" y="55" class="tiny-text text-color" text-anchor="middle">[768 or 1024]</text>
+    </g>
+
+    <text x="650" y="175" class="small-text text-color" text-anchor="middle">+ positional encoding</text>
+  </g>
+
+  <!-- Section 3: Text Tokenization -->
+  <g id="text-section">
+    <text x="200" y="255" class="heading-text text-color" text-anchor="middle">3. Text Tokenization</text>
+
+    <!-- Text input -->
+    <rect class="text-token" x="50" y="270" width="300" height="45" rx="4"/>
+    <text x="200" y="297" class="label-text text-color" text-anchor="middle">"Describe this image in detail"</text>
+
+    <!-- Arrow down -->
+    <path class="arrow" d="M 200 315 L 200 345"/>
+
+    <!-- Tokenized -->
+    <g transform="translate(50, 350)">
+      <rect class="text-token" x="0" y="0" width="65" height="35" rx="3"/>
+      <text x="32" y="22" class="small-text text-color" text-anchor="middle">"Des"</text>
+
+      <rect class="text-token" x="70" y="0" width="65" height="35" rx="3"/>
+      <text x="102" y="22" class="small-text text-color" text-anchor="middle">"cribe"</text>
+
+      <rect class="text-token" x="140" y="0" width="65" height="35" rx="3"/>
+      <text x="172" y="22" class="small-text text-color" text-anchor="middle">"this"</text>
+
+      <rect class="text-token" x="210" y="0" width="65" height="35" rx="3"/>
+      <text x="242" y="22" class="small-text text-color" text-anchor="middle">"image"</text>
+
+      <text x="150" y="55" class="small-text text-color" text-anchor="middle">... (more tokens)</text>
+    </g>
+  </g>
+
+  <!-- Section 4: Text Embedding -->
+  <g id="text-embed-section">
+    <text x="600" y="255" class="heading-text text-color" text-anchor="middle">4. Text Embedding</text>
+
+    <g transform="translate(480, 270)">
+      <rect class="text-token" x="0" y="0" width="65" height="35" rx="3"/>
+      <text x="32" y="22" class="small-text text-color" text-anchor="middle">"Des"</text>
+    </g>
+
+    <path class="arrow" d="M 555 287 L 590 287"/>
+    <text x="572" y="278" class="tiny-text text-color" text-anchor="middle">Embed</text>
+
+    <g transform="translate(600, 262)">
+      <rect class="embedding" x="0" y="0" width="100" height="60" rx="4"/>
+      <text x="50" y="25" class="label-text text-color" text-anchor="middle">Text</text>
+      <text x="50" y="42" class="label-text text-color" text-anchor="middle">Embedding</text>
+      <text x="50" y="55" class="tiny-text text-color" text-anchor="middle">[4096]</text>
+    </g>
+
+    <text x="650" y="342" class="small-text text-color" text-anchor="middle">+ positional encoding</text>
+  </g>
+
+  <!-- Section 5: Alignment/Projection -->
+  <g id="projection-section">
+    <text x="500" y="425" class="heading-text text-color" text-anchor="middle">5. Modality Alignment</text>
+
+    <!-- Vision embedding -->
+    <g transform="translate(150, 445)">
+      <rect class="embedding" x="0" y="0" width="100" height="50" rx="4"/>
+      <text x="50" y="22" class="label-text text-color" text-anchor="middle">Vision</text>
+      <text x="50" y="38" class="tiny-text text-color" text-anchor="middle">[196, 1024]</text>
+    </g>
+
+    <!-- Projection arrow -->
+    <path class="arrow" d="M 260 470 L 340 470"/>
+    <text x="300" y="460" class="tiny-text text-color" text-anchor="middle">Project to</text>
+    <text x="300" y="490" class="tiny-text text-color" text-anchor="middle">LLM dim</text>
+
+    <!-- Projected vision -->
+    <g transform="translate(350, 445)">
+      <rect class="embedding" x="0" y="0" width="100" height="50" rx="4"/>
+      <text x="50" y="22" class="label-text text-color" text-anchor="middle">Vision</text>
+      <text x="50" y="38" class="tiny-text text-color" text-anchor="middle">[196, 4096]</text>
+    </g>
+
+    <!-- Text embedding (already in right dimension) -->
+    <g transform="translate(550, 445)">
+      <rect class="embedding" x="0" y="0" width="100" height="50" rx="4"/>
+      <text x="50" y="22" class="label-text text-color" text-anchor="middle">Text</text>
+      <text x="50" y="38" class="tiny-text text-color" text-anchor="middle">[N, 4096]</text>
+    </g>
+  </g>
+
+  <!-- Section 6: Concatenation -->
+  <g id="concat-section">
+    <!-- Arrows converging -->
+    <path class="arrow" d="M 400 495 L 450 530"/>
+    <path class="arrow" d="M 600 495 L 550 530"/>
+
+    <!-- Concatenation point -->
+    <circle cx="500" cy="535" r="25" fill="#FFD54F" stroke="#F57C00" stroke-width="2"/>
+    <text x="500" y="542" class="label-text text-color" text-anchor="middle">CONCAT</text>
+
+    <!-- Arrow down to final sequence -->
+    <path class="arrow" d="M 500 560 L 500 590"/>
+
+    <!-- Final interleaved sequence -->
+    <g transform="translate(100, 600)">
+      <rect class="sequence" x="0" y="0" width="800" height="70" rx="5"/>
+
+      <!-- Tokens in sequence -->
+      <g transform="translate(20, 15)">
+        <rect class="embedding" width="70" height="40" rx="3"/>
+        <text x="35" y="15" class="tiny-text text-color" text-anchor="middle">Vision</text>
+        <text x="35" y="28" class="tiny-text text-color" text-anchor="middle">P₁</text>
+      </g>
+
+      <g transform="translate(95, 15)">
+        <rect class="embedding" width="70" height="40" rx="3"/>
+        <text x="35" y="15" class="tiny-text text-color" text-anchor="middle">Vision</text>
+        <text x="35" y="28" class="tiny-text text-color" text-anchor="middle">P₂</text>
+      </g>
+
+      <text x="195" y="35" class="small-text text-color" text-anchor="middle">...</text>
+
+      <g transform="translate(230, 15)">
+        <rect class="embedding" width="70" height="40" rx="3"/>
+        <text x="35" y="15" class="tiny-text text-color" text-anchor="middle">Vision</text>
+        <text x="35" y="28" class="tiny-text text-color" text-anchor="middle">P₁₉₆</text>
+      </g>
+
+      <g transform="translate(305, 15)">
+        <rect class="embedding" width="70" height="40" rx="3"/>
+        <text x="35" y="15" class="tiny-text text-color" text-anchor="middle">Text</text>
+        <text x="35" y="28" class="tiny-text text-color" text-anchor="middle">"Des"</text>
+      </g>
+
+      <g transform="translate(380, 15)">
+        <rect class="embedding" width="70" height="40" rx="3"/>
+        <text x="35" y="15" class="tiny-text text-color" text-anchor="middle">Text</text>
+        <text x="35" y="28" class="tiny-text text-color" text-anchor="middle">"cribe"</text>
+      </g>
+
+      <text x="480" y="35" class="small-text text-color" text-anchor="middle">...</text>
+
+      <g transform="translate(520, 15)">
+        <rect class="embedding" width="70" height="40" rx="3"/>
+        <text x="35" y="15" class="tiny-text text-color" text-anchor="middle">Text</text>
+        <text x="35" y="28" class="tiny-text text-color" text-anchor="middle">"detail"</text>
+      </g>
+
+      <text x="400" y="-10" class="label-text text-color" text-anchor="middle" font-weight="600">
+        Unified Multimodal Sequence → LLM
+      </text>
+    </g>
+  </g>
+
+  <!-- Annotation boxes -->
+  <g transform="translate(750, 100)">
+    <rect fill="#E3F2FD" stroke="#1976D2" stroke-width="1.5" width="220" height="120" rx="4" opacity="0.3"/>
+    <text x="110" y="20" class="small-text text-color" text-anchor="middle" font-weight="600">Late Fusion Approach</text>
+    <text x="110" y="40" class="tiny-text text-color" text-anchor="middle">1. Encode modalities separately</text>
+    <text x="110" y="55" class="tiny-text text-color" text-anchor="middle">2. Project to shared dimension</text>
+    <text x="110" y="70" class="tiny-text text-color" text-anchor="middle">3. Concatenate sequences</text>
+    <text x="110" y="85" class="tiny-text text-color" text-anchor="middle">4. Process with LLM</text>
+    <text x="110" y="105" class="tiny-text text-color" text-anchor="middle" font-style="italic">Used by: LLaVA, BLIP-2</text>
+  </g>
+
+  <g transform="translate(750, 240)">
+    <rect fill="#FFF9C4" stroke="#F57F17" stroke-width="1.5" width="220" height="140" rx="4" opacity="0.3"/>
+    <text x="110" y="20" class="small-text text-color" text-anchor="middle" font-weight="600">Key Design Choices</text>
+    <text x="110" y="40" class="tiny-text text-color" text-anchor="middle">• Patch size: 14×14 or 16×16</text>
+    <text x="110" y="55" class="tiny-text text-color" text-anchor="middle">• Vision dim: 768 or 1024</text>
+    <text x="110" y="70" class="tiny-text text-color" text-anchor="middle">• LLM dim: 4096 (typical)</text>
+    <text x="110" y="85" class="tiny-text text-color" text-anchor="middle">• Projection: Linear or MLP</text>
+    <text x="110" y="100" class="tiny-text text-color" text-anchor="middle">• Position encoding: added</text>
+    <text x="110" y="115" class="tiny-text text-color" text-anchor="middle">  to both modalities before</text>
+    <text x="110" y="130" class="tiny-text text-color" text-anchor="middle">  concatenation</text>
+  </g>
+
+  <!-- Arrow marker definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#666"/>
+    </marker>
+  </defs>
+</svg>

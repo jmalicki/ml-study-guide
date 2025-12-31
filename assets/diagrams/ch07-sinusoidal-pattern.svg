@@ -8,6 +8,8 @@
     .label-text { fill: #666666; }
     line[stroke="#333"] { stroke: #333333; }
 
+    .bg-white { fill: white; }
+
     /* Dark mode */
     @media (prefers-color-scheme: dark) {
       text { fill: #ffffff; }
@@ -27,6 +29,8 @@
       text[fill="#81C784"] { fill: #66bb6a; }
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
+
+      .bg-white { fill: #1a1a1a; }
     }
   </style><text x="400" y="25" text-anchor="middle" font-size="18" font-weight="bold" fill="#333">
     Sinusoidal Positional Encoding Pattern
@@ -82,7 +86,7 @@
 
   
   <g transform="translate(560, 90)">
-    <rect x="0" y="0" width="180" height="145" fill="white" stroke="#ccc" stroke-width="1" rx="5" />
+    <rect x="0" y="0" width="180" height="145" class="bg-white" stroke="#ccc" stroke-width="1" rx="5" />
     <text x="10" y="20" font-size="12" font-weight="bold" fill="#333">Dimensions:</text>
 
     <line x1="10" y1="35" x2="35" y2="35" stroke="#E57373" stroke-width="2.5" />

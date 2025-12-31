@@ -7,6 +7,7 @@
     .axis-text { fill: #000000; }
     .label-text { fill: #666666; }
     line[stroke="#333"] { stroke: #333333; }
+    .tile { fill: #f0f8ff; }
 
     /* Dark mode */
     @media (prefers-color-scheme: dark) {
@@ -14,6 +15,7 @@
       .axis-text { fill: #ffffff; }
       .label-text { fill: #cccccc; }
       line[stroke="#333"] { stroke: #cccccc; }
+      .tile { fill: #1a3a4a; }
 
       /* Keep white text white in dark mode (for colored backgrounds) */
       text[fill="#fff"],
@@ -33,15 +35,15 @@
   <g transform="translate(50, 20)">
     <text x="40" y="-5" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" fill="#333">Q (N × d)</text>
 
-    <rect x="0" y="0" width="30" height="30" fill="#f0f8ff" stroke="#4A90A4" stroke-width="1.5" />
-    <rect x="30" y="0" width="30" height="30" fill="#f0f8ff" stroke="#4A90A4" stroke-width="1.5" />
-    <rect x="60" y="0" width="30" height="30" fill="#f0f8ff" stroke="#4A90A4" stroke-width="1.5" />
-    <rect x="0" y="30" width="30" height="30" fill="#f0f8ff" stroke="#4A90A4" stroke-width="1.5" />
-    <rect x="30" y="30" width="30" height="30" fill="#f0f8ff" stroke="#4A90A4" stroke-width="1.5" />
-    <rect x="60" y="30" width="30" height="30" fill="#f0f8ff" stroke="#4A90A4" stroke-width="1.5" />
-    <rect x="0" y="60" width="30" height="30" fill="#f0f8ff" stroke="#4A90A4" stroke-width="1.5" />
-    <rect x="30" y="60" width="30" height="30" fill="#f0f8ff" stroke="#4A90A4" stroke-width="1.5" />
-    <rect x="60" y="60" width="30" height="30" fill="#f0f8ff" stroke="#4A90A4" stroke-width="1.5" />
+    <rect x="0" y="0" width="30" height="30" class="tile" stroke="#4A90A4" stroke-width="1.5" />
+    <rect x="30" y="0" width="30" height="30" class="tile" stroke="#4A90A4" stroke-width="1.5" />
+    <rect x="60" y="0" width="30" height="30" class="tile" stroke="#4A90A4" stroke-width="1.5" />
+    <rect x="0" y="30" width="30" height="30" class="tile" stroke="#4A90A4" stroke-width="1.5" />
+    <rect x="30" y="30" width="30" height="30" class="tile" stroke="#4A90A4" stroke-width="1.5" />
+    <rect x="60" y="30" width="30" height="30" class="tile" stroke="#4A90A4" stroke-width="1.5" />
+    <rect x="0" y="60" width="30" height="30" class="tile" stroke="#4A90A4" stroke-width="1.5" />
+    <rect x="30" y="60" width="30" height="30" class="tile" stroke="#4A90A4" stroke-width="1.5" />
+    <rect x="60" y="60" width="30" height="30" class="tile" stroke="#4A90A4" stroke-width="1.5" />
     <text x="45" y="110" font-family="system-ui, -apple-system, sans-serif" font-size="11" style="fill: #666 !important" text-anchor="middle">Br×d blocks</text>
   </g>
 

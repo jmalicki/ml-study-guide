@@ -9,9 +9,12 @@
       .layer { fill: #4A90A4; stroke: #333; stroke-width: 1.5; }
       .data-batch { fill: #81C784; stroke: #333; stroke-width: 1.5; }
       .gpu-box { fill: #f0f0f0; stroke: #666; stroke-width: 2; stroke-dasharray: 5,5; }
+      .info-box { fill: #f9f9f9; }
 
       /* Dark mode support */
       @media (prefers-color-scheme: dark) {
+        .gpu-box { fill: #2a2a2a; stroke: #999; }
+        .info-box { fill: #2d2d2d; }
         .title { fill: #ffffff; }
         .subtitle { fill: #ffffff; }
         .label { fill: #ffffff; }
@@ -162,7 +165,7 @@
   <text x="400" y="295" text-anchor="middle" class="subtitle">Memory &amp; Communication</text>
 
   <!-- Data Parallelism info -->
-  <rect x="20" y="310" width="220" height="120" rx="5" fill="#f9f9f9" stroke="#666" stroke-width="1"/>
+  <rect x="20" y="310" width="220" height="120" rx="5" class="info-box" stroke="#666" stroke-width="1"/>
   <text x="130" y="330" text-anchor="middle" class="label" font-weight="bold">Data Parallelism</text>
   <text x="30" y="350" class="small-label">Memory: Full model per GPU</text>
   <text x="30" y="370" class="small-label">Communication: 2Θ (gradients)</text>
@@ -170,7 +173,7 @@
   <text x="30" y="410" class="small-label" fill="#81C784">✓ Low communication overhead</text>
 
   <!-- Tensor Parallelism info -->
-  <rect x="290" y="310" width="220" height="120" rx="5" fill="#f9f9f9" stroke="#666" stroke-width="1"/>
+  <rect x="290" y="310" width="220" height="120" rx="5" class="info-box" stroke="#666" stroke-width="1"/>
   <text x="400" y="330" text-anchor="middle" class="label" font-weight="bold">Tensor Parallelism</text>
   <text x="300" y="350" class="small-label">Memory: Model / N per GPU</text>
   <text x="300" y="370" class="small-label">Communication: 2BSd</text>
@@ -178,7 +181,7 @@
   <text x="300" y="410" class="small-label" fill="#E57373">⚠ High communication (needs NVLink)</text>
 
   <!-- Pipeline Parallelism info -->
-  <rect x="560" y="310" width="220" height="120" rx="5" fill="#f9f9f9" stroke="#666" stroke-width="1"/>
+  <rect x="560" y="310" width="220" height="120" rx="5" class="info-box" stroke="#666" stroke-width="1"/>
   <text x="670" y="330" text-anchor="middle" class="label" font-weight="bold">Pipeline Parallelism</text>
   <text x="570" y="350" class="small-label">Memory: Model / P per GPU</text>
   <text x="570" y="370" class="small-label">Communication: BSd</text>

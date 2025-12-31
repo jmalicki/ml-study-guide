@@ -7,6 +7,8 @@
     .axis-text { fill: #000000; }
     .label-text { fill: #666666; }
     line[stroke="#333"] { stroke: #333333; }
+    .bg-main { fill: white; }
+    .bg-summary { fill: #F5F5F5; }
 
     /* Dark mode */
     @media (prefers-color-scheme: dark) {
@@ -14,6 +16,8 @@
       .axis-text { fill: #ffffff; }
       .label-text { fill: #cccccc; }
       line[stroke="#333"] { stroke: #cccccc; }
+      .bg-main { fill: #1a1a1a; }
+      .bg-summary { fill: #2d2d2d; }
 
       /* Keep white text white in dark mode (for colored backgrounds) */
       text[fill="#fff"],
@@ -28,7 +32,7 @@
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
     }
-  </style><rect width="650" height="500" fill="white" />
+  </style><rect width="650" height="500" class="bg-main" />
 
   
   <text x="325" y="30" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#333" text-anchor="middle">
@@ -174,8 +178,8 @@
     </text>
   </g>
 
-  
-  <rect x="20" y="455" width="340" height="35" fill="#F5F5F5" stroke="#999" stroke-width="1" rx="3" />
+
+  <rect x="20" y="455" width="340" height="35" class="bg-summary" stroke="#999" stroke-width="1" rx="3" />
   <text x="190" y="473" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#333" text-anchor="middle">
     Benefits: 2-3× faster, ~40% less memory
   </text>

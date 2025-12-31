@@ -7,6 +7,7 @@
     .axis-text { fill: #000000; }
     .label-text { fill: #666666; }
     line[stroke="#333"] { stroke: #333333; }
+    .bg-summary { fill: #F5F5F5; }
 
     /* Dark mode */
     @media (prefers-color-scheme: dark) {
@@ -14,6 +15,7 @@
       .axis-text { fill: #ffffff; }
       .label-text { fill: #cccccc; }
       line[stroke="#333"] { stroke: #cccccc; }
+      .bg-summary { fill: #2d2d2d; }
 
       /* Keep white text white in dark mode (for colored backgrounds) */
       text[fill="#fff"],
@@ -125,7 +127,7 @@
 
   
   <g id="legend">
-    <rect x="20" y="440" width="860" height="50" fill="#F5F5F5" stroke="#333" stroke-width="1" rx="5" />
+    <rect x="20" y="440" width="860" height="50" class="bg-summary" stroke="#333" stroke-width="1" rx="5" />
 
     <text x="450" y="460" font-size="13" font-weight="bold" text-anchor="middle" fill="#333">
       Key Insight: PEFT methods achieve 95%+ performance with &lt;1% trainable parameters

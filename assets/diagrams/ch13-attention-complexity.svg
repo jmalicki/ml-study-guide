@@ -7,6 +7,8 @@
     .axis-text { fill: #000000; }
     .label-text { fill: #666666; }
     line[stroke="#333"] { stroke: #333333; }
+    .bg-box { fill: white; }
+    .bg-legend { fill: #f9f9f9; }
 
     /* Dark mode */
     @media (prefers-color-scheme: dark) {
@@ -14,6 +16,8 @@
       .axis-text { fill: #ffffff; }
       .label-text { fill: #cccccc; }
       line[stroke="#333"] { stroke: #cccccc; }
+      .bg-box { fill: #2d2d2d; }
+      .bg-legend { fill: #2d2d2d; }
 
       /* Keep white text white in dark mode (for colored backgrounds) */
       text[fill="#fff"],
@@ -82,9 +86,9 @@
   <text x="350" y="208" font-size="10" fill="#666">Same O(n²d) but</text>
   <text x="350" y="221" font-size="10" fill="#666">memory-efficient</text>
 
-  
+
   <g id="legend">
-    <rect x="100" y="440" width="600" height="50" fill="#f9f9f9" stroke="#999" stroke-width="1" rx="5" />
+    <rect x="100" y="440" width="600" height="50" class="bg-legend" stroke="#999" stroke-width="1" rx="5" />
 
     
     <line x1="120" y1="460" x2="160" y2="460" stroke="#E57373" stroke-width="3" />
@@ -99,9 +103,9 @@
     <text x="620" y="465" font-size="11" fill="#333">Linear: Approximation</text>
   </g>
 
-  
+
   <g id="insight">
-    <rect x="480" y="90" width="260" height="90" fill="#fff" stroke="#4A90A4" stroke-width="2" rx="5" />
+    <rect x="480" y="90" width="260" height="90" class="bg-box" stroke="#4A90A4" stroke-width="2" rx="5" />
     <text x="610" y="110" font-size="12" font-weight="bold" text-anchor="middle" fill="#333">Key Insight</text>
     <text x="610" y="130" font-size="10" text-anchor="middle" fill="#333">Doubling sequence length:</text>
     <text x="610" y="145" font-size="10" text-anchor="middle" fill="#E57373">• Standard: 4x compute</text>

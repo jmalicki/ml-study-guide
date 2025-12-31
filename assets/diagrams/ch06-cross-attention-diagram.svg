@@ -8,6 +8,8 @@
     .label-text { fill: #666666; }
     line[stroke="#333"] { stroke: #333333; }
 
+    .bg-box { fill: #f5f5f5; }
+
     /* Dark mode */
     @media (prefers-color-scheme: dark) {
       text { fill: #ffffff; }
@@ -27,6 +29,8 @@
       text[fill="#81C784"] { fill: #66bb6a; }
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
+
+      .bg-box { fill: #2d2d2d; }
     }
   </style><text x="100" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="bold" fill="#333" text-anchor="middle">Encoder</text>
 
@@ -34,14 +38,14 @@
   <line x1="100" y1="40" x2="100" y2="60" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)" />
 
   
-  <rect x="30" y="65" width="140" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5" />
+  <rect x="30" y="65" width="140" height="40" class="bg-box" stroke="#4A90A4" stroke-width="2" rx="5" />
   <text x="100" y="90" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" text-anchor="middle">Self-Attention</text>
 
   
   <line x1="100" y1="105" x2="100" y2="125" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)" />
 
   
-  <rect x="30" y="130" width="140" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5" />
+  <rect x="30" y="130" width="140" height="40" class="bg-box" stroke="#4A90A4" stroke-width="2" rx="5" />
   <text x="100" y="155" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" text-anchor="middle">Feed-Forward</text>
 
   
@@ -57,7 +61,7 @@
   <line x1="500" y1="40" x2="500" y2="60" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)" />
 
   
-  <rect x="390" y="65" width="220" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5" />
+  <rect x="390" y="65" width="220" height="40" class="bg-box" stroke="#4A90A4" stroke-width="2" rx="5" />
   <text x="500" y="90" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" text-anchor="middle">Masked Self-Attention</text>
 
   
@@ -70,7 +74,7 @@
   <line x1="500" y1="155" x2="500" y2="195" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)" />
 
   
-  <rect x="390" y="200" width="220" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5" />
+  <rect x="390" y="200" width="220" height="40" class="bg-box" stroke="#4A90A4" stroke-width="2" rx="5" />
   <text x="500" y="225" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" text-anchor="middle">Cross-Attention</text>
 
   
@@ -81,14 +85,14 @@
   <line x1="500" y1="240" x2="500" y2="260" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)" />
 
   
-  <rect x="390" y="265" width="220" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5" />
+  <rect x="390" y="265" width="220" height="40" class="bg-box" stroke="#4A90A4" stroke-width="2" rx="5" />
   <text x="500" y="290" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" text-anchor="middle">Feed-Forward</text>
 
   
   <line x1="500" y1="305" x2="500" y2="325" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)" />
 
   
-  <rect x="390" y="330" width="220" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5" />
+  <rect x="390" y="330" width="220" height="40" class="bg-box" stroke="#4A90A4" stroke-width="2" rx="5" />
   <text x="500" y="355" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" text-anchor="middle">Output Projection</text>
 
   

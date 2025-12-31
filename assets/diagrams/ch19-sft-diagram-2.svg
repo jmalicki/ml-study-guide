@@ -7,6 +7,7 @@
     .axis-text { fill: #000000; }
     .label-text { fill: #666666; }
     line[stroke="#333"] { stroke: #333333; }
+    .bg-box { fill: #f5f5f5; }
 
     /* Dark mode */
     @media (prefers-color-scheme: dark) {
@@ -14,6 +15,7 @@
       .axis-text { fill: #ffffff; }
       .label-text { fill: #cccccc; }
       line[stroke="#333"] { stroke: #cccccc; }
+      .bg-box { fill: #2d2d2d; }
 
       /* Keep white text white in dark mode (for colored backgrounds) */
       text[fill="#fff"],
@@ -28,13 +30,13 @@
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
     }
-  </style><rect x="20" y="20" width="400" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="3" />
+  </style><rect x="20" y="20" width="400" height="40" class="bg-box" stroke="#4A90A4" stroke-width="2" rx="3" />
   <text x="30" y="45" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="600">[SYSTEM: instructions]</text>
   <line x1="440" y1="40" x2="520" y2="40" stroke="#999" stroke-width="2" marker-end="url(#arrow-gray)" />
   <text x="530" y="45" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#999">masked</text>
 
   
-  <rect x="20" y="75" width="400" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="3" />
+  <rect x="20" y="75" width="400" height="40" class="bg-box" stroke="#4A90A4" stroke-width="2" rx="3" />
   <text x="30" y="100" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="600">[USER: question 1]</text>
   <line x1="440" y1="95" x2="520" y2="95" stroke="#999" stroke-width="2" marker-end="url(#arrow-gray)" />
   <text x="530" y="100" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#999">masked</text>
@@ -46,7 +48,7 @@
   <text x="530" y="155" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#4A90A4" font-weight="600">LEARNED</text>
 
   
-  <rect x="20" y="185" width="400" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="3" />
+  <rect x="20" y="185" width="400" height="40" class="bg-box" stroke="#4A90A4" stroke-width="2" rx="3" />
   <text x="30" y="210" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="600">[USER: question 2]</text>
   <line x1="440" y1="205" x2="520" y2="205" stroke="#999" stroke-width="2" marker-end="url(#arrow-gray)" />
   <text x="530" y="210" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#999">masked</text>

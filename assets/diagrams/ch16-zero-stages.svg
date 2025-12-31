@@ -11,9 +11,10 @@
       .optimizer { fill: #E57373; stroke: #333; stroke-width: 1; }
       .gpu-box { fill: none; stroke: #666; stroke-width: 2; rx: 5; }
       .section-box { fill: #f9f9f9; stroke: #999; stroke-width: 1; rx: 3; }
-    
+
       /* Dark mode support */
       @media (prefers-color-scheme: dark) {
+        .section-box { fill: #2d2d2d; stroke: #555; }
         text { fill: #ffffff; }
         text[fill="#333"] { fill: #ffffff; }
         text[fill="#666"] { fill: #cccccc; }

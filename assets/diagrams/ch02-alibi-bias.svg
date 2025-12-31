@@ -8,7 +8,9 @@
       .small { font-size: 11px; }
       .axis-label { font-size: 12px; fill: #666; }
       .mono { font-family: 'Courier New', monospace; font-size: 10px; }
-    
+
+      .bg-main { fill: #f5f5f5; }
+
       /* Dark mode support */
       @media (prefers-color-scheme: dark) {
         text { fill: #ffffff; }
@@ -30,6 +32,8 @@
         rect[stroke="#333"] { stroke: #cccccc; }
         rect[fill="white"] { fill: #1a1a1a; }
         rect[fill="#ffffff"] { fill: #1a1a1a; }
+
+        .bg-main { fill: #2d2d2d; }
 
         .grid { stroke: #444444; }
         .axis { stroke: #cccccc; }
@@ -184,7 +188,7 @@
 
   <!-- Formula and explanation -->
   <g id="formula" transform="translate(420, 80)">
-    <rect x="0" y="0" width="340" height="300" fill="#f5f5f5" rx="5" stroke="#ddd"/>
+    <rect x="0" y="0" width="340" height="300" class="bg-main" rx="5" stroke="#ddd"/>
 
     <text x="170" y="25" class="label" text-anchor="middle">How ALiBi Works</text>
 

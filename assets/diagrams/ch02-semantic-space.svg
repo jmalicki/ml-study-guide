@@ -7,7 +7,9 @@
       .label { font-size: 13px; font-weight: 600; }
       .small { font-size: 11px; }
       .axis-label { font-size: 12px; fill: #666; }
-    
+
+      .bg-main { fill: #f5f5f5; }
+
       /* Dark mode support */
       @media (prefers-color-scheme: dark) {
         text { fill: #ffffff; }
@@ -29,6 +31,8 @@
         rect[stroke="#333"] { stroke: #cccccc; }
         rect[fill="white"] { fill: #1a1a1a; }
         rect[fill="#ffffff"] { fill: #1a1a1a; }
+
+        .bg-main { fill: #2d2d2d; }
 
         .grid { stroke: #444444; }
         .axis { stroke: #cccccc; }
@@ -161,7 +165,7 @@
 
   <!-- Analogy demonstration -->
   <g id="analogy" transform="translate(120, 500)">
-    <rect x="0" y="0" width="460" height="70" fill="#f5f5f5" rx="5"/>
+    <rect x="0" y="0" width="460" height="70" class="bg-main" rx="5"/>
     <text x="230" y="20" class="label" text-anchor="middle">Vector Arithmetic: king - man + woman = ?</text>
 
     <g transform="translate(30, 35)">

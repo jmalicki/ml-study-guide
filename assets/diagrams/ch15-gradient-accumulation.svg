@@ -7,6 +7,8 @@
     .axis-text { fill: #000000; }
     .label-text { fill: #666666; }
     line[stroke="#333"] { stroke: #333333; }
+    .bg-main { fill: white; }
+    .bg-summary { fill: #F5F5F5; }
 
     /* Dark mode */
     @media (prefers-color-scheme: dark) {
@@ -14,6 +16,8 @@
       .axis-text { fill: #ffffff; }
       .label-text { fill: #cccccc; }
       line[stroke="#333"] { stroke: #cccccc; }
+      .bg-main { fill: #1a1a1a; }
+      .bg-summary { fill: #2d2d2d; }
 
       /* Keep white text white in dark mode (for colored backgrounds) */
       text[fill="#fff"],
@@ -28,7 +32,7 @@
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
     }
-  </style><rect width="700" height="450" fill="white" />
+  </style><rect width="700" height="450" class="bg-main" />
 
   
   <text x="350" y="30" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#333" text-anchor="middle">
@@ -181,8 +185,8 @@
     </text>
   </g>
 
-  
-  <rect x="20" y="405" width="660" height="35" fill="#F5F5F5" stroke="#999" stroke-width="1" rx="3" />
+
+  <rect x="20" y="405" width="660" height="35" class="bg-summary" stroke="#999" stroke-width="1" rx="3" />
   <text x="350" y="422" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#333" text-anchor="middle">
     Effective Batch Size: 16 × 4 = 64 | Memory Usage: Only 16 samples at a time
   </text>

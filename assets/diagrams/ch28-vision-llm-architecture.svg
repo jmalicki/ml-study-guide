@@ -1,0 +1,149 @@
+<svg viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .bg-main { fill: #f5f5f5; }
+    .text-color { fill: #333; }
+    .image-box { fill: #FFE0B2; stroke: #FF6F00; stroke-width: 2; }
+    .encoder-box { fill: #E1BEE7; stroke: #7B1FA2; stroke-width: 2; }
+    .projection-box { fill: #C5CAE9; stroke: #3F51B5; stroke-width: 2; }
+    .llm-box { fill: #B3E5FC; stroke: #0288D1; stroke-width: 2; }
+    .embeddings-box { fill: #C8E6C9; stroke: #388E3C; stroke-width: 2; }
+    .output-box { fill: #FFCCBC; stroke: #E64A19; stroke-width: 2; }
+    .flow-arrow { stroke: #666; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+    .title-text { font-size: 22px; font-weight: bold; }
+    .heading-text { font-size: 16px; font-weight: 600; }
+    .label-text { font-size: 14px; }
+    .small-text { font-size: 12px; }
+    .code-text { font-family: 'Courier New', monospace; font-size: 11px; }
+    text { fill: #333; font-family: Arial, sans-serif; }
+
+    @media (prefers-color-scheme: dark) {
+      .bg-main { fill: #1a1a1a; }
+      .text-color { fill: #fff; }
+      text { fill: #fff; }
+      .image-box { fill: #4A3000; stroke: #FFB74D; }
+      .encoder-box { fill: #3A1E5F; stroke: #9B59B6; }
+      .projection-box { fill: #1E2A5F; stroke: #5C6BC0; }
+      .llm-box { fill: #0A2A3A; stroke: #4FC3F7; }
+      .embeddings-box { fill: #1A3A1A; stroke: #66BB6A; }
+      .output-box { fill: #3A1E1E; stroke: #FF7043; }
+      .flow-arrow { stroke: #999; }
+    }
+  </style>
+
+  <!-- Background -->
+  <rect class="bg-main" width="1000" height="600" rx="8"/>
+
+  <!-- Title -->
+  <text x="500" y="35" class="title-text text-color" text-anchor="middle">Vision-Language Model Architecture (LLaVA-style)</text>
+
+  <!-- Input Image -->
+  <rect class="image-box" x="50" y="80" width="150" height="150" rx="6"/>
+  <text x="125" y="110" class="heading-text text-color" text-anchor="middle">Input Image</text>
+
+  <!-- Placeholder image pattern -->
+  <g opacity="0.3">
+    <rect fill="#FF6F00" x="70" y="130" width="40" height="40"/>
+    <rect fill="#FF8F00" x="110" y="130" width="40" height="40"/>
+    <rect fill="#FFA000" x="150" y="130" width="40" height="40"/>
+    <rect fill="#FFB300" x="70" y="170" width="40" height="40"/>
+    <rect fill="#FFC107" x="110" y="170" width="40" height="40"/>
+    <rect fill="#FFD54F" x="150" y="170" width="40" height="40"/>
+  </g>
+  <text x="125" y="220" class="small-text text-color" text-anchor="middle">224×224×3</text>
+
+  <!-- Arrow to Vision Encoder -->
+  <path class="flow-arrow" d="M 200 155 L 260 155"/>
+
+  <!-- Vision Encoder (ViT/CLIP) -->
+  <rect class="encoder-box" x="260" y="80" width="180" height="150" rx="6"/>
+  <text x="350" y="110" class="heading-text text-color" text-anchor="middle">Vision Encoder</text>
+  <text x="350" y="135" class="label-text text-color" text-anchor="middle">(ViT / CLIP / SigLIP)</text>
+
+  <text x="350" y="160" class="small-text text-color" text-anchor="middle">• Split into patches (16×16)</text>
+  <text x="350" y="178" class="small-text text-color" text-anchor="middle">• Linear embedding</text>
+  <text x="350" y="196" class="small-text text-color" text-anchor="middle">• Add positional encoding</text>
+  <text x="350" y="214" class="small-text text-color" text-anchor="middle">• Transformer layers</text>
+
+  <!-- Arrow to Projection -->
+  <path class="flow-arrow" d="M 440 155 L 500 155"/>
+  <text x="470" y="145" class="small-text text-color" text-anchor="middle">(B, 196, 1024)</text>
+
+  <!-- Projection Layer -->
+  <rect class="projection-box" x="500" y="100" width="160" height="110" rx="6"/>
+  <text x="580" y="130" class="heading-text text-color" text-anchor="middle">Projection</text>
+  <text x="580" y="155" class="label-text text-color" text-anchor="middle">Linear/MLP</text>
+  <text x="580" y="180" class="code-text text-color" text-anchor="middle">W: (1024 → 4096)</text>
+  <text x="580" y="200" class="small-text text-color" text-anchor="middle">Align to LLM space</text>
+
+  <!-- Arrow to concatenation -->
+  <path class="flow-arrow" d="M 660 155 L 720 250"/>
+  <text x="690" y="200" class="small-text text-color" text-anchor="middle">(B, 196, 4096)</text>
+
+  <!-- Text Input -->
+  <rect class="embeddings-box" x="50" y="300" width="150" height="110" rx="6"/>
+  <text x="125" y="330" class="heading-text text-color" text-anchor="middle">Text Input</text>
+  <text x="125" y="355" class="label-text text-color" text-anchor="middle">"Describe this"</text>
+  <text x="125" y="375" class="label-text text-color" text-anchor="middle">"image"</text>
+  <text x="125" y="400" class="small-text text-color" text-anchor="middle">Tokenize + Embed</text>
+
+  <!-- Arrow from text to concat -->
+  <path class="flow-arrow" d="M 200 355 L 720 300"/>
+  <text x="460" y="330" class="small-text text-color" text-anchor="middle">(B, text_len, 4096)</text>
+
+  <!-- Concatenation Point -->
+  <circle cx="720" cy="280" r="30" fill="#FFD54F" stroke="#F57C00" stroke-width="2"/>
+  <text x="720" y="275" class="label-text text-color" text-anchor="middle">Concat</text>
+  <text x="720" y="293" class="small-text text-color" text-anchor="middle">[vision;</text>
+  <text x="720" y="307" class="small-text text-color" text-anchor="middle">text]</text>
+
+  <!-- Arrow to LLM -->
+  <path class="flow-arrow" d="M 750 280 L 790 280"/>
+
+  <!-- Language Model -->
+  <rect class="llm-box" x="790" y="150" width="180" height="260" rx="6"/>
+  <text x="880" y="180" class="heading-text text-color" text-anchor="middle">Language Model</text>
+  <text x="880" y="205" class="label-text text-color" text-anchor="middle">(LLaMA / Vicuna)</text>
+
+  <g transform="translate(800, 230)">
+    <rect fill="#4A90E2" opacity="0.3" width="160" height="25" rx="3"/>
+    <text x="80" y="17" class="small-text text-color" text-anchor="middle">Transformer Block 1</text>
+  </g>
+  <g transform="translate(800, 260)">
+    <rect fill="#4A90E2" opacity="0.3" width="160" height="25" rx="3"/>
+    <text x="80" y="17" class="small-text text-color" text-anchor="middle">Transformer Block 2</text>
+  </g>
+  <text x="880" y="305" class="small-text text-color" text-anchor="middle">...</text>
+  <g transform="translate(800, 320)">
+    <rect fill="#4A90E2" opacity="0.3" width="160" height="25" rx="3"/>
+    <text x="80" y="17" class="small-text text-color" text-anchor="middle">Transformer Block N</text>
+  </g>
+
+  <text x="880" y="370" class="small-text text-color" text-anchor="middle">Self-attention processes</text>
+  <text x="880" y="387" class="small-text text-color" text-anchor="middle">vision + text jointly</text>
+
+  <!-- Arrow to Output -->
+  <path class="flow-arrow" d="M 880 410 L 880 460"/>
+
+  <!-- Output -->
+  <rect class="output-box" x="790" y="460" width="180" height="100" rx="6"/>
+  <text x="880" y="490" class="heading-text text-color" text-anchor="middle">Generated Text</text>
+  <text x="880" y="515" class="label-text text-color" text-anchor="middle">"This image shows</text>
+  <text x="880" y="535" class="label-text text-color" text-anchor="middle">a cat sitting on</text>
+  <text x="880" y="555" class="label-text text-color" text-anchor="middle">a colorful mat..."</text>
+
+  <!-- Arrow marker definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#666"/>
+    </marker>
+  </defs>
+
+  <!-- Training note -->
+  <g transform="translate(50, 480)">
+    <rect fill="#FFF9C4" stroke="#F57F17" stroke-width="1" width="600" height="90" rx="4" opacity="0.3"/>
+    <text x="10" y="20" class="small-text text-color" font-weight="600">Training Strategy:</text>
+    <text x="10" y="40" class="small-text text-color">1. Pre-training: Freeze vision encoder + LLM, train projection only (image-caption pairs)</text>
+    <text x="10" y="57" class="small-text text-color">2. Fine-tuning: Optionally unfreeze LLM, train on instruction-following data</text>
+    <text x="10" y="74" class="small-text text-color">3. Vision encoder typically stays frozen to preserve visual representations</text>
+  </g>
+</svg>

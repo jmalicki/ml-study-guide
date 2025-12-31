@@ -8,12 +8,20 @@
     .label-text { fill: #666666; }
     line[stroke="#333"] { stroke: #333333; }
 
+    /* Adaptive backgrounds */
+    .bg-orange { fill: #FFE0B2; }
+    .bg-green-light { fill: #C8E6C9; }
+
     /* Dark mode */
     @media (prefers-color-scheme: dark) {
       text { fill: #ffffff; }
       .axis-text { fill: #ffffff; }
       .label-text { fill: #cccccc; }
       line[stroke="#333"] { stroke: #cccccc; }
+
+      /* Adaptive backgrounds for dark mode */
+      .bg-orange { fill: #4a3a2d; }
+      .bg-green-light { fill: #2d4a2d; }
 
       /* Keep white text white in dark mode (for colored backgrounds) */
       text[fill="#fff"],
@@ -61,16 +69,16 @@
 
   
   <text x="50" y="195" font-size="12" font-weight="bold" fill="#333">Models Required:</text>
-  <rect x="50" y="205" width="120" height="25" fill="#FFE0B2" stroke="#333" stroke-width="1" rx="3" />
+  <rect x="50" y="205" width="120" height="25" class="bg-orange" stroke="#333" stroke-width="1" rx="3" />
   <text x="110" y="222" font-size="11" text-anchor="middle" style="fill: #333 !important">Policy Model</text>
 
-  <rect x="180" y="205" width="120" height="25" fill="#FFE0B2" stroke="#333" stroke-width="1" rx="3" />
+  <rect x="180" y="205" width="120" height="25" class="bg-orange" stroke="#333" stroke-width="1" rx="3" />
   <text x="240" y="222" font-size="11" text-anchor="middle" style="fill: #333 !important">Reference Model</text>
 
-  <rect x="310" y="205" width="120" height="25" fill="#FFE0B2" stroke="#333" stroke-width="1" rx="3" />
+  <rect x="310" y="205" width="120" height="25" class="bg-orange" stroke="#333" stroke-width="1" rx="3" />
   <text x="370" y="222" font-size="11" text-anchor="middle" style="fill: #333 !important">Reward Model</text>
 
-  <rect x="440" y="205" width="120" height="25" fill="#FFE0B2" stroke="#333" stroke-width="1" rx="3" />
+  <rect x="440" y="205" width="120" height="25" class="bg-orange" stroke="#333" stroke-width="1" rx="3" />
   <text x="500" y="222" font-size="11" text-anchor="middle" style="fill: #333 !important">Value Model</text>
 
   
@@ -94,10 +102,10 @@
 
   
   <text x="450" y="445" font-size="12" font-weight="bold" fill="#333">Models Required:</text>
-  <rect x="450" y="455" width="120" height="25" fill="#C8E6C9" stroke="#333" stroke-width="1" rx="3" />
+  <rect x="450" y="455" width="120" height="25" class="bg-green-light" stroke="#333" stroke-width="1" rx="3" />
   <text x="510" y="472" font-size="11" text-anchor="middle" style="fill: #333 !important">Policy Model</text>
 
-  <rect x="580" y="455" width="120" height="25" fill="#C8E6C9" stroke="#333" stroke-width="1" rx="3" />
+  <rect x="580" y="455" width="120" height="25" class="bg-green-light" stroke="#333" stroke-width="1" rx="3" />
   <text x="640" y="472" font-size="11" text-anchor="middle" style="fill: #333 !important">Reference Model</text>
 
   

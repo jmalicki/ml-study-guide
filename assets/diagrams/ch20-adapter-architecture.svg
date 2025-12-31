@@ -7,6 +7,7 @@
     .axis-text { fill: #000000; }
     .label-text { fill: #666666; }
     line[stroke="#333"] { stroke: #333333; }
+    .bg-info { fill: #F5F5F5; }
 
     /* Dark mode */
     @media (prefers-color-scheme: dark) {
@@ -14,6 +15,7 @@
       .axis-text { fill: #ffffff; }
       .label-text { fill: #cccccc; }
       line[stroke="#333"] { stroke: #cccccc; }
+      .bg-info { fill: #2d2d2d; }
 
       /* Keep white text white in dark mode (for colored backgrounds) */
       text[fill="#fff"],
@@ -122,7 +124,7 @@
 
   
   <g id="formula">
-    <rect x="470" y="150" width="210" height="110" fill="#F5F5F5" stroke="#333" stroke-width="1" rx="5" />
+    <rect x="470" y="150" width="210" height="110" class="bg-info" stroke="#333" stroke-width="1" rx="5" />
     <text x="575" y="175" font-size="13" font-weight="bold" text-anchor="middle" fill="#333">Mathematical Form:</text>
 
     <text x="575" y="200" font-size="12" text-anchor="middle" fill="#333">h' = h + Adapter(h)</text>
@@ -133,7 +135,7 @@
 
   
   <g id="properties">
-    <rect x="470" y="280" width="210" height="130" fill="#F5F5F5" stroke="#333" stroke-width="1" rx="5" />
+    <rect x="470" y="280" width="210" height="130" class="bg-info" stroke="#333" stroke-width="1" rx="5" />
     <text x="575" y="300" font-size="13" font-weight="bold" text-anchor="middle" fill="#333">Key Properties:</text>
 
     <text x="480" y="320" font-size="11" fill="#333">• Bottleneck (r ≪ d)</text>

@@ -8,12 +8,24 @@
     .label-text { fill: #666666; }
     line[stroke="#333"] { stroke: #333333; }
 
+    /* Adaptive backgrounds */
+    .bg-red-light { fill: #FFCDD2; }
+    .bg-green-light { fill: #C8E6C9; }
+    .bg-yellow { fill: #FFF9C4; }
+    .bg-blue { fill: #E1F5FE; }
+
     /* Dark mode */
     @media (prefers-color-scheme: dark) {
       text { fill: #ffffff; }
       .axis-text { fill: #ffffff; }
       .label-text { fill: #cccccc; }
       line[stroke="#333"] { stroke: #cccccc; }
+
+      /* Adaptive backgrounds for dark mode */
+      .bg-red-light { fill: #4a2d2d; }
+      .bg-green-light { fill: #2d4a2d; }
+      .bg-yellow { fill: #4a4a2d; }
+      .bg-blue { fill: #1a3a4a; }
 
       /* Keep white text white in dark mode (for colored backgrounds) */
       text[fill="#fff"],
@@ -88,7 +100,7 @@
 
   
   
-  <rect x="100" y="120" width="180" height="90" fill="#FFCDD2" opacity="0.3" rx="5" />
+  <rect x="100" y="120" width="180" height="90" class="bg-red-light" opacity="0.3" rx="5" />
   <text x="190" y="145" font-size="12" font-weight="bold" text-anchor="middle" style="fill: #C62828 !important">
     High Loss
   </text>
@@ -103,7 +115,7 @@
   </text>
 
   
-  <rect x="520" y="120" width="180" height="90" fill="#C8E6C9" opacity="0.3" rx="5" />
+  <rect x="520" y="120" width="180" height="90" class="bg-green-light" opacity="0.3" rx="5" />
   <text x="610" y="145" font-size="12" font-weight="bold" text-anchor="middle" style="fill: #2E7D32 !important">
     Low Loss
   </text>
@@ -118,7 +130,7 @@
   </text>
 
   
-  <rect x="100" y="240" width="270" height="70" fill="#FFF9C4" stroke="#F9A825" stroke-width="2" rx="5" />
+  <rect x="100" y="240" width="270" height="70" class="bg-yellow" stroke="#F9A825" stroke-width="2" rx="5" />
   <text x="235" y="260" font-size="11" font-weight="bold" text-anchor="middle" style="fill: #333 !important">
     Key Insight 1: Asymptotic Behavior
   </text>
@@ -129,7 +141,7 @@
     Loss → ∞ as ratio → -∞ (preference anti-aligned)
   </text>
 
-  <rect x="430" y="240" width="270" height="70" fill="#FFF9C4" stroke="#F9A825" stroke-width="2" rx="5" />
+  <rect x="430" y="240" width="270" height="70" class="bg-yellow" stroke="#F9A825" stroke-width="2" rx="5" />
   <text x="565" y="260" font-size="11" font-weight="bold" text-anchor="middle" style="fill: #333 !important">
     Key Insight 2: Gradient Behavior
   </text>
@@ -141,7 +153,7 @@
   </text>
 
   
-  <rect x="200" y="350" width="400" height="60" fill="#E1F5FE" stroke="#4A90A4" stroke-width="2" rx="5" />
+  <rect x="200" y="350" width="400" height="60" class="bg-blue" stroke="#4A90A4" stroke-width="2" rx="5" />
   <text x="400" y="370" font-size="12" font-weight="bold" text-anchor="middle" style="fill: #333 !important">
     Effect of β (temperature parameter)
   </text>
