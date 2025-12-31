@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 500">
+  <defs>
+    <style>
+      .axis { stroke: #333; stroke-width: 2; }
+      .grid { stroke: #e0e0e0; stroke-width: 1; stroke-dasharray: 2,2; }
+      .performance-curve { fill: none; stroke: #4A90A4; stroke-width: 3; }
+      .memory-curve { fill: none; stroke: #E57373; stroke-width: 3; }
+      .efficiency-curve { fill: none; stroke: #81C784; stroke-width: 3; stroke-dasharray: 5,5; }
+      .label { font-family: system-ui, -apple-system, sans-serif; font-size: 14px; fill: #333; }
+      .title { font-family: system-ui, -apple-system, sans-serif; font-size: 18px; font-weight: 600; fill: #333; }
+      .annotation { font-family: system-ui, -apple-system, sans-serif; font-size: 12px; fill: #555; }
+      .optimal-marker { fill: #FFB74D; stroke: #333; stroke-width: 2; }
+      .optimal-line { stroke: #FFB74D; stroke-width: 2; stroke-dasharray: 3,3; }
+      .full-ft-line { stroke: #9C27B0; stroke-width: 2; stroke-dasharray: 5,5; }
+
+      /* Dark mode support */
+      @media (prefers-color-scheme: dark) {
+        .axis { stroke: #cccccc; }
+        .grid { stroke: #444444; }
+        .label { fill: #ffffff; }
+        .title { fill: #ffffff; }
+        .annotation { fill: #cccccc; }
+        .optimal-marker { stroke: #cccccc; }
+
+        /* Specific element adjustments */
+        text[fill="#333"] { fill: #ffffff; }
+        text[fill="#555"] { fill: #cccccc; }
+        rect[stroke="#333"] { stroke: #cccccc; }
+        rect[fill="white"] { fill: #1a1a1a; }
+        line[stroke="#333"] { stroke: #cccccc; }
+      }
+    </style>
+  </defs>
+
+  <!-- Title -->
+  <text x="350" y="30" text-anchor="middle" class="title">LoRA Rank: Performance vs. Efficiency Trade-off</text>
+
+  <!-- Grid -->
+  <line x1="100" y1="100" x2="100" y2="420" class="grid"/>
+  <line x1="180" y1="100" x2="180" y2="420" class="grid"/>
+  <line x1="260" y1="100" x2="260" y2="420" class="grid"/>
+  <line x1="340" y1="100" x2="340" y2="420" class="grid"/>
+  <line x1="420" y1="100" x2="420" y2="420" class="grid"/>
+  <line x1="500" y1="100" x2="500" y2="420" class="grid"/>
+  <line x1="580" y1="100" x2="580" y2="420" class="grid"/>
+
+  <!-- Axes -->
+  <line x1="100" y1="420" x2="650" y2="420" class="axis"/>
+  <line x1="100" y1="100" x2="100" y2="420" class="axis"/>
+
+  <!-- Axis labels -->
+  <text x="375" y="455" text-anchor="middle" class="label" font-weight="600">LoRA Rank (r)</text>
+  <text x="35" y="260" text-anchor="middle" class="label" font-weight="600" transform="rotate(-90 35 260)">Normalized Metric</text>
+
+  <!-- X-axis tick labels -->
+  <text x="100" y="440" text-anchor="middle" class="annotation">1</text>
+  <text x="180" y="440" text-anchor="middle" class="annotation">4</text>
+  <text x="260" y="440" text-anchor="middle" class="annotation">8</text>
+  <text x="340" y="440" text-anchor="middle" class="annotation">16</text>
+  <text x="420" y="440" text-anchor="middle" class="annotation">32</text>
+  <text x="500" y="440" text-anchor="middle" class="annotation">64</text>
+  <text x="580" y="440" text-anchor="middle" class="annotation">128</text>
+
+  <!-- Y-axis tick labels -->
+  <text x="90" y="105" text-anchor="end" class="annotation">100%</text>
+  <text x="90" y="185" text-anchor="end" class="annotation">80%</text>
+  <text x="90" y="265" text-anchor="end" class="annotation">60%</text>
+  <text x="90" y="345" text-anchor="end" class="annotation">40%</text>
+  <text x="90" y="425" text-anchor="end" class="annotation">20%</text>
+
+  <!-- Full fine-tuning baseline -->
+  <line x1="100" y1="105" x2="650" y2="105" class="full-ft-line"/>
+  <text x="580" y="95" text-anchor="middle" class="annotation" fill="#9C27B0" font-weight="600">Full Fine-tuning</text>
+
+  <!-- Performance curve (logarithmic improvement, plateaus near r=16) -->
+  <path d="M 100,390
+           Q 180,280 260,180
+           Q 340,130 420,115
+           Q 500,110 580,108"
+        class="performance-curve"/>
+
+  <!-- Memory/params curve (linear increase) -->
+  <path d="M 100,410
+           Q 180,395 260,370
+           Q 340,335 420,290
+           Q 500,240 580,180"
+        class="memory-curve"/>
+
+  <!-- Efficiency curve (performance per parameter) -->
+  <path d="M 100,350
+           Q 180,200 260,140
+           Q 340,150 420,190
+           Q 500,250 580,320"
+        class="efficiency-curve"/>
+
+  <!-- Optimal point marker (r=8 or r=16) -->
+  <circle cx="260" cy="140" r="7" class="optimal-marker"/>
+  <line x1="260" y1="100" x2="260" y2="420" class="optimal-line"/>
+  <text x="260" y="85" text-anchor="middle" class="annotation" font-weight="600" fill="#F57C00">Typical Optimal: r=8</text>
+
+  <!-- Second sweet spot at r=16 -->
+  <circle cx="340" cy="150" r="6" class="optimal-marker"/>
+  <text x="340" y="70" text-anchor="middle" class="annotation" fill="#F57C00">Complex tasks: r=16</text>
+
+  <!-- Legend -->
+  <g transform="translate(450, 280)">
+    <rect x="0" y="0" width="190" height="100" fill="white" stroke="#333" stroke-width="1" rx="5"/>
+    <text x="10" y="20" class="annotation" font-weight="600">Metrics:</text>
+
+    <line x1="10" y1="35" x2="40" y2="35" class="performance-curve"/>
+    <text x="45" y="39" class="annotation">Task Performance</text>
+
+    <line x1="10" y1="55" x2="40" y2="55" class="memory-curve"/>
+    <text x="45" y="59" class="annotation">Trainable Parameters</text>
+
+    <line x1="10" y1="75" x2="40" y2="75" class="efficiency-curve"/>
+    <text x="45" y="79" class="annotation">Efficiency (perf/param)</text>
+
+    <line x1="10" y1="93" x2="40" y2="93" class="full-ft-line"/>
+    <text x="45" y="97" class="annotation">Full FT baseline</text>
+  </g>
+
+  <!-- Zone annotations -->
+  <!-- Too low rank -->
+  <text x="140" y="320" text-anchor="middle" class="annotation" fill="#C62828" font-weight="600">Too Low (r &lt; 4)</text>
+  <text x="140" y="335" text-anchor="middle" class="annotation" fill="#C62828">• Minimal memory</text>
+  <text x="140" y="350" text-anchor="middle" class="annotation" fill="#C62828">• Poor performance</text>
+  <text x="140" y="365" text-anchor="middle" class="annotation" fill="#C62828">• &lt;80% of full FT</text>
+
+  <!-- Too high rank -->
+  <text x="540" y="210" text-anchor="middle" class="annotation" fill="#1565C0" font-weight="600">Too High (r &gt; 64)</text>
+  <text x="540" y="225" text-anchor="middle" class="annotation" fill="#1565C0">• Excellent performance</text>
+  <text x="540" y="240" text-anchor="middle" class="annotation" fill="#1565C0">• High memory cost</text>
+  <text x="540" y="255" text-anchor="middle" class="annotation" fill="#1565C0">• Diminishing returns</text>
+
+  <!-- Key insights box -->
+  <rect x="110" y="110" width="230" height="135" fill="white" stroke="#333" stroke-width="1" rx="5" opacity="0.95"/>
+  <text x="120" y="130" class="annotation" font-weight="600">Empirical Findings:</text>
+  <text x="120" y="148" class="annotation">• r=8: 95%+ of full FT performance</text>
+  <text x="125" y="163" class="annotation">with only ~0.1% trainable params</text>
+  <text x="120" y="181" class="annotation">• r=4: Sufficient for simple tasks</text>
+  <text x="120" y="196" class="annotation">• r=16: Good for complex tasks</text>
+  <text x="120" y="211" class="annotation">• r=32+: Rarely needed, expensive</text>
+  <text x="120" y="226" class="annotation">• Performance plateaus after r≈16</text>
+  <text x="120" y="241" class="annotation">• Memory grows linearly with rank</text>
+
+  <!-- Percentage annotations on performance curve -->
+  <text x="180" y="270" class="annotation" fill="#4A90A4" font-size="10">~85%</text>
+  <text x="260" y="170" class="annotation" fill="#4A90A4" font-size="10">~96%</text>
+  <text x="340" y="125" class="annotation" fill="#4A90A4" font-size="10">~98%</text>
+  <text x="500" y="115" class="annotation" fill="#4A90A4" font-size="10">~99%</text>
+
+  <!-- Parameter count annotations -->
+  <text x="180" y="405" class="annotation" fill="#E57373" font-size="10">0.05%</text>
+  <text x="260" y="380" class="annotation" fill="#E57373" font-size="10">0.1%</text>
+  <text x="340" y="345" class="annotation" fill="#E57373" font-size="10">0.2%</text>
+  <text x="420" y="300" class="annotation" fill="#E57373" font-size="10">0.4%</text>
+  <text x="500" y="250" class="annotation" fill="#E57373" font-size="10">0.8%</text>
+
+  <!-- Formula annotation -->
+  <text x="350" y="475" text-anchor="middle" class="annotation" font-style="italic">Trainable params ≈ 2 × n_layers × d_model × rank</text>
+</svg>

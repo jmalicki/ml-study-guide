@@ -1,7 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 500">
-  <!-- Title -->
-  <text x="450" y="30" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#333" text-anchor="middle">
+  
+  <style>
+    /* Light mode (default) */
+    text { fill: #000000; }
+    .axis-text { fill: #000000; }
+    .label-text { fill: #666666; }
+    line[stroke="#333"] { stroke: #333333; }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .axis-text { fill: #ffffff; }
+      .label-text { fill: #cccccc; }
+      line[stroke="#333"] { stroke: #cccccc; }
+
+      /* Keep white text white in dark mode (for colored backgrounds) */
+      text[fill="#fff"],
+      text[fill="#ffffff"],
+      text[fill="white"] {
+        fill: #ffffff;
+      }
+
+      /* Keep colored text readable in dark mode */
+      text[fill="#E57373"] { fill: #ef5350; }
+      text[fill="#81C784"] { fill: #66bb6a; }
+      text[fill="#FFB74D"] { fill: #ffa726; }
+      text[fill="#4A90A4"] { fill: #4fc3f7; }
+    }
+  </style><text x="450" y="30" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#333" text-anchor="middle">
     StreamingLLM: Attention Sink Cache Pattern
   </text>
 
@@ -9,31 +36,31 @@
     Enables infinite-length streaming with constant memory
   </text>
 
-  <!-- Traditional Full Cache (Problem) -->
+  
   <g transform="translate(50, 90)">
     <text x="250" y="0" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#333" text-anchor="middle">
       Traditional Full Cache (Unbounded Memory)
     </text>
 
-    <!-- Growing sequence -->
-    <rect x="0" y="15" width="50" height="40" fill="#E57373" stroke="#333" stroke-width="1.5"/>
+    
+    <rect x="0" y="15" width="50" height="40" fill="#E57373" stroke="#333" stroke-width="1.5" />
     <text x="25" y="40" font-family="Arial, sans-serif" font-size="11" fill="#fff" text-anchor="middle">T₀</text>
 
-    <rect x="52" y="15" width="50" height="40" fill="#E57373" stroke="#333" stroke-width="1.5"/>
+    <rect x="52" y="15" width="50" height="40" fill="#E57373" stroke="#333" stroke-width="1.5" />
     <text x="77" y="40" font-family="Arial, sans-serif" font-size="11" fill="#fff" text-anchor="middle">T₁</text>
 
     <text x="107" y="40" font-family="Arial, sans-serif" font-size="16" fill="#333" text-anchor="middle">...</text>
 
-    <rect x="122" y="15" width="50" height="40" fill="#E57373" stroke="#333" stroke-width="1.5"/>
+    <rect x="122" y="15" width="50" height="40" fill="#E57373" stroke="#333" stroke-width="1.5" />
     <text x="147" y="40" font-family="Arial, sans-serif" font-size="11" fill="#fff" text-anchor="middle">T₁₀₀₀</text>
 
-    <rect x="174" y="15" width="50" height="40" fill="#E57373" stroke="#333" stroke-width="1.5"/>
+    <rect x="174" y="15" width="50" height="40" fill="#E57373" stroke="#333" stroke-width="1.5" />
     <text x="199" y="40" font-family="Arial, sans-serif" font-size="11" fill="#fff" text-anchor="middle">T₁₀₀₁</text>
 
     <text x="229" y="40" font-family="Arial, sans-serif" font-size="16" fill="#333" text-anchor="middle">...</text>
 
-    <!-- Arrow showing growth -->
-    <path d="M 250 35 L 320 35" fill="none" stroke="#E57373" stroke-width="2" marker-end="url(#arrowhead-red)"/>
+    
+    <path d="M 250 35 L 320 35" fill="none" stroke="#E57373" stroke-width="2" marker-end="url(#arrowhead-red)" />
     <text x="330" y="40" font-family="Arial, sans-serif" font-size="13" fill="#E57373" font-weight="bold">Grows unbounded!</text>
 
     <text x="0" y="80" font-family="Arial, sans-serif" font-size="12" fill="#666">
@@ -41,22 +68,22 @@
     </text>
   </g>
 
-  <!-- Naive Truncation (Also fails) -->
+  
   <g transform="translate(50, 200)">
     <text x="250" y="0" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#333" text-anchor="middle">
       Naive Truncation (Fails: No Attention Sink)
     </text>
 
-    <!-- Truncated sequence - missing first tokens -->
-    <rect x="0" y="15" width="80" height="40" fill="#E57373" fill-opacity="0.3" stroke="#333" stroke-width="1.5" stroke-dasharray="3,3"/>
+    
+    <rect x="0" y="15" width="80" height="40" fill="#E57373" fill-opacity="0.3" stroke="#333" stroke-width="1.5" stroke-dasharray="3,3" />
     <text x="40" y="40" font-family="Arial, sans-serif" font-size="11" fill="#999" text-anchor="middle">Discarded</text>
 
-    <rect x="92" y="15" width="50" height="40" fill="#E57373" stroke="#333" stroke-width="1.5"/>
+    <rect x="92" y="15" width="50" height="40" fill="#E57373" stroke="#333" stroke-width="1.5" />
     <text x="117" y="40" font-family="Arial, sans-serif" font-size="11" fill="#fff" text-anchor="middle">T₉₉₆</text>
 
     <text x="147" y="40" font-family="Arial, sans-serif" font-size="16" fill="#333" text-anchor="middle">...</text>
 
-    <rect x="162" y="15" width="50" height="40" fill="#E57373" stroke="#333" stroke-width="1.5"/>
+    <rect x="162" y="15" width="50" height="40" fill="#E57373" stroke="#333" stroke-width="1.5" />
     <text x="187" y="40" font-family="Arial, sans-serif" font-size="11" fill="#fff" text-anchor="middle">T₂₀₄₇</text>
 
     <text x="0" y="80" font-family="Arial, sans-serif" font-size="12" fill="#666">
@@ -64,61 +91,61 @@
     </text>
   </g>
 
-  <!-- StreamingLLM Solution -->
+  
   <g transform="translate(50, 310)">
     <text x="400" y="0" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#333" text-anchor="middle">
       StreamingLLM: Keep Sink + Recent Tokens
     </text>
 
-    <!-- Attention sink tokens -->
+    
     <text x="0" y="30" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#4A90A4">
       Attention Sinks (4 tokens)
     </text>
-    <rect x="0" y="35" width="40" height="45" fill="#4A90A4" stroke="#333" stroke-width="2"/>
+    <rect x="0" y="35" width="40" height="45" fill="#4A90A4" stroke="#333" stroke-width="2" />
     <text x="20" y="50" font-family="Arial, sans-serif" font-size="11" fill="#fff" text-anchor="middle">T₀</text>
     <text x="20" y="65" font-family="Arial, sans-serif" font-size="9" fill="#fff" text-anchor="middle">SINK</text>
 
-    <rect x="42" y="35" width="40" height="45" fill="#4A90A4" stroke="#333" stroke-width="2"/>
+    <rect x="42" y="35" width="40" height="45" fill="#4A90A4" stroke="#333" stroke-width="2" />
     <text x="62" y="50" font-family="Arial, sans-serif" font-size="11" fill="#fff" text-anchor="middle">T₁</text>
     <text x="62" y="65" font-family="Arial, sans-serif" font-size="9" fill="#fff" text-anchor="middle">SINK</text>
 
-    <rect x="84" y="35" width="40" height="45" fill="#4A90A4" stroke="#333" stroke-width="2"/>
+    <rect x="84" y="35" width="40" height="45" fill="#4A90A4" stroke="#333" stroke-width="2" />
     <text x="104" y="50" font-family="Arial, sans-serif" font-size="11" fill="#fff" text-anchor="middle">T₂</text>
     <text x="104" y="65" font-family="Arial, sans-serif" font-size="9" fill="#fff" text-anchor="middle">SINK</text>
 
-    <rect x="126" y="35" width="40" height="45" fill="#4A90A4" stroke="#333" stroke-width="2"/>
+    <rect x="126" y="35" width="40" height="45" fill="#4A90A4" stroke="#333" stroke-width="2" />
     <text x="146" y="50" font-family="Arial, sans-serif" font-size="11" fill="#fff" text-anchor="middle">T₃</text>
     <text x="146" y="65" font-family="Arial, sans-serif" font-size="9" fill="#fff" text-anchor="middle">SINK</text>
 
-    <!-- Discarded middle tokens -->
-    <rect x="178" y="35" width="150" height="45" fill="#E8E8E8" stroke="#333" stroke-width="1.5" stroke-dasharray="4,4"/>
+    
+    <rect x="178" y="35" width="150" height="45" fill="#E8E8E8" stroke="#333" stroke-width="1.5" stroke-dasharray="4,4" />
     <text x="253" y="60" font-family="Arial, sans-serif" font-size="11" fill="#666" text-anchor="middle">
       Discarded (T₄...T₁₉₀₀)
     </text>
 
-    <!-- Recent tokens -->
+    
     <text x="540" y="30" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#81C784" text-anchor="middle">
       Recent Tokens
     </text>
-    <rect x="340" y="35" width="50" height="45" fill="#81C784" stroke="#333" stroke-width="1.5"/>
+    <rect x="340" y="35" width="50" height="45" fill="#81C784" stroke="#333" stroke-width="1.5" />
     <text x="365" y="60" font-family="Arial, sans-serif" font-size="11" fill="#fff" text-anchor="middle">T₁₉₀₁</text>
 
     <text x="395" y="60" font-family="Arial, sans-serif" font-size="14" fill="#333" text-anchor="middle">...</text>
 
-    <rect x="410" y="35" width="50" height="45" fill="#81C784" stroke="#333" stroke-width="1.5"/>
+    <rect x="410" y="35" width="50" height="45" fill="#81C784" stroke="#333" stroke-width="1.5" />
     <text x="435" y="60" font-family="Arial, sans-serif" font-size="11" fill="#fff" text-anchor="middle">T₂₀₄₄</text>
 
-    <rect x="462" y="35" width="50" height="45" fill="#81C784" stroke="#333" stroke-width="1.5"/>
+    <rect x="462" y="35" width="50" height="45" fill="#81C784" stroke="#333" stroke-width="1.5" />
     <text x="487" y="60" font-family="Arial, sans-serif" font-size="11" fill="#fff" text-anchor="middle">T₂₀₄₅</text>
 
-    <rect x="514" y="35" width="50" height="45" fill="#81C784" stroke="#333" stroke-width="1.5"/>
+    <rect x="514" y="35" width="50" height="45" fill="#81C784" stroke="#333" stroke-width="1.5" />
     <text x="539" y="60" font-family="Arial, sans-serif" font-size="11" fill="#fff" text-anchor="middle">T₂₀₄₆</text>
 
-    <rect x="566" y="35" width="50" height="45" fill="#81C784" stroke="#333" stroke-width="1.5"/>
+    <rect x="566" y="35" width="50" height="45" fill="#81C784" stroke="#333" stroke-width="1.5" />
     <text x="591" y="60" font-family="Arial, sans-serif" font-size="11" fill="#fff" text-anchor="middle">T₂₀₄₇</text>
 
-    <!-- Brace showing fixed size -->
-    <path d="M 0 90 L 0 95 L 616 95 L 616 90" stroke="#333" stroke-width="2" fill="none"/>
+    
+    <path d="M 0 90 L 0 95 L 616 95 L 616 90" stroke="#333" stroke-width="2" fill="none" />
     <text x="308" y="110" font-family="Arial, sans-serif" font-size="12" fill="#333" text-anchor="middle" font-weight="bold">
       Fixed Cache Size (e.g., 2048 tokens)
     </text>
@@ -128,37 +155,37 @@
     </text>
   </g>
 
-  <!-- Attention Pattern Diagram -->
+  
   <g transform="translate(680, 310)">
     <text x="70" y="10" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#333" text-anchor="middle">
       Attention Flow
     </text>
 
-    <!-- Current token -->
-    <circle cx="70" cy="40" r="15" fill="#333" stroke="#333" stroke-width="2"/>
+    
+    <circle cx="70" cy="40" r="15" fill="#333" stroke="#333" stroke-width="2" />
     <text x="70" y="45" font-family="Arial, sans-serif" font-size="10" fill="#fff" text-anchor="middle" font-weight="bold">NOW</text>
 
-    <!-- Arrows to sink -->
-    <path d="M 60 45 Q 30 50, 20 70" stroke="#4A90A4" stroke-width="2" fill="none" marker-end="url(#arrowhead-blue)"/>
-    <circle cx="15" cy="75" r="8" fill="#4A90A4"/>
+    
+    <path d="M 60 45 Q 30 50, 20 70" stroke="#4A90A4" stroke-width="2" fill="none" marker-end="url(#arrowhead-blue)" />
+    <circle cx="15" cy="75" r="8" fill="#4A90A4" />
     <text x="15" y="95" font-family="Arial, sans-serif" font-size="9" fill="#4A90A4" text-anchor="middle">Sink</text>
 
-    <!-- Arrows to recent -->
-    <path d="M 80 45 Q 110 50, 120 70" stroke="#81C784" stroke-width="2" fill="none" marker-end="url(#arrowhead-green)"/>
-    <circle cx="125" cy="75" r="8" fill="#81C784"/>
+    
+    <path d="M 80 45 Q 110 50, 120 70" stroke="#81C784" stroke-width="2" fill="none" marker-end="url(#arrowhead-green)" />
+    <circle cx="125" cy="75" r="8" fill="#81C784" />
     <text x="125" y="95" font-family="Arial, sans-serif" font-size="9" fill="#81C784" text-anchor="middle">Recent</text>
   </g>
 
-  <!-- Arrow marker definitions -->
+  
   <defs>
     <marker id="arrowhead-red" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-      <polygon points="0 0, 10 3, 0 6" fill="#E57373"/>
+      <polygon points="0 0, 10 3, 0 6" fill="#E57373" />
     </marker>
     <marker id="arrowhead-blue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-      <polygon points="0 0, 10 3, 0 6" fill="#4A90A4"/>
+      <polygon points="0 0, 10 3, 0 6" fill="#4A90A4" />
     </marker>
     <marker id="arrowhead-green" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-      <polygon points="0 0, 10 3, 0 6" fill="#81C784"/>
+      <polygon points="0 0, 10 3, 0 6" fill="#81C784" />
     </marker>
   </defs>
 </svg>

@@ -1,34 +1,61 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg viewBox="0 0 700 200" xmlns="http://www.w3.org/2000/svg" style="max-width: 700px; background-color: white;">
-     <!-- Root directory -->
-     <text x="20" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="600">checkpoints/</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 200" style="max-width: 700px; background-color: white;">
+     
+     <style>
+    /* Light mode (default) */
+    text { fill: #000000; }
+    .axis-text { fill: #000000; }
+    .label-text { fill: #666666; }
+    line[stroke="#333"] { stroke: #333333; }
 
-     <!-- Vertical line from root -->
-     <line x1="20" y1="40" x2="20" y2="170" stroke="#4A90A4" stroke-width="2"/>
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .axis-text { fill: #ffffff; }
+      .label-text { fill: #cccccc; }
+      line[stroke="#333"] { stroke: #cccccc; }
 
-     <!-- File 1: latest.pt -->
-     <line x1="20" y1="50" x2="40" y2="50" stroke="#4A90A4" stroke-width="2"/>
+      /* Keep white text white in dark mode (for colored backgrounds) */
+      text[fill="#fff"],
+      text[fill="#ffffff"],
+      text[fill="white"] {
+        fill: #ffffff;
+      }
+
+      /* Keep colored text readable in dark mode */
+      text[fill="#E57373"] { fill: #ef5350; }
+      text[fill="#81C784"] { fill: #66bb6a; }
+      text[fill="#FFB74D"] { fill: #ffa726; }
+      text[fill="#4A90A4"] { fill: #4fc3f7; }
+    }
+  </style><text x="20" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="600">checkpoints/</text>
+
+     
+     <line x1="20" y1="40" x2="20" y2="170" stroke="#4A90A4" stroke-width="2" />
+
+     
+     <line x1="20" y1="50" x2="40" y2="50" stroke="#4A90A4" stroke-width="2" />
      <text x="45" y="55" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">latest.pt</text>
      <text x="140" y="55" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#666" font-style="italic"># Most recent checkpoint (for resuming)</text>
 
-     <!-- File 2: best.pt -->
-     <line x1="20" y1="75" x2="40" y2="75" stroke="#4A90A4" stroke-width="2"/>
+     
+     <line x1="20" y1="75" x2="40" y2="75" stroke="#4A90A4" stroke-width="2" />
      <text x="45" y="80" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">best.pt</text>
      <text x="140" y="80" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#666" font-style="italic"># Best validation loss</text>
 
-     <!-- File 3: checkpoint_epoch_10.pt -->
-     <line x1="20" y1="100" x2="40" y2="100" stroke="#4A90A4" stroke-width="2"/>
+     
+     <line x1="20" y1="100" x2="40" y2="100" stroke="#4A90A4" stroke-width="2" />
      <text x="45" y="105" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">checkpoint_epoch_10.pt</text>
      <text x="240" y="105" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#666" font-style="italic"># Periodic checkpoints</text>
 
-     <!-- File 4: checkpoint_epoch_20.pt -->
-     <line x1="20" y1="125" x2="40" y2="125" stroke="#4A90A4" stroke-width="2"/>
+     
+     <line x1="20" y1="125" x2="40" y2="125" stroke="#4A90A4" stroke-width="2" />
      <text x="45" y="130" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">checkpoint_epoch_20.pt</text>
 
-     <!-- File 5: final_model.pt (last item, use corner) -->
-     <line x1="20" y1="150" x2="20" y2="150" stroke="#4A90A4" stroke-width="2"/>
-     <line x1="20" y1="150" x2="40" y2="150" stroke="#4A90A4" stroke-width="2"/>
-     <path d="M 20 150 Q 20 150, 25 150" fill="none" stroke="#4A90A4" stroke-width="2"/>
+     
+     <line x1="20" y1="150" x2="20" y2="150" stroke="#4A90A4" stroke-width="2" />
+     <line x1="20" y1="150" x2="40" y2="150" stroke="#4A90A4" stroke-width="2" />
+     <path d="M 20 150 Q 20 150, 25 150" fill="none" stroke="#4A90A4" stroke-width="2" />
      <text x="45" y="155" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">final_model.pt</text>
      <text x="165" y="155" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#666" font-style="italic"># Final trained model (inference only)</text>
    </svg>

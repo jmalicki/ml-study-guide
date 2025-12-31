@@ -1,43 +1,70 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg viewBox="0 0 900 150" xmlns="http://www.w3.org/2000/svg">
-  <defs>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 150">
+  <style>
+    /* Light mode (default) */
+    text { fill: #000000; }
+    .axis-text { fill: #000000; }
+    .label-text { fill: #666666; }
+    line[stroke="#333"] { stroke: #333333; }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .axis-text { fill: #ffffff; }
+      .label-text { fill: #cccccc; }
+      line[stroke="#333"] { stroke: #cccccc; }
+
+      /* Keep white text white in dark mode (for colored backgrounds) */
+      text[fill="#fff"],
+      text[fill="#ffffff"],
+      text[fill="white"] {
+        fill: #ffffff;
+      }
+
+      /* Keep colored text readable in dark mode */
+      text[fill="#E57373"] { fill: #ef5350; }
+      text[fill="#81C784"] { fill: #66bb6a; }
+      text[fill="#FFB74D"] { fill: #ffa726; }
+      text[fill="#4A90A4"] { fill: #4fc3f7; }
+    }
+  </style><defs>
     <marker id="arrowhead3" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
       <polygon points="0 0, 10 3, 0 6" fill="#4A90A4" />
     </marker>
   </defs>
 
-  <!-- Top row boxes -->
-  <rect x="20" y="20" width="120" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  
+  <rect x="20" y="20" width="120" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5" />
   <text x="80" y="45" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">Response</text>
 
-  <rect x="200" y="20" width="140" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <rect x="200" y="20" width="140" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5" />
   <text x="270" y="45" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">Pattern Check</text>
 
-  <rect x="400" y="20" width="180" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <rect x="400" y="20" width="180" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5" />
   <text x="490" y="45" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">Anomaly Detection</text>
 
-  <rect x="640" y="20" width="140" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <rect x="640" y="20" width="140" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5" />
   <text x="710" y="45" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">Gold Reward</text>
 
-  <rect x="840" y="20" width="140" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  <rect x="840" y="20" width="140" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5" />
   <text x="910" y="45" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">Classification</text>
 
-  <!-- Horizontal arrows -->
-  <line x1="140" y1="40" x2="200" y2="40" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead3)"/>
-  <line x1="340" y1="40" x2="400" y2="40" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead3)"/>
-  <line x1="580" y1="40" x2="640" y2="40" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead3)"/>
-  <line x1="780" y1="40" x2="840" y2="40" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead3)"/>
+  
+  <line x1="140" y1="40" x2="200" y2="40" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead3)" />
+  <line x1="340" y1="40" x2="400" y2="40" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead3)" />
+  <line x1="580" y1="40" x2="640" y2="40" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead3)" />
+  <line x1="780" y1="40" x2="840" y2="40" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead3)" />
 
-  <!-- Vertical arrows and labels -->
-  <line x1="270" y1="60" x2="270" y2="85" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead3)"/>
+  
+  <line x1="270" y1="60" x2="270" y2="85" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead3)" />
   <text x="270" y="75" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#4A90A4">Pass</text>
   <text x="270" y="105" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">Suspicious</text>
 
-  <line x1="490" y1="60" x2="490" y2="85" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead3)"/>
+  <line x1="490" y1="60" x2="490" y2="85" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead3)" />
   <text x="490" y="75" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#4A90A4">Pass</text>
   <text x="490" y="105" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">Very Suspicious</text>
 
-  <line x1="710" y1="60" x2="710" y2="85" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead3)"/>
+  <line x1="710" y1="60" x2="710" y2="85" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead3)" />
   <text x="710" y="75" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#4A90A4">Pass</text>
   <text x="710" y="105" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">Definitely Hacked</text>
 </svg>

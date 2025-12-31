@@ -1,25 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600">
-  <!-- Title -->
-  <text x="300" y="30" font-family="Arial, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#333">
+  
+  <style>
+    /* Light mode (default) */
+    text { fill: #000000; }
+    .axis-text { fill: #000000; }
+    .label-text { fill: #666666; }
+    line[stroke="#333"] { stroke: #333333; }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .axis-text { fill: #ffffff; }
+      .label-text { fill: #cccccc; }
+      line[stroke="#333"] { stroke: #cccccc; }
+
+      /* Keep white text white in dark mode (for colored backgrounds) */
+      text[fill="#fff"],
+      text[fill="#ffffff"],
+      text[fill="white"] {
+        fill: #ffffff;
+      }
+
+      /* Keep colored text readable in dark mode */
+      text[fill="#E57373"] { fill: #ef5350; }
+      text[fill="#81C784"] { fill: #66bb6a; }
+      text[fill="#FFB74D"] { fill: #ffa726; }
+      text[fill="#4A90A4"] { fill: #4fc3f7; }
+    }
+  </style><text x="300" y="30" font-family="Arial, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#333">
     Model Capability Radar Chart
   </text>
 
-  <!-- Center point -->
+  
   <g id="center">
-    <circle cx="300" cy="300" r="3" fill="#333"/>
+    <circle cx="300" cy="300" r="3" fill="#333" />
   </g>
 
-  <!-- Concentric circles for scale (20%, 40%, 60%, 80%, 100%) -->
+  
   <g stroke="#e0e0e0" fill="none" stroke-width="1">
-    <circle cx="300" cy="300" r="40"/>
-    <circle cx="300" cy="300" r="80"/>
-    <circle cx="300" cy="300" r="120"/>
-    <circle cx="300" cy="300" r="160"/>
-    <circle cx="300" cy="300" r="200"/>
+    <circle cx="300" cy="300" r="40" />
+    <circle cx="300" cy="300" r="80" />
+    <circle cx="300" cy="300" r="120" />
+    <circle cx="300" cy="300" r="160" />
+    <circle cx="300" cy="300" r="200" />
   </g>
 
-  <!-- Scale labels -->
+  
   <g font-family="Arial, sans-serif" font-size="11" fill="#999" text-anchor="middle">
     <text x="300" y="265">20%</text>
     <text x="300" y="225">40%</text>
@@ -28,27 +55,27 @@
     <text x="300" y="105">100%</text>
   </g>
 
-  <!-- Axes (8 capabilities at 45° intervals) -->
+  
   <g stroke="#ccc" stroke-width="1">
-    <!-- Knowledge (top) -->
-    <line x1="300" y1="300" x2="300" y2="80"/>
-    <!-- Reasoning (top-right) -->
-    <line x1="300" y1="300" x2="441" y2="159"/>
-    <!-- Math (right) -->
-    <line x1="300" y1="300" x2="520" y2="300"/>
-    <!-- Code (bottom-right) -->
-    <line x1="300" y1="300" x2="441" y2="441"/>
-    <!-- Safety (bottom) -->
-    <line x1="300" y1="300" x2="300" y2="520"/>
-    <!-- Truthfulness (bottom-left) -->
-    <line x1="300" y1="300" x2="159" y2="441"/>
-    <!-- Language (left) -->
-    <line x1="300" y1="300" x2="80" y2="300"/>
-    <!-- Instruction (top-left) -->
-    <line x1="300" y1="300" x2="159" y2="159"/>
+    
+    <line x1="300" y1="300" x2="300" y2="80" />
+    
+    <line x1="300" y1="300" x2="441" y2="159" />
+    
+    <line x1="300" y1="300" x2="520" y2="300" />
+    
+    <line x1="300" y1="300" x2="441" y2="441" />
+    
+    <line x1="300" y1="300" x2="300" y2="520" />
+    
+    <line x1="300" y1="300" x2="159" y2="441" />
+    
+    <line x1="300" y1="300" x2="80" y2="300" />
+    
+    <line x1="300" y1="300" x2="159" y2="159" />
   </g>
 
-  <!-- Capability labels -->
+  
   <g font-family="Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" fill="#333">
     <text x="300" y="65">Knowledge</text>
     <text x="300" y="75" font-size="11" fill="#666">(MMLU)</text>
@@ -75,63 +102,61 @@
     <text x="130" y="155" font-size="11" fill="#666">(IFEval)</text>
   </g>
 
-  <!-- Data points for GPT-4 (purple) -->
+  
   <g>
-    <!-- Coordinates calculated as: center + (score * max_radius) * direction -->
-    <!-- Knowledge: 86.4% of 200 = 172.8 -->
-    <!-- Reasoning: 50% of 200 = 100 -->
-    <!-- Math: 92% of 200 = 184 -->
-    <!-- Code: 82% of 200 = 164 -->
-    <!-- Safety: 95% of 200 = 190 -->
-    <!-- Truthfulness: 59% of 200 = 118 -->
-    <!-- Language: 95.3% of 200 = 190.6 -->
-    <!-- Instruction: 85% of 200 = 170 -->
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
-    <polygon points="300,127.2 400,200 484,300 415.9,415.9 300,490 182.3,383.4 109.4,300 179.9,179.9"
-             fill="#9575CD" opacity="0.3" stroke="#9575CD" stroke-width="2"/>
+    <polygon points="300,127.2 400,200 484,300 415.9,415.9 300,490 182.3,383.4 109.4,300 179.9,179.9" fill="#9575CD" opacity="0.3" stroke="#9575CD" stroke-width="2" />
 
-    <!-- Points -->
-    <circle cx="300" cy="127.2" r="4" fill="#9575CD"/>
-    <circle cx="400" cy="200" r="4" fill="#9575CD"/>
-    <circle cx="484" cy="300" r="4" fill="#9575CD"/>
-    <circle cx="415.9" cy="415.9" r="4" fill="#9575CD"/>
-    <circle cx="300" cy="490" r="4" fill="#9575CD"/>
-    <circle cx="182.3" cy="383.4" r="4" fill="#9575CD"/>
-    <circle cx="109.4" cy="300" r="4" fill="#9575CD"/>
-    <circle cx="179.9" cy="179.9" r="4" fill="#9575CD"/>
+    
+    <circle cx="300" cy="127.2" r="4" fill="#9575CD" />
+    <circle cx="400" cy="200" r="4" fill="#9575CD" />
+    <circle cx="484" cy="300" r="4" fill="#9575CD" />
+    <circle cx="415.9" cy="415.9" r="4" fill="#9575CD" />
+    <circle cx="300" cy="490" r="4" fill="#9575CD" />
+    <circle cx="182.3" cy="383.4" r="4" fill="#9575CD" />
+    <circle cx="109.4" cy="300" r="4" fill="#9575CD" />
+    <circle cx="179.9" cy="179.9" r="4" fill="#9575CD" />
   </g>
 
-  <!-- Data points for Claude Opus (blue) -->
+  
   <g>
-    <!-- Knowledge: 84.6% = 169.2 -->
-    <!-- Reasoning: 51% = 102 -->
-    <!-- Math: 90% = 180 -->
-    <!-- Code: 78.5% = 157 -->
-    <!-- Safety: 97% = 194 -->
-    <!-- Truthfulness: 55% = 110 -->
-    <!-- Language: 93% = 186 -->
-    <!-- Instruction: 88% = 176 -->
+    
+    
+    
+    
+    
+    
+    
+    
 
-    <polygon points="300,130.8 394.1,205.9 480,300 411.1,411.1 300,494 190.2,377.8 114,300 175.7,175.7"
-             fill="#4A90A4" opacity="0.3" stroke="#4A90A4" stroke-width="2"/>
+    <polygon points="300,130.8 394.1,205.9 480,300 411.1,411.1 300,494 190.2,377.8 114,300 175.7,175.7" fill="#4A90A4" opacity="0.3" stroke="#4A90A4" stroke-width="2" />
 
-    <!-- Points -->
-    <circle cx="300" cy="130.8" r="4" fill="#4A90A4"/>
-    <circle cx="394.1" cy="205.9" r="4" fill="#4A90A4"/>
-    <circle cx="480" cy="300" r="4" fill="#4A90A4"/>
-    <circle cx="411.1" cy="411.1" r="4" fill="#4A90A4"/>
-    <circle cx="300" cy="494" r="4" fill="#4A90A4"/>
-    <circle cx="190.2" cy="377.8" r="4" fill="#4A90A4"/>
-    <circle cx="114" cy="300" r="4" fill="#4A90A4"/>
-    <circle cx="175.7" cy="175.7" r="4" fill="#4A90A4"/>
+    
+    <circle cx="300" cy="130.8" r="4" fill="#4A90A4" />
+    <circle cx="394.1" cy="205.9" r="4" fill="#4A90A4" />
+    <circle cx="480" cy="300" r="4" fill="#4A90A4" />
+    <circle cx="411.1" cy="411.1" r="4" fill="#4A90A4" />
+    <circle cx="300" cy="494" r="4" fill="#4A90A4" />
+    <circle cx="190.2" cy="377.8" r="4" fill="#4A90A4" />
+    <circle cx="114" cy="300" r="4" fill="#4A90A4" />
+    <circle cx="175.7" cy="175.7" r="4" fill="#4A90A4" />
   </g>
 
-  <!-- Legend -->
+  
   <g font-family="Arial, sans-serif" font-size="14">
-    <circle cx="200" cy="35" r="6" fill="#9575CD" opacity="0.6"/>
+    <circle cx="200" cy="35" r="6" fill="#9575CD" opacity="0.6" />
     <text x="215" y="40" fill="#333">GPT-4</text>
 
-    <circle cx="320" cy="35" r="6" fill="#4A90A4" opacity="0.6"/>
+    <circle cx="320" cy="35" r="6" fill="#4A90A4" opacity="0.6" />
     <text x="335" y="40" fill="#333">Claude Opus</text>
   </g>
 </svg>

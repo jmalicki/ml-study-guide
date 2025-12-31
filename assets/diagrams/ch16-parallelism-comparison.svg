@@ -9,6 +9,26 @@
       .layer { fill: #4A90A4; stroke: #333; stroke-width: 1.5; }
       .data-batch { fill: #81C784; stroke: #333; stroke-width: 1.5; }
       .gpu-box { fill: #f0f0f0; stroke: #666; stroke-width: 2; stroke-dasharray: 5,5; }
+
+      /* Dark mode support */
+      @media (prefers-color-scheme: dark) {
+        .title { fill: #ffffff; }
+        .subtitle { fill: #ffffff; }
+        .label { fill: #ffffff; }
+        .small-label { fill: #cccccc; }
+        .layer { stroke: #cccccc; }
+        .data-batch { stroke: #cccccc; }
+        .gpu-box { fill: #2a2a2a; stroke: #999; }
+
+        /* Keep specific text colors */
+        text[fill="#333"] { fill: #ffffff; }
+        text[fill="#666"] { fill: #cccccc; }
+        text[fill="white"],
+        text[fill="#fff"] { fill: #ffffff; }
+
+        /* Adjust lines and strokes */
+        line[stroke="#333"] { stroke: #cccccc; }
+      }
     </style>
   </defs>
 
@@ -139,7 +159,7 @@
   <line x1="20" y1="270" x2="780" y2="270" stroke="#333" stroke-width="1"/>
 
   <!-- Memory usage comparison -->
-  <text x="400" y="295" text-anchor="middle" class="subtitle">Memory & Communication</text>
+  <text x="400" y="295" text-anchor="middle" class="subtitle">Memory &amp; Communication</text>
 
   <!-- Data Parallelism info -->
   <rect x="20" y="310" width="220" height="120" rx="5" fill="#f9f9f9" stroke="#666" stroke-width="1"/>

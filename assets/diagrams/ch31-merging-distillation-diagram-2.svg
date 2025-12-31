@@ -8,7 +8,33 @@
     .text { font-family: system-ui, -apple-system, sans-serif; font-size: 14px; fill: #333; }
     .label { font-family: system-ui, -apple-system, sans-serif; font-size: 12px; fill: #666; }
     .darrow { stroke: #4A90A4; stroke-width: 3; fill: none; marker-end: url(#arrowhead); }
-  </style>
+  
+      /* Dark mode support */
+      @media (prefers-color-scheme: dark) {
+        text { fill: #ffffff; }
+        text[fill="#333"] { fill: #ffffff; }
+        text[fill="#666"] { fill: #cccccc; }
+        text[fill="#555"] { fill: #cccccc; }
+        text[fill="white"],
+        text[fill="#fff"] { fill: #ffffff; }
+
+        .title { fill: #ffffff; }
+        .subtitle { fill: #ffffff; }
+        .label { fill: #ffffff; }
+        .small-label { fill: #cccccc; }
+        .axis-label { fill: #cccccc; }
+        .small { fill: #cccccc; }
+        .annotation { fill: #cccccc; }
+
+        line[stroke="#333"] { stroke: #cccccc; }
+        rect[stroke="#333"] { stroke: #cccccc; }
+        rect[fill="white"] { fill: #1a1a1a; }
+        rect[fill="#ffffff"] { fill: #1a1a1a; }
+
+        .grid { stroke: #444444; }
+        .axis { stroke: #cccccc; }
+      }
+    </style>
 
   <defs>
     <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">

@@ -1,96 +1,118 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
-  <!-- Title -->
-  <text x="400" y="25" text-anchor="middle" font-size="18" font-weight="bold" fill="#333">
+  
+  <style>
+    /* Light mode (default) */
+    text { fill: #000000; }
+    .axis-text { fill: #000000; }
+    .label-text { fill: #666666; }
+    line[stroke="#333"] { stroke: #333333; }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .axis-text { fill: #ffffff; }
+      .label-text { fill: #cccccc; }
+      line[stroke="#333"] { stroke: #cccccc; }
+
+      /* Keep white text white in dark mode (for colored backgrounds) */
+      text[fill="#fff"],
+      text[fill="#ffffff"],
+      text[fill="white"] {
+        fill: #ffffff;
+      }
+
+      /* Keep colored text readable in dark mode */
+      text[fill="#E57373"] { fill: #ef5350; }
+      text[fill="#81C784"] { fill: #66bb6a; }
+      text[fill="#FFB74D"] { fill: #ffa726; }
+      text[fill="#4A90A4"] { fill: #4fc3f7; }
+    }
+  </style><text x="400" y="25" text-anchor="middle" font-size="18" font-weight="bold" fill="#333">
     Sinusoidal Positional Encoding Pattern
   </text>
   <text x="400" y="45" text-anchor="middle" font-size="12" fill="#666">
     Different frequencies across dimensions create unique position fingerprints
   </text>
 
-  <!-- Background grid -->
-  <rect x="50" y="70" width="700" height="380" fill="#f9f9f9" stroke="#e0e0e0" stroke-width="1"/>
+  
+  <rect x="50" y="70" width="700" height="380" fill="#f9f9f9" stroke="#e0e0e0" stroke-width="1" />
 
-  <!-- Axes -->
-  <line x1="50" y1="450" x2="750" y2="450" stroke="#333" stroke-width="2"/>
-  <line x1="50" y1="70" x2="50" y2="450" stroke="#333" stroke-width="2"/>
+  
+  <line x1="50" y1="450" x2="750" y2="450" stroke="#333" stroke-width="2" />
+  <line x1="50" y1="70" x2="50" y2="450" stroke="#333" stroke-width="2" />
 
-  <!-- Position axis label -->
+  
   <text x="400" y="480" text-anchor="middle" font-size="14" fill="#333">Position in Sequence</text>
 
-  <!-- Value axis label -->
+  
   <text x="20" y="260" text-anchor="middle" font-size="14" fill="#333" transform="rotate(-90, 20, 260)">Encoding Value</text>
 
-  <!-- Grid lines for value axis -->
-  <line x1="45" y1="260" x2="750" y2="260" stroke="#ccc" stroke-width="1" stroke-dasharray="3,3"/>
-  <line x1="45" y1="165" x2="750" y2="165" stroke="#ccc" stroke-width="1" stroke-dasharray="3,3"/>
-  <line x1="45" y1="355" x2="750" y2="355" stroke="#ccc" stroke-width="1" stroke-dasharray="3,3"/>
+  
+  <line x1="45" y1="260" x2="750" y2="260" stroke="#ccc" stroke-width="1" stroke-dasharray="3,3" />
+  <line x1="45" y1="165" x2="750" y2="165" stroke="#ccc" stroke-width="1" stroke-dasharray="3,3" />
+  <line x1="45" y1="355" x2="750" y2="355" stroke="#ccc" stroke-width="1" stroke-dasharray="3,3" />
 
-  <!-- Value tick labels -->
+  
   <text x="43" y="165" text-anchor="end" font-size="10" fill="#666">1.0</text>
   <text x="43" y="260" text-anchor="end" font-size="10" fill="#666">0.0</text>
   <text x="43" y="355" text-anchor="end" font-size="10" fill="#666">-1.0</text>
 
-  <!-- Position tick labels -->
+  
   <text x="50" y="467" text-anchor="middle" font-size="10" fill="#666">0</text>
   <text x="225" y="467" text-anchor="middle" font-size="10" fill="#666">25</text>
   <text x="400" y="467" text-anchor="middle" font-size="10" fill="#666">50</text>
   <text x="575" y="467" text-anchor="middle" font-size="10" fill="#666">75</text>
   <text x="750" y="467" text-anchor="middle" font-size="10" fill="#666">100</text>
 
-  <!-- High frequency wave (dimension 0 - sin) -->
-  <path d="M 50,260 Q 64.4,165 78.8,260 T 136.2,260 T 193.8,260 T 251.2,260 T 308.8,260 T 366.2,260 T 423.8,260 T 481.2,260 T 538.8,260 T 596.2,260 T 653.8,260 T 711.2,260 T 750,260"
-        fill="none" stroke="#E57373" stroke-width="2.5"/>
+  
+  <path d="M 50,260 Q 64.4,165 78.8,260 T 136.2,260 T 193.8,260 T 251.2,260 T 308.8,260 T 366.2,260 T 423.8,260 T 481.2,260 T 538.8,260 T 596.2,260 T 653.8,260 T 711.2,260 T 750,260" fill="none" stroke="#E57373" stroke-width="2.5" />
 
-  <!-- Mid-high frequency wave (dimension 32 - sin) -->
-  <path d="M 50,260 Q 92.5,165 135,260 T 220,260 T 305,260 T 390,260 T 475,260 T 560,260 T 645,260 T 730,260"
-        fill="none" stroke="#4A90A4" stroke-width="2.5"/>
+  
+  <path d="M 50,260 Q 92.5,165 135,260 T 220,260 T 305,260 T 390,260 T 475,260 T 560,260 T 645,260 T 730,260" fill="none" stroke="#4A90A4" stroke-width="2.5" />
 
-  <!-- Mid frequency wave (dimension 64 - sin) -->
-  <path d="M 50,260 Q 137.5,165 225,260 T 575,260 T 750,205"
-        fill="none" stroke="#81C784" stroke-width="2.5"/>
+  
+  <path d="M 50,260 Q 137.5,165 225,260 T 575,260 T 750,205" fill="none" stroke="#81C784" stroke-width="2.5" />
 
-  <!-- Low frequency wave (dimension 96 - sin) -->
-  <path d="M 50,260 Q 225,165 400,260 T 750,240"
-        fill="none" stroke="#BA68C8" stroke-width="2.5"/>
+  
+  <path d="M 50,260 Q 225,165 400,260 T 750,240" fill="none" stroke="#BA68C8" stroke-width="2.5" />
 
-  <!-- Very low frequency wave (dimension 120 - sin) -->
-  <path d="M 50,260 Q 300,180 550,260 T 750,255"
-        fill="none" stroke="#FFB74D" stroke-width="2.5"/>
+  
+  <path d="M 50,260 Q 300,180 550,260 T 750,255" fill="none" stroke="#FFB74D" stroke-width="2.5" />
 
-  <!-- Legend -->
+  
   <g transform="translate(560, 90)">
-    <rect x="0" y="0" width="180" height="145" fill="white" stroke="#ccc" stroke-width="1" rx="5"/>
+    <rect x="0" y="0" width="180" height="145" fill="white" stroke="#ccc" stroke-width="1" rx="5" />
     <text x="10" y="20" font-size="12" font-weight="bold" fill="#333">Dimensions:</text>
 
-    <line x1="10" y1="35" x2="35" y2="35" stroke="#E57373" stroke-width="2.5"/>
+    <line x1="10" y1="35" x2="35" y2="35" stroke="#E57373" stroke-width="2.5" />
     <text x="40" y="39" font-size="11" fill="#333">Dim 0 (high freq)</text>
 
-    <line x1="10" y1="55" x2="35" y2="55" stroke="#4A90A4" stroke-width="2.5"/>
+    <line x1="10" y1="55" x2="35" y2="55" stroke="#4A90A4" stroke-width="2.5" />
     <text x="40" y="59" font-size="11" fill="#333">Dim 32 (mid-high)</text>
 
-    <line x1="10" y1="75" x2="35" y2="75" stroke="#81C784" stroke-width="2.5"/>
+    <line x1="10" y1="75" x2="35" y2="75" stroke="#81C784" stroke-width="2.5" />
     <text x="40" y="79" font-size="11" fill="#333">Dim 64 (mid freq)</text>
 
-    <line x1="10" y1="95" x2="35" y2="95" stroke="#BA68C8" stroke-width="2.5"/>
+    <line x1="10" y1="95" x2="35" y2="95" stroke="#BA68C8" stroke-width="2.5" />
     <text x="40" y="99" font-size="11" fill="#333">Dim 96 (mid-low)</text>
 
-    <line x1="10" y1="115" x2="35" y2="115" stroke="#FFB74D" stroke-width="2.5"/>
+    <line x1="10" y1="115" x2="35" y2="115" stroke="#FFB74D" stroke-width="2.5" />
     <text x="40" y="119" font-size="11" fill="#333">Dim 120 (low freq)</text>
 
     <text x="10" y="137" font-size="9" fill="#666" font-style="italic">Each position gets a</text>
     <text x="10" y="147" font-size="9" fill="#666" font-style="italic">unique "fingerprint"</text>
   </g>
 
-  <!-- Key insight annotation -->
+  
   <g transform="translate(60, 310)">
-    <path d="M 0,0 L 100,0 L 105,5 L 100,10 L 0,10 Z" fill="#4A90A4" opacity="0.1"/>
+    <path d="M 0,0 L 100,0 L 105,5 L 100,10 L 0,10 Z" fill="#4A90A4" opacity="0.1" />
     <text x="5" y="7" font-size="9" fill="#333" font-weight="bold">High freq:</text>
     <text x="52" y="7" font-size="8" fill="#666">fine-grained</text>
   </g>
 
   <g transform="translate(60, 90)">
-    <path d="M 0,0 L 100,0 L 105,5 L 100,10 L 0,10 Z" fill="#FFB74D" opacity="0.1"/>
+    <path d="M 0,0 L 100,0 L 105,5 L 100,10 L 0,10 Z" fill="#FFB74D" opacity="0.1" />
     <text x="5" y="7" font-size="9" fill="#333" font-weight="bold">Low freq:</text>
     <text x="50" y="7" font-size="8" fill="#666">coarse-grained</text>
   </g>

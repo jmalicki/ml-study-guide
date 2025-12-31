@@ -1,20 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
-  <!-- Title -->
-  <text x="400" y="30" font-family="Arial, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#333">
+  
+  <style>
+    /* Light mode (default) */
+    text { fill: #000000; }
+    .axis-text { fill: #000000; }
+    .label-text { fill: #666666; }
+    line[stroke="#333"] { stroke: #333333; }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .axis-text { fill: #ffffff; }
+      .label-text { fill: #cccccc; }
+      line[stroke="#333"] { stroke: #cccccc; }
+
+      /* Keep white text white in dark mode (for colored backgrounds) */
+      text[fill="#fff"],
+      text[fill="#ffffff"],
+      text[fill="white"] {
+        fill: #ffffff;
+      }
+
+      /* Keep colored text readable in dark mode */
+      text[fill="#E57373"] { fill: #ef5350; }
+      text[fill="#81C784"] { fill: #66bb6a; }
+      text[fill="#FFB74D"] { fill: #ffa726; }
+      text[fill="#4A90A4"] { fill: #4fc3f7; }
+    }
+  </style><text x="400" y="30" font-family="Arial, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#333">
     Elo Rating Evolution Over Battles
   </text>
   <text x="400" y="50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" fill="#666">
     Chatbot Arena Pairwise Comparison
   </text>
 
-  <!-- Axes -->
+  
   <g stroke="#333" stroke-width="2">
-    <line x1="80" y1="420" x2="750" y2="420"/>  <!-- X-axis -->
-    <line x1="80" y1="80" x2="80" y2="420"/>    <!-- Y-axis -->
+    <line x1="80" y1="420" x2="750" y2="420" />  
+    <line x1="80" y1="80" x2="80" y2="420" />    
   </g>
 
-  <!-- Y-axis labels (Elo rating) -->
+  
   <g font-family="Arial, sans-serif" font-size="12" fill="#666" text-anchor="end">
     <text x="70" y="425">1300</text>
     <text x="70" y="367">1400</text>
@@ -25,7 +52,7 @@
     <text x="70" y="85">1900</text>
   </g>
 
-  <!-- X-axis labels (battles) -->
+  
   <g font-family="Arial, sans-serif" font-size="12" fill="#666" text-anchor="middle">
     <text x="80" y="440">0</text>
     <text x="214" y="440">50</text>
@@ -35,65 +62,61 @@
     <text x="750" y="440">250</text>
   </g>
 
-  <!-- Grid lines -->
+  
   <g stroke="#e0e0e0" stroke-width="1">
-    <!-- Horizontal -->
-    <line x1="80" y1="367" x2="750" y2="367"/>
-    <line x1="80" y1="309" x2="750" y2="309"/>
-    <line x1="80" y1="251" x2="750" y2="251"/>
-    <line x1="80" y1="193" x2="750" y2="193"/>
-    <line x1="80" y1="135" x2="750" y2="135"/>
-    <!-- Vertical -->
-    <line x1="214" y1="80" x2="214" y2="420"/>
-    <line x1="348" y1="80" x2="348" y2="420"/>
-    <line x1="482" y1="80" x2="482" y2="420"/>
-    <line x1="616" y1="80" x2="616" y2="420"/>
+    
+    <line x1="80" y1="367" x2="750" y2="367" />
+    <line x1="80" y1="309" x2="750" y2="309" />
+    <line x1="80" y1="251" x2="750" y2="251" />
+    <line x1="80" y1="193" x2="750" y2="193" />
+    <line x1="80" y1="135" x2="750" y2="135" />
+    
+    <line x1="214" y1="80" x2="214" y2="420" />
+    <line x1="348" y1="80" x2="348" y2="420" />
+    <line x1="482" y1="80" x2="482" y2="420" />
+    <line x1="616" y1="80" x2="616" y2="420" />
   </g>
 
-  <!-- Initial rating line (1500) -->
-  <line x1="80" y1="309" x2="750" y2="309" stroke="#999" stroke-width="1" stroke-dasharray="5,5"/>
+  
+  <line x1="80" y1="309" x2="750" y2="309" stroke="#999" stroke-width="1" stroke-dasharray="5,5" />
   <text x="760" y="313" font-family="Arial, sans-serif" font-size="11" fill="#999">Initial</text>
 
-  <!-- GPT-4 rating line (purple) -->
-  <polyline points="80,309 107,295 134,281 161,271 188,265 214,257 241,251 268,247 295,243 322,239 348,235 375,232 402,229 429,227 456,225 482,223 509,221 536,220 563,218 590,217 616,216 643,215 670,214 697,213 724,212 750,211"
-            fill="none" stroke="#9575CD" stroke-width="2.5"/>
+  
+  <polyline points="80,309 107,295 134,281 161,271 188,265 214,257 241,251 268,247 295,243 322,239 348,235 375,232 402,229 429,227 456,225 482,223 509,221 536,220 563,218 590,217 616,216 643,215 670,214 697,213 724,212 750,211" fill="none" stroke="#9575CD" stroke-width="2.5" />
 
-  <!-- Claude Opus rating line (blue) -->
-  <polyline points="80,309 107,320 134,305 161,295 188,290 214,280 241,275 268,268 295,263 322,258 348,255 375,253 402,250 429,248 456,246 482,244 509,243 536,241 563,240 590,239 616,238 643,237 670,236 697,235 724,234 750,233"
-            fill="none" stroke="#4A90A4" stroke-width="2.5"/>
+  
+  <polyline points="80,309 107,320 134,305 161,295 188,290 214,280 241,275 268,268 295,263 322,258 348,255 375,253 402,250 429,248 456,246 482,244 509,243 536,241 563,240 590,239 616,238 643,237 670,236 697,235 724,234 750,233" fill="none" stroke="#4A90A4" stroke-width="2.5" />
 
-  <!-- Llama rating line (green) -->
-  <polyline points="80,309 107,315 134,318 161,313 188,310 214,305 241,300 268,295 295,291 322,287 348,284 375,281 402,279 429,277 456,275 482,273 509,272 536,271 563,270 590,269 616,268 643,267 670,266 697,265 724,264 750,263"
-            fill="none" stroke="#81C784" stroke-width="2.5"/>
+  
+  <polyline points="80,309 107,315 134,318 161,313 188,310 214,305 241,300 268,295 295,291 322,287 348,284 375,281 402,279 429,277 456,275 482,273 509,272 536,271 563,270 590,269 616,268 643,267 670,266 697,265 724,264 750,263" fill="none" stroke="#81C784" stroke-width="2.5" />
 
-  <!-- Weaker model rating line (red) -->
-  <polyline points="80,309 107,312 134,310 161,305 188,298 214,293 241,286 268,280 295,275 322,271 348,267 375,265 402,263 429,261 456,260 482,259 509,258 536,257 563,256 590,255 616,254 643,253 670,252 697,251 724,251 750,250"
-            fill="none" stroke="#E57373" stroke-width="2.5"/>
+  
+  <polyline points="80,309 107,312 134,310 161,305 188,298 214,293 241,286 268,280 295,275 322,271 348,267 375,265 402,263 429,261 456,260 482,259 509,258 536,257 563,256 590,255 616,254 643,253 670,252 697,251 724,251 750,250" fill="none" stroke="#E57373" stroke-width="2.5" />
 
-  <!-- Data points (just at key positions) -->
+  
   <g>
-    <circle cx="750" cy="211" r="4" fill="#9575CD"/>
-    <circle cx="750" cy="233" r="4" fill="#4A90A4"/>
-    <circle cx="750" cy="263" r="4" fill="#81C784"/>
-    <circle cx="750" cy="250" r="4" fill="#E57373"/>
+    <circle cx="750" cy="211" r="4" fill="#9575CD" />
+    <circle cx="750" cy="233" r="4" fill="#4A90A4" />
+    <circle cx="750" cy="263" r="4" fill="#81C784" />
+    <circle cx="750" cy="250" r="4" fill="#E57373" />
   </g>
 
-  <!-- Legend -->
+  
   <g font-family="Arial, sans-serif" font-size="13">
-    <line x1="120" y1="105" x2="160" y2="105" stroke="#9575CD" stroke-width="2.5"/>
+    <line x1="120" y1="105" x2="160" y2="105" stroke="#9575CD" stroke-width="2.5" />
     <text x="165" y="110" fill="#333">GPT-4 (Elo: 1789)</text>
 
-    <line x1="120" y1="130" x2="160" y2="130" stroke="#4A90A4" stroke-width="2.5"/>
+    <line x1="120" y1="130" x2="160" y2="130" stroke="#4A90A4" stroke-width="2.5" />
     <text x="165" y="135" fill="#333">Claude Opus (Elo: 1767)</text>
 
-    <line x1="120" y1="155" x2="160" y2="155" stroke="#81C784" stroke-width="2.5"/>
+    <line x1="120" y1="155" x2="160" y2="155" stroke="#81C784" stroke-width="2.5" />
     <text x="165" y="160" fill="#333">Llama-3-70B (Elo: 1637)</text>
 
-    <line x1="380" y1="105" x2="420" y2="105" stroke="#E57373" stroke-width="2.5"/>
+    <line x1="380" y1="105" x2="420" y2="105" stroke="#E57373" stroke-width="2.5" />
     <text x="425" y="110" fill="#333">GPT-3.5 (Elo: 1550)</text>
   </g>
 
-  <!-- Axis labels -->
+  
   <text x="415" y="475" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#666">
     Number of Battles
   </text>
@@ -101,17 +124,17 @@
     Elo Rating
   </text>
 
-  <!-- Annotations -->
+  
   <g font-family="Arial, sans-serif" font-size="11" fill="#666">
     <text x="450" y="200">Ratings converge after</text>
     <text x="450" y="215">~150-200 battles</text>
-    <line x1="445" y1="220" x2="420" y2="240" stroke="#666" stroke-width="1" marker-end="url(#arrowhead)"/>
+    <line x1="445" y1="220" x2="420" y2="240" stroke="#666" stroke-width="1" marker-end="url(#arrowhead)" />
   </g>
 
-  <!-- Arrow marker definition -->
+  
   <defs>
     <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-      <polygon points="0 0, 10 3, 0 6" fill="#666"/>
+      <polygon points="0 0, 10 3, 0 6" fill="#666" />
     </marker>
   </defs>
 </svg>

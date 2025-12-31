@@ -1,42 +1,69 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 180">
-  <!-- Define arrow marker -->
-  <defs>
+  
+  <style>
+    /* Light mode (default) */
+    text { fill: #000000; }
+    .axis-text { fill: #000000; }
+    .label-text { fill: #666666; }
+    line[stroke="#333"] { stroke: #333333; }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .axis-text { fill: #ffffff; }
+      .label-text { fill: #cccccc; }
+      line[stroke="#333"] { stroke: #cccccc; }
+
+      /* Keep white text white in dark mode (for colored backgrounds) */
+      text[fill="#fff"],
+      text[fill="#ffffff"],
+      text[fill="white"] {
+        fill: #ffffff;
+      }
+
+      /* Keep colored text readable in dark mode */
+      text[fill="#E57373"] { fill: #ef5350; }
+      text[fill="#81C784"] { fill: #66bb6a; }
+      text[fill="#FFB74D"] { fill: #ffa726; }
+      text[fill="#4A90A4"] { fill: #4fc3f7; }
+    }
+  </style><defs>
     <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
       <polygon points="0 0, 10 3, 0 6" fill="#4A90A4" />
     </marker>
   </defs>
 
-  <!-- Horizontal line with arrows -->
+  
   <line x1="100" y1="50" x2="700" y2="50" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)" />
   <line x1="700" y1="50" x2="100" y2="50" stroke="#4A90A4" stroke-width="2" />
 
-  <!-- MHA box -->
-  <rect x="40" y="30" width="120" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  
+  <rect x="40" y="30" width="120" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5" />
   <text x="100" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="bold">MHA (h=h, g=h)</text>
 
-  <!-- GQA box -->
-  <rect x="340" y="30" width="120" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  
+  <rect x="340" y="30" width="120" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5" />
   <text x="400" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="bold">GQA (h&gt;g&gt;1)</text>
 
-  <!-- MQA box -->
-  <rect x="640" y="30" width="120" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5"/>
+  
+  <rect x="640" y="30" width="120" height="40" fill="#f5f5f5" stroke="#4A90A4" stroke-width="2" rx="5" />
   <text x="700" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="bold">MQA (h&gt;1, g=1)</text>
 
-  <!-- MHA properties -->
+  
   <text x="100" y="95" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">Max Quality</text>
   <text x="100" y="115" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">Max Memory</text>
 
-  <!-- GQA properties -->
+  
   <text x="400" y="95" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">Balanced</text>
   <text x="400" y="115" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">Good Quality</text>
   <text x="400" y="135" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">Good Speed</text>
 
-  <!-- MQA properties -->
+  
   <text x="700" y="95" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">Max Speed</text>
   <text x="700" y="115" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">Min Memory</text>
 
-  <!-- Vertical connectors -->
+  
   <line x1="100" y1="70" x2="100" y2="80" stroke="#4A90A4" stroke-width="1.5" />
   <line x1="400" y1="70" x2="400" y2="80" stroke="#4A90A4" stroke-width="1.5" />
   <line x1="700" y1="70" x2="700" y2="80" stroke="#4A90A4" stroke-width="1.5" />

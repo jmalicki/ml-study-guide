@@ -1,101 +1,128 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 600">
-  <!-- Title -->
-  <text x="350" y="30" font-size="20" font-weight="bold" text-anchor="middle" fill="#333">
+  
+  <style>
+    /* Light mode (default) */
+    text { fill: #000000; }
+    .axis-text { fill: #000000; }
+    .label-text { fill: #666666; }
+    line[stroke="#333"] { stroke: #333333; }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .axis-text { fill: #ffffff; }
+      .label-text { fill: #cccccc; }
+      line[stroke="#333"] { stroke: #cccccc; }
+
+      /* Keep white text white in dark mode (for colored backgrounds) */
+      text[fill="#fff"],
+      text[fill="#ffffff"],
+      text[fill="white"] {
+        fill: #ffffff;
+      }
+
+      /* Keep colored text readable in dark mode */
+      text[fill="#E57373"] { fill: #ef5350; }
+      text[fill="#81C784"] { fill: #66bb6a; }
+      text[fill="#FFB74D"] { fill: #ffa726; }
+      text[fill="#4A90A4"] { fill: #4fc3f7; }
+    }
+  </style><text x="350" y="30" font-size="20" font-weight="bold" text-anchor="middle" fill="#333">
     Adapter Bottleneck Architecture
   </text>
 
-  <!-- Input -->
+  
   <g id="input">
-    <rect x="275" y="60" width="150" height="40" fill="#E8E8E8" stroke="#333" stroke-width="2" rx="5"/>
+    <rect x="275" y="60" width="150" height="40" fill="#E8E8E8" stroke="#333" stroke-width="2" rx="5" />
     <text x="350" y="85" font-size="14" font-weight="bold" text-anchor="middle" fill="#333">Input h</text>
     <text x="350" y="95" font-size="11" text-anchor="middle" fill="#666">(d_model)</text>
   </g>
 
-  <!-- Arrow down to split -->
+  
   <defs>
     <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-      <polygon points="0 0, 10 3.5, 0 7" fill="#333"/>
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
     </marker>
     <marker id="arrowhead-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-      <polygon points="0 0, 10 3.5, 0 7" fill="#81C784"/>
+      <polygon points="0 0, 10 3.5, 0 7" fill="#81C784" />
     </marker>
     <marker id="arrowhead-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-      <polygon points="0 0, 10 3.5, 0 7" fill="#4A90A4"/>
+      <polygon points="0 0, 10 3.5, 0 7" fill="#4A90A4" />
     </marker>
   </defs>
 
-  <line x1="350" y1="100" x2="350" y2="130" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <line x1="350" y1="100" x2="350" y2="130" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)" />
 
-  <!-- Split point -->
-  <circle cx="350" cy="140" r="6" fill="#333"/>
+  
+  <circle cx="350" cy="140" r="6" fill="#333" />
 
-  <!-- Left path (residual - frozen) -->
+  
   <g id="residual-path">
-    <line x1="350" y1="140" x2="150" y2="140" stroke="#666" stroke-width="2"/>
-    <line x1="150" y1="140" x2="150" y2="450" stroke="#666" stroke-width="3" stroke-dasharray="10,5"/>
+    <line x1="350" y1="140" x2="150" y2="140" stroke="#666" stroke-width="2" />
+    <line x1="150" y1="140" x2="150" y2="450" stroke="#666" stroke-width="3" stroke-dasharray="10,5" />
     <text x="120" y="295" font-size="12" font-weight="bold" text-anchor="middle" fill="#666" transform="rotate(-90 120 295)">
       Residual Connection
     </text>
 
-    <!-- Lock icon on residual -->
-    <rect x="135" y="230" width="30" height="25" rx="3" fill="none" stroke="#666" stroke-width="2"/>
-    <circle cx="150" cy="230" r="5" fill="none" stroke="#666" stroke-width="2"/>
+    
+    <rect x="135" y="230" width="30" height="25" rx="3" fill="none" stroke="#666" stroke-width="2" />
+    <circle cx="150" cy="230" r="5" fill="none" stroke="#666" stroke-width="2" />
     <text x="150" y="280" font-size="10" text-anchor="middle" fill="#666">FROZEN</text>
   </g>
 
-  <!-- Right path (adapter - trainable) -->
+  
   <g id="adapter-path">
-    <line x1="350" y1="140" x2="350" y2="170" stroke="#4A90A4" stroke-width="3" marker-end="url(#arrowhead-blue)"/>
+    <line x1="350" y1="140" x2="350" y2="170" stroke="#4A90A4" stroke-width="3" marker-end="url(#arrowhead-blue)" />
 
-    <!-- Down projection -->
-    <rect x="250" y="180" width="200" height="60" fill="#4A90A4" fill-opacity="0.7" stroke="#333" stroke-width="2" rx="5"/>
+    
+    <rect x="250" y="180" width="200" height="60" fill="#4A90A4" fill-opacity="0.7" stroke="#333" stroke-width="2" rx="5" />
     <text x="350" y="205" font-size="14" font-weight="bold" text-anchor="middle" fill="#FFF">Down Projection</text>
     <text x="350" y="223" font-size="12" text-anchor="middle" fill="#FFF">W_down: d → r</text>
     <text x="350" y="237" font-size="11" text-anchor="middle" fill="#FFF">(r ≪ d, e.g., 64)</text>
 
-    <line x1="350" y1="240" x2="350" y2="265" stroke="#81C784" stroke-width="3" marker-end="url(#arrowhead-green)"/>
+    <line x1="350" y1="240" x2="350" y2="265" stroke="#81C784" stroke-width="3" marker-end="url(#arrowhead-green)" />
 
-    <!-- Bottleneck representation -->
-    <rect x="300" y="275" width="100" height="40" fill="#81C784" fill-opacity="0.8" stroke="#333" stroke-width="2" rx="5"/>
+    
+    <rect x="300" y="275" width="100" height="40" fill="#81C784" fill-opacity="0.8" stroke="#333" stroke-width="2" rx="5" />
     <text x="350" y="295" font-size="13" font-weight="bold" text-anchor="middle" fill="#FFF">Bottleneck</text>
     <text x="350" y="308" font-size="11" text-anchor="middle" fill="#FFF">(r dimensions)</text>
 
-    <!-- Bottleneck indicator -->
-    <path d="M 460 275 L 480 295 L 460 315" fill="none" stroke="#E57373" stroke-width="2"/>
+    
+    <path d="M 460 275 L 480 295 L 460 315" fill="none" stroke="#E57373" stroke-width="2" />
     <text x="490" y="300" font-size="11" font-weight="bold" fill="#E57373">Compressed</text>
 
-    <line x1="350" y1="315" x2="350" y2="340" stroke="#81C784" stroke-width="3" marker-end="url(#arrowhead-green)"/>
+    <line x1="350" y1="315" x2="350" y2="340" stroke="#81C784" stroke-width="3" marker-end="url(#arrowhead-green)" />
 
-    <!-- Non-linearity -->
-    <rect x="250" y="350" width="200" height="50" fill="#9575CD" fill-opacity="0.7" stroke="#333" stroke-width="2" rx="5"/>
+    
+    <rect x="250" y="350" width="200" height="50" fill="#9575CD" fill-opacity="0.7" stroke="#333" stroke-width="2" rx="5" />
     <text x="350" y="373" font-size="14" font-weight="bold" text-anchor="middle" fill="#FFF">Non-linearity</text>
     <text x="350" y="390" font-size="12" text-anchor="middle" fill="#FFF">σ (GELU / ReLU)</text>
 
-    <line x1="350" y1="400" x2="350" y2="425" stroke="#4A90A4" stroke-width="3" marker-end="url(#arrowhead-blue)"/>
+    <line x1="350" y1="400" x2="350" y2="425" stroke="#4A90A4" stroke-width="3" marker-end="url(#arrowhead-blue)" />
 
-    <!-- Up projection -->
-    <rect x="250" y="435" width="200" height="60" fill="#4A90A4" fill-opacity="0.7" stroke="#333" stroke-width="2" rx="5"/>
+    
+    <rect x="250" y="435" width="200" height="60" fill="#4A90A4" fill-opacity="0.7" stroke="#333" stroke-width="2" rx="5" />
     <text x="350" y="460" font-size="14" font-weight="bold" text-anchor="middle" fill="#FFF">Up Projection</text>
     <text x="350" y="478" font-size="12" text-anchor="middle" fill="#FFF">W_up: r → d</text>
     <text x="350" y="492" font-size="11" text-anchor="middle" fill="#FFF">(back to d_model)</text>
   </g>
 
-  <!-- Merge point -->
-  <line x1="150" y1="450" x2="275" y2="520" stroke="#666" stroke-width="3"/>
-  <line x1="350" y1="495" x2="275" y2="520" stroke="#4A90A4" stroke-width="3"/>
-  <circle cx="275" cy="520" r="20" fill="#FFF" stroke="#333" stroke-width="3"/>
+  
+  <line x1="150" y1="450" x2="275" y2="520" stroke="#666" stroke-width="3" />
+  <line x1="350" y1="495" x2="275" y2="520" stroke="#4A90A4" stroke-width="3" />
+  <circle cx="275" cy="520" r="20" fill="#FFF" stroke="#333" stroke-width="3" />
   <text x="275" y="527" font-size="20" font-weight="bold" text-anchor="middle" fill="#333">+</text>
 
-  <line x1="275" y1="540" x2="275" y2="560" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <line x1="275" y1="540" x2="275" y2="560" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)" />
 
-  <!-- Output -->
-  <rect x="200" y="570" width="150" height="40" fill="#E8E8E8" stroke="#333" stroke-width="2" rx="5"/>
+  
+  <rect x="200" y="570" width="150" height="40" fill="#E8E8E8" stroke="#333" stroke-width="2" rx="5" />
   <text x="275" y="595" font-size="14" font-weight="bold" text-anchor="middle" fill="#333">Output h'</text>
 
-  <!-- Formula -->
+  
   <g id="formula">
-    <rect x="470" y="150" width="210" height="110" fill="#F5F5F5" stroke="#333" stroke-width="1" rx="5"/>
+    <rect x="470" y="150" width="210" height="110" fill="#F5F5F5" stroke="#333" stroke-width="1" rx="5" />
     <text x="575" y="175" font-size="13" font-weight="bold" text-anchor="middle" fill="#333">Mathematical Form:</text>
 
     <text x="575" y="200" font-size="12" text-anchor="middle" fill="#333">h' = h + Adapter(h)</text>
@@ -104,9 +131,9 @@
     <text x="575" y="253" font-size="11" text-anchor="middle" fill="#333">W_up · σ(W_down · h)</text>
   </g>
 
-  <!-- Key properties -->
+  
   <g id="properties">
-    <rect x="470" y="280" width="210" height="130" fill="#F5F5F5" stroke="#333" stroke-width="1" rx="5"/>
+    <rect x="470" y="280" width="210" height="130" fill="#F5F5F5" stroke="#333" stroke-width="1" rx="5" />
     <text x="575" y="300" font-size="13" font-weight="bold" text-anchor="middle" fill="#333">Key Properties:</text>
 
     <text x="480" y="320" font-size="11" fill="#333">• Bottleneck (r ≪ d)</text>
@@ -119,14 +146,14 @@
     <text x="485" y="405" font-size="10" fill="#666">  preserves base model</text>
   </g>
 
-  <!-- Trainable indicators -->
-  <rect x="480" y="430" width="15" height="15" fill="#4A90A4" fill-opacity="0.7" stroke="#333" stroke-width="1"/>
+  
+  <rect x="480" y="430" width="15" height="15" fill="#4A90A4" fill-opacity="0.7" stroke="#333" stroke-width="1" />
   <text x="500" y="442" font-size="11" fill="#333">Trainable weights</text>
 
-  <rect x="480" y="455" width="15" height="15" fill="#E8E8E8" stroke="#333" stroke-width="1"/>
+  <rect x="480" y="455" width="15" height="15" fill="#E8E8E8" stroke="#333" stroke-width="1" />
   <text x="500" y="467" font-size="11" fill="#666">Frozen base model</text>
 
-  <!-- Parameter count note -->
+  
   <text x="575" y="490" font-size="10" font-weight="bold" text-anchor="middle" fill="#E57373">
     Parameters: 2 × d × r
   </text>

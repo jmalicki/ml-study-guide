@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 500">
+  <defs>
+    <style>
+      .axis { stroke: #333; stroke-width: 2; }
+      .grid { stroke: #e0e0e0; stroke-width: 1; stroke-dasharray: 2,2; }
+      .throughput-curve { fill: none; stroke: #4A90A4; stroke-width: 3; }
+      .generalization-curve { fill: none; stroke: #E57373; stroke-width: 3; }
+      .efficiency-curve { fill: none; stroke: #81C784; stroke-width: 3; }
+      .label { font-family: system-ui, -apple-system, sans-serif; font-size: 14px; fill: #333; }
+      .title { font-family: system-ui, -apple-system, sans-serif; font-size: 18px; font-weight: 600; fill: #333; }
+      .annotation { font-family: system-ui, -apple-system, sans-serif; font-size: 12px; fill: #555; }
+      .critical-marker { fill: #FFB74D; stroke: #333; stroke-width: 2; }
+      .critical-line { stroke: #FFB74D; stroke-width: 2; stroke-dasharray: 5,5; }
+    
+      /* Dark mode support */
+      @media (prefers-color-scheme: dark) {
+        text { fill: #ffffff; }
+        text[fill="#333"] { fill: #ffffff; }
+        text[fill="#666"] { fill: #cccccc; }
+        text[fill="#555"] { fill: #cccccc; }
+        text[fill="white"],
+        text[fill="#fff"] { fill: #ffffff; }
+
+        .title { fill: #ffffff; }
+        .subtitle { fill: #ffffff; }
+        .label { fill: #ffffff; }
+        .small-label { fill: #cccccc; }
+        .axis-label { fill: #cccccc; }
+        .small { fill: #cccccc; }
+        .annotation { fill: #cccccc; }
+
+        line[stroke="#333"] { stroke: #cccccc; }
+        rect[stroke="#333"] { stroke: #cccccc; }
+        rect[fill="white"] { fill: #1a1a1a; }
+        rect[fill="#ffffff"] { fill: #1a1a1a; }
+
+        .grid { stroke: #444444; }
+        .axis { stroke: #cccccc; }
+      }
+    </style>
+  </defs>
+
+  <!-- Title -->
+  <text x="350" y="30" text-anchor="middle" class="title">Batch Size Trade-offs: Speed vs. Generalization</text>
+
+  <!-- Grid -->
+  <line x1="100" y1="80" x2="100" y2="420" class="grid"/>
+  <line x1="200" y1="80" x2="200" y2="420" class="grid"/>
+  <line x1="300" y1="80" x2="300" y2="420" class="grid"/>
+  <line x1="400" y1="80" x2="400" y2="420" class="grid"/>
+  <line x1="500" y1="80" x2="500" y2="420" class="grid"/>
+  <line x1="600" y1="80" x2="600" y2="420" class="grid"/>
+
+  <!-- Axes -->
+  <line x1="100" y1="420" x2="650" y2="420" class="axis"/>
+  <line x1="100" y1="80" x2="100" y2="420" class="axis"/>
+
+  <!-- Axis labels -->
+  <text x="375" y="455" text-anchor="middle" class="label" font-weight="600">Batch Size</text>
+  <text x="35" y="250" text-anchor="middle" class="label" font-weight="600" transform="rotate(-90 35 250)">Normalized Metric</text>
+
+  <!-- X-axis tick labels -->
+  <text x="100" y="440" text-anchor="middle" class="annotation">32</text>
+  <text x="200" y="440" text-anchor="middle" class="annotation">128</text>
+  <text x="300" y="440" text-anchor="middle" class="annotation">512</text>
+  <text x="400" y="440" text-anchor="middle" class="annotation">2K</text>
+  <text x="500" y="440" text-anchor="middle" class="annotation">8K</text>
+  <text x="600" y="440" text-anchor="middle" class="annotation">32K</text>
+
+  <!-- Y-axis tick labels -->
+  <text x="90" y="85" text-anchor="end" class="annotation">High</text>
+  <text x="90" y="250" text-anchor="end" class="annotation">Medium</text>
+  <text x="90" y="425" text-anchor="end" class="annotation">Low</text>
+
+  <!-- Throughput curve (increases then plateaus) -->
+  <path d="M 100,380
+           Q 200,250 300,180
+           Q 400,130 500,110
+           Q 550,105 600,103"
+        class="throughput-curve"/>
+
+  <!-- Generalization curve (decreases with large batch) -->
+  <path d="M 100,140
+           Q 200,145 300,155
+           Q 400,180 500,230
+           Q 550,280 600,350"
+        class="generalization-curve"/>
+
+  <!-- Training efficiency curve (optimal middle ground) -->
+  <path d="M 100,320
+           Q 200,220 300,160
+           Q 400,170 500,210
+           Q 550,250 600,310"
+        class="efficiency-curve"/>
+
+  <!-- Critical batch size marker -->
+  <circle cx="400" cy="170" r="6" class="critical-marker"/>
+  <line x1="400" y1="80" x2="400" y2="420" class="critical-line"/>
+  <text x="400" y="68" text-anchor="middle" class="annotation" font-weight="600" fill="#F57C00">Critical Batch Size</text>
+
+  <!-- Legend -->
+  <g transform="translate(450, 240)">
+    <rect x="0" y="0" width="190" height="85" fill="white" stroke="#333" stroke-width="1" rx="5"/>
+    <text x="10" y="20" class="annotation" font-weight="600">Metrics:</text>
+
+    <line x1="10" y1="35" x2="40" y2="35" class="throughput-curve"/>
+    <text x="45" y="39" class="annotation">Training Throughput</text>
+
+    <line x1="10" y1="55" x2="40" y2="55" class="generalization-curve"/>
+    <text x="45" y="59" class="annotation">Generalization Gap</text>
+
+    <line x1="10" y1="75" x2="40" y2="75" class="efficiency-curve"/>
+    <text x="45" y="79" class="annotation">Overall Efficiency</text>
+  </g>
+
+  <!-- Zone annotations -->
+  <!-- Small batch -->
+  <text x="150" y="310" text-anchor="middle" class="annotation" fill="#1565C0" font-weight="600">Small Batch</text>
+  <text x="150" y="325" text-anchor="middle" class="annotation" fill="#1565C0">• Better generalization</text>
+  <text x="150" y="340" text-anchor="middle" class="annotation" fill="#1565C0">• Noisy gradients</text>
+  <text x="150" y="355" text-anchor="middle" class="annotation" fill="#1565C0">• Slower throughput</text>
+
+  <!-- Large batch -->
+  <text x="550" y="150" text-anchor="middle" class="annotation" fill="#C62828" font-weight="600">Large Batch</text>
+  <text x="550" y="165" text-anchor="middle" class="annotation" fill="#C62828">• Fast throughput</text>
+  <text x="550" y="180" text-anchor="middle" class="annotation" fill="#C62828">• May generalize worse</text>
+  <text x="550" y="195" text-anchor="middle" class="annotation" fill="#C62828">• Diminishing returns</text>
+
+  <!-- Optimal zone -->
+  <text x="400" y="140" text-anchor="middle" class="annotation" fill="#F57C00" font-weight="600">Sweet Spot</text>
+  <text x="400" y="155" text-anchor="middle" class="annotation" fill="#F57C00">≈ 2K-8K for LLMs</text>
+
+  <!-- Key insights box -->
+  <rect x="110" y="90" width="230" height="105" fill="white" stroke="#333" stroke-width="1" rx="5" opacity="0.95"/>
+  <text x="120" y="110" class="annotation" font-weight="600">Key Insights:</text>
+  <text x="120" y="128" class="annotation">• Critical batch size: diminishing returns</text>
+  <text x="125" y="143" class="annotation">beyond this point</text>
+  <text x="120" y="161" class="annotation">• Small batch: better exploration, but</text>
+  <text x="125" y="176" class="annotation">inefficient on modern hardware</text>
+  <text x="120" y="190" class="annotation">• Large batch: fast, but may overfit</text>
+
+  <!-- Formula annotation -->
+  <text x="350" y="475" text-anchor="middle" class="annotation" font-style="italic">Critical batch size ≈ (Noise Scale / Signal Scale)² × Learning Rate</text>
+</svg>

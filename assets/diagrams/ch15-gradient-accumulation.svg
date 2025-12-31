@@ -1,16 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 450">
-  <!-- Background -->
-  <rect width="700" height="450" fill="white"/>
+  
+  <style>
+    /* Light mode (default) */
+    text { fill: #000000; }
+    .axis-text { fill: #000000; }
+    .label-text { fill: #666666; }
+    line[stroke="#333"] { stroke: #333333; }
 
-  <!-- Title -->
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .axis-text { fill: #ffffff; }
+      .label-text { fill: #cccccc; }
+      line[stroke="#333"] { stroke: #cccccc; }
+
+      /* Keep white text white in dark mode (for colored backgrounds) */
+      text[fill="#fff"],
+      text[fill="#ffffff"],
+      text[fill="white"] {
+        fill: #ffffff;
+      }
+
+      /* Keep colored text readable in dark mode */
+      text[fill="#E57373"] { fill: #ef5350; }
+      text[fill="#81C784"] { fill: #66bb6a; }
+      text[fill="#FFB74D"] { fill: #ffa726; }
+      text[fill="#4A90A4"] { fill: #4fc3f7; }
+    }
+  </style><rect width="700" height="450" fill="white" />
+
+  
   <text x="350" y="30" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#333" text-anchor="middle">
     Gradient Accumulation: 4 Steps to Simulate Batch Size 64
   </text>
 
-  <!-- Step 1 -->
+  
   <g id="step1">
-    <rect x="50" y="60" width="140" height="70" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2" rx="5"/>
+    <rect x="50" y="60" width="140" height="70" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2" rx="5" />
     <text x="120" y="85" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#333" text-anchor="middle">
       Step 1: Forward
     </text>
@@ -22,12 +49,12 @@
     </text>
   </g>
 
-  <!-- Arrow down -->
-  <path d="M 120,135 L 120,155" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  
+  <path d="M 120,135 L 120,155" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)" />
 
-  <!-- Backward 1 -->
+  
   <g id="backward1">
-    <rect x="50" y="160" width="140" height="50" fill="#FFF3E0" stroke="#FF9800" stroke-width="2" rx="5"/>
+    <rect x="50" y="160" width="140" height="50" fill="#FFF3E0" stroke="#FF9800" stroke-width="2" rx="5" />
     <text x="120" y="180" font-family="Arial, sans-serif" font-size="12" fill="#333" text-anchor="middle">
       Backward
     </text>
@@ -36,9 +63,9 @@
     </text>
   </g>
 
-  <!-- Step 2 -->
+  
   <g id="step2">
-    <rect x="210" y="60" width="140" height="70" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2" rx="5"/>
+    <rect x="210" y="60" width="140" height="70" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2" rx="5" />
     <text x="280" y="85" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#333" text-anchor="middle">
       Step 2: Forward
     </text>
@@ -50,12 +77,12 @@
     </text>
   </g>
 
-  <!-- Arrow down -->
-  <path d="M 280,135 L 280,155" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  
+  <path d="M 280,135 L 280,155" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)" />
 
-  <!-- Backward 2 -->
+  
   <g id="backward2">
-    <rect x="210" y="160" width="140" height="50" fill="#FFF3E0" stroke="#FF9800" stroke-width="2" rx="5"/>
+    <rect x="210" y="160" width="140" height="50" fill="#FFF3E0" stroke="#FF9800" stroke-width="2" rx="5" />
     <text x="280" y="180" font-family="Arial, sans-serif" font-size="12" fill="#333" text-anchor="middle">
       Backward
     </text>
@@ -64,9 +91,9 @@
     </text>
   </g>
 
-  <!-- Step 3 -->
+  
   <g id="step3">
-    <rect x="370" y="60" width="140" height="70" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2" rx="5"/>
+    <rect x="370" y="60" width="140" height="70" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2" rx="5" />
     <text x="440" y="85" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#333" text-anchor="middle">
       Step 3: Forward
     </text>
@@ -78,12 +105,12 @@
     </text>
   </g>
 
-  <!-- Arrow down -->
-  <path d="M 440,135 L 440,155" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  
+  <path d="M 440,135 L 440,155" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)" />
 
-  <!-- Backward 3 -->
+  
   <g id="backward3">
-    <rect x="370" y="160" width="140" height="50" fill="#FFF3E0" stroke="#FF9800" stroke-width="2" rx="5"/>
+    <rect x="370" y="160" width="140" height="50" fill="#FFF3E0" stroke="#FF9800" stroke-width="2" rx="5" />
     <text x="440" y="180" font-family="Arial, sans-serif" font-size="12" fill="#333" text-anchor="middle">
       Backward
     </text>
@@ -92,9 +119,9 @@
     </text>
   </g>
 
-  <!-- Step 4 -->
+  
   <g id="step4">
-    <rect x="530" y="60" width="140" height="70" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2" rx="5"/>
+    <rect x="530" y="60" width="140" height="70" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2" rx="5" />
     <text x="600" y="85" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#333" text-anchor="middle">
       Step 4: Forward
     </text>
@@ -106,12 +133,12 @@
     </text>
   </g>
 
-  <!-- Arrow down -->
-  <path d="M 600,135 L 600,155" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  
+  <path d="M 600,135 L 600,155" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)" />
 
-  <!-- Backward 4 -->
+  
   <g id="backward4">
-    <rect x="530" y="160" width="140" height="50" fill="#FFF3E0" stroke="#FF9800" stroke-width="2" rx="5"/>
+    <rect x="530" y="160" width="140" height="50" fill="#FFF3E0" stroke="#FF9800" stroke-width="2" rx="5" />
     <text x="600" y="180" font-family="Arial, sans-serif" font-size="12" fill="#333" text-anchor="middle">
       Backward
     </text>
@@ -120,15 +147,15 @@
     </text>
   </g>
 
-  <!-- Convergence arrows -->
-  <path d="M 120,215 L 350,245" stroke="#81C784" stroke-width="2" marker-end="url(#arrowhead-green)"/>
-  <path d="M 280,215 L 350,245" stroke="#81C784" stroke-width="2" marker-end="url(#arrowhead-green)"/>
-  <path d="M 440,215 L 350,245" stroke="#81C784" stroke-width="2" marker-end="url(#arrowhead-green)"/>
-  <path d="M 600,215 L 350,245" stroke="#81C784" stroke-width="2" marker-end="url(#arrowhead-green)"/>
+  
+  <path d="M 120,215 L 350,245" stroke="#81C784" stroke-width="2" marker-end="url(#arrowhead-green)" />
+  <path d="M 280,215 L 350,245" stroke="#81C784" stroke-width="2" marker-end="url(#arrowhead-green)" />
+  <path d="M 440,215 L 350,245" stroke="#81C784" stroke-width="2" marker-end="url(#arrowhead-green)" />
+  <path d="M 600,215 L 350,245" stroke="#81C784" stroke-width="2" marker-end="url(#arrowhead-green)" />
 
-  <!-- Optimizer step -->
+  
   <g id="optimizer">
-    <rect x="250" y="250" width="200" height="60" fill="#C8E6C9" stroke="#81C784" stroke-width="2" rx="5"/>
+    <rect x="250" y="250" width="200" height="60" fill="#C8E6C9" stroke="#81C784" stroke-width="2" rx="5" />
     <text x="350" y="272" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#333" text-anchor="middle">
       Optimizer Step
     </text>
@@ -140,12 +167,12 @@
     </text>
   </g>
 
-  <!-- Arrow down -->
-  <path d="M 350,315 L 350,335" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  
+  <path d="M 350,315 L 350,335" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)" />
 
-  <!-- Zero gradients -->
+  
   <g id="zero">
-    <rect x="250" y="340" width="200" height="45" fill="#FFEBEE" stroke="#E57373" stroke-width="2" rx="5"/>
+    <rect x="250" y="340" width="200" height="45" fill="#FFEBEE" stroke="#E57373" stroke-width="2" rx="5" />
     <text x="350" y="362" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#333" text-anchor="middle">
       Zero Gradients
     </text>
@@ -154,19 +181,19 @@
     </text>
   </g>
 
-  <!-- Summary box -->
-  <rect x="20" y="405" width="660" height="35" fill="#F5F5F5" stroke="#999" stroke-width="1" rx="3"/>
+  
+  <rect x="20" y="405" width="660" height="35" fill="#F5F5F5" stroke="#999" stroke-width="1" rx="3" />
   <text x="350" y="422" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#333" text-anchor="middle">
     Effective Batch Size: 16 × 4 = 64 | Memory Usage: Only 16 samples at a time
   </text>
 
-  <!-- Arrow definitions -->
+  
   <defs>
     <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-      <polygon points="0 0, 10 3, 0 6" fill="#333"/>
+      <polygon points="0 0, 10 3, 0 6" fill="#333" />
     </marker>
     <marker id="arrowhead-green" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-      <polygon points="0 0, 10 3, 0 6" fill="#81C784"/>
+      <polygon points="0 0, 10 3, 0 6" fill="#81C784" />
     </marker>
   </defs>
 </svg>

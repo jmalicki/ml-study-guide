@@ -10,6 +10,32 @@
       .data { fill: #81C784; stroke: #333; stroke-width: 1; }
       .comm-line { stroke: #E57373; stroke-width: 2; fill: none; }
       .section-box { fill: #f9f9f9; stroke: #999; stroke-width: 1; }
+    
+      /* Dark mode support */
+      @media (prefers-color-scheme: dark) {
+        text { fill: #ffffff; }
+        text[fill="#333"] { fill: #ffffff; }
+        text[fill="#666"] { fill: #cccccc; }
+        text[fill="#555"] { fill: #cccccc; }
+        text[fill="white"],
+        text[fill="#fff"] { fill: #ffffff; }
+
+        .title { fill: #ffffff; }
+        .subtitle { fill: #ffffff; }
+        .label { fill: #ffffff; }
+        .small-label { fill: #cccccc; }
+        .axis-label { fill: #cccccc; }
+        .small { fill: #cccccc; }
+        .annotation { fill: #cccccc; }
+
+        line[stroke="#333"] { stroke: #cccccc; }
+        rect[stroke="#333"] { stroke: #cccccc; }
+        rect[fill="white"] { fill: #1a1a1a; }
+        rect[fill="#ffffff"] { fill: #1a1a1a; }
+
+        .grid { stroke: #444444; }
+        .axis { stroke: #cccccc; }
+      }
     </style>
   </defs>
 

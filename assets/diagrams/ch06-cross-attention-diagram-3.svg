@@ -1,30 +1,56 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg viewBox="0 0 700 120" xmlns="http://www.w3.org/2000/svg" style="max-width: 700px; display: block; margin: 20px auto;">
-  <!-- Input label -->
-  <text x="20" y="35" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="bold">Input:</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 120" style="max-width: 700px; display: block; margin: 20px auto;">
+  
+  <style>
+    /* Light mode (default) */
+    text { fill: #000000; }
+    .axis-text { fill: #000000; }
+    .label-text { fill: #666666; }
+    line[stroke="#333"] { stroke: #333333; }
 
-  <!-- System prompt box -->
-  <rect x="80" y="15" width="150" height="35" fill="#e8f4f8" stroke="#4A90A4" stroke-width="2" rx="3"/>
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .axis-text { fill: #ffffff; }
+      .label-text { fill: #cccccc; }
+      line[stroke="#333"] { stroke: #cccccc; }
+
+      /* Keep white text white in dark mode (for colored backgrounds) */
+      text[fill="#fff"],
+      text[fill="#ffffff"],
+      text[fill="white"] {
+        fill: #ffffff;
+      }
+
+      /* Keep colored text readable in dark mode */
+      text[fill="#E57373"] { fill: #ef5350; }
+      text[fill="#81C784"] { fill: #66bb6a; }
+      text[fill="#FFB74D"] { fill: #ffa726; }
+      text[fill="#4A90A4"] { fill: #4fc3f7; }
+    }
+  </style><text x="20" y="35" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="bold">Input:</text>
+
+  
+  <rect x="80" y="15" width="150" height="35" fill="#e8f4f8" stroke="#4A90A4" stroke-width="2" rx="3" />
   <text x="155" y="37" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333" text-anchor="middle">System prompt</text>
 
-  <!-- Separator -->
+  
   <text x="235" y="37" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#666">|</text>
 
-  <!-- User message box -->
-  <rect x="250" y="15" width="150" height="35" fill="#e8f4f8" stroke="#4A90A4" stroke-width="2" rx="3"/>
+  
+  <rect x="250" y="15" width="150" height="35" fill="#e8f4f8" stroke="#4A90A4" stroke-width="2" rx="3" />
   <text x="325" y="37" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333" text-anchor="middle">User message</text>
 
-  <!-- Separator -->
+  
   <text x="405" y="37" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#666">|</text>
 
-  <!-- Assistant response box -->
-  <rect x="420" y="15" width="180" height="35" fill="#e8f4f8" stroke="#4A90A4" stroke-width="2" rx="3"/>
+  
+  <rect x="420" y="15" width="180" height="35" fill="#e8f4f8" stroke="#4A90A4" stroke-width="2" rx="3" />
   <text x="510" y="37" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333" text-anchor="middle">Assistant response</text>
 
-  <!-- Brace underneath -->
-  <path d="M 80 60 Q 80 70 90 70 L 300 70 Q 310 70 310 80 Q 310 70 320 70 L 590 70 Q 600 70 600 60"
-        stroke="#4A90A4" stroke-width="2" fill="none"/>
+  
+  <path d="M 80 60 Q 80 70 90 70 L 300 70 Q 310 70 310 80 Q 310 70 320 70 L 590 70 Q 600 70 600 60" stroke="#4A90A4" stroke-width="2" fill="none" />
 
-  <!-- Text below brace -->
+  
   <text x="340" y="100" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333" text-anchor="middle">All processed with self-attention</text>
 </svg>

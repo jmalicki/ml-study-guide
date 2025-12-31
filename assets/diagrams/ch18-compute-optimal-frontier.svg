@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 500">
+  <defs>
+    <style>
+      .axis { stroke: #333; stroke-width: 2; }
+      .grid { stroke: #e0e0e0; stroke-width: 1; stroke-dasharray: 2,2; }
+      .frontier-curve { fill: none; stroke: #9C27B0; stroke-width: 4; }
+      .kaplan-region { fill: #FFB74D; opacity: 0.2; }
+      .chinchilla-region { fill: #81C784; opacity: 0.2; }
+      .label { font-family: system-ui, -apple-system, sans-serif; font-size: 14px; fill: #333; }
+      .title { font-family: system-ui, -apple-system, sans-serif; font-size: 18px; font-weight: 600; fill: #333; }
+      .annotation { font-family: system-ui, -apple-system, sans-serif; font-size: 12px; fill: #555; }
+      .model-point { stroke: #333; stroke-width: 2; }
+      .chinchilla-line { stroke: #2E7D32; stroke-width: 2; stroke-dasharray: 5,5; }
+      .kaplan-line { stroke: #F57C00; stroke-width: 2; stroke-dasharray: 3,3; }
+    
+      /* Dark mode support */
+      @media (prefers-color-scheme: dark) {
+        text { fill: #ffffff; }
+        text[fill="#333"] { fill: #ffffff; }
+        text[fill="#666"] { fill: #cccccc; }
+        text[fill="#555"] { fill: #cccccc; }
+        text[fill="white"],
+        text[fill="#fff"] { fill: #ffffff; }
+
+        .title { fill: #ffffff; }
+        .subtitle { fill: #ffffff; }
+        .label { fill: #ffffff; }
+        .small-label { fill: #cccccc; }
+        .axis-label { fill: #cccccc; }
+        .small { fill: #cccccc; }
+        .annotation { fill: #cccccc; }
+
+        line[stroke="#333"] { stroke: #cccccc; }
+        rect[stroke="#333"] { stroke: #cccccc; }
+        rect[fill="white"] { fill: #1a1a1a; }
+        rect[fill="#ffffff"] { fill: #1a1a1a; }
+
+        .grid { stroke: #444444; }
+        .axis { stroke: #cccccc; }
+      }
+    </style>
+  </defs>
+
+  <!-- Title -->
+  <text x="350" y="30" text-anchor="middle" class="title">Compute-Optimal Training: Kaplan vs. Chinchilla</text>
+
+  <!-- Grid -->
+  <line x1="100" y1="100" x2="100" y2="420" class="grid"/>
+  <line x1="200" y1="100" x2="200" y2="420" class="grid"/>
+  <line x1="300" y1="100" x2="300" y2="420" class="grid"/>
+  <line x1="400" y1="100" x2="400" y2="420" class="grid"/>
+  <line x1="500" y1="100" x2="500" y2="420" class="grid"/>
+  <line x1="600" y1="100" x2="600" y2="420" class="grid"/>
+
+  <line x1="100" y1="380" x2="650" y2="380" class="grid"/>
+  <line x1="100" y1="320" x2="650" y2="320" class="grid"/>
+  <line x1="100" y1="260" x2="650" y2="260" class="grid"/>
+  <line x1="100" y1="200" x2="650" y2="200" class="grid"/>
+  <line x1="100" y1="140" x2="650" y2="140" class="grid"/>
+
+  <!-- Axes -->
+  <line x1="100" y1="420" x2="650" y2="420" class="axis"/>
+  <line x1="100" y1="100" x2="100" y2="420" class="axis"/>
+
+  <!-- Axis labels -->
+  <text x="375" y="455" text-anchor="middle" class="label" font-weight="600">Model Parameters (Billions)</text>
+  <text x="35" y="260" text-anchor="middle" class="label" font-weight="600" transform="rotate(-90 35 260)">Training Tokens (Trillions)</text>
+
+  <!-- X-axis tick labels -->
+  <text x="100" y="440" text-anchor="middle" class="annotation">1</text>
+  <text x="200" y="440" text-anchor="middle" class="annotation">10</text>
+  <text x="300" y="440" text-anchor="middle" class="annotation">30</text>
+  <text x="400" y="440" text-anchor="middle" class="annotation">70</text>
+  <text x="500" y="440" text-anchor="middle" class="annotation">175</text>
+  <text x="600" y="440" text-anchor="middle" class="annotation">500</text>
+
+  <!-- Y-axis tick labels -->
+  <text x="90" y="425" text-anchor="end" class="annotation">0.1</text>
+  <text x="90" y="365" text-anchor="end" class="annotation">0.3</text>
+  <text x="90" y="305" text-anchor="end" class="annotation">0.5</text>
+  <text x="90" y="245" text-anchor="end" class="annotation">1.0</text>
+  <text x="90" y="185" text-anchor="end" class="annotation">1.5</text>
+  <text x="90" y="125" text-anchor="end" class="annotation">2.0</text>
+
+  <!-- Chinchilla optimal line (slope 1 in log space, ~20 tokens/param) -->
+  <path d="M 100,400 L 600,100" class="chinchilla-line"/>
+  <text x="500" y="90" text-anchor="middle" class="annotation" fill="#2E7D32" font-weight="600">Chinchilla Optimal</text>
+  <text x="500" y="105" text-anchor="middle" class="annotation" fill="#2E7D32">~20 tokens/param</text>
+
+  <!-- Kaplan line (steeper, favoring larger models) -->
+  <path d="M 100,390 L 600,200" class="kaplan-line"/>
+  <text x="520" y="210" text-anchor="middle" class="annotation" fill="#F57C00" font-weight="600">Kaplan Scaling</text>
+  <text x="520" y="225" text-anchor="middle" class="annotation" fill="#F57C00">~2-3 tokens/param</text>
+
+  <!-- Model points -->
+  <!-- GPT-3 -->
+  <circle cx="500" cy="330" r="7" fill="#FFB74D" class="model-point"/>
+  <text x="500" y="355" text-anchor="middle" class="annotation" font-weight="600">GPT-3</text>
+  <text x="500" y="370" text-anchor="middle" class="annotation">175B, 300B tok</text>
+
+  <!-- Chinchilla -->
+  <circle cx="390" cy="210" r="7" fill="#81C784" class="model-point"/>
+  <text x="390" y="190" text-anchor="middle" class="annotation" font-weight="600">Chinchilla</text>
+  <text x="390" y="175" text-anchor="middle" class="annotation">70B, 1.4T tok</text>
+
+  <!-- LLaMA -->
+  <circle cx="385" cy="200" r="7" fill="#4A90A4" class="model-point"/>
+  <text x="340" y="240" text-anchor="middle" class="annotation" font-weight="600">LLaMA</text>
+  <text x="340" y="255" text-anchor="middle" class="annotation">65B, 1.4T tok</text>
+
+  <!-- Gopher -->
+  <circle cx="570" cy="270" r="7" fill="#E57373" class="model-point"/>
+  <text x="570" y="255" text-anchor="middle" class="annotation" font-weight="600">Gopher</text>
+  <text x="570" y="240" text-anchor="middle" class="annotation">280B, 300B tok</text>
+
+  <!-- Small efficient model -->
+  <circle cx="180" cy="290" r="6" fill="#9C27B0" class="model-point"/>
+  <text x="180" y="310" text-anchor="middle" class="annotation">7B, 1T tok</text>
+
+  <!-- Regions -->
+  <rect x="100" y="260" width="550" height="160" class="kaplan-region"/>
+  <text x="250" y="350" text-anchor="middle" class="annotation" fill="#F57C00" font-size="11">Undertrained</text>
+  <text x="250" y="365" text-anchor="middle" class="annotation" fill="#F57C00" font-size="11">(Kaplan region)</text>
+
+  <!-- Info box -->
+  <rect x="110" y="110" width="230" height="125" fill="white" stroke="#333" stroke-width="1" rx="5" opacity="0.95"/>
+  <text x="120" y="130" class="annotation" font-weight="600">Key Insights:</text>
+  <text x="120" y="148" class="annotation">• Chinchilla: Scale N and D equally</text>
+  <text x="125" y="163" class="annotation">(N, D ∝ C^0.5)</text>
+  <text x="120" y="181" class="annotation">• Kaplan: Prioritize model size</text>
+  <text x="125" y="196" class="annotation">(N ∝ C^0.73, undertrained)</text>
+  <text x="120" y="214" class="annotation">• Modern trend: Train even</text>
+  <text x="125" y="229" class="annotation">beyond Chinchilla optimal</text>
+
+  <!-- Arrows showing improvement direction -->
+  <defs>
+    <marker id="arrowGreen" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#2E7D32"/>
+    </marker>
+  </defs>
+  <path d="M 480,340 L 410,230" stroke="#2E7D32" stroke-width="2" fill="none" marker-end="url(#arrowGreen)"/>
+  <text x="450" y="290" text-anchor="middle" class="annotation" fill="#2E7D32" font-size="11">Better performance</text>
+  <text x="450" y="305" text-anchor="middle" class="annotation" fill="#2E7D32" font-size="11">same compute</text>
+
+  <!-- Compute budget iso-curves (optional, add visual richness) -->
+  <ellipse cx="300" cy="300" rx="120" ry="80" fill="none" stroke="#9C27B0" stroke-width="1" stroke-dasharray="2,2" opacity="0.4"/>
+  <text x="380" y="265" class="annotation" fill="#9C27B0" font-size="10" opacity="0.6">Fixed compute</text>
+</svg>

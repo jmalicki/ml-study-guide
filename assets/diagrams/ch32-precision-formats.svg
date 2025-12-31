@@ -1,16 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
-  <!-- Title -->
-  <text x="400" y="30" font-size="20" font-weight="bold" fill="#333" text-anchor="middle">
+  
+  <style>
+    /* Light mode (default) */
+    text { fill: #000000; }
+    .axis-text { fill: #000000; }
+    .label-text { fill: #666666; }
+    line[stroke="#333"] { stroke: #333333; }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .axis-text { fill: #ffffff; }
+      .label-text { fill: #cccccc; }
+      line[stroke="#333"] { stroke: #cccccc; }
+
+      /* Keep white text white in dark mode (for colored backgrounds) */
+      text[fill="#fff"],
+      text[fill="#ffffff"],
+      text[fill="white"] {
+        fill: #ffffff;
+      }
+
+      /* Keep colored text readable in dark mode */
+      text[fill="#E57373"] { fill: #ef5350; }
+      text[fill="#81C784"] { fill: #66bb6a; }
+      text[fill="#FFB74D"] { fill: #ffa726; }
+      text[fill="#4A90A4"] { fill: #4fc3f7; }
+    }
+  </style><text x="400" y="30" font-size="20" font-weight="bold" fill="#333" text-anchor="middle">
     Numerical Precision Formats Comparison
   </text>
 
-  <!-- FP32 -->
+  
   <g transform="translate(50, 60)">
     <text x="0" y="0" font-size="14" font-weight="bold" fill="#333">FP32 (32 bits)</text>
-    <rect x="0" y="10" width="32" height="40" fill="#E57373" stroke="#333" stroke-width="1"/>
-    <rect x="32" y="10" width="80" height="40" fill="#81C784" stroke="#333" stroke-width="1"/>
-    <rect x="112" y="10" width="230" height="40" fill="#4A90A4" stroke="#333" stroke-width="1"/>
+    <rect x="0" y="10" width="32" height="40" fill="#E57373" stroke="#333" stroke-width="1" />
+    <rect x="32" y="10" width="80" height="40" fill="#81C784" stroke="#333" stroke-width="1" />
+    <rect x="112" y="10" width="230" height="40" fill="#4A90A4" stroke="#333" stroke-width="1" />
 
     <text x="16" y="35" font-size="12" fill="#fff" text-anchor="middle">S</text>
     <text x="72" y="35" font-size="12" fill="#fff" text-anchor="middle">Exp (8)</text>
@@ -20,12 +47,12 @@
     <text x="0" y="85" font-size="11" fill="#666">Precision: ~7 decimal digits</text>
   </g>
 
-  <!-- FP16 -->
+  
   <g transform="translate(450, 60)">
     <text x="0" y="0" font-size="14" font-weight="bold" fill="#333">FP16 (16 bits)</text>
-    <rect x="0" y="10" width="32" height="40" fill="#E57373" stroke="#333" stroke-width="1"/>
-    <rect x="32" y="10" width="50" height="40" fill="#81C784" stroke="#333" stroke-width="1"/>
-    <rect x="82" y="10" width="100" height="40" fill="#4A90A4" stroke="#333" stroke-width="1"/>
+    <rect x="0" y="10" width="32" height="40" fill="#E57373" stroke="#333" stroke-width="1" />
+    <rect x="32" y="10" width="50" height="40" fill="#81C784" stroke="#333" stroke-width="1" />
+    <rect x="82" y="10" width="100" height="40" fill="#4A90A4" stroke="#333" stroke-width="1" />
 
     <text x="16" y="35" font-size="12" fill="#fff" text-anchor="middle">S</text>
     <text x="57" y="35" font-size="12" fill="#fff" text-anchor="middle">E(5)</text>
@@ -35,12 +62,12 @@
     <text x="0" y="85" font-size="11" fill="#666">Precision: ~3 decimal digits</text>
   </g>
 
-  <!-- BF16 -->
+  
   <g transform="translate(50, 160)">
     <text x="0" y="0" font-size="14" font-weight="bold" fill="#333">BF16 (16 bits)</text>
-    <rect x="0" y="10" width="32" height="40" fill="#E57373" stroke="#333" stroke-width="1"/>
-    <rect x="32" y="10" width="80" height="40" fill="#81C784" stroke="#333" stroke-width="1"/>
-    <rect x="112" y="10" width="70" height="40" fill="#4A90A4" stroke="#333" stroke-width="1"/>
+    <rect x="0" y="10" width="32" height="40" fill="#E57373" stroke="#333" stroke-width="1" />
+    <rect x="32" y="10" width="80" height="40" fill="#81C784" stroke="#333" stroke-width="1" />
+    <rect x="112" y="10" width="70" height="40" fill="#4A90A4" stroke="#333" stroke-width="1" />
 
     <text x="16" y="35" font-size="12" fill="#fff" text-anchor="middle">S</text>
     <text x="72" y="35" font-size="12" fill="#fff" text-anchor="middle">Exp (8)</text>
@@ -51,12 +78,12 @@
     <text x="0" y="100" font-size="11" font-weight="bold" fill="#4A90A4">✓ Best for training</text>
   </g>
 
-  <!-- FP8 E4M3 -->
+  
   <g transform="translate(450, 160)">
     <text x="0" y="0" font-size="14" font-weight="bold" fill="#333">FP8 E4M3 (8 bits)</text>
-    <rect x="0" y="10" width="32" height="40" fill="#E57373" stroke="#333" stroke-width="1"/>
-    <rect x="32" y="10" width="50" height="40" fill="#81C784" stroke="#333" stroke-width="1"/>
-    <rect x="82" y="10" width="38" height="40" fill="#4A90A4" stroke="#333" stroke-width="1"/>
+    <rect x="0" y="10" width="32" height="40" fill="#E57373" stroke="#333" stroke-width="1" />
+    <rect x="32" y="10" width="50" height="40" fill="#81C784" stroke="#333" stroke-width="1" />
+    <rect x="82" y="10" width="38" height="40" fill="#4A90A4" stroke="#333" stroke-width="1" />
 
     <text x="16" y="35" font-size="12" fill="#fff" text-anchor="middle">S</text>
     <text x="57" y="35" font-size="12" fill="#fff" text-anchor="middle">E(4)</text>
@@ -66,12 +93,12 @@
     <text x="0" y="85" font-size="11" fill="#666">For activations/forward pass</text>
   </g>
 
-  <!-- FP8 E5M2 -->
+  
   <g transform="translate(450, 260)">
     <text x="0" y="0" font-size="14" font-weight="bold" fill="#333">FP8 E5M2 (8 bits)</text>
-    <rect x="0" y="10" width="32" height="40" fill="#E57373" stroke="#333" stroke-width="1"/>
-    <rect x="32" y="10" width="63" height="40" fill="#81C784" stroke="#333" stroke-width="1"/>
-    <rect x="95" y="10" width="25" height="40" fill="#4A90A4" stroke="#333" stroke-width="1"/>
+    <rect x="0" y="10" width="32" height="40" fill="#E57373" stroke="#333" stroke-width="1" />
+    <rect x="32" y="10" width="63" height="40" fill="#81C784" stroke="#333" stroke-width="1" />
+    <rect x="95" y="10" width="25" height="40" fill="#4A90A4" stroke="#333" stroke-width="1" />
 
     <text x="16" y="35" font-size="12" fill="#fff" text-anchor="middle">S</text>
     <text x="63" y="35" font-size="12" fill="#fff" text-anchor="middle">E (5)</text>
@@ -81,11 +108,11 @@
     <text x="0" y="85" font-size="11" fill="#666">For gradients/backward pass</text>
   </g>
 
-  <!-- INT8 -->
+  
   <g transform="translate(50, 260)">
     <text x="0" y="0" font-size="14" font-weight="bold" fill="#333">INT8 (8 bits)</text>
-    <rect x="0" y="10" width="32" height="40" fill="#E57373" stroke="#333" stroke-width="1"/>
-    <rect x="32" y="10" width="220" height="40" fill="#4A90A4" stroke="#333" stroke-width="1"/>
+    <rect x="0" y="10" width="32" height="40" fill="#E57373" stroke="#333" stroke-width="1" />
+    <rect x="32" y="10" width="220" height="40" fill="#4A90A4" stroke="#333" stroke-width="1" />
 
     <text x="16" y="35" font-size="12" fill="#fff" text-anchor="middle">S</text>
     <text x="142" y="35" font-size="12" fill="#fff" text-anchor="middle">Integer Value (7)</text>
@@ -95,11 +122,11 @@
     <text x="0" y="100" font-size="11" font-weight="bold" fill="#4A90A4">✓ Common for inference</text>
   </g>
 
-  <!-- INT4 -->
+  
   <g transform="translate(50, 370)">
     <text x="0" y="0" font-size="14" font-weight="bold" fill="#333">INT4 (4 bits)</text>
-    <rect x="0" y="10" width="32" height="40" fill="#E57373" stroke="#333" stroke-width="1"/>
-    <rect x="32" y="10" width="100" height="40" fill="#4A90A4" stroke="#333" stroke-width="1"/>
+    <rect x="0" y="10" width="32" height="40" fill="#E57373" stroke="#333" stroke-width="1" />
+    <rect x="32" y="10" width="100" height="40" fill="#4A90A4" stroke="#333" stroke-width="1" />
 
     <text x="16" y="35" font-size="12" fill="#fff" text-anchor="middle">S</text>
     <text x="82" y="35" font-size="12" fill="#fff" text-anchor="middle">Value (3)</text>
@@ -109,16 +136,16 @@
     <text x="0" y="100" font-size="11" font-weight="bold" fill="#4A90A4">✓ Maximum compression</text>
   </g>
 
-  <!-- Legend -->
+  
   <g transform="translate(450, 370)">
     <text x="0" y="0" font-size="14" font-weight="bold" fill="#333">Legend:</text>
-    <rect x="0" y="10" width="20" height="15" fill="#E57373"/>
+    <rect x="0" y="10" width="20" height="15" fill="#E57373" />
     <text x="25" y="22" font-size="11" fill="#333">Sign bit</text>
 
-    <rect x="0" y="30" width="20" height="15" fill="#81C784"/>
+    <rect x="0" y="30" width="20" height="15" fill="#81C784" />
     <text x="25" y="42" font-size="11" fill="#333">Exponent</text>
 
-    <rect x="0" y="50" width="20" height="15" fill="#4A90A4"/>
+    <rect x="0" y="50" width="20" height="15" fill="#4A90A4" />
     <text x="25" y="62" font-size="11" fill="#333">Mantissa/Value</text>
   </g>
 </svg>

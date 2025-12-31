@@ -1,57 +1,84 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg viewBox="0 0 1200 350" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background -->
-  <rect width="1200" height="350" fill="#f5f5f5"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 350">
+  
+  <style>
+    /* Light mode (default) */
+    text { fill: #000000; }
+    .axis-text { fill: #000000; }
+    .label-text { fill: #666666; }
+    line[stroke="#333"] { stroke: #333333; }
 
-  <!-- Plot 1: Model Size -->
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .axis-text { fill: #ffffff; }
+      .label-text { fill: #cccccc; }
+      line[stroke="#333"] { stroke: #cccccc; }
+
+      /* Keep white text white in dark mode (for colored backgrounds) */
+      text[fill="#fff"],
+      text[fill="#ffffff"],
+      text[fill="white"] {
+        fill: #ffffff;
+      }
+
+      /* Keep colored text readable in dark mode */
+      text[fill="#E57373"] { fill: #ef5350; }
+      text[fill="#81C784"] { fill: #66bb6a; }
+      text[fill="#FFB74D"] { fill: #ffa726; }
+      text[fill="#4A90A4"] { fill: #4fc3f7; }
+    }
+  </style><rect width="1200" height="350" fill="#f5f5f5" />
+
+  
   <g transform="translate(50, 30)">
-    <rect width="320" height="280" fill="white" stroke="#ddd" stroke-width="1"/>
-    <!-- Axes -->
-    <line x1="40" y1="240" x2="300" y2="240" stroke="#333" stroke-width="2"/>
-    <line x1="40" y1="20" x2="40" y2="240" stroke="#333" stroke-width="2"/>
-    <!-- Power law curve (decreasing) -->
-    <path d="M 60 30 Q 120 80, 180 150 T 280 220" fill="none" stroke="#4A90A4" stroke-width="2.5"/>
-    <!-- Labels -->
+    <rect width="320" height="280" fill="white" stroke="#ddd" stroke-width="1" />
+    
+    <line x1="40" y1="240" x2="300" y2="240" stroke="#333" stroke-width="2" />
+    <line x1="40" y1="20" x2="40" y2="240" stroke="#333" stroke-width="2" />
+    
+    <path d="M 60 30 Q 120 80, 180 150 T 280 220" fill="none" stroke="#4A90A4" stroke-width="2.5" />
+    
     <text x="160" y="270" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">Model Parameters (N)</text>
     <text x="10" y="140" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333" transform="rotate(-90, 10, 140)">Test Loss</text>
     <text x="160" y="15" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#333">Scaling with Model Size</text>
-    <!-- Tick labels -->
+    
     <text x="60" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">1M</text>
     <text x="180" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">1B</text>
     <text x="280" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">1T</text>
   </g>
 
-  <!-- Plot 2: Data Size -->
+  
   <g transform="translate(440, 30)">
-    <rect width="320" height="280" fill="white" stroke="#ddd" stroke-width="1"/>
-    <!-- Axes -->
-    <line x1="40" y1="240" x2="300" y2="240" stroke="#333" stroke-width="2"/>
-    <line x1="40" y1="20" x2="40" y2="240" stroke="#333" stroke-width="2"/>
-    <!-- Power law curve (decreasing, slightly different slope) -->
-    <path d="M 60 40 Q 120 90, 180 160 T 280 225" fill="none" stroke="#4A90A4" stroke-width="2.5"/>
-    <!-- Labels -->
+    <rect width="320" height="280" fill="white" stroke="#ddd" stroke-width="1" />
+    
+    <line x1="40" y1="240" x2="300" y2="240" stroke="#333" stroke-width="2" />
+    <line x1="40" y1="20" x2="40" y2="240" stroke="#333" stroke-width="2" />
+    
+    <path d="M 60 40 Q 120 90, 180 160 T 280 225" fill="none" stroke="#4A90A4" stroke-width="2.5" />
+    
     <text x="160" y="270" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">Training Tokens (D)</text>
     <text x="10" y="140" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333" transform="rotate(-90, 10, 140)">Test Loss</text>
     <text x="160" y="15" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#333">Scaling with Data</text>
-    <!-- Tick labels -->
+    
     <text x="60" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">1B</text>
     <text x="180" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">10T</text>
     <text x="280" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">100T</text>
   </g>
 
-  <!-- Plot 3: Compute -->
+  
   <g transform="translate(830, 30)">
-    <rect width="320" height="280" fill="white" stroke="#ddd" stroke-width="1"/>
-    <!-- Axes -->
-    <line x1="40" y1="240" x2="300" y2="240" stroke="#333" stroke-width="2"/>
-    <line x1="40" y1="20" x2="40" y2="240" stroke="#333" stroke-width="2"/>
-    <!-- Power law curve (decreasing, gentlest slope) -->
-    <path d="M 60 50 Q 120 100, 180 165 T 280 228" fill="none" stroke="#4A90A4" stroke-width="2.5"/>
-    <!-- Labels -->
+    <rect width="320" height="280" fill="white" stroke="#ddd" stroke-width="1" />
+    
+    <line x1="40" y1="240" x2="300" y2="240" stroke="#333" stroke-width="2" />
+    <line x1="40" y1="20" x2="40" y2="240" stroke="#333" stroke-width="2" />
+    
+    <path d="M 60 50 Q 120 100, 180 165 T 280 228" fill="none" stroke="#4A90A4" stroke-width="2.5" />
+    
     <text x="160" y="270" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">Compute (FLOPs)</text>
     <text x="10" y="140" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333" transform="rotate(-90, 10, 140)">Test Loss</text>
     <text x="160" y="15" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#333">Scaling with Compute</text>
-    <!-- Tick labels -->
+    
     <text x="60" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">10¹⁸</text>
     <text x="180" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">10²¹</text>
     <text x="280" y="255" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">10²⁴</text>

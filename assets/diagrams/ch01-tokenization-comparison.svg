@@ -1,48 +1,75 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 550">
-  <!-- Title -->
-  <text x="400" y="30" text-anchor="middle" font-size="18" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#333">
+  
+  <style>
+    /* Light mode (default) */
+    text { fill: #000000; }
+    .axis-text { fill: #000000; }
+    .label-text { fill: #666666; }
+    line[stroke="#333"] { stroke: #333333; }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .axis-text { fill: #ffffff; }
+      .label-text { fill: #cccccc; }
+      line[stroke="#333"] { stroke: #cccccc; }
+
+      /* Keep white text white in dark mode (for colored backgrounds) */
+      text[fill="#fff"],
+      text[fill="#ffffff"],
+      text[fill="white"] {
+        fill: #ffffff;
+      }
+
+      /* Keep colored text readable in dark mode */
+      text[fill="#E57373"] { fill: #ef5350; }
+      text[fill="#81C784"] { fill: #66bb6a; }
+      text[fill="#FFB74D"] { fill: #ffa726; }
+      text[fill="#4A90A4"] { fill: #4fc3f7; }
+    }
+  </style><text x="400" y="30" text-anchor="middle" font-size="18" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#333">
     Tokenization Methods Compared: Same Text, Different Splits
   </text>
 
-  <!-- Input text -->
+  
   <g transform="translate(50, 60)">
     <text x="0" y="0" font-size="13" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#666">Input Text:</text>
-    <rect x="0" y="5" width="700" height="35" fill="#F5F5F5" stroke="#999" stroke-width="1" rx="3"/>
+    <rect x="0" y="5" width="700" height="35" fill="#F5F5F5" stroke="#999" stroke-width="1" rx="3" />
     <text x="10" y="28" font-size="14" font-family="monospace" fill="#333">"The tokenization process"</text>
   </g>
 
-  <!-- Character-level -->
+  
   <g transform="translate(50, 120)">
     <text x="0" y="0" font-size="14" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#E57373">Character-level</text>
     <text x="650" y="0" text-anchor="end" font-size="11" font-family="system-ui, -apple-system, sans-serif" fill="#666">25 tokens</text>
 
     <g transform="translate(0, 10)">
-      <rect x="0" y="0" width="25" height="30" fill="#E57373" fill-opacity="0.2" stroke="#E57373" stroke-width="1" rx="2"/>
+      <rect x="0" y="0" width="25" height="30" fill="#E57373" fill-opacity="0.2" stroke="#E57373" stroke-width="1" rx="2" />
       <text x="12.5" y="20" text-anchor="middle" font-size="11" font-family="monospace" fill="#333">T</text>
 
-      <rect x="30" y="0" width="25" height="30" fill="#E57373" fill-opacity="0.2" stroke="#E57373" stroke-width="1" rx="2"/>
+      <rect x="30" y="0" width="25" height="30" fill="#E57373" fill-opacity="0.2" stroke="#E57373" stroke-width="1" rx="2" />
       <text x="42.5" y="20" text-anchor="middle" font-size="11" font-family="monospace" fill="#333">h</text>
 
-      <rect x="60" y="0" width="25" height="30" fill="#E57373" fill-opacity="0.2" stroke="#E57373" stroke-width="1" rx="2"/>
+      <rect x="60" y="0" width="25" height="30" fill="#E57373" fill-opacity="0.2" stroke="#E57373" stroke-width="1" rx="2" />
       <text x="72.5" y="20" text-anchor="middle" font-size="11" font-family="monospace" fill="#333">e</text>
 
-      <rect x="90" y="0" width="25" height="30" fill="#E57373" fill-opacity="0.2" stroke="#E57373" stroke-width="1" rx="2"/>
+      <rect x="90" y="0" width="25" height="30" fill="#E57373" fill-opacity="0.2" stroke="#E57373" stroke-width="1" rx="2" />
       <text x="102.5" y="20" text-anchor="middle" font-size="11" font-family="monospace" fill="#333">_</text>
 
-      <rect x="120" y="0" width="25" height="30" fill="#E57373" fill-opacity="0.2" stroke="#E57373" stroke-width="1" rx="2"/>
+      <rect x="120" y="0" width="25" height="30" fill="#E57373" fill-opacity="0.2" stroke="#E57373" stroke-width="1" rx="2" />
       <text x="132.5" y="20" text-anchor="middle" font-size="11" font-family="monospace" fill="#333">t</text>
 
-      <rect x="150" y="0" width="25" height="30" fill="#E57373" fill-opacity="0.2" stroke="#E57373" stroke-width="1" rx="2"/>
+      <rect x="150" y="0" width="25" height="30" fill="#E57373" fill-opacity="0.2" stroke="#E57373" stroke-width="1" rx="2" />
       <text x="162.5" y="20" text-anchor="middle" font-size="11" font-family="monospace" fill="#333">o</text>
 
-      <rect x="180" y="0" width="25" height="30" fill="#E57373" fill-opacity="0.2" stroke="#E57373" stroke-width="1" rx="2"/>
+      <rect x="180" y="0" width="25" height="30" fill="#E57373" fill-opacity="0.2" stroke="#E57373" stroke-width="1" rx="2" />
       <text x="192.5" y="20" text-anchor="middle" font-size="11" font-family="monospace" fill="#333">k</text>
 
-      <rect x="210" y="0" width="25" height="30" fill="#E57373" fill-opacity="0.2" stroke="#E57373" stroke-width="1" rx="2"/>
+      <rect x="210" y="0" width="25" height="30" fill="#E57373" fill-opacity="0.2" stroke="#E57373" stroke-width="1" rx="2" />
       <text x="222.5" y="20" text-anchor="middle" font-size="11" font-family="monospace" fill="#333">e</text>
 
-      <rect x="240" y="0" width="25" height="30" fill="#E57373" fill-opacity="0.2" stroke="#E57373" stroke-width="1" rx="2"/>
+      <rect x="240" y="0" width="25" height="30" fill="#E57373" fill-opacity="0.2" stroke="#E57373" stroke-width="1" rx="2" />
       <text x="252.5" y="20" text-anchor="middle" font-size="11" font-family="monospace" fill="#333">n</text>
 
       <text x="275" y="20" font-size="11" font-family="monospace" fill="#666">... (16 more)</text>
@@ -53,19 +80,19 @@
     </text>
   </g>
 
-  <!-- Word-level -->
+  
   <g transform="translate(50, 210)">
     <text x="0" y="0" font-size="14" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#FFB74D">Word-level</text>
     <text x="650" y="0" text-anchor="end" font-size="11" font-family="system-ui, -apple-system, sans-serif" fill="#666">3 tokens</text>
 
     <g transform="translate(0, 10)">
-      <rect x="0" y="0" width="50" height="30" fill="#FFB74D" fill-opacity="0.2" stroke="#FFB74D" stroke-width="1" rx="2"/>
+      <rect x="0" y="0" width="50" height="30" fill="#FFB74D" fill-opacity="0.2" stroke="#FFB74D" stroke-width="1" rx="2" />
       <text x="25" y="20" text-anchor="middle" font-size="11" font-family="monospace" fill="#333">The</text>
 
-      <rect x="60" y="0" width="120" height="30" fill="#FFB74D" fill-opacity="0.2" stroke="#FFB74D" stroke-width="1" rx="2"/>
+      <rect x="60" y="0" width="120" height="30" fill="#FFB74D" fill-opacity="0.2" stroke="#FFB74D" stroke-width="1" rx="2" />
       <text x="120" y="20" text-anchor="middle" font-size="11" font-family="monospace" fill="#333">tokenization</text>
 
-      <rect x="190" y="0" width="80" height="30" fill="#FFB74D" fill-opacity="0.2" stroke="#FFB74D" stroke-width="1" rx="2"/>
+      <rect x="190" y="0" width="80" height="30" fill="#FFB74D" fill-opacity="0.2" stroke="#FFB74D" stroke-width="1" rx="2" />
       <text x="230" y="20" text-anchor="middle" font-size="11" font-family="monospace" fill="#333">process</text>
     </g>
 
@@ -74,25 +101,25 @@
     </text>
   </g>
 
-  <!-- BPE -->
+  
   <g transform="translate(50, 300)">
     <text x="0" y="0" font-size="14" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#81C784">BPE (Subword)</text>
     <text x="650" y="0" text-anchor="end" font-size="11" font-family="system-ui, -apple-system, sans-serif" fill="#666">6 tokens</text>
 
     <g transform="translate(0, 10)">
-      <rect x="0" y="0" width="50" height="30" fill="#81C784" fill-opacity="0.2" stroke="#81C784" stroke-width="1" rx="2"/>
+      <rect x="0" y="0" width="50" height="30" fill="#81C784" fill-opacity="0.2" stroke="#81C784" stroke-width="1" rx="2" />
       <text x="25" y="20" text-anchor="middle" font-size="11" font-family="monospace" fill="#333">The</text>
 
-      <rect x="60" y="0" width="60" height="30" fill="#81C784" fill-opacity="0.2" stroke="#81C784" stroke-width="1" rx="2"/>
+      <rect x="60" y="0" width="60" height="30" fill="#81C784" fill-opacity="0.2" stroke="#81C784" stroke-width="1" rx="2" />
       <text x="90" y="20" text-anchor="middle" font-size="11" font-family="monospace" fill="#333">token</text>
 
-      <rect x="130" y="0" width="50" height="30" fill="#81C784" fill-opacity="0.2" stroke="#81C784" stroke-width="1" rx="2"/>
+      <rect x="130" y="0" width="50" height="30" fill="#81C784" fill-opacity="0.2" stroke="#81C784" stroke-width="1" rx="2" />
       <text x="155" y="20" text-anchor="middle" font-size="11" font-family="monospace" fill="#333">ization</text>
 
-      <rect x="190" y="0" width="50" height="30" fill="#81C784" fill-opacity="0.2" stroke="#81C784" stroke-width="1" rx="2"/>
+      <rect x="190" y="0" width="50" height="30" fill="#81C784" fill-opacity="0.2" stroke="#81C784" stroke-width="1" rx="2" />
       <text x="215" y="20" text-anchor="middle" font-size="11" font-family="monospace" fill="#333">pro</text>
 
-      <rect x="250" y="0" width="50" height="30" fill="#81C784" fill-opacity="0.2" stroke="#81C784" stroke-width="1" rx="2"/>
+      <rect x="250" y="0" width="50" height="30" fill="#81C784" fill-opacity="0.2" stroke="#81C784" stroke-width="1" rx="2" />
       <text x="275" y="20" text-anchor="middle" font-size="11" font-family="monospace" fill="#333">cess</text>
     </g>
 
@@ -101,25 +128,25 @@
     </text>
   </g>
 
-  <!-- WordPiece -->
+  
   <g transform="translate(50, 390)">
     <text x="0" y="0" font-size="14" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#9575CD">WordPiece</text>
     <text x="650" y="0" text-anchor="end" font-size="11" font-family="system-ui, -apple-system, sans-serif" fill="#666">7 tokens</text>
 
     <g transform="translate(0, 10)">
-      <rect x="0" y="0" width="50" height="30" fill="#9575CD" fill-opacity="0.2" stroke="#9575CD" stroke-width="1" rx="2"/>
+      <rect x="0" y="0" width="50" height="30" fill="#9575CD" fill-opacity="0.2" stroke="#9575CD" stroke-width="1" rx="2" />
       <text x="25" y="20" text-anchor="middle" font-size="11" font-family="monospace" fill="#333">the</text>
 
-      <rect x="60" y="0" width="60" height="30" fill="#9575CD" fill-opacity="0.2" stroke="#9575CD" stroke-width="1" rx="2"/>
+      <rect x="60" y="0" width="60" height="30" fill="#9575CD" fill-opacity="0.2" stroke="#9575CD" stroke-width="1" rx="2" />
       <text x="90" y="20" text-anchor="middle" font-size="11" font-family="monospace" fill="#333">token</text>
 
-      <rect x="130" y="0" width="50" height="30" fill="#9575CD" fill-opacity="0.2" stroke="#9575CD" stroke-width="1" rx="2"/>
+      <rect x="130" y="0" width="50" height="30" fill="#9575CD" fill-opacity="0.2" stroke="#9575CD" stroke-width="1" rx="2" />
       <text x="155" y="20" text-anchor="middle" font-size="10" font-family="monospace" fill="#333">##ization</text>
 
-      <rect x="190" y="0" width="50" height="30" fill="#9575CD" fill-opacity="0.2" stroke="#9575CD" stroke-width="1" rx="2"/>
+      <rect x="190" y="0" width="50" height="30" fill="#9575CD" fill-opacity="0.2" stroke="#9575CD" stroke-width="1" rx="2" />
       <text x="215" y="20" text-anchor="middle" font-size="11" font-family="monospace" fill="#333">pro</text>
 
-      <rect x="250" y="0" width="50" height="30" fill="#9575CD" fill-opacity="0.2" stroke="#9575CD" stroke-width="1" rx="2"/>
+      <rect x="250" y="0" width="50" height="30" fill="#9575CD" fill-opacity="0.2" stroke="#9575CD" stroke-width="1" rx="2" />
       <text x="275" y="20" text-anchor="middle" font-size="11" font-family="monospace" fill="#333">##cess</text>
     </g>
 
@@ -128,9 +155,9 @@
     </text>
   </g>
 
-  <!-- Statistics comparison box -->
+  
   <g transform="translate(50, 480)">
-    <rect x="0" y="0" width="700" height="55" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2" rx="5"/>
+    <rect x="0" y="0" width="700" height="55" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2" rx="5" />
     <text x="10" y="20" font-size="13" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#4A90A4">Quantitative Comparison:</text>
 
     <g transform="translate(10, 28)">

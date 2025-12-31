@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 500">
+  <defs>
+    <style>
+      .axis { stroke: #333; stroke-width: 2; }
+      .grid { stroke: #e0e0e0; stroke-width: 1; stroke-dasharray: 2,2; }
+      .train-curve { fill: none; stroke: #4A90A4; stroke-width: 3; }
+      .val-curve { fill: none; stroke: #E57373; stroke-width: 3; }
+      .total-error { fill: none; stroke: #9C27B0; stroke-width: 3; stroke-dasharray: 5,5; }
+      .label { font-family: system-ui, -apple-system, sans-serif; font-size: 14px; fill: #333; }
+      .title { font-family: system-ui, -apple-system, sans-serif; font-size: 18px; font-weight: 600; fill: #333; }
+      .annotation { font-family: system-ui, -apple-system, sans-serif; font-size: 12px; fill: #555; }
+      .optimal-marker { fill: #81C784; stroke: #333; stroke-width: 2; }
+      .optimal-line { stroke: #81C784; stroke-width: 2; stroke-dasharray: 3,3; }
+    
+      /* Dark mode support */
+      @media (prefers-color-scheme: dark) {
+        text { fill: #ffffff; }
+        text[fill="#333"] { fill: #ffffff; }
+        text[fill="#666"] { fill: #cccccc; }
+        text[fill="#555"] { fill: #cccccc; }
+        text[fill="white"],
+        text[fill="#fff"] { fill: #ffffff; }
+
+        .title { fill: #ffffff; }
+        .subtitle { fill: #ffffff; }
+        .label { fill: #ffffff; }
+        .small-label { fill: #cccccc; }
+        .axis-label { fill: #cccccc; }
+        .small { fill: #cccccc; }
+        .annotation { fill: #cccccc; }
+
+        line[stroke="#333"] { stroke: #cccccc; }
+        rect[stroke="#333"] { stroke: #cccccc; }
+        rect[fill="white"] { fill: #1a1a1a; }
+        rect[fill="#ffffff"] { fill: #1a1a1a; }
+
+        .grid { stroke: #444444; }
+        .axis { stroke: #cccccc; }
+      }
+    </style>
+  </defs>
+
+  <!-- Title -->
+  <text x="350" y="30" text-anchor="middle" class="title">Weight Decay: Bias-Variance Trade-off</text>
+
+  <!-- Grid -->
+  <line x1="120" y1="100" x2="120" y2="420" class="grid"/>
+  <line x1="230" y1="100" x2="230" y2="420" class="grid"/>
+  <line x1="340" y1="100" x2="340" y2="420" class="grid"/>
+  <line x1="450" y1="100" x2="450" y2="420" class="grid"/>
+  <line x1="560" y1="100" x2="560" y2="420" class="grid"/>
+  <line x1="670" y1="100" x2="670" y2="420" class="grid"/>
+
+  <!-- Axes -->
+  <line x1="120" y1="420" x2="670" y2="420" class="axis"/>
+  <line x1="120" y1="100" x2="120" y2="420" class="axis"/>
+
+  <!-- Axis labels -->
+  <text x="395" y="455" text-anchor="middle" class="label" font-weight="600">Weight Decay (λ)</text>
+  <text x="40" y="260" text-anchor="middle" class="label" font-weight="600" transform="rotate(-90 40 260)">Error</text>
+
+  <!-- X-axis tick labels -->
+  <text x="120" y="440" text-anchor="middle" class="annotation">0.0</text>
+  <text x="230" y="440" text-anchor="middle" class="annotation">0.05</text>
+  <text x="340" y="440" text-anchor="middle" class="annotation">0.1</text>
+  <text x="450" y="440" text-anchor="middle" class="annotation">0.2</text>
+  <text x="560" y="440" text-anchor="middle" class="annotation">0.5</text>
+  <text x="670" y="440" text-anchor="middle" class="annotation">1.0</text>
+
+  <!-- Y-axis tick labels -->
+  <text x="110" y="105" text-anchor="end" class="annotation">High</text>
+  <text x="110" y="260" text-anchor="end" class="annotation">Medium</text>
+  <text x="110" y="425" text-anchor="end" class="annotation">Low</text>
+
+  <!-- Training error curve (increases with regularization) -->
+  <path d="M 120,390
+           Q 230,385 340,370
+           Q 450,340 560,290
+           Q 615,250 670,200"
+        class="train-curve"/>
+
+  <!-- Validation error curve (U-shaped) -->
+  <path d="M 120,180
+           Q 230,160 340,155
+           Q 450,165 560,210
+           Q 615,260 670,330"
+        class="val-curve"/>
+
+  <!-- Total error/test error (sum, showing optimal point) -->
+  <path d="M 120,280
+           Q 230,250 340,240
+           Q 450,245 560,270
+           Q 615,295 670,330"
+        class="total-error"/>
+
+  <!-- Optimal point marker -->
+  <circle cx="340" cy="240" r="6" class="optimal-marker"/>
+  <line x1="340" y1="100" x2="340" y2="420" class="optimal-line"/>
+  <text x="340" y="85" text-anchor="middle" class="annotation" font-weight="600" fill="#2E7D32">Optimal λ ≈ 0.1</text>
+
+  <!-- Legend -->
+  <g transform="translate(500, 110)">
+    <rect x="0" y="0" width="160" height="85" fill="white" stroke="#333" stroke-width="1" rx="5"/>
+    <text x="10" y="20" class="annotation" font-weight="600">Legend:</text>
+
+    <line x1="10" y1="35" x2="40" y2="35" class="train-curve"/>
+    <text x="45" y="39" class="annotation">Training Error (Bias)</text>
+
+    <line x1="10" y1="55" x2="40" y2="55" class="val-curve"/>
+    <text x="45" y="59" class="annotation">Validation Error (Variance)</text>
+
+    <line x1="10" y1="75" x2="40" y2="75" class="total-error"/>
+    <text x="45" y="79" class="annotation">Total Error</text>
+  </g>
+
+  <!-- Zone annotations -->
+  <!-- Underfitting zone (high regularization) -->
+  <text x="590" y="250" text-anchor="middle" class="annotation" fill="#C62828" font-weight="600">Underfitting</text>
+  <text x="590" y="265" text-anchor="middle" class="annotation" fill="#C62828">High Bias</text>
+  <text x="590" y="280" text-anchor="middle" class="annotation" fill="#C62828">Model too simple</text>
+
+  <!-- Overfitting zone (low regularization) -->
+  <text x="180" y="200" text-anchor="middle" class="annotation" fill="#1565C0" font-weight="600">Overfitting</text>
+  <text x="180" y="215" text-anchor="middle" class="annotation" fill="#1565C0">High Variance</text>
+  <text x="180" y="230" text-anchor="middle" class="annotation" fill="#1565C0">Memorization</text>
+
+  <!-- Optimal zone -->
+  <text x="340" y="200" text-anchor="middle" class="annotation" fill="#2E7D32" font-weight="600">Optimal</text>
+  <text x="340" y="215" text-anchor="middle" class="annotation" fill="#2E7D32">Balance</text>
+
+  <!-- Key insights box -->
+  <rect x="120" y="100" width="200" height="95" fill="white" stroke="#333" stroke-width="1" rx="5" opacity="0.95"/>
+  <text x="130" y="120" class="annotation" font-weight="600">Key Trade-offs:</text>
+  <text x="130" y="138" class="annotation">• λ = 0: Perfect fit on train data,</text>
+  <text x="135" y="153" class="annotation">but overfits (high variance)</text>
+  <text x="130" y="171" class="annotation">• λ too high: Underfits train data,</text>
+  <text x="135" y="186" class="annotation">poor generalization (high bias)</text>
+</svg>
