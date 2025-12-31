@@ -1,0 +1,136 @@
+<svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      text {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+        fill: #000000;
+      }
+      @media (prefers-color-scheme: dark) {
+        text { fill: #ffffff; }
+        .axis-line { stroke: #ffffff; }
+        .grid-line { stroke: #444444; }
+      }
+      .axis-line { stroke: #000000; stroke-width: 2; }
+      .grid-line { stroke: #cccccc; stroke-width: 1; stroke-dasharray: 4,4; }
+      .arrow { fill: none; stroke: #000000; stroke-width: 2; }
+      @media (prefers-color-scheme: dark) {
+        .arrow { stroke: #ffffff; }
+      }
+      .title { font-size: 20px; font-weight: 700; }
+      .axis-label { font-size: 16px; font-weight: 600; }
+      .label { font-size: 14px; font-weight: 600; }
+      .annotation { font-size: 12px; font-style: italic; }
+      .bar-dp { fill: #81C784; }
+      .bar-tp { fill: #4A90A4; }
+      .bar-pp { fill: #FFB74D; }
+      .bar-fsdp { fill: #E57373; }
+      .outline { stroke: #333333; stroke-width: 1; }
+      @media (prefers-color-scheme: dark) {
+        .outline { stroke: #cccccc; }
+      }
+    </style>
+  </defs>
+
+  <!-- Title -->
+  <text x="400" y="30" text-anchor="middle" class="title">Communication vs Computation Trade-offs</text>
+  <text x="400" y="50" text-anchor="middle" class="annotation">Lower is better for both metrics</text>
+
+  <!-- Axes -->
+  <line x1="80" y1="520" x2="750" y2="520" class="axis-line"/>
+  <line x1="80" y1="520" x2="80" y2="70" class="axis-line"/>
+
+  <!-- Arrows -->
+  <path d="M 750 520 L 740 515 M 750 520 L 740 525" class="arrow"/>
+  <path d="M 80 70 L 75 80 M 80 70 L 85 80" class="arrow"/>
+
+  <!-- Axis labels -->
+  <text x="415" y="560" text-anchor="middle" class="axis-label">Communication Overhead →</text>
+  <text x="40" y="300" text-anchor="middle" class="axis-label" transform="rotate(-90 40 300)">Memory Pressure →</text>
+
+  <!-- Grid lines -->
+  <line x1="80" y1="420" x2="750" y2="420" class="grid-line"/>
+  <line x1="80" y1="320" x2="750" y2="320" class="grid-line"/>
+  <line x1="80" y1="220" x2="750" y2="220" class="grid-line"/>
+  <line x1="80" y1="120" x2="750" y2="120" class="grid-line"/>
+
+  <line x1="250" y1="520" x2="250" y2="70" class="grid-line"/>
+  <line x1="420" y1="520" x2="420" y2="70" class="grid-line"/>
+  <line x1="590" y1="520" x2="590" y2="70" class="grid-line"/>
+
+  <!-- Strategy 1: Data Parallelism (DP) -->
+  <circle cx="200" cy="450" r="60" class="bar-dp" opacity="0.7"/>
+  <circle cx="200" cy="450" r="60" class="outline" fill="none"/>
+  <text x="200" y="445" text-anchor="middle" class="label">DP</text>
+  <text x="200" y="465" text-anchor="middle" class="annotation">Low comm.</text>
+  <text x="200" y="480" text-anchor="middle" class="annotation">High memory</text>
+
+  <!-- Communication pattern -->
+  <text x="200" y="540" text-anchor="middle" font-size="11">All-reduce gradients</text>
+  <text x="200" y="555" text-anchor="middle" font-size="11">once per step</text>
+
+  <!-- Strategy 2: Pipeline Parallelism (PP) -->
+  <circle cx="350" cy="320" r="60" class="bar-pp" opacity="0.7"/>
+  <circle cx="350" cy="320" r="60" class="outline" fill="none"/>
+  <text x="350" y="315" text-anchor="middle" class="label">PP</text>
+  <text x="350" y="335" text-anchor="middle" class="annotation">Low comm.</text>
+  <text x="350" y="350" text-anchor="middle" class="annotation">Med. memory</text>
+
+  <!-- Communication pattern -->
+  <text x="350" y="400" text-anchor="middle" font-size="11">Point-to-point</text>
+  <text x="350" y="415" text-anchor="middle" font-size="11">Pipeline bubbles</text>
+
+  <!-- Strategy 3: FSDP/ZeRO-3 -->
+  <circle cx="530" cy="180" r="60" class="bar-fsdp" opacity="0.7"/>
+  <circle cx="530" cy="180" r="60" class="outline" fill="none"/>
+  <text x="530" y="175" text-anchor="middle" class="label">FSDP</text>
+  <text x="530" y="190" text-anchor="middle" class="label">ZeRO-3</text>
+  <text x="530" y="210" text-anchor="middle" class="annotation">Med-high comm.</text>
+  <text x="530" y="225" text-anchor="middle" class="annotation">Low memory</text>
+
+  <!-- Communication pattern -->
+  <text x="530" y="265" text-anchor="middle" font-size="11">All-gather params</text>
+  <text x="530" y="280" text-anchor="middle" font-size="11">per layer</text>
+
+  <!-- Strategy 4: Tensor Parallelism (TP) -->
+  <circle cx="650" cy="140" r="60" class="bar-tp" opacity="0.7"/>
+  <circle cx="650" cy="140" r="60" class="outline" fill="none"/>
+  <text x="650" y="135" text-anchor="middle" class="label">TP</text>
+  <text x="650" y="155" text-anchor="middle" class="annotation">High comm.</text>
+  <text x="650" y="170" text-anchor="middle" class="annotation">Low memory</text>
+
+  <!-- Communication pattern -->
+  <text x="650" y="220" text-anchor="middle" font-size="11">All-reduce activations</text>
+  <text x="650" y="235" text-anchor="middle" font-size="11">2× per layer</text>
+
+  <!-- Annotations for key insights -->
+  <rect x="85" y="85" width="300" height="90" fill="none" stroke="#888888" stroke-width="1" rx="5"/>
+  <text x="235" y="105" text-anchor="middle" font-size="13" font-weight="600">Key Trade-offs:</text>
+  <text x="100" y="125" font-size="11">• DP: Gradient sync = 2Θ bytes once/step</text>
+  <text x="100" y="145" font-size="11">• TP: Activation sync = 2BSd bytes 2×/layer</text>
+  <text x="100" y="165" font-size="11">• PP: Point-to-point = BSd bytes/microbatch</text>
+
+  <!-- Interconnect requirements -->
+  <rect x="420" y="430" width="310" height="75" fill="none" stroke="#888888" stroke-width="1" rx="5"/>
+  <text x="575" y="450" text-anchor="middle" font-size="13" font-weight="600">Interconnect Requirements:</text>
+  <text x="435" y="470" font-size="11">• DP: InfiniBand OK (low freq, high volume)</text>
+  <text x="435" y="490" font-size="11">• TP: NVLink needed (high freq, low latency)</text>
+
+  <!-- Ideal use case arrow -->
+  <path d="M 120 480 L 180 460" stroke="#2E7D32" stroke-width="2" fill="none" marker-end="url(#arrowhead-green)"/>
+  <text x="90" y="495" font-size="11" fill="#2E7D32" font-weight="600">Best for</text>
+  <text x="90" y="508" font-size="11" fill="#2E7D32" font-weight="600">small models</text>
+
+  <path d="M 700 100 L 670 125" stroke="#1565C0" stroke-width="2" fill="none" marker-end="url(#arrowhead-blue)"/>
+  <text x="705" y="95" font-size="11" fill="#1565C0" font-weight="600">Best for</text>
+  <text x="705" y="108" font-size="11" fill="#1565C0" font-weight="600">largest models</text>
+
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrowhead-green" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#2E7D32"/>
+    </marker>
+    <marker id="arrowhead-blue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#1565C0"/>
+    </marker>
+  </defs>
+</svg>

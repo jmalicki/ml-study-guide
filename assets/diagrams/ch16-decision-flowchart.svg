@@ -1,0 +1,149 @@
+<svg viewBox="0 0 800 900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      text {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+        fill: #000000;
+      }
+      @media (prefers-color-scheme: dark) {
+        text { fill: #ffffff; }
+        .decision-box { fill: #4A90A4; stroke: #2C5F7A; }
+        .action-box { fill: #81C784; stroke: #4CAF50; }
+        .warning-box { fill: #FFB74D; stroke: #F57C00; }
+        .final-box { fill: #E57373; stroke: #C62828; }
+        .connector { stroke: #ffffff; }
+      }
+      .title { font-size: 22px; font-weight: 700; }
+      .box-title { font-size: 14px; font-weight: 600; }
+      .box-text { font-size: 12px; }
+      .label-yes { font-size: 11px; font-weight: 600; fill: #2E7D32; }
+      .label-no { font-size: 11px; font-weight: 600; fill: #C62828; }
+      .decision-box { fill: #E3F2FD; stroke: #1976D2; stroke-width: 2; }
+      .action-box { fill: #E8F5E9; stroke: #388E3C; stroke-width: 2; }
+      .warning-box { fill: #FFF3E0; stroke: #F57C00; stroke-width: 2; }
+      .final-box { fill: #FFEBEE; stroke: #C62828; stroke-width: 2; }
+      .connector { stroke: #333333; stroke-width: 2; fill: none; }
+      .arrow-marker { fill: #333333; }
+      @media (prefers-color-scheme: dark) {
+        .arrow-marker { fill: #ffffff; }
+      }
+    </style>
+
+    <!-- Arrow marker -->
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" class="arrow-marker"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="400" y="30" text-anchor="middle" class="title">Parallelism Strategy Decision Flowchart</text>
+  <text x="400" y="50" text-anchor="middle" font-size="14" font-style="italic">Choose the right parallelism approach for your model</text>
+
+  <!-- Start: Model size check -->
+  <rect x="250" y="80" width="300" height="80" rx="10" class="decision-box"/>
+  <text x="400" y="105" text-anchor="middle" class="box-title">Does model fit in single GPU?</text>
+  <text x="400" y="125" text-anchor="middle" class="box-text">(~14GB for 7B params with mixed precision)</text>
+  <text x="400" y="145" text-anchor="middle" class="box-text">Model memory ≈ 16 × params (bytes)</text>
+
+  <!-- YES -> Data Parallelism -->
+  <path d="M 400 160 L 400 200" class="connector" marker-end="url(#arrowhead)"/>
+  <text x="420" y="185" class="label-yes">YES</text>
+
+  <rect x="280" y="200" width="240" height="70" rx="8" class="action-box"/>
+  <text x="400" y="225" text-anchor="middle" class="box-title">Use Data Parallelism (DP/DDP)</text>
+  <text x="400" y="245" text-anchor="middle" class="box-text">Simplest, fastest training</text>
+  <text x="400" y="260" text-anchor="middle" class="box-text">Scales linearly with GPUs</text>
+
+  <!-- NO -> Check ZeRO-3 -->
+  <path d="M 550 120 L 650 120 L 650 320" class="connector" marker-end="url(#arrowhead)"/>
+  <text x="660" y="115" class="label-no">NO</text>
+
+  <rect x="580" y="320" width="180" height="80" rx="10" class="decision-box"/>
+  <text x="670" y="345" text-anchor="middle" class="box-title">Does it fit with</text>
+  <text x="670" y="365" text-anchor="middle" class="box-title">ZeRO-3/FSDP?</text>
+  <text x="670" y="385" text-anchor="middle" class="box-text">(Shard all states)</text>
+
+  <!-- YES -> Use FSDP -->
+  <path d="M 670 400 L 670 440" class="connector" marker-end="url(#arrowhead)"/>
+  <text x="690" y="425" class="label-yes">YES</text>
+
+  <rect x="570" y="440" width="200" height="80" rx="8" class="action-box"/>
+  <text x="670" y="465" text-anchor="middle" class="box-title">Use FSDP/ZeRO-3</text>
+  <text x="670" y="485" text-anchor="middle" class="box-text">Most memory-efficient</text>
+  <text x="670" y="500" text-anchor="middle" class="box-text">Good for 13B-70B models</text>
+  <text x="670" y="515" text-anchor="middle" class="box-text">on modest GPU clusters</text>
+
+  <!-- NO -> Check fast interconnect -->
+  <path d="M 580 360 L 450 360 L 450 420" class="connector" marker-end="url(#arrowhead)"/>
+  <text x="460" y="355" class="label-no">NO</text>
+
+  <rect x="290" y="420" width="220" height="80" rx="10" class="decision-box"/>
+  <text x="400" y="445" text-anchor="middle" class="box-title">Do you have fast</text>
+  <text x="400" y="465" text-anchor="middle" class="box-title">interconnect (NVLink)?</text>
+  <text x="400" y="485" text-anchor="middle" class="box-text">Within-node communication</text>
+
+  <!-- YES -> Use Tensor Parallelism -->
+  <path d="M 400 500 L 400 540" class="connector" marker-end="url(#arrowhead)"/>
+  <text x="420" y="525" class="label-yes">YES</text>
+
+  <rect x="280" y="540" width="240" height="80" rx="8" class="warning-box"/>
+  <text x="400" y="565" text-anchor="middle" class="box-title">Add Tensor Parallelism (TP)</text>
+  <text x="400" y="585" text-anchor="middle" class="box-text">Split layers horizontally</text>
+  <text x="400" y="600" text-anchor="middle" class="box-text">Typically 4-8 way split</text>
+  <text x="400" y="615" text-anchor="middle" class="box-text">Requires NVLink/high-speed</text>
+
+  <!-- Check if still need more -->
+  <path d="M 400 620 L 400 660" class="connector" marker-end="url(#arrowhead)"/>
+
+  <rect x="300" y="660" width="200" height="60" rx="10" class="decision-box"/>
+  <text x="400" y="680" text-anchor="middle" class="box-title">Still need more</text>
+  <text x="400" y="700" text-anchor="middle" class="box-title">parallelism?</text>
+
+  <!-- YES -> Add Pipeline Parallelism -->
+  <path d="M 400 720 L 400 760" class="connector" marker-end="url(#arrowhead)"/>
+  <text x="420" y="745" class="label-yes">YES</text>
+
+  <rect x="250" y="760" width="300" height="100" rx="8" class="final-box"/>
+  <text x="400" y="785" text-anchor="middle" class="box-title">Use 3D Parallelism</text>
+  <text x="400" y="805" text-anchor="middle" class="box-title">(TP + PP + DP)</text>
+  <text x="400" y="825" text-anchor="middle" class="box-text">For largest models (100B+ params)</text>
+  <text x="400" y="840" text-anchor="middle" class="box-text">Example: GPT-3 used P=8, T=8, D=16</text>
+  <text x="400" y="855" text-anchor="middle" class="box-text">Combine all three strategies</text>
+
+  <!-- NO from "still need more" -> Done with TP -->
+  <path d="M 500 690 L 580 690" class="connector" marker-end="url(#arrowhead)"/>
+  <text x="530" y="685" class="label-no">NO</text>
+
+  <rect x="580" y="660" width="180" height="60" rx="8" class="action-box"/>
+  <text x="670" y="680" text-anchor="middle" class="box-title">TP + DP is sufficient</text>
+  <text x="670" y="700" text-anchor="middle" class="box-text">Good for most use cases</text>
+
+  <!-- NO from fast interconnect -> Use Pipeline -->
+  <path d="M 290 460 L 180 460 L 180 590" class="connector" marker-end="url(#arrowhead)"/>
+  <text x="185" y="455" class="label-no">NO</text>
+
+  <rect x="40" y="590" width="200" height="80" rx="8" class="warning-box"/>
+  <text x="140" y="615" text-anchor="middle" class="box-title">Use Pipeline Parallelism (PP)</text>
+  <text x="140" y="635" text-anchor="middle" class="box-text">Split layers across devices</text>
+  <text x="140" y="650" text-anchor="middle" class="box-text">Accept bubble overhead</text>
+  <text x="140" y="665" text-anchor="middle" class="box-text">~50-70% efficiency</text>
+
+  <!-- Key considerations box -->
+  <rect x="40" y="80" width="180" height="160" rx="5" fill="none" stroke="#888888" stroke-width="1"/>
+  <text x="130" y="100" text-anchor="middle" font-size="13" font-weight="600">Key Factors:</text>
+  <text x="50" y="120" font-size="11">• Model size</text>
+  <text x="50" y="138" font-size="11">• GPU memory</text>
+  <text x="50" y="156" font-size="11">• Number of GPUs</text>
+  <text x="50" y="174" font-size="11">• Interconnect speed</text>
+  <text x="50" y="192" font-size="11">• Batch size needs</text>
+  <text x="50" y="210" font-size="11">• Training timeline</text>
+  <text x="50" y="228" font-size="11">• Code complexity</text>
+
+  <!-- Memory calculation reference -->
+  <rect x="40" y="760" width="180" height="100" rx="5" fill="none" stroke="#888888" stroke-width="1"/>
+  <text x="130" y="780" text-anchor="middle" font-size="12" font-weight="600">Memory Formula:</text>
+  <text x="50" y="800" font-size="11">Training memory ≈</text>
+  <text x="50" y="815" font-size="11">  16 × params (bytes)</text>
+  <text x="50" y="835" font-size="11">Example:</text>
+  <text x="50" y="850" font-size="11">  70B × 16 = 1120 GB</text>
+</svg>
