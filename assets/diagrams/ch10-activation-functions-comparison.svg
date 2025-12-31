@@ -13,8 +13,12 @@
       .relu { stroke: #4A90A4; stroke-width: 2.5; fill: none; }
       .gelu { stroke: #E57373; stroke-width: 2.5; fill: none; }
       .silu { stroke: #81C784; stroke-width: 2.5; fill: none; }
+      .geglu { stroke: #FF7043; stroke-width: 2.5; fill: none; }
       .sigmoid { stroke: #FFB74D; stroke-width: 2.5; fill: none; }
       .tanh { stroke: #9575CD; stroke-width: 2.5; fill: none; }
+      .annotation-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11px; fill: #666; font-style: italic; }
+      .annotation-line { stroke: #999; stroke-width: 1; stroke-dasharray: 3,3; }
+      .annotation-dot { fill: #E57373; }
 
       /* Dark mode support */
       @media (prefers-color-scheme: dark) {
@@ -25,6 +29,8 @@
         .title { fill: #ffffff; }
         .legend-text { fill: #cccccc; }
         .legend-box { fill: rgba(26, 26, 26, 0.9); stroke: #666; }
+        .annotation-text { fill: #aaaaaa; }
+        .annotation-line { stroke: #888; }
       }
     </style>
   </defs>
@@ -33,26 +39,30 @@
   <text x="400" y="30" class="title" text-anchor="middle">Activation Functions Comparison</text>
 
   <!-- Plot area coordinates: x from 80 to 680, y from 80 to 420 -->
-  <!-- Data range: x from -4 to 4, y from -2 to 4 -->
+  <!-- Data range: x from -6 to 4, y from -0.5 to 4.5 -->
 
   <!-- Grid lines (vertical) -->
-  <line x1="155" y1="80" x2="155" y2="420" class="grid-line"/>
-  <line x1="230" y1="80" x2="230" y2="420" class="grid-line"/>
-  <line x1="305" y1="80" x2="305" y2="420" class="grid-line"/>
+  <line x1="140" y1="80" x2="140" y2="420" class="grid-line"/>
+  <line x1="200" y1="80" x2="200" y2="420" class="grid-line"/>
+  <line x1="260" y1="80" x2="260" y2="420" class="grid-line"/>
+  <line x1="320" y1="80" x2="320" y2="420" class="grid-line"/>
   <line x1="380" y1="80" x2="380" y2="420" class="grid-line"/>
-  <line x1="455" y1="80" x2="455" y2="420" class="grid-line"/>
-  <line x1="530" y1="80" x2="530" y2="420" class="grid-line"/>
-  <line x1="605" y1="80" x2="605" y2="420" class="grid-line"/>
+  <line x1="440" y1="80" x2="440" y2="420" class="grid-line"/>
+  <line x1="500" y1="80" x2="500" y2="420" class="grid-line"/>
+  <line x1="560" y1="80" x2="560" y2="420" class="grid-line"/>
+  <line x1="620" y1="80" x2="620" y2="420" class="grid-line"/>
   <line x1="680" y1="80" x2="680" y2="420" class="grid-line"/>
 
   <!-- Grid lines (horizontal) -->
   <line x1="80" y1="80" x2="680" y2="80" class="grid-line"/>
-  <line x1="80" y1="137" x2="680" y2="137" class="grid-line"/>
-  <line x1="80" y1="194" x2="680" y2="194" class="grid-line"/>
-  <line x1="80" y1="251" x2="680" y2="251" class="grid-line"/>
-  <line x1="80" y1="308" x2="680" y2="308" class="grid-line"/>
-  <line x1="80" y1="365" x2="680" y2="365" class="grid-line"/>
+  <line x1="80" y1="148" x2="680" y2="148" class="grid-line"/>
+  <line x1="80" y1="216" x2="680" y2="216" class="grid-line"/>
+  <line x1="80" y1="284" x2="680" y2="284" class="grid-line"/>
+  <line x1="80" y1="352" x2="680" y2="352" class="grid-line"/>
   <line x1="80" y1="420" x2="680" y2="420" class="grid-line"/>
+
+  <!-- Horizontal line at y=0 (dashed) -->
+  <line x1="80" y1="352" x2="680" y2="352" stroke="#999" stroke-width="1.5" stroke-dasharray="5,5" opacity="0.7"/>
 
   <!-- Axes -->
   <line x1="80" y1="420" x2="680" y2="420" class="axis"/>
@@ -60,50 +70,53 @@
 
   <!-- X-axis ticks and labels -->
   <line x1="80" y1="420" x2="80" y2="425" class="axis"/>
-  <text x="80" y="445" class="tick-label" text-anchor="middle">-4</text>
+  <text x="80" y="445" class="tick-label" text-anchor="middle">-6</text>
 
-  <line x1="155" y1="420" x2="155" y2="425" class="axis"/>
-  <text x="155" y="445" class="tick-label" text-anchor="middle">-3</text>
+  <line x1="140" y1="420" x2="140" y2="425" class="axis"/>
+  <text x="140" y="445" class="tick-label" text-anchor="middle">-5</text>
 
-  <line x1="230" y1="420" x2="230" y2="425" class="axis"/>
-  <text x="230" y="445" class="tick-label" text-anchor="middle">-2</text>
+  <line x1="200" y1="420" x2="200" y2="425" class="axis"/>
+  <text x="200" y="445" class="tick-label" text-anchor="middle">-4</text>
 
-  <line x1="305" y1="420" x2="305" y2="425" class="axis"/>
-  <text x="305" y="445" class="tick-label" text-anchor="middle">-1</text>
+  <line x1="260" y1="420" x2="260" y2="425" class="axis"/>
+  <text x="260" y="445" class="tick-label" text-anchor="middle">-3</text>
+
+  <line x1="320" y1="420" x2="320" y2="425" class="axis"/>
+  <text x="320" y="445" class="tick-label" text-anchor="middle">-2</text>
 
   <line x1="380" y1="420" x2="380" y2="425" class="axis"/>
-  <text x="380" y="445" class="tick-label" text-anchor="middle">0</text>
+  <text x="380" y="445" class="tick-label" text-anchor="middle">-1</text>
 
-  <line x1="455" y1="420" x2="455" y2="425" class="axis"/>
-  <text x="455" y="445" class="tick-label" text-anchor="middle">1</text>
+  <line x1="440" y1="420" x2="440" y2="425" class="axis"/>
+  <text x="440" y="445" class="tick-label" text-anchor="middle">0</text>
 
-  <line x1="530" y1="420" x2="530" y2="425" class="axis"/>
-  <text x="530" y="445" class="tick-label" text-anchor="middle">2</text>
+  <line x1="500" y1="420" x2="500" y2="425" class="axis"/>
+  <text x="500" y="445" class="tick-label" text-anchor="middle">1</text>
 
-  <line x1="605" y1="420" x2="605" y2="425" class="axis"/>
-  <text x="605" y="445" class="tick-label" text-anchor="middle">3</text>
+  <line x1="560" y1="420" x2="560" y2="425" class="axis"/>
+  <text x="560" y="445" class="tick-label" text-anchor="middle">2</text>
+
+  <line x1="620" y1="420" x2="620" y2="425" class="axis"/>
+  <text x="620" y="445" class="tick-label" text-anchor="middle">3</text>
 
   <line x1="680" y1="420" x2="680" y2="425" class="axis"/>
   <text x="680" y="445" class="tick-label" text-anchor="middle">4</text>
 
   <!-- Y-axis ticks and labels -->
   <line x1="75" y1="420" x2="80" y2="420" class="axis"/>
-  <text x="65" y="424" class="tick-label" text-anchor="end">-2</text>
+  <text x="65" y="424" class="tick-label" text-anchor="end">-0.5</text>
 
-  <line x1="75" y1="365" x2="80" y2="365" class="axis"/>
-  <text x="65" y="369" class="tick-label" text-anchor="end">-1</text>
+  <line x1="75" y1="352" x2="80" y2="352" class="axis"/>
+  <text x="65" y="356" class="tick-label" text-anchor="end">0</text>
 
-  <line x1="75" y1="308" x2="80" y2="308" class="axis"/>
-  <text x="65" y="312" class="tick-label" text-anchor="end">0</text>
+  <line x1="75" y1="284" x2="80" y2="284" class="axis"/>
+  <text x="65" y="288" class="tick-label" text-anchor="end">1</text>
 
-  <line x1="75" y1="251" x2="80" y2="251" class="axis"/>
-  <text x="65" y="255" class="tick-label" text-anchor="end">1</text>
+  <line x1="75" y1="216" x2="80" y2="216" class="axis"/>
+  <text x="65" y="220" class="tick-label" text-anchor="end">2</text>
 
-  <line x1="75" y1="194" x2="80" y2="194" class="axis"/>
-  <text x="65" y="198" class="tick-label" text-anchor="end">2</text>
-
-  <line x1="75" y1="137" x2="80" y2="137" class="axis"/>
-  <text x="65" y="141" class="tick-label" text-anchor="end">3</text>
+  <line x1="75" y1="148" x2="80" y2="148" class="axis"/>
+  <text x="65" y="152" class="tick-label" text-anchor="end">3</text>
 
   <line x1="75" y1="80" x2="80" y2="80" class="axis"/>
   <text x="65" y="84" class="tick-label" text-anchor="end">4</text>
@@ -113,24 +126,29 @@
   <text x="30" y="250" class="axis-label" text-anchor="middle" transform="rotate(-90 30 250)">Output</text>
 
   <!-- ReLU: max(0, x) -->
-  <polyline class="relu" points="80,308 155,308 230,308 305,308 380,308 455,251 530,194 605,137 680,80"/>
+  <polyline class="relu" points="80,352 140,352 200,352 260,352 320,352 380,352 440,352 500,284 560,216 620,148 680,80"/>
 
   <!-- GELU: approximation using tanh formula -->
   <!-- GELU(x) ≈ 0.5x(1 + tanh(sqrt(2/pi)(x + 0.044715x^3))) -->
-  <polyline class="gelu" points="80,420 97.5,413 115,405 132.5,395 150,383 167.5,370 185,355 202.5,338 220,320 237.5,302 255,284 272.5,267 290,251 307.5,236 325,223 342.5,211 360,201 377.5,193 395,187 412.5,183 430,180 447.5,178 465,178 482.5,179 500,182 517.5,186 535,192 552.5,199 570,207 587.5,217 605,228 622.5,240 640,253 657.5,267 675,281 692.5,296"/>
+  <!-- Minimum around x=-0.85, y=-0.17 -->
+  <polyline class="gelu" points="80,352 86,352 92,352 98,352 104,352 110,352 116,352 122,352 128,352 134,352 140,352 146,352 152,352 158,352 164,352 170,352 176,352 182,352 188,352 194,352 200,352 206,352 212,352 218,352 224,352 230,352 236,352 242,352 248,352 254,352 260,352 266,352 272,352 278,353 284,353 290,353 296,353 302,354 308,354 314,355 320,355 326,356 332,356 338,357 344,358 350,359 356,360 362,361 368,361 374,362 380,363 386,363 392,364 398,364 404,363 410,362 416,361 422,360 428,358 434,355 440,352 446,348 452,344 458,339 464,334 470,328 476,322 482,316 488,309 494,302 500,295 506,287 512,280 518,272 524,265 530,257 536,249 542,242 548,234 554,227 560,219 566,212 572,204 578,197 584,190 590,183 596,176 602,169 608,162 614,155 620,148 626,141 632,135 638,128 644,121 650,114 656,107 662,100 668,94 674,87 680,80"/>
 
   <!-- SiLU/Swish: x * sigmoid(x) = x / (1 + exp(-x)) -->
-  <polyline class="silu" points="80,420 97.5,413 115,405 132.5,396 150,386 167.5,374 185,361 202.5,346 220,331 237.5,315 255,299 272.5,283 290,267 307.5,252 325,238 342.5,226 360,214 377.5,204 395,196 412.5,189 430,183 447.5,179 465,176 482.5,174 500,174 517.5,175 535,178 552.5,182 570,188 587.5,195 605,203 622.5,213 640,224 657.5,236 675,249 692.5,263"/>
+  <!-- Minimum around x=-1.28, y=-0.28 -->
+  <polyline class="silu" points="80,353 86,353 92,353 98,353 104,353 110,354 116,354 122,354 128,354 134,354 140,354 146,354 152,355 158,355 164,355 170,355 176,356 182,356 188,356 194,357 200,357 206,357 212,358 218,358 224,359 230,359 236,359 242,360 248,361 254,361 260,362 266,362 272,363 278,364 284,364 290,365 296,366 302,366 308,367 314,368 320,368 326,369 332,369 338,370 344,370 350,371 356,371 362,371 368,371 374,371 380,370 386,370 392,369 398,368 404,366 410,365 416,363 422,361 428,358 434,355 440,352 446,348 452,345 458,340 464,336 470,331 476,326 482,320 488,314 494,308 500,302 506,296 512,289 518,283 524,276 530,269 536,261 542,254 548,247 554,240 560,232 566,225 572,217 578,210 584,202 590,195 596,187 602,180 608,173 614,165 620,158 626,150 632,143 638,136 644,128 650,121 656,114 662,106 668,99 674,92 680,85"/>
+
+  <!-- GEGLU: x * GELU(x) -->
+  <polyline class="geglu" points="80,352 86,352 92,352 98,352 104,352 110,352 116,352 122,352 128,352 134,352 140,352 146,352 152,352 158,352 164,352 170,352 176,352 182,352 188,352 194,352 200,352 206,352 212,352 218,352 224,352 230,352 236,352 242,352 248,352 254,351 260,351 266,351 272,351 278,350 284,350 290,349 296,349 302,348 308,347 314,347 320,346 326,345 332,344 338,343 344,342 350,342 356,341 362,341 368,341 374,341 380,341 386,342 392,343 398,344 404,345 410,347 416,348 422,350 428,351 434,352 440,352 446,352 452,350 458,348 464,345 470,340 476,334 482,327 488,318 494,307 500,295 506,281 512,265 518,248 524,230 530,209 536,187 542,164 548,140 554,114 560,86 566,57 572,27 578,-4 584,-37 590,-70 596,-106 602,-142 608,-180 614,-219 620,-259 626,-301 632,-344 638,-388 644,-434 650,-481 656,-529 662,-579 668,-630 674,-682 680,-736"/>
 
   <!-- Sigmoid: 1 / (1 + exp(-x)) -->
-  <polyline class="sigmoid" points="80,308 97.5,308 115,307 132.5,306 150,305 167.5,303 185,301 202.5,298 220,294 237.5,290 255,285 272.5,279 290,272 307.5,264 325,255 342.5,245 360,234 377.5,223 395,211 412.5,199 430,187 447.5,176 465,165 482.5,154 500,145 517.5,136 535,128 552.5,121 570,115 587.5,109 605,104 622.5,100 640,97 657.5,94 675,92 692.5,90"/>
+  <polyline class="sigmoid" points="80,352 86,352 92,352 98,352 104,352 110,352 116,352 122,352 128,352 134,352 140,352 146,351 152,351 158,351 164,351 170,351 176,351 182,351 188,351 194,351 200,351 206,351 212,351 218,350 224,350 230,350 236,350 242,350 248,349 254,349 260,349 266,348 272,348 278,348 284,347 290,347 296,346 302,346 308,345 314,345 320,344 326,343 332,342 338,341 344,341 350,340 356,339 362,337 368,336 374,335 380,334 386,332 392,331 398,329 404,328 410,326 416,325 422,323 428,321 434,320 440,318 446,316 452,315 458,313 464,311 470,310 476,308 482,307 488,305 494,304 500,302 506,301 512,300 518,299 524,297 530,296 536,295 542,295 548,294 554,293 560,292 566,291 572,291 578,290 584,290 590,289 596,289 602,288 608,288 614,288 620,287 626,287 632,287 638,286 644,286 650,286 656,286 662,286 668,285 674,285 680,285"/>
 
   <!-- Tanh: (exp(x) - exp(-x)) / (exp(x) + exp(-x)) -->
-  <polyline class="tanh" points="80,365 97.5,364 115,363 132.5,362 150,360 167.5,357 185,353 202.5,348 220,342 237.5,335 255,326 272.5,316 290,304 307.5,291 325,276 342.5,260 360,243 377.5,225 395,207 412.5,189 430,172 447.5,156 465,141 482.5,128 500,116 517.5,106 535,97 552.5,90 570,84 587.5,79 605,76 622.5,73 640,71 657.5,70 675,69 692.5,69"/>
+  <polyline class="tanh" points="80,420 86,420 92,420 98,420 104,420 110,420 116,420 122,420 128,420 134,420 140,420 146,420 152,420 158,420 164,420 170,420 176,420 182,420 188,420 194,420 200,420 206,420 212,420 218,420 224,420 230,420 236,420 242,420 248,420 254,420 260,420 266,420 272,419 278,419 284,419 290,419 296,419 302,419 308,418 314,418 320,418 326,417 332,416 338,416 344,415 350,414 356,412 362,411 368,409 374,406 380,404 386,401 392,397 398,393 404,389 410,383 416,378 422,372 428,365 434,359 440,352 446,345 452,339 458,332 464,326 470,321 476,315 482,311 488,307 494,303 500,300 506,298 512,295 518,293 524,292 530,290 536,289 542,288 548,288 554,287 560,286 566,286 572,286 578,285 584,285 590,285 596,285 602,285 608,285 614,284 620,284 626,284 632,284 638,284 644,284 650,284 656,284 662,284 668,284 674,284 680,284"/>
 
   <!-- Legend -->
-  <g transform="translate(550, 380)">
-    <rect x="0" y="0" width="120" height="110" class="legend-box" rx="5"/>
+  <g transform="translate(550, 362)">
+    <rect x="0" y="0" width="120" height="128" class="legend-box" rx="5"/>
 
     <!-- ReLU -->
     <line x1="10" y1="15" x2="30" y2="15" class="relu"/>
@@ -144,12 +162,31 @@
     <line x1="10" y1="51" x2="30" y2="51" class="silu"/>
     <text x="35" y="55" class="legend-text">SiLU</text>
 
+    <!-- GEGLU -->
+    <line x1="10" y1="69" x2="30" y2="69" class="geglu"/>
+    <text x="35" y="73" class="legend-text">GEGLU</text>
+
     <!-- Sigmoid -->
-    <line x1="10" y1="69" x2="30" y2="69" class="sigmoid"/>
-    <text x="35" y="73" class="legend-text">Sigmoid</text>
+    <line x1="10" y1="87" x2="30" y2="87" class="sigmoid"/>
+    <text x="35" y="91" class="legend-text">Sigmoid</text>
 
     <!-- Tanh -->
-    <line x1="10" y1="87" x2="30" y2="87" class="tanh"/>
-    <text x="35" y="91" class="legend-text">Tanh</text>
+    <line x1="10" y1="105" x2="30" y2="105" class="tanh"/>
+    <text x="35" y="109" class="legend-text">Tanh</text>
   </g>
+
+  <!-- Annotations -->
+  <!-- Annotation: SiLU/GELU minimum point -->
+  <!-- Minimum around x=-1.28, y=-0.28 => SVG approximately (363, 371) -->
+  <circle cx="363" cy="371" r="3" class="annotation-dot"/>
+  <line x1="363" y1="371" x2="310" y2="410" class="annotation-line"/>
+  <text x="305" y="415" class="annotation-text" text-anchor="end">min ≈ -0.28</text>
+
+  <!-- Annotation: Approach to zero for large negative x -->
+  <!-- Point at x=-5.5 => SVG x ≈ 110 -->
+  <text x="150" y="395" class="annotation-text" text-anchor="middle">GELU, SiLU → 0</text>
+  <text x="150" y="407" class="annotation-text" text-anchor="middle">as x → -∞</text>
+
+  <!-- Annotation: y=0 line label -->
+  <text x="690" y="356" class="annotation-text" text-anchor="start">y = 0</text>
 </svg>
