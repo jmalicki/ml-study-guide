@@ -2,48 +2,32 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
   <defs>
     <style>
+      /* Default (light mode) */
       .grid-line { stroke: #e0e0e0; stroke-width: 1; }
       .axis { stroke: #333; stroke-width: 2; }
       .axis-label { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; fill: #333; }
       .tick-label { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; fill: #666; }
       .title { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 18px; font-weight: 600; fill: #222; }
       .legend-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; fill: #333; }
+      .legend-box { fill: white; stroke: #ccc; stroke-width: 1; }
       .relu { stroke: #4A90A4; stroke-width: 2.5; fill: none; }
       .gelu { stroke: #E57373; stroke-width: 2.5; fill: none; }
       .silu { stroke: #81C784; stroke-width: 2.5; fill: none; }
       .sigmoid { stroke: #FFB74D; stroke-width: 2.5; fill: none; }
       .tanh { stroke: #9575CD; stroke-width: 2.5; fill: none; }
-    
+
       /* Dark mode support */
       @media (prefers-color-scheme: dark) {
-        text { fill: #ffffff; }
-        text[fill="#333"] { fill: #ffffff; }
-        text[fill="#666"] { fill: #cccccc; }
-        text[fill="#555"] { fill: #cccccc; }
-        text[fill="white"],
-        text[fill="#fff"] { fill: #ffffff; }
-
-        .title { fill: #ffffff; }
-        .subtitle { fill: #ffffff; }
-        .label { fill: #ffffff; }
-        .small-label { fill: #cccccc; }
-        .axis-label { fill: #cccccc; }
-        .small { fill: #cccccc; }
-        .annotation { fill: #cccccc; }
-
-        line[stroke="#333"] { stroke: #cccccc; }
-        rect[stroke="#333"] { stroke: #cccccc; }
-        rect[fill="white"] { fill: #1a1a1a; }
-        rect[fill="#ffffff"] { fill: #1a1a1a; }
-
-        .grid { stroke: #444444; }
+        .grid-line { stroke: #444444; }
         .axis { stroke: #cccccc; }
+        .axis-label { fill: #cccccc; }
+        .tick-label { fill: #aaaaaa; }
+        .title { fill: #ffffff; }
+        .legend-text { fill: #cccccc; }
+        .legend-box { fill: rgba(26, 26, 26, 0.9); stroke: #666; }
       }
     </style>
   </defs>
-
-  <!-- Background -->
-  <rect width="800" height="500" fill="white"/>
 
   <!-- Title -->
   <text x="400" y="30" class="title" text-anchor="middle">Activation Functions Comparison</text>
@@ -146,7 +130,7 @@
 
   <!-- Legend -->
   <g transform="translate(550, 380)">
-    <rect x="0" y="0" width="120" height="110" fill="white" stroke="#ccc" stroke-width="1" rx="5"/>
+    <rect x="0" y="0" width="120" height="110" class="legend-box" rx="5"/>
 
     <!-- ReLU -->
     <line x1="10" y1="15" x2="30" y2="15" class="relu"/>
