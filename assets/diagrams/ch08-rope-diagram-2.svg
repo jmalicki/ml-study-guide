@@ -35,6 +35,9 @@
       /* Darken colored backgrounds for better contrast with white text */
       rect[fill="#E3F2FD"] { fill: #2d5f6f; }
       rect[fill="#FFF3E0"] { fill: #9b6b2e; }
+
+      /* Handle #333 text in dark mode */
+      text[fill="#333"] { fill: #ffffff; }
     }
   </style><rect width="600" height="380" class="bg-main" rx="4" />
 

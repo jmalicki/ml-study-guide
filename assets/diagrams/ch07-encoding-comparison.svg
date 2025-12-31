@@ -41,6 +41,9 @@
       rect[fill="#78909C"] { fill: #455a64; }
       rect[fill="#A1887F"] { fill: #5d4e47; }
       rect[fill="#9E9E9E"] { fill: #424242; }
+
+      /* Handle #333 text in dark mode */
+      text[fill="#333"] { fill: #ffffff; }
     }
   </style><text x="450" y="30" text-anchor="middle" font-size="20" font-weight="bold" fill="#333">
     Positional Encoding Methods Comparison

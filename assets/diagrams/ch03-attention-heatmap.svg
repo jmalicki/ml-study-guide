@@ -74,31 +74,31 @@
   
   
   <rect x="140" y="110" width="60" height="45" fill="#4A90A4" opacity="0.7" stroke="#fff" stroke-width="1.5" />
-  <text x="170" y="137" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#fff" font-weight="bold">0.42</text>
+  <text x="170" y="137" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" style="fill: #fff !important" font-weight="bold">0.42</text>
   <rect x="210" y="110" width="60" height="45" fill="#4A90A4" opacity="0.5" stroke="#fff" stroke-width="1.5" />
-  <text x="240" y="137" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#fff">0.28</text>
+  <text x="240" y="137" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" style="fill: #fff !important">0.28</text>
   <rect x="280" y="110" width="60" height="45" fill="#E8EAF6" stroke="#fff" stroke-width="1.5" />
-  <text x="310" y="137" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#000">0.12</text>
+  <text x="310" y="137" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" style="fill: #000 !important">0.12</text>
   <rect x="350" y="110" width="60" height="45" fill="#E8EAF6" stroke="#fff" stroke-width="1.5" />
-  <text x="380" y="137" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#000">0.08</text>
+  <text x="380" y="137" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" style="fill: #000 !important">0.08</text>
   <rect x="420" y="110" width="60" height="45" fill="#E8EAF6" stroke="#fff" stroke-width="1.5" />
-  <text x="450" y="137" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#000">0.07</text>
+  <text x="450" y="137" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" style="fill: #000 !important">0.07</text>
   <rect x="490" y="110" width="60" height="45" fill="#E8EAF6" stroke="#fff" stroke-width="1.5" />
-  <text x="520" y="137" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#000">0.03</text>
+  <text x="520" y="137" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" style="fill: #000 !important">0.03</text>
 
   
   <rect x="140" y="165" width="60" height="45" fill="#4A90A4" opacity="0.6" stroke="#fff" stroke-width="1.5" />
-  <text x="170" y="192" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#fff">0.35</text>
+  <text x="170" y="192" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" style="fill: #fff !important">0.35</text>
   <rect x="210" y="165" width="60" height="45" fill="#1A4D5C" stroke="#fff" stroke-width="1.5" />
-  <text x="240" y="192" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#fff" font-weight="bold">0.48</text>
+  <text x="240" y="192" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" style="fill: #fff !important" font-weight="bold">0.48</text>
   <rect x="280" y="165" width="60" height="45" fill="#E8EAF6" stroke="#fff" stroke-width="1.5" />
-  <text x="310" y="192" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#000">0.10</text>
+  <text x="310" y="192" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" style="fill: #000 !important">0.10</text>
   <rect x="350" y="165" width="60" height="45" fill="#E8EAF6" stroke="#fff" stroke-width="1.5" />
-  <text x="380" y="192" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#000">0.04</text>
+  <text x="380" y="192" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" style="fill: #000 !important">0.04</text>
   <rect x="420" y="165" width="60" height="45" fill="#E8EAF6" stroke="#fff" stroke-width="1.5" />
-  <text x="450" y="192" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#000">0.02</text>
+  <text x="450" y="192" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" style="fill: #000 !important">0.02</text>
   <rect x="490" y="165" width="60" height="45" fill="#E8EAF6" stroke="#fff" stroke-width="1.5" />
-  <text x="520" y="192" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#000">0.01</text>
+  <text x="520" y="192" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" style="fill: #000 !important">0.01</text>
 
   
   <rect x="140" y="220" width="60" height="45" fill="#E8EAF6" stroke="#fff" stroke-width="1.5" />

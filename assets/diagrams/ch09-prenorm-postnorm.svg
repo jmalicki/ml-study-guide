@@ -34,6 +34,9 @@
       rect[fill="#C8E6C9"] { fill: #4a7c4e; }
       rect[fill="#FFCDD2"] { fill: #8b3d3d; }
       rect[fill="#f9f9f9"] { fill: #2d2d2d; }
+
+      /* Handle #333 text in dark mode */
+      text[fill="#333"] { fill: #ffffff; }
     }
   </style><text x="400" y="30" font-size="18" font-weight="bold" text-anchor="middle" fill="#333">Pre-Norm vs Post-Norm Architecture</text>
 

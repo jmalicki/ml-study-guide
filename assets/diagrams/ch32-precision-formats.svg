@@ -142,14 +142,14 @@
 
   
   <g transform="translate(450, 370)">
-    <text x="0" y="0" font-size="14" font-weight="bold" fill="#333">Legend:</text>
+    <text x="0" y="0" font-size="14" font-weight="bold" fill="#000">Legend:</text>
     <rect x="0" y="10" width="20" height="15" fill="#c62828" />
-    <text x="25" y="22" font-size="11" fill="#333">Sign bit</text>
+    <text x="25" y="22" font-size="11" fill="#000">Sign bit</text>
 
     <rect x="0" y="30" width="20" height="15" fill="#388e3c" />
-    <text x="25" y="42" font-size="11" fill="#333">Exponent</text>
+    <text x="25" y="42" font-size="11" fill="#000">Exponent</text>
 
     <rect x="0" y="50" width="20" height="15" fill="#2e7d92" />
-    <text x="25" y="62" font-size="11" fill="#333">Mantissa/Value</text>
+    <text x="25" y="62" font-size="11" fill="#000">Mantissa/Value</text>
   </g>
 </svg>

@@ -28,34 +28,36 @@
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
     }
-  </style><text x="20" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="600">checkpoints/</text>
+  </style>
+
+  <text x="20" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="14" style="fill: #333 !important" font-weight="600">checkpoints/</text>
 
      
      <line x1="20" y1="40" x2="20" y2="170" stroke="#4A90A4" stroke-width="2" />
 
      
      <line x1="20" y1="50" x2="40" y2="50" stroke="#4A90A4" stroke-width="2" />
-     <text x="45" y="55" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">latest.pt</text>
-     <text x="140" y="55" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#666" font-style="italic"># Most recent checkpoint (for resuming)</text>
+     <text x="45" y="55" font-family="system-ui, -apple-system, sans-serif" font-size="13" style="fill: #333 !important">latest.pt</text>
+     <text x="140" y="55" font-family="system-ui, -apple-system, sans-serif" font-size="12" style="fill: #666 !important" font-style="italic"># Most recent checkpoint (for resuming)</text>
 
      
      <line x1="20" y1="75" x2="40" y2="75" stroke="#4A90A4" stroke-width="2" />
-     <text x="45" y="80" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">best.pt</text>
-     <text x="140" y="80" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#666" font-style="italic"># Best validation loss</text>
+     <text x="45" y="80" font-family="system-ui, -apple-system, sans-serif" font-size="13" style="fill: #333 !important">best.pt</text>
+     <text x="140" y="80" font-family="system-ui, -apple-system, sans-serif" font-size="12" style="fill: #666 !important" font-style="italic"># Best validation loss</text>
 
      
      <line x1="20" y1="100" x2="40" y2="100" stroke="#4A90A4" stroke-width="2" />
-     <text x="45" y="105" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">checkpoint_epoch_10.pt</text>
-     <text x="240" y="105" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#666" font-style="italic"># Periodic checkpoints</text>
+     <text x="45" y="105" font-family="system-ui, -apple-system, sans-serif" font-size="13" style="fill: #333 !important">checkpoint_epoch_10.pt</text>
+     <text x="240" y="105" font-family="system-ui, -apple-system, sans-serif" font-size="12" style="fill: #666 !important" font-style="italic"># Periodic checkpoints</text>
 
      
      <line x1="20" y1="125" x2="40" y2="125" stroke="#4A90A4" stroke-width="2" />
-     <text x="45" y="130" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">checkpoint_epoch_20.pt</text>
+     <text x="45" y="130" font-family="system-ui, -apple-system, sans-serif" font-size="13" style="fill: #333 !important">checkpoint_epoch_20.pt</text>
 
      
      <line x1="20" y1="150" x2="20" y2="150" stroke="#4A90A4" stroke-width="2" />
      <line x1="20" y1="150" x2="40" y2="150" stroke="#4A90A4" stroke-width="2" />
      <path d="M 20 150 Q 20 150, 25 150" fill="none" stroke="#4A90A4" stroke-width="2" />
-     <text x="45" y="155" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">final_model.pt</text>
-     <text x="165" y="155" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#666" font-style="italic"># Final trained model (inference only)</text>
+     <text x="45" y="155" font-family="system-ui, -apple-system, sans-serif" font-size="13" style="fill: #333 !important">final_model.pt</text>
+     <text x="165" y="155" font-family="system-ui, -apple-system, sans-serif" font-size="12" style="fill: #666 !important" font-style="italic"># Final trained model (inference only)</text>
    </svg>

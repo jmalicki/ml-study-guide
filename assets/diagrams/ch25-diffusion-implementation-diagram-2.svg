@@ -38,45 +38,45 @@
         </marker>
       </defs>
 
-      
-      <text x="10" y="35" style="font-family: monospace; font-size: 14px; fill: #333; font-weight: bold;">x</text>
+
+      <text x="10" y="35" style="font-family: monospace; font-size: 14px; fill: #333 !important; font-weight: bold;">x</text>
       <line x1="25" y1="30" x2="60" y2="30" style="stroke: #4A90A4; stroke-width: 2;" marker-end="url(#arrow-res)" />
 
-      
+
       <rect x="60" y="10" width="180" height="40" rx="3" style="fill: #e8f4f8; stroke: #4A90A4; stroke-width: 1.5;" />
-      <text x="150" y="35" text-anchor="middle" style="font-family: monospace; font-size: 12px; fill: #333;">GroupNorm → SiLU → Conv3x3</text>
+      <text x="150" y="35" text-anchor="middle" style="font-family: monospace; font-size: 12px; fill: #333 !important;">GroupNorm → SiLU → Conv3x3</text>
 
       <line x1="240" y1="30" x2="270" y2="30" style="stroke: #4A90A4; stroke-width: 2;" marker-end="url(#arrow-res)" />
 
-      
+
       <rect x="270" y="10" width="180" height="40" rx="3" style="fill: #e8f4f8; stroke: #4A90A4; stroke-width: 1.5;" />
-      <text x="360" y="35" text-anchor="middle" style="font-family: monospace; font-size: 12px; fill: #333;">GroupNorm → SiLU → Conv3x3</text>
+      <text x="360" y="35" text-anchor="middle" style="font-family: monospace; font-size: 12px; fill: #333 !important;">GroupNorm → SiLU → Conv3x3</text>
 
       <line x1="450" y1="30" x2="490" y2="30" style="stroke: #4A90A4; stroke-width: 2;" marker-end="url(#arrow-res)" />
 
-      
-      <text x="10" y="95" style="font-family: monospace; font-size: 14px; fill: #333; font-weight: bold;">t</text>
+
+      <text x="10" y="95" style="font-family: monospace; font-size: 14px; fill: #333 !important; font-weight: bold;">t</text>
       <line x1="25" y1="90" x2="60" y2="90" style="stroke: #4A90A4; stroke-width: 2;" marker-end="url(#arrow-res)" />
 
-      
-      <rect x="60" y="70" width="140" height="40" rx="3" style="fill: #fff4e6; stroke: #4A90A4; stroke-width: 1.5;" />
-      <text x="130" y="95" text-anchor="middle" style="font-family: monospace; font-size: 12px; fill: #333;">SiLU → Linear</text>
 
-      
+      <rect x="60" y="70" width="140" height="40" rx="3" style="fill: #fff4e6; stroke: #4A90A4; stroke-width: 1.5;" />
+      <text x="130" y="95" text-anchor="middle" style="font-family: monospace; font-size: 12px; fill: #333 !important;">SiLU → Linear</text>
+
+
       <path d="M 200 90 L 280 90 L 280 50" style="fill: none; stroke: #4A90A4; stroke-width: 2; stroke-dasharray: 4,2;" marker-end="url(#arrow-res)" />
 
-      
-      <text x="10" y="155" style="font-family: monospace; font-size: 14px; fill: #333; font-weight: bold;">x</text>
+
+      <text x="10" y="155" style="font-family: monospace; font-size: 14px; fill: #333 !important; font-weight: bold;">x</text>
       <line x1="25" y1="150" x2="490" y2="150" style="stroke: #4A90A4; stroke-width: 2; stroke-dasharray: 4,2;" marker-end="url(#arrow-res)" />
 
-      
-      <circle cx="505" cy="30" r="15" style="fill: #f5f5f5; stroke: #4A90A4; stroke-width: 2;" />
-      <text x="505" y="37" text-anchor="middle" style="font-family: monospace; font-size: 16px; fill: #333; font-weight: bold;">+</text>
 
-      
+      <circle cx="505" cy="30" r="15" style="fill: #f5f5f5; stroke: #4A90A4; stroke-width: 2;" />
+      <text x="505" y="37" text-anchor="middle" style="font-family: monospace; font-size: 16px; fill: #333 !important; font-weight: bold;">+</text>
+
+
       <line x1="505" y1="45" x2="505" y2="135" style="stroke: #4A90A4; stroke-width: 2;" />
 
-      
+
       <line x1="520" y1="30" x2="560" y2="30" style="stroke: #4A90A4; stroke-width: 2;" marker-end="url(#arrow-res)" />
-      <text x="565" y="35" style="font-family: monospace; font-size: 14px; fill: #333; font-weight: bold;">out</text>
+      <text x="565" y="35" style="font-family: monospace; font-size: 14px; fill: #333 !important; font-weight: bold;">out</text>
     </svg>

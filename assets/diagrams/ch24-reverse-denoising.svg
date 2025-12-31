@@ -137,15 +137,15 @@
 
   <g transform="translate(320, 190)">
     <rect x="0" y="0" width="160" height="50" fill="#4A90A4" opacity="0.15" rx="6" stroke="#4A90A4" stroke-width="2" stroke-dasharray="4,4" />
-    <text x="80" y="18" font-size="11" font-weight="bold" fill="#000" text-anchor="middle">Neural Network ε_θ</text>
-    <text x="80" y="33" font-size="9" fill="#000" text-anchor="middle">Predicts noise at each step</text>
-    <text x="80" y="46" font-size="9" fill="#000" text-anchor="middle">Trained via MSE loss</text>
+    <text x="80" y="18" font-size="11" font-weight="bold" style="fill: #000 !important;" text-anchor="middle">Neural Network ε_θ</text>
+    <text x="80" y="33" font-size="9" style="fill: #000 !important;" text-anchor="middle">Predicts noise at each step</text>
+    <text x="80" y="46" font-size="9" style="fill: #000 !important;" text-anchor="middle">Trained via MSE loss</text>
   </g>
 
 
   <g transform="translate(50, 250)">
-    <text x="0" y="0" font-size="11" font-weight="bold" fill="#000">Key Concept:</text>
-    <text x="0" y="18" font-size="10" fill="#000">Model iteratively removes predicted noise to recover clean image from pure noise</text>
-    <text x="0" y="35" font-size="10" fill="#000">Each denoising step uses learned p_θ(x_{t-1} | x_t) = N(μ_θ(x_t,t), σ_t²I)</text>
+    <text x="0" y="0" font-size="11" font-weight="bold" style="fill: #000 !important;">Key Concept:</text>
+    <text x="0" y="18" font-size="10" style="fill: #000 !important;">Model iteratively removes predicted noise to recover clean image from pure noise</text>
+    <text x="0" y="35" font-size="10" style="fill: #000 !important;">Each denoising step uses learned p_θ(x_{t-1} | x_t) = N(μ_θ(x_t,t), σ_t²I)</text>
   </g>
 </svg>

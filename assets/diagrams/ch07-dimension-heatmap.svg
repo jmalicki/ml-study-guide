@@ -40,6 +40,9 @@
       rect[fill="#FFB74D"] { fill: #9b6b2e; }
       rect[fill="#78909C"] { fill: #455a64; }
       rect[fill="#f0f8ff"] { fill: #2d5f6f; }
+
+      /* Handle #333 text in dark mode */
+      text[fill="#333"] { fill: #ffffff; }
     }
   </style><text x="400" y="30" text-anchor="middle" font-size="20" font-weight="bold" fill="#333">
     Sinusoidal Encoding: Position × Dimension Heatmap

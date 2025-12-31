@@ -38,7 +38,7 @@
   </style><rect width="600" height="400" fill="white" />
 
   
-  <text x="300" y="30" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#333" text-anchor="middle">
+  <text x="300" y="30" font-family="Arial, sans-serif" font-size="18" font-weight="bold" style="fill: #333 !important" text-anchor="middle">
     Training Loss Curves
   </text>
 
@@ -47,26 +47,26 @@
   <line x1="60" y1="60" x2="60" y2="350" stroke="#333" stroke-width="2" />
 
   
-  <text x="310" y="385" font-family="Arial, sans-serif" font-size="14" fill="#333" text-anchor="middle">
+  <text x="310" y="385" font-family="Arial, sans-serif" font-size="14" style="fill: #333 !important" text-anchor="middle">
     Training Steps
   </text>
-  <text x="25" y="210" font-family="Arial, sans-serif" font-size="14" fill="#333" text-anchor="middle" transform="rotate(-90 25 210)">
+  <text x="25" y="210" font-family="Arial, sans-serif" font-size="14" style="fill: #333 !important" text-anchor="middle" transform="rotate(-90 25 210)">
     Loss
   </text>
 
   
-  <text x="60" y="370" font-family="Arial, sans-serif" font-size="12" fill="#666" text-anchor="middle">0</text>
-  <text x="185" y="370" font-family="Arial, sans-serif" font-size="12" fill="#666" text-anchor="middle">5k</text>
-  <text x="310" y="370" font-family="Arial, sans-serif" font-size="12" fill="#666" text-anchor="middle">10k</text>
-  <text x="435" y="370" font-family="Arial, sans-serif" font-size="12" fill="#666" text-anchor="middle">15k</text>
-  <text x="560" y="370" font-family="Arial, sans-serif" font-size="12" fill="#666" text-anchor="middle">20k</text>
+  <text x="60" y="370" font-family="Arial, sans-serif" font-size="12" style="fill: #666 !important" text-anchor="middle">0</text>
+  <text x="185" y="370" font-family="Arial, sans-serif" font-size="12" style="fill: #666 !important" text-anchor="middle">5k</text>
+  <text x="310" y="370" font-family="Arial, sans-serif" font-size="12" style="fill: #666 !important" text-anchor="middle">10k</text>
+  <text x="435" y="370" font-family="Arial, sans-serif" font-size="12" style="fill: #666 !important" text-anchor="middle">15k</text>
+  <text x="560" y="370" font-family="Arial, sans-serif" font-size="12" style="fill: #666 !important" text-anchor="middle">20k</text>
 
   
-  <text x="50" y="350" font-family="Arial, sans-serif" font-size="12" fill="#666" text-anchor="end">1.0</text>
-  <text x="50" y="277" font-family="Arial, sans-serif" font-size="12" fill="#666" text-anchor="end">2.0</text>
-  <text x="50" y="204" font-family="Arial, sans-serif" font-size="12" fill="#666" text-anchor="end">3.0</text>
-  <text x="50" y="131" font-family="Arial, sans-serif" font-size="12" fill="#666" text-anchor="end">4.0</text>
-  <text x="50" y="60" font-family="Arial, sans-serif" font-size="12" fill="#666" text-anchor="end">5.0</text>
+  <text x="50" y="350" font-family="Arial, sans-serif" font-size="12" style="fill: #666 !important" text-anchor="end">1.0</text>
+  <text x="50" y="277" font-family="Arial, sans-serif" font-size="12" style="fill: #666 !important" text-anchor="end">2.0</text>
+  <text x="50" y="204" font-family="Arial, sans-serif" font-size="12" style="fill: #666 !important" text-anchor="end">3.0</text>
+  <text x="50" y="131" font-family="Arial, sans-serif" font-size="12" style="fill: #666 !important" text-anchor="end">4.0</text>
+  <text x="50" y="60" font-family="Arial, sans-serif" font-size="12" style="fill: #666 !important" text-anchor="end">5.0</text>
 
   
   <line x1="60" y1="277" x2="560" y2="277" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="5,5" />
@@ -86,27 +86,27 @@
 
     <!-- Training Loss -->
     <line x1="400" y1="90" x2="430" y2="90" stroke="#4A90A4" stroke-width="3" />
-    <text x="435" y="95" font-family="Arial, sans-serif" font-size="13" fill="#333">Training Loss</text>
+    <text x="435" y="95" font-family="Arial, sans-serif" font-size="13" style="fill: #333 !important">Training Loss</text>
 
     <!-- Validation Loss -->
     <line x1="400" y1="115" x2="430" y2="115" stroke="#E57373" stroke-width="2" stroke-dasharray="5,3" />
-    <text x="435" y="120" font-family="Arial, sans-serif" font-size="13" fill="#333">Validation Loss</text>
+    <text x="435" y="120" font-family="Arial, sans-serif" font-size="13" style="fill: #333 !important">Validation Loss</text>
   </g>
 
 
   <circle cx="185" cy="145" r="4" fill="#81C784" />
-  <text x="190" y="140" font-family="Arial, sans-serif" font-size="11" fill="#666">
+  <text x="190" y="140" font-family="Arial, sans-serif" font-size="11" style="fill: #666 !important">
     Fast initial drop
   </text>
 
   <circle cx="435" cy="258" r="4" fill="#81C784" />
-  <text x="370" y="290" font-family="Arial, sans-serif" font-size="11" fill="#666">
+  <text x="370" y="290" font-family="Arial, sans-serif" font-size="11" style="fill: #666 !important">
     Convergence
   </text>
 
   
   <line x1="485" y1="268" x2="485" y2="256" stroke="#C62828" stroke-width="1" stroke-dasharray="2,2" />
-  <text x="490" y="240" font-family="Arial, sans-serif" font-size="10" fill="#C62828">
+  <text x="490" y="240" font-family="Arial, sans-serif" font-size="10" style="fill: #c62828 !important">
     Val loss plateaus
   </text>
 </svg>
