@@ -95,10 +95,10 @@ def get_element_fill(elem: ET.Element) -> Optional[str]:
     return None
 
 
-def find_background_at_position(root: ET.Element, x: float, y: float) -> Optional[Tuple[str, str]]:
+def find_background_at_position(root: ET.Element, x: float, y: float) -> Optional[Tuple[str, str, ET.Element]]:
     """Find colored background shape at given position.
 
-    Returns (fill_color, element_type) or None.
+    Returns (fill_color, element_type, element) or None.
     """
     # SVG namespace
     ns = {'svg': 'http://www.w3.org/2000/svg'}
@@ -118,7 +118,7 @@ def find_background_at_position(root: ET.Element, x: float, y: float) -> Optiona
                 height = float(shape.get('height', 0))
 
                 if sx <= x <= sx + width and sy <= y <= sy + height:
-                    return (fill, shape_type)
+                    return (fill, shape_type, shape)
 
         # Also check without namespace
         for shape in root.iter(shape_type):
@@ -133,7 +133,7 @@ def find_background_at_position(root: ET.Element, x: float, y: float) -> Optiona
                 height = float(shape.get('height', 0))
 
                 if sx <= x <= sx + width and sy <= y <= sy + height:
-                    return (fill, shape_type)
+                    return (fill, shape_type, shape)
 
     return None
 
@@ -258,6 +258,44 @@ def is_dark_color_value(color_value: str) -> bool:
     return False
 
 
+def element_has_dark_mode_rule(elem: ET.Element, dark_mode_rules: Dict[str, Dict[str, str]]) -> bool:
+    """Check if a specific element has a dark mode CSS rule that changes its fill to dark."""
+    # Check if element has a class attribute
+    class_attr = elem.get('class', '')
+    if class_attr:
+        # Check if any dark mode rule matches this class
+        for selector, props in dark_mode_rules.items():
+            if 'fill' in props:
+                # Check if selector matches this class
+                if f'.{class_attr}' in selector or class_attr in selector:
+                    if is_dark_color_value(props['fill']):
+                        return True
+
+    # Check if element has an id attribute
+    id_attr = elem.get('id', '')
+    if id_attr:
+        # Check if any dark mode rule matches this id
+        for selector, props in dark_mode_rules.items():
+            if 'fill' in props:
+                if f'#{id_attr}' in selector or id_attr in selector:
+                    if is_dark_color_value(props['fill']):
+                        return True
+
+    # Check if element's fill color is specifically targeted
+    # e.g., rect[fill="#4A90A4"]
+    elem_fill = get_element_fill(elem)
+    if elem_fill:
+        elem_tag = elem.tag.replace('{http://www.w3.org/2000/svg}', '')
+        for selector, props in dark_mode_rules.items():
+            if 'fill' in props:
+                # Check for attribute selectors like rect[fill="#4A90A4"]
+                if elem_tag in selector and elem_fill.lower() in selector.lower():
+                    if is_dark_color_value(props['fill']):
+                        return True
+
+    return False
+
+
 def check_dark_mode_consistency(content: str) -> List[str]:
     """Check for dark mode CSS consistency issues.
 
@@ -359,6 +397,10 @@ def check_svg_file(svg_path: Path) -> List[str]:
     # Check for dark mode CSS
     has_dark_mode = has_dark_mode_css(content)
 
+    # Parse CSS to check for dark mode rules
+    css = extract_css_from_svg(content)
+    dark_mode_rules = parse_dark_mode_css(css) if has_dark_mode else {}
+
     try:
         # Parse SVG
         tree = ET.parse(svg_path)
@@ -389,7 +431,7 @@ def check_svg_file(svg_path: Path) -> List[str]:
             bg_info = find_background_at_position(root, x, y)
 
             if bg_info:
-                bg_color, shape_type = bg_info
+                bg_color, shape_type, bg_elem = bg_info
 
                 # Text is on a colored background
                 try:
@@ -410,6 +452,34 @@ def check_svg_file(svg_path: Path) -> List[str]:
                             f"should use 'style=\"fill: {text_fill} !important\"' "
                             f"to prevent dark mode override"
                         )
+
+                    # NEW CHECK: Detect white/light text on colored backgrounds that don't adapt in dark mode
+                    if has_dark_mode and is_light_color_value(text_fill):
+                        # Check if this text will turn white in dark mode
+                        text_will_be_white_in_dark_mode = False
+
+                        # Check if dark mode CSS makes text white
+                        for selector, props in dark_mode_rules.items():
+                            if 'fill' in props and is_light_color_value(props['fill']):
+                                # Check if selector applies to this text element
+                                # Common selectors: text, text[fill="#fff"], text[fill="#ffffff"], etc.
+                                if selector == 'text' or 'text[fill' in selector:
+                                    text_will_be_white_in_dark_mode = True
+                                    break
+
+                        # If text will be white in dark mode, check if background also adapts
+                        if text_will_be_white_in_dark_mode:
+                            # Check if THIS SPECIFIC background element has a dark mode rule
+                            bg_has_dark_mode_rule = element_has_dark_mode_rule(bg_elem, dark_mode_rules)
+
+                            # If background doesn't change to dark, this is a problem
+                            if not bg_has_dark_mode_rule:
+                                issues.append(
+                                    f"  ERROR: Dark mode contrast issue at ({x:.0f}, {y:.0f}): "
+                                    f"text will be white in dark mode but {bg_color} background "
+                                    f"doesn't change to dark - text will be invisible on light page backgrounds"
+                                )
+
                 except (ValueError, ZeroDivisionError):
                     pass  # Skip invalid colors
             else:

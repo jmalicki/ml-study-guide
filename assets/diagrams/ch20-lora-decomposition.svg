@@ -17,6 +17,10 @@
       line[stroke="#333"] { stroke: #cccccc; }
       .bg-formula { fill: #2d2d2d; }
 
+      /* Darken colored backgrounds in dark mode for proper contrast with white text */
+      rect[fill="#4A90A4"] { fill: #2d5f6f; }
+      rect[fill="#81C784"] { fill: #4a7c4e; }
+
       /* Keep white text white in dark mode (for colored backgrounds) */
       text[fill="#fff"],
       text[fill="#ffffff"],
