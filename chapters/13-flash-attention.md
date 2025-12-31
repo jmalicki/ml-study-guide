@@ -1,4 +1,4 @@
-# Chapter 12: Flash Attention
+# Chapter 26: Flash Attention
 
 Flash Attention is an IO-aware attention algorithm that achieves 2-4x speedup and reduces memory usage from $O(N^2)$ to $O(N)$ for sequence length N. Understanding Flash Attention is essential for ML interviews because it demonstrates how algorithm design must consider hardware characteristics, not just theoretical complexity.
 
@@ -417,11 +417,11 @@ This is the key algorithmic innovation that makes tiled attention possible.
 
 **Standard Attention:**
 
-![Chapter 12 flash attention diagram](../assets/diagrams/ch12-flash-attention-diagram.svg)
+![Chapter 26 flash attention diagram](../assets/diagrams/ch12-flash-attention-diagram.svg)
 
 **Flash Attention:**
 
-![Chapter 12 flash attention diagram 2](../assets/diagrams/ch12-flash-attention-diagram-2.svg)
+![Chapter 26 flash attention diagram 2](../assets/diagrams/ch12-flash-attention-diagram-2.svg)
 
 **Key difference:** Intermediate results never leave SRAM!
 
@@ -541,7 +541,7 @@ def visualize_tiling():
     """
     Visualize how matrices are divided into blocks.
 
-![Chapter 12 flash attention diagram 3](../assets/diagrams/ch12-flash-attention-diagram-3.svg)
+![Chapter 26 flash attention diagram 3](../assets/diagrams/ch12-flash-attention-diagram-3.svg)
 
     Total iterations: Tr × Tc
     But each iteration operates on small blocks in SRAM!
@@ -4211,7 +4211,7 @@ Paper: "Flash-Decoding for long-context inference" (2023)
 
 **Paged Flash Attention: Combining Flash Attention with PagedAttention**
 
-PagedAttention (from vLLM) manages KV cache in pages (see [Hardware, Quantization, and Training Optimization](33-hardware-quantization-optimization.md))
+PagedAttention (from vLLM) manages KV cache in pages (see [Hardware, Quantization, and Training Optimization](29-hardware-quantization-optimization.md))
 
 Paged Flash Attention:
 

@@ -1,6 +1,6 @@
-# Chapter 13: Other Efficient Attention Variants
+# Chapter 26: Other Efficient Attention Variants
 
-This chapter explores various efficient attention mechanisms beyond Flash Attention. While Flash Attention (see [Flash Attention](12-flash-attention.md)) optimizes exact attention through memory hierarchy awareness, the variants covered here modify the attention mechanism itself to reduce computational complexity from $O(n^2)$ to something more tractable.
+This chapter explores various efficient attention mechanisms beyond Flash Attention. While Flash Attention (see [Flash Attention](13-flash-attention.md)) optimizes exact attention through memory hierarchy awareness, the variants covered here modify the attention mechanism itself to reduce computational complexity from $O(n^2)$ to something more tractable.
 
 Understanding these techniques is crucial for ML interviews, as production LLMs use combinations of these methods to handle long contexts efficiently.
 
@@ -719,7 +719,7 @@ class SlidingWindowAttention(nn.Module):
     Reference: Jiang et al., "Mistral 7B" (2023)
     https://arxiv.org/abs/2310.06825
 
-    See also: [Architecture Comparison](31-model-architectures.md) for usage
+    See also: [Architecture Comparison](27-model-architectures.md) for usage
     in production models.
     """
 
@@ -896,9 +896,9 @@ class RollingBufferCache:
 
 ## KV-Cache Memory Management
 
-**Note**: PagedAttention and other KV-cache memory management techniques have been moved to [Chapter 14: KV-Cache](14-kv-cache.md), where they are covered comprehensively alongside other KV-cache concepts.
+**Note**: PagedAttention and other KV-cache memory management techniques have been moved to [Chapter 26: KV-Cache](15-kv-cache.md), where they are covered comprehensively alongside other KV-cache concepts.
 
-This chapter focuses on attention mechanism variants (MQA, GQA, linear attention, sparse attention). For memory management techniques including PagedAttention, block allocation, and copy-on-write, see Chapter 14.
+This chapter focuses on attention mechanism variants (MQA, GQA, linear attention, sparse attention). For memory management techniques including PagedAttention, block allocation, and copy-on-write, see Chapter 26.
 
 ---
 
@@ -1088,7 +1088,7 @@ class GroupedQueryAttention(nn.Module):
     Transformer Models from Multi-Head Checkpoints" (2023)
     https://arxiv.org/abs/2305.13245
 
-    See [Architecture Comparison](31-model-architectures.md) for usage in
+    See [Architecture Comparison](27-model-architectures.md) for usage in
     modern LLMs.
     """
 
@@ -1265,7 +1265,7 @@ class MultiHeadLatentAttention(nn.Module):
     Efficient Mixture-of-Experts Language Model" (2024)
     https://arxiv.org/abs/2405.04434
 
-    See [Architecture Comparison](31-model-architectures.md) for details.
+    See [Architecture Comparison](27-model-architectures.md) for details.
     """
 
     def __init__(
@@ -1580,7 +1580,7 @@ def combining_techniques_example():
     - Flash Attention: Memory hierarchy optimization (speeds up training)
     - GQA/MQA: Reduces KV cache size (speeds up inference)
     - Sliding Window: Reduces computational complexity
-    - KV-Cache Management: Optimizes memory allocation (see Chapter 14)
+    - KV-Cache Management: Optimizes memory allocation (see Chapter 26)
 
     """
 
@@ -1629,7 +1629,7 @@ def combining_techniques_example():
     print("\nKey Takeaway: Combining techniques is standard practice!")
     print("  - Flash Attention 2 natively supports GQA")
     print("  - Sliding window works with any KV cache reduction method")
-    print("  - KV-cache management (Chapter 14) is orthogonal to all attention variants")
+    print("  - KV-cache management (Chapter 26) is orthogonal to all attention variants")
 
 
 # Flash Attention 2 specifically optimized for GQA
@@ -1714,11 +1714,11 @@ class QuantizedKVCache:
 
     - GQA: 8x from GQA × 2x from INT8 = 16x total!
     - MLA: 20x from MLA × 2x from INT8 = 40x total!
-    - Memory management: Works with any allocation scheme (see Chapter 14)
+    - Memory management: Works with any allocation scheme (see Chapter 26)
 
     Used in production serving systems for extreme efficiency.
 
-    See [Hardware and Optimization](33-hardware-quantization-optimization.md)
+    See [Hardware and Optimization](29-hardware-quantization-optimization.md)
     for detailed quantization techniques.
 
     Reference: "KIVI: A Tuning-Free Asymmetric 2bit Quantization for KV Cache"
@@ -1858,11 +1858,11 @@ Quality impact is task-dependent. For production serving:
 
 **Serving Systems** (orthogonal to model choice):
 
-- **vLLM**: PagedAttention (see [Chapter 14](14-kv-cache.md)) + optional INT8 KV cache
+- **vLLM**: PagedAttention (see [Chapter 26](15-kv-cache.md)) + optional INT8 KV cache
 - **TensorRT-LLM**: Flash Attention + INT8/FP8 KV cache
-- **Text Generation Inference**: Flash Attention + PagedAttention (see [Chapter 14](14-kv-cache.md))
+- **Text Generation Inference**: Flash Attention + PagedAttention (see [Chapter 26](15-kv-cache.md))
 
-See [Architecture Comparison](31-model-architectures.md) for detailed model specifications.
+See [Architecture Comparison](27-model-architectures.md) for detailed model specifications.
 
 ---
 
@@ -1959,7 +1959,7 @@ See [Architecture Comparison](31-model-architectures.md) for detailed model spec
 
 ### KV-Cache Memory Management
 
-8. PagedAttention and related techniques are covered in [Chapter 14: KV-Cache](14-kv-cache.md)
+8. PagedAttention and related techniques are covered in [Chapter 26: KV-Cache](15-kv-cache.md)
 
 ### MQA/GQA
 
@@ -1982,6 +1982,6 @@ See [Architecture Comparison](31-model-architectures.md) for detailed model spec
 
 ---
 
-**Previous Chapter**: [Flash Attention](12-flash-attention.md)
+**Previous Chapter**: [Flash Attention](13-flash-attention.md)
 **Next Chapter**: Check the main study guide outline
-**Related**: [Multi-Head Attention](04-multi-head-attention.md) | [Architecture Comparison](31-model-architectures.md) | [Hardware and Optimization](33-hardware-quantization-optimization.md)
+**Related**: [Multi-Head Attention](04-multi-head-attention.md) | [Architecture Comparison](27-model-architectures.md) | [Hardware and Optimization](29-hardware-quantization-optimization.md)

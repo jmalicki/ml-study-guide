@@ -1,4 +1,4 @@
-# Chapter 16: Distributed Training and Parallelism
+# Chapter 27: Distributed Training and Parallelism
 
 Training large language models requires distributing computation across multiple GPUs and machines. A single modern GPU (even an H100 with 80GB) cannot fit models with hundreds of billions of parameters. This chapter covers the fundamental parallelism strategies used to train LLMs at scale.
 
@@ -408,7 +408,7 @@ print(f"With activation checkpointing: {checkpointed:.2f} GB")
 
 The simplest parallelism strategy: replicate the model on each GPU, split the batch.
 
-![Parallelism Strategies Comparison](../assets/diagrams/ch16-parallelism-comparison.svg)
+![Parallelism Strategies Comparison](../assets/diagrams/ch30-parallelism-comparison.svg)
 
 *Figure: Comparison of Data Parallelism, Tensor Parallelism, and Pipeline Parallelism strategies. Data parallelism replicates the full model on each GPU and splits the batch, tensor parallelism splits individual layers horizontally across GPUs, and pipeline parallelism splits the model vertically by layers.*
 
@@ -1765,7 +1765,7 @@ for i, (stage, op, mb, chunk) in enumerate(schedule[:20]):
 
 But we only need each GPU to compute updates for its data shard. Can we partition the states?
 
-![ZeRO Optimization Stages](../assets/diagrams/ch16-zero-stages.svg)
+![ZeRO Optimization Stages](../assets/diagrams/ch30-zero-stages.svg)
 
 *Figure: ZeRO optimization stages showing progressive memory reduction. ZeRO-1 shards optimizer states, ZeRO-2 adds gradient sharding, and ZeRO-3 (FSDP) shards everything including parameters, achieving linear memory scaling with the number of GPUs.*
 
@@ -2575,7 +2575,7 @@ Combined memory per GPU: $\frac{M_{\text{model}}}{P \times T \times D} \times D 
 
 Used for largest models (GPT-3, PaLM, etc.)
 
-![Model Size vs Memory Decision Regions](../assets/diagrams/ch16-model-size-vs-memory.svg)
+![Model Size vs Memory Decision Regions](../assets/diagrams/ch30-model-size-vs-memory.svg)
 
 *Figure: Model size vs GPU memory decision regions. Shows when to use Data Parallelism (small models that fit in single GPU), ZeRO/FSDP (medium models requiring memory sharding), Tensor Parallelism (large models with fast interconnect), and 3D Parallelism (very large models requiring combined strategies). The boundary lines show approximate transitions between strategies based on model size and available GPU memory.*
 
@@ -2659,7 +2659,7 @@ calculate_3d_parallelism(128, 13)    # LLaMA-13B scale
 
 ## Communication Costs and Trade-offs
 
-![Communication Patterns](../assets/diagrams/ch16-communication-patterns.svg)
+![Communication Patterns](../assets/diagrams/ch30-communication-patterns.svg)
 
 *Figure: Communication patterns in distributed training. Shows ring all-reduce for data parallelism, all-gather/reduce-scatter for FSDP, point-to-point transfers for pipeline parallelism, and the hierarchical 3D parallelism topology that combines all three strategies efficiently.*
 
@@ -2746,15 +2746,15 @@ recommend_parallelism_strategy(350, 80, 512, "infiniband")  # 175B model, 512 GP
 | **Pipeline Parallel** | Medium (shard layers) | Low (point-to-point) | High | Very deep models |
 | **3D Parallel** | Highest | Complex | Very High | Largest models (100B+ params) |
 
-![Communication vs Computation Trade-offs](../assets/diagrams/ch16-communication-compute-tradeoff.svg)
+![Communication vs Computation Trade-offs](../assets/diagrams/ch30-communication-compute-tradeoff.svg)
 
 *Figure: Communication vs computation trade-offs for different parallelism strategies. Data Parallelism offers low communication overhead but high memory pressure. Tensor Parallelism reduces memory at the cost of high-frequency all-reduce operations requiring fast interconnects like NVLink. Pipeline Parallelism balances communication and memory but suffers from pipeline bubbles. FSDP/ZeRO-3 maximizes memory efficiency with moderate communication overhead.*
 
-![Scaling Efficiency](../assets/diagrams/ch16-scaling-efficiency.svg)
+![Scaling Efficiency](../assets/diagrams/ch30-scaling-efficiency.svg)
 
 *Figure: How scaling efficiency degrades as you add more GPUs. Data Parallelism maintains near-linear scaling until gradient communication becomes a bottleneck. Tensor Parallelism efficiency drops significantly beyond 8-16 GPUs due to all-reduce latency. Pipeline Parallelism plateaus around 50-70% efficiency due to pipeline bubbles. The chart helps inform which strategy to use based on your target GPU count.*
 
-![Decision Flowchart](../assets/diagrams/ch16-decision-flowchart.svg)
+![Decision Flowchart](../assets/diagrams/ch30-decision-flowchart.svg)
 
 *Figure: Decision flowchart for choosing a parallelism strategy. Start by checking if the model fits in a single GPU (use DP/DDP). If not, try ZeRO-3/FSDP for memory sharding. For models still too large, add Tensor Parallelism if you have fast interconnects, or Pipeline Parallelism otherwise. The largest models require 3D Parallelism combining all three strategies.*
 
@@ -3682,6 +3682,6 @@ This gives:
 
 **Next Chapter**: [Optimizers and Training Techniques](17-scaling-optimization.md) - Learn about AdamW, learning rate schedules, gradient clipping, and training best practices.
 
-**Previous Chapter**: [Language Model Training](15-lm-training.md) - Single-GPU training fundamentals.
+**Previous Chapter**: [Language Model Training](16-lm-training.md) - Single-GPU training fundamentals.
 
-**Related**: [Hardware, Quantization, and Training Optimization](33-hardware-quantization-optimization.md) - Hardware considerations for distributed training.
+**Related**: [Hardware, Quantization, and Training Optimization](29-hardware-quantization-optimization.md) - Hardware considerations for distributed training.

@@ -1,6 +1,6 @@
-# Chapter 25: Implementing Diffusion Models
+# Chapter 33: Implementing Diffusion Models
 
-This chapter provides a comprehensive, hands-on guide to implementing diffusion models with runnable PyTorch code. We build on the theoretical foundations from [Diffusion Model Fundamentals](24-diffusion-fundamentals.md) and implement all the core components needed for a working diffusion model.
+This chapter provides a comprehensive, hands-on guide to implementing diffusion models with runnable PyTorch code. We build on the theoretical foundations from [Diffusion Model Fundamentals](32-diffusion-fundamentals.md) and implement all the core components needed for a working diffusion model.
 
 ## Table of Contents
 
@@ -28,7 +28,7 @@ Diffusion models generate data by learning to reverse a gradual noising process.
 4. **Training**: How we train the denoising network
 5. **Sampling**: How we generate new samples using the trained model
 
-The core training objective from [Diffusion Model Fundamentals](24-diffusion-fundamentals.md) is:
+The core training objective from [Diffusion Model Fundamentals](32-diffusion-fundamentals.md) is:
 
 ```math
 \mathcal{L}_{\text{simple}} = \mathbb{E}_{t, \mathbf{x}_0, \epsilon} \left[ \| \epsilon - \epsilon_\theta(\mathbf{x}_t, t) \|^2 \right]
@@ -56,7 +56,7 @@ The U-Net architecture is the most popular choice for diffusion models. It featu
 
 ### Architecture Diagram
 
-![Chapter 25 diffusion implementation diagram](../assets/diagrams/ch25-diffusion-implementation-diagram.svg)
+![Diffusion Implementation Diagram](../assets/diagrams/ch33-diffusion-implementation-diagram.svg)
 
 ### Basic Building Blocks
 
@@ -112,7 +112,7 @@ class ResidualBlock(nn.Module):
 
     Architecture:
 
-    ![Chapter 25 diffusion implementation diagram 2](../assets/diagrams/ch25-diffusion-implementation-diagram-2.svg)
+    ![Diffusion Implementation Diagram 2](../assets/diagrams/ch33-diffusion-implementation-diagram-2.svg)
     """
     def __init__(self, in_channels: int, out_channels: int, time_emb_dim: int):
         super().__init__()
@@ -211,7 +211,7 @@ class AttentionBlock(nn.Module):
         return x + h  # Residual connection
 
 
-# Note: For production use, consider Flash Attention (see [Flash Attention](12-flash-attention.md))
+# Note: For production use, consider Flash Attention (see [Flash Attention](13-flash-attention.md))
 # which provides 2-4x speedup with lower memory usage:
 #
 # from torch.nn.functional import scaled_dot_product_attention
@@ -556,7 +556,7 @@ The noise schedule $\{\beta_t\}_{t=1}^T$ controls how quickly noise is added dur
 
 ### Key Concepts
 
-From [Diffusion Model Fundamentals](24-diffusion-fundamentals.md), recall:
+From [Diffusion Model Fundamentals](32-diffusion-fundamentals.md), recall:
 
 - $\alpha_t = 1 - \beta_t$ (how much signal to keep)
 - $\bar{\alpha}_t = \prod_{s=1}^t \alpha_s$ (cumulative signal retention)
@@ -1569,7 +1569,7 @@ class UNetCheckpointed(UNet):
     at the cost of ~20-30% slower training.
 
     Reference:
-        See [Distributed Training and Parallelism](16-distributed-training.md)
+        See [Distributed Training and Parallelism](30-distributed-training.md)
         for more details on gradient checkpointing.
     """
     def forward(self, x, t):
@@ -1742,7 +1742,7 @@ def generate_batch(model, batch_size=64):
 - Solutions:
   - Use DDIM instead of DDPM
   - Reduce ddim_steps (25-50 is usually enough)
-  - Consider distillation (see [Model Merging and Distillation](32-merging-distillation.md))
+  - Consider distillation (see [Model Merging and Distillation](28-merging-distillation.md))
 
 ---
 
@@ -2247,7 +2247,7 @@ Implement classifier-free guidance for conditional generation:
 
 where $c$ is a condition (e.g., class label) and $s$ is guidance scale.
 
-See [Advanced Diffusion Topics](26-diffusion-advanced.md) for details.
+See [Advanced Diffusion Topics](34-diffusion-advanced.md) for details.
 
 ### Exercise 4: FID Evaluation
 
@@ -2330,10 +2330,10 @@ Which schedule works best for your dataset?
 
 ### Related Chapters
 
-- [Diffusion Model Fundamentals](24-diffusion-fundamentals.md) - Theoretical foundations
-- [Advanced Diffusion Topics](26-diffusion-advanced.md) - Classifier-free guidance, latent diffusion
-- [Distributed Training and Parallelism](16-distributed-training.md) - Scaling to larger models
-- [Hardware, Quantization, and Training Optimization](33-hardware-quantization-optimization.md) - Optimization techniques
+- [Diffusion Model Fundamentals](32-diffusion-fundamentals.md) - Theoretical foundations
+- [Advanced Diffusion Topics](34-diffusion-advanced.md) - Classifier-free guidance, latent diffusion
+- [Distributed Training and Parallelism](30-distributed-training.md) - Scaling to larger models
+- [Hardware, Quantization, and Training Optimization](29-hardware-quantization-optimization.md) - Optimization techniques
 
 ---
 
@@ -2355,4 +2355,4 @@ Key takeaways:
 - DDIM enables fast sampling by skipping timesteps
 - EMA and proper schedules are crucial for quality
 
-Next, explore [Advanced Diffusion Topics](26-diffusion-advanced.md) for classifier-free guidance, latent diffusion, and recent advances.
+Next, explore [Advanced Diffusion Topics](34-diffusion-advanced.md) for classifier-free guidance, latent diffusion, and recent advances.

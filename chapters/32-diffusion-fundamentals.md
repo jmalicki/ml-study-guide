@@ -1,4 +1,4 @@
-# Chapter 24: Diffusion Model Fundamentals
+# Chapter 32: Diffusion Model Fundamentals
 
 ## Prerequisites
 
@@ -19,7 +19,7 @@ If you need background on positional encodings, see earlier chapters on attentio
 
 Diffusion models have emerged as one of the most powerful classes of generative models, achieving state-of-the-art results in image generation, audio synthesis, and even text generation. Unlike autoregressive models (like GPT) or variational autoencoders (VAEs), diffusion models learn to generate data by reversing a gradual noising process.
 
-This chapter covers the mathematical foundations and core concepts behind diffusion models, preparing you for implementation in [Chapter 25: Implementing Diffusion Models](25-diffusion-implementation.md) and advanced techniques in [Chapter 26: Advanced Diffusion Topics](26-diffusion-advanced.md).
+This chapter covers the mathematical foundations and core concepts behind diffusion models, preparing you for implementation in [Chapter 33: Implementing Diffusion Models](33-diffusion-implementation.md) and advanced techniques in [Chapter 34: Advanced Diffusion Topics](34-diffusion-advanced.md).
 
 **Key Papers:**
 
@@ -73,7 +73,7 @@ This means the noisy image is a weighted combination of the original image (scal
 
 **Key Insight:** The beauty of this formulation is that we can jump to any noise level $t$ in one step without iterating through all intermediate steps. This is critical for efficient training, where we need to sample random timesteps during each training iteration.
 
-![Forward Diffusion Process](../assets/diagrams/ch24-forward-diffusion.svg)
+![Forward Diffusion Process](../assets/diagrams/ch32-forward-diffusion.svg)
 
 ```python
 import torch
@@ -293,7 +293,7 @@ The choice of $\beta_t$ (variance schedule) significantly impacts training and s
 \beta_t = \beta_1 + \left(\frac{t-1}{T-1}\right)^2 (\beta_T - \beta_1)
 ```
 
-![Noise Schedules Comparison](../assets/diagrams/ch24-noise-schedules.svg)
+![Noise Schedules Comparison](../assets/diagrams/ch32-noise-schedules.svg)
 
 ### Understanding Variance Schedules
 
@@ -388,7 +388,7 @@ Starting from $\mathbf{x}_T \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$, we iterat
 p_\theta(\mathbf{x}_{0:T}) = p(\mathbf{x}_T) \prod_{t=1}^{T} p_\theta(\mathbf{x}_{t-1} | \mathbf{x}_t)
 ```
 
-![Reverse Denoising Process](../assets/diagrams/ch24-reverse-denoising.svg)
+![Reverse Denoising Process](../assets/diagrams/ch32-reverse-denoising.svg)
 
 ### Reverse Process is Gaussian (with small $\beta_t$)
 
@@ -1623,7 +1623,7 @@ class DiffusionModel:
 
 - **Training**: Comparable to VAEs (single forward/backward pass per sample)
 - **Sampling**: Much slower than VAEs/GANs (requires T forward passes, typically T=1000)
-- **Solution**: Fast sampling methods (DDIM, DPM-Solver) covered in [Chapter 26: Advanced Diffusion Topics](26-diffusion-advanced.md)
+- **Solution**: Fast sampling methods (DDIM, DPM-Solver) covered in [Chapter 34: Advanced Diffusion Topics](34-diffusion-advanced.md)
 
 ### Concrete Performance Numbers
 
@@ -1669,7 +1669,7 @@ To give you a sense of what to expect when training and deploying diffusion mode
 
 **Timesteps vs. Quality Trade-off Visualization:**
 
-![Diffusion Timesteps Trade-off](../assets/diagrams/ch24-timesteps-quality-tradeoff.svg)
+![Diffusion Timesteps Trade-off](../assets/diagrams/ch32-timesteps-quality-tradeoff.svg)
 
 This visualization shows the fundamental trade-off in diffusion sampling. Sample quality improves logarithmically with more steps, while inference time increases linearly. DDPM's original 1000 steps provides excellent quality but is very slow. DDIM and modern samplers achieve 90-95% of the quality with just 50 steps, making them practical for production use. Beyond 100 steps, quality improvements become negligible while cost continues to grow.
 
@@ -2020,9 +2020,9 @@ In this chapter, we covered:
 
 **Next Steps:**
 
-- [Chapter 25: Implementing Diffusion Models](25-diffusion-implementation.md): Build complete image generation models with UNet architecture
-- [Chapter 26: Advanced Diffusion Topics](26-diffusion-advanced.md): Fast sampling, conditional generation, guidance, and latent diffusion
-- [Chapter 31: Architecture Comparison: Modern LLMs](31-model-architectures.md): See how diffusion applies to language models (WeDLM)
+- [Chapter 33: Implementing Diffusion Models](33-diffusion-implementation.md): Build complete image generation models with UNet architecture
+- [Chapter 34: Advanced Diffusion Topics](34-diffusion-advanced.md): Fast sampling, conditional generation, guidance, and latent diffusion
+- [Chapter 27: Architecture Comparison: Modern LLMs](27-model-architectures.md): See how diffusion applies to language models (WeDLM)
 
 ## References
 

@@ -37,7 +37,7 @@ RoPE achieves all these goals through a clever application of rotation matrices 
 
 ### Learned Absolute Positional Embeddings
 
-GPT-2 and GPT-3 use learned positional embeddings (see [Architecture Comparison](31-model-architectures.md)):
+GPT-2 and GPT-3 use learned positional embeddings (see [Architecture Comparison](27-model-architectures.md)):
 
 **Why this approach exists:**
 The simplest way to add positional information is to learn an embedding for each position, just like word embeddings. Each position index (0, 1, 2, ..., max_position) gets its own learnable vector that is added to the token embedding.
@@ -923,7 +923,7 @@ The model treats "word 5 attending to word 3" the same as "word 105 attending to
 
 ## RoPE in Modern LLMs
 
-RoPE has become the standard positional encoding in modern LLMs. See [Architecture Comparison](31-model-architectures.md) for a comprehensive comparison.
+RoPE has become the standard positional encoding in modern LLMs. See [Architecture Comparison](27-model-architectures.md) for a comprehensive comparison.
 
 ### Models Using RoPE
 
@@ -996,7 +996,7 @@ class LLaMARotaryEmbedding(nn.Module):
 
 While RoPE can extrapolate beyond its training context, performance degrades significantly. Several techniques have been developed to extend RoPE to longer contexts.
 
-See [Long Context Techniques](27-long-context.md) for comprehensive coverage of long-context methods.
+See [Long Context Techniques](23-long-context.md) for comprehensive coverage of long-context methods.
 
 ### The Extrapolation Problem
 
@@ -1378,7 +1378,7 @@ class RoPEGroupedQueryAttention(nn.Module):
 
 ### RoPE with Flash Attention
 
-RoPE integrates seamlessly with Flash Attention (see [Flash Attention](12-flash-attention.md)):
+RoPE integrates seamlessly with Flash Attention (see [Flash Attention](13-flash-attention.md)):
 
 **Why this integration is important:**
 Flash Attention is a memory-efficient attention implementation that avoids materializing the full attention matrix by computing attention in blocks. Since RoPE is applied to Q and K before attention computation, it fits naturally into Flash Attention's workflow.
@@ -1515,7 +1515,7 @@ class iRoPEAttention(nn.Module):
 
 ### RoPE for Multimodal Models
 
-In vision-language models (see [Multimodality](28-multimodality.md)), RoPE can be applied differently:
+In vision-language models (see [Multimodality](24-multimodality.md)), RoPE can be applied differently:
 
 - **1D RoPE** for text tokens (standard)
 - **2D RoPE** for vision tokens (rows and columns)
@@ -2069,9 +2069,9 @@ test_yarn()
 
 - [Chapter 7: Positional Encodings](07-positional-encodings.md) - Other positional encoding methods
 - [Chapter 4: Multi-Head Attention](04-multi-head-attention.md) - Attention mechanisms that use RoPE
-- [Chapter 27: Long Context Techniques](27-long-context.md) - Advanced RoPE scaling and other long-context methods
-- [Chapter 31: Architecture Comparison](31-model-architectures.md) - Which models use RoPE
-- [Chapter 12: Flash Attention](12-flash-attention.md) - Efficient attention that works with RoPE
+- [Chapter 23: Long Context Techniques](23-long-context.md) - Advanced RoPE scaling and other long-context methods
+- [Chapter 27: Architecture Comparison](27-model-architectures.md) - Which models use RoPE
+- [Chapter 26: Flash Attention](13-flash-attention.md) - Efficient attention that works with RoPE
 
 ### Code Resources
 

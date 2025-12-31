@@ -1,4 +1,4 @@
-# Chapter 27: Long Context Techniques
+# Chapter 24: Long Context Techniques
 
 Extending the context window of Large Language Models is one of the most active areas of research. While early models like GPT-2 were limited to 1024 tokens, modern LLMs can handle 100K+ tokens, with some models like Gemini 1.5 Pro supporting over 1 million tokens. This chapter explores the techniques that make long-context modeling possible.
 
@@ -624,7 +624,7 @@ class PositionInterpolationRoPE(nn.Module):
 
 ### Comparison of RoPE Scaling Methods
 
-![RoPE Scaling Methods Comparison](../assets/diagrams/ch27-rope-scaling-comparison.svg)
+![RoPE Scaling Methods Comparison](../assets/diagrams/ch23-rope-scaling-comparison.svg)
 
 | Method | Fine-tuning Required? | Strengths | Weaknesses |
 |--------|----------------------|-----------|------------|
@@ -825,7 +825,7 @@ class StreamingLLMCache:
         self.recent_position = 0
 ```
 
-![StreamingLLM Cache Pattern](../assets/diagrams/ch27-streaming-llm-cache.svg)
+![StreamingLLM Cache Pattern](../assets/diagrams/ch23-streaming-llm-cache.svg)
 
 ### Practical Considerations
 
@@ -1116,7 +1116,7 @@ class LongLoRAAttention(nn.Module):
 - LongLoRA training on 32K: ~24GB per GPU
 - **3.3x reduction** in memory
 
-![Shifted Sparse Attention Pattern](../assets/diagrams/ch27-shifted-sparse-attention.svg)
+![Shifted Sparse Attention Pattern](../assets/diagrams/ch23-shifted-sparse-attention.svg)
 
 ### Results
 
@@ -2832,7 +2832,7 @@ class LongContextTransformer(nn.Module):
     Combines:
 
     - YaRN RoPE scaling for position encoding
-    - Flash Attention for memory efficiency (see [Flash Attention](12-flash-attention.md))
+    - Flash Attention for memory efficiency (see [Flash Attention](13-flash-attention.md))
     - Sliding window + global attention (Gemma-style)
     - Optional StreamingLLM for inference
 
@@ -3087,7 +3087,7 @@ class GroupedQueryAttention(nn.Module):
         # Compute attention
         if self.use_flash and hasattr(torch.nn.functional, 'scaled_dot_product_attention'):
             # Use PyTorch's built-in flash attention
-            # See [Flash Attention](12-flash-attention.md) for details
+            # See [Flash Attention](13-flash-attention.md) for details
             attn_out = torch.nn.functional.scaled_dot_product_attention(
                 q, k, v,
                 is_causal=True,
@@ -3124,7 +3124,7 @@ class GroupedQueryAttention(nn.Module):
 class SwiGLU(nn.Module):
     """SwiGLU activation for FFN.
 
-    See [Architecture Comparison](31-model-architectures.md) for details.
+    See [Architecture Comparison](27-model-architectures.md) for details.
     """
     def __init__(self, d_model: int, d_ff: int):
         super().__init__()
@@ -3186,7 +3186,7 @@ class RMSNorm(nn.Module):
 1. Use **ABF** or **YaRN** RoPE from start
 2. Consider **sliding window** attention for efficiency
 3. Alternate global and local layers (Gemma-style)
-4. Use **Flash Attention** for memory efficiency (see [Flash Attention](12-flash-attention.md))
+4. Use **Flash Attention** for memory efficiency (see [Flash Attention](13-flash-attention.md))
 5. If limited compute, use **LongLoRA** during fine-tuning
 
 **Production deployment**:
@@ -3344,10 +3344,10 @@ class RMSNorm(nn.Module):
 ### Related Chapters
 
 - [Rotary Position Embeddings (RoPE)](08-rope.md) - Base RoPE mechanism
-- [Flash Attention](12-flash-attention.md) - Memory-efficient attention
-- [Other Efficient Attention Variants](13-efficient-attention.md) - Sparse and linear attention
-- [Architecture Comparison: Modern LLMs](31-model-architectures.md) - Context lengths in production models
-- [Distributed Training and Parallelism](16-distributed-training.md) - Parallelism strategies
+- [Flash Attention](13-flash-attention.md) - Memory-efficient attention
+- [Other Efficient Attention Variants](14-efficient-attention.md) - Sparse and linear attention
+- [Architecture Comparison: Modern LLMs](27-model-architectures.md) - Context lengths in production models
+- [Distributed Training and Parallelism](30-distributed-training.md) - Parallelism strategies
 
 ### Additional Resources
 
@@ -3357,6 +3357,6 @@ class RMSNorm(nn.Module):
 
 ---
 
-**Next Chapter**: [Multimodality](28-multimodality.md) - Extending LLMs to vision, audio, and beyond.
+**Next Chapter**: [Multimodality](24-multimodality.md) - Extending LLMs to vision, audio, and beyond.
 
-**Previous Chapter**: [Advanced Diffusion Topics](26-diffusion-advanced.md) - Classifier-free guidance, latent diffusion, and more.
+**Previous Chapter**: [Safety and Alignment](22-safety-alignment.md) - Constitutional AI, RLHF safety, jailbreaks.

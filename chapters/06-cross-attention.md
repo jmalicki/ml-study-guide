@@ -1284,7 +1284,7 @@ Most modern seq2seq models use teacher forcing during training, and rely on tech
 
 ## Multimodal Cross-Attention
 
-Cross-attention is essential for multimodal models that combine different modalities (vision + language, audio + text, etc.). For more details, see [Multimodality](28-multimodality.md).
+Cross-attention is essential for multimodal models that combine different modalities (vision + language, audio + text, etc.). For more details, see [Multimodality](24-multimodality.md).
 
 ### Vision-Language Cross-Attention
 
@@ -2915,7 +2915,7 @@ Different models use cross-attention differently:
 - [Multi-Head Attention](04-multi-head-attention.md) - Multiple attention heads for richer representations
 - [Bidirectional vs Causal Attention](05-bidirectional-causal-attention.md) - Attention masking patterns
 - [Building a Complete Transformer](11-complete-transformer.md) - Full encoder-decoder implementation
-- [Multimodality](28-multimodality.md) - Cross-modal attention in modern multimodal models
+- [Multimodality](24-multimodality.md) - Cross-modal attention in modern multimodal models
 
 ---
 

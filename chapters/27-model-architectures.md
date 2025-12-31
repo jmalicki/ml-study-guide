@@ -1,4 +1,4 @@
-# Chapter 31: Architecture Comparison - Modern LLMs
+# Chapter 24: Architecture Comparison - Modern LLMs
 
 This chapter provides a comprehensive comparison of architectural choices across major Large Language Models. Understanding these differences is crucial for ML interviews, as it demonstrates knowledge of the practical trade-offs that shape production systems.
 
@@ -425,7 +425,7 @@ The progression from 100K → 200K → 1M tokens suggests:
 
 Claude uses a combination of:
 
-1. **RLHF** (see [RLHF](21-rlhf.md)): Reinforcement Learning from Human Feedback
+1. **RLHF** (see [RLHF](20-rlhf.md)): Reinforcement Learning from Human Feedback
 2. **RLAIF** (Constitutional AI): Reinforcement Learning from AI Feedback, where a "trainer" model evaluates responses against constitutional principles
 
 **Problem and Motivation for Constitutional AI:**
@@ -582,7 +582,7 @@ Gemini models use a Mixture-of-Experts architecture with native multimodality.
 
 **Key Technical Features:**
 
-- **MoE Architecture**: Selective expert activation for efficiency (see [Other Efficient Attention Variants](13-efficient-attention.md) for MoE concepts)
+- **MoE Architecture**: Selective expert activation for efficiency (see [Other Efficient Attention Variants](14-efficient-attention.md) for MoE concepts)
 - **Long Context**: Uses techniques similar to RoPE scaling for extended context
 
 **Key Papers:**
@@ -1036,7 +1036,7 @@ Introduced sliding window attention for efficient long-context handling:
 
 **Architecture:**
 
-- **Attention**: GQA + Sliding Window Attention (SWA) (see [Other Efficient Attention Variants](13-efficient-attention.md))
+- **Attention**: GQA + Sliding Window Attention (SWA) (see [Other Efficient Attention Variants](14-efficient-attention.md))
 - **Window Size**: 4096 tokens
 - **Positional Encoding**: RoPE
 - **Normalization**: RMSNorm
@@ -1099,7 +1099,7 @@ def sliding_window_attention_mask(seq_len: int, window_size: int) -> torch.Tenso
     beyond the window size. At layer k, a token can effectively
     access information from k * window_size positions back.
 
-    See [Other Efficient Attention Variants](13-efficient-attention.md) for detailed explanation.
+    See [Other Efficient Attention Variants](14-efficient-attention.md) for detailed explanation.
     """
     mask = torch.ones(seq_len, seq_len, dtype=torch.bool)
     for i in range(seq_len):
@@ -1773,10 +1773,10 @@ class DiffusionLanguageModel(nn.Module):
     diffusion models start with noise/masks and iteratively denoise.
 
     WeDLM's key insight: Use causal attention so that KV cache,
-    FlashAttention (see [Hardware, Quantization, and Training Optimization](33-hardware-quantization-optimization.md)),
+    FlashAttention (see [Hardware, Quantization, and Training Optimization](29-hardware-quantization-optimization.md)),
     and other optimizations still work.
 
-    See [Diffusion Model Fundamentals](24-diffusion-fundamentals.md) for diffusion model details.
+    See [Diffusion Model Fundamentals](32-diffusion-fundamentals.md) for diffusion model details.
     """
     def __init__(
         self,
@@ -1941,7 +1941,7 @@ class DiffusionLanguageModel(nn.Module):
 
 ## Key Architectural Innovations Timeline
 
-![Chapter 30 model arChapter itectures diagram](../assets/diagrams/ch31-model-architectures-diagram.svg)
+![Chapter 26 model arChapter itectures diagram](../assets/diagrams/ch27-model-architectures-diagram.svg)
 
 ---
 

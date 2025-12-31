@@ -1,8 +1,8 @@
-# Chapter 23: Safety and Alignment Techniques
+# Chapter 22: Safety and Alignment Techniques
 
 This chapter covers the critical area of AI safety and alignment for Large Language Models. As LLMs become more capable, ensuring they behave safely and align with human values becomes paramount. We'll explore techniques used in production systems to make models helpful, harmless, and honest.
 
-For the foundational preference learning techniques, see [RLHF](21-rlhf.md) and [Direct Preference Optimization (DPO)](22-dpo.md).
+For the foundational preference learning techniques, see [RLHF](20-rlhf.md) and [Direct Preference Optimization (DPO)](21-dpo.md).
 
 ## Table of Contents
 
@@ -64,7 +64,7 @@ Constitutional AI consists of two main stages:
 
 #### Stage 1: Supervised Learning (Critique and Revision)
 
-![Chapter 23 safety alignment diagram](../assets/diagrams/ch23-safety-alignment-diagram.svg)
+![Chapter 22 safety alignment diagram](../assets/diagrams/ch23-safety-alignment-diagram.svg)
 
 1. Generate an initial response to a prompt
 2. Have the model critique its own response against constitutional principles
@@ -73,7 +73,7 @@ Constitutional AI consists of two main stages:
 
 #### Stage 2: Reinforcement Learning from AI Feedback (RLAIF)
 
-![Chapter 23 safety alignment diagram 2](../assets/diagrams/ch23-safety-alignment-diagram-2.svg)
+![Chapter 22 safety alignment diagram 2](../assets/diagrams/ch23-safety-alignment-diagram-2.svg)
 
 1. Generate multiple responses to prompts
 2. Use an AI evaluator to rank responses according to the constitution
@@ -1767,7 +1767,7 @@ The key insight is to use **multiple signals** that should correlate but may div
 
 **Multi-Stage Detection Pipeline**:
 
-![Chapter 23 safety alignment diagram 3](../assets/diagrams/ch23-safety-alignment-diagram-3.svg)
+![Chapter 22 safety alignment diagram 3](../assets/diagrams/ch23-safety-alignment-diagram-3.svg)
 
 Each stage is more expensive but more accurate.
 
@@ -2300,7 +2300,7 @@ Instead of humans providing preferences:
 
 ### Mathematical Framework
 
-RLAIF follows the same RL framework as RLHF (see [RLHF](21-rlhf.md)), but the reward model $R_\phi$ is trained on AI-generated preferences:
+RLAIF follows the same RL framework as RLHF (see [RLHF](20-rlhf.md)), but the reward model $R_\phi$ is trained on AI-generated preferences:
 
 1. **AI Preference Generation**:
 
@@ -2773,7 +2773,7 @@ This holds when:
 
 **Bootstrapping and Self-Improvement**: RLAIF creates a feedback loop:
 
-![Chapter 23 safety alignment diagram 4](../assets/diagrams/ch23-safety-alignment-diagram-4.svg)
+![Chapter 22 safety alignment diagram 4](../assets/diagrams/ch23-safety-alignment-diagram-4.svg)
 
 This can lead to:
 
@@ -2818,7 +2818,7 @@ class RLAIF:
     Implements the RLAIF algorithm from Bai et al. (2022).
     Uses AI evaluator to generate preference data instead of human feedback.
 
-    See [RLHF](21-rlhf.md) for the base RL framework.
+    See [RLHF](20-rlhf.md) for the base RL framework.
     """
 
     def __init__(
@@ -2985,7 +2985,7 @@ Answer:"""
         """Train reward model on AI-generated preferences.
 
         Uses Bradley-Terry model as in standard RLHF.
-        See [RLHF](21-rlhf.md) for details.
+        See [RLHF](20-rlhf.md) for details.
         """
         optimizer = torch.optim.AdamW(
             self.reward_model.parameters(),
@@ -3047,7 +3047,7 @@ Answer:"""
     ):
         """Single PPO update step.
 
-        Simplified PPO for RLAIF. See [RLHF](21-rlhf.md) for full details.
+        Simplified PPO for RLAIF. See [RLHF](20-rlhf.md) for full details.
 
         Args:
             prompts: Batch of prompts
@@ -3127,7 +3127,7 @@ Answer:"""
 class RewardModel(nn.Module):
     """Reward model for RLAIF/RLHF.
 
-    See [RLHF](21-rlhf.md) for detailed explanation.
+    See [RLHF](20-rlhf.md) for detailed explanation.
     """
 
     def __init__(self, model_name: str):
@@ -3218,7 +3218,7 @@ Best practice: Use diverse detection methods (pattern matching, ML classifiers, 
 
 **Pipeline Stages**:
 
-![Chapter 23 safety alignment diagram 5](../assets/diagrams/ch23-safety-alignment-diagram-5.svg)
+![Chapter 22 safety alignment diagram 5](../assets/diagrams/ch23-safety-alignment-diagram-5.svg)
 
 **Key Design Principles**:
 
@@ -4140,7 +4140,7 @@ if __name__ == "__main__":
 
 ### Architecture Comparison
 
-For production safety systems like Claude's, see [Architecture Comparison: Modern LLMs](31-model-architectures.md), which discusses:
+For production safety systems like Claude's, see [Architecture Comparison: Modern LLMs](27-model-architectures.md), which discusses:
 
 - Claude's use of Constitutional AI and RLAIF
 - How different models approach safety-capability tradeoffs
@@ -4205,9 +4205,9 @@ For production safety systems like Claude's, see [Architecture Comparison: Moder
 
 **Next Steps:**
 
-- Review [RLHF](21-rlhf.md) for the foundational RL techniques
-- See [DPO](22-dpo.md) for an alternative to RL-based alignment
-- Check [Architecture Comparison](31-model-architectures.md) for how different models implement safety
+- Review [RLHF](20-rlhf.md) for the foundational RL techniques
+- See [DPO](21-dpo.md) for an alternative to RL-based alignment
+- Check [Architecture Comparison](27-model-architectures.md) for how different models implement safety
 
 **Further Reading:**
 

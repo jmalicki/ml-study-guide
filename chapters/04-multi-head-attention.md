@@ -1610,7 +1610,7 @@ For sequence length $n$ and model dimension $d$:
 | Output projection | $O(n \cdot d^2)$ |
 | **Total** | $O(n^2 \cdot d + n \cdot d^2)$ |
 
-For long sequences ($n > d$), the $O(n^2 \cdot d)$ term dominates, which motivates efficient attention variants (see [Flash Attention](12-flash-attention.md) and [Other Efficient Attention Variants](13-efficient-attention.md)).
+For long sequences ($n > d$), the $O(n^2 \cdot d)$ term dominates, which motivates efficient attention variants (see [Flash Attention](13-flash-attention.md) and [Other Efficient Attention Variants](14-efficient-attention.md)).
 
 ### 5. Memory Optimization
 
@@ -1654,7 +1654,7 @@ This means we can compute rows $i$ to $i+c$ (a chunk) separately, never storing 
 - Easy to implement
 - Good for extremely long sequences on limited hardware
 
-**Flash Attention** (see Chapter 12): Sophisticated approach using fused kernels
+**Flash Attention** (see Chapter 26): Sophisticated approach using fused kernels
 
 - Trade-off: Faster AND more memory efficient
 - Requires custom CUDA kernels
@@ -2118,7 +2118,7 @@ def prune_attention_heads(model, keep_ratio=0.5):
 
 9. **Flash Attention: Fast and Memory-Efficient Exact Attention with IO-Awareness** (Dao et al., 2022)
    - Algorithm for efficient attention computation
-   - See [Flash Attention](12-flash-attention.md)
+   - See [Flash Attention](13-flash-attention.md)
    - [arXiv:2205.14135](https://arxiv.org/abs/2205.14135)
 
 10. **Self-Attention Does Not Need O(n²) Memory** (Rabe & Staats, 2021)
@@ -2145,6 +2145,6 @@ Multi-head attention is a cornerstone of modern LLMs. Understanding the trade-of
 **Related Chapters**:
 
 - [Basic Attention](03-basic-attention.md) - Foundation of attention mechanisms
-- [Flash Attention](12-flash-attention.md) - Efficient attention computation
+- [Flash Attention](13-flash-attention.md) - Efficient attention computation
 - [The Transformer Block](09-transformer-block.md) - How MHA fits into the full architecture
-- [Architecture Comparison: Modern LLMs](31-model-architectures.md) - See which models use which attention variants
+- [Architecture Comparison: Modern LLMs](27-model-architectures.md) - See which models use which attention variants

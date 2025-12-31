@@ -1,4 +1,4 @@
-# Chapter 29: In-Context Learning
+# Chapter 26: In-Context Learning
 
 In-Context Learning (ICL) is a remarkable capability of large language models where they can learn to perform tasks from examples provided in the prompt, without any parameter updates. This chapter explores the mechanisms behind ICL, theoretical frameworks for understanding it, and practical implications for using LLMs.
 
@@ -307,7 +307,7 @@ Induction head predicts: "sat" (completing the repeated pattern)
 
 #### The Induction Circuit
 
-![Induction Head Circuit](../assets/diagrams/ch29-induction-head-circuit.svg)
+![Induction Head Circuit](../assets/diagrams/ch25-induction-head-circuit.svg)
 
 The circuit works through **composition of attention heads**:
 
@@ -1128,7 +1128,7 @@ Model Size     ICL Capability
 
 A critical practical question: when should you use ICL vs fine-tuning?
 
-![ICL vs Fine-Tuning Comparison](../assets/diagrams/ch29-icl-vs-finetuning.svg)
+![ICL vs Fine-Tuning Comparison](../assets/diagrams/ch25-icl-vs-finetuning.svg)
 
 ### Comparison Table
 
@@ -1466,11 +1466,11 @@ print("Calibrated probabilities:", calibrated)
 
 ## Connection to Reasoning
 
-ICL and reasoning (Chapter 30) are deeply connected:
+ICL and reasoning (Chapter 26) are deeply connected:
 
 ### ICL Enables Reasoning
 
-Chain-of-thought prompting (see Chapter 30) is essentially **ICL for reasoning processes**:
+Chain-of-thought prompting (see Chapter 26) is essentially **ICL for reasoning processes**:
 
 ```text
 Standard ICL: Learn input → output mapping
@@ -1491,7 +1491,7 @@ Reasoning techniques enhance ICL:
 ```python
 def self_consistent_icl(model, tokenizer, examples, query, num_samples=5):
     """
-    Use self-consistency (Chapter 30) to make ICL more robust.
+    Use self-consistency (Chapter 26) to make ICL more robust.
 
     Generate predictions with different example orderings,
     then take majority vote.

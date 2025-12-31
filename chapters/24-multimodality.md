@@ -1,4 +1,4 @@
-# Chapter 28: Multimodality
+# Chapter 25: Multimodality
 
 Multimodal models extend language models to understand and generate content across multiple modalities—vision, audio, and text. This chapter covers the architectures and techniques that enable models like GPT-4V, LLaVA, and Gemini to process images, audio, and text together.
 
@@ -486,11 +486,11 @@ def siglip_loss(
 
 Cross-modal attention allows the language model to attend to visual features. See [Cross-Attention](06-cross-attention.md) for the general mechanism.
 
-![Cross-Modal Attention Diagram](../assets/diagrams/ch28-cross-modal-attention.svg)
+![Cross-Modal Attention Diagram](../assets/diagrams/ch24-cross-modal-attention.svg)
 
 The diagram above illustrates how text tokens (queries) attend to image patches (keys and values). Notice how semantic words like "cat" and "mat" have strong attention weights to their corresponding visual regions, while function words distribute attention more broadly.
 
-![Attention Heatmap](../assets/diagrams/ch28-attention-heatmap.svg)
+![Attention Heatmap](../assets/diagrams/ch24-attention-heatmap.svg)
 
 The heatmap shows the attention weight matrix between text tokens and image patches. Each cell represents how strongly a text token attends to a specific image patch. Darker colors indicate stronger attention. This visualization reveals how the model creates cross-modal semantic alignment.
 
@@ -685,7 +685,7 @@ LLaVA (Large Language and Vision Assistant) connects a vision encoder to an LLM 
 2. **Projection**: Linear layer to map visual features to LLM embedding space
 3. **Language Model**: Pre-trained LLM (Vicuna, LLaMA)
 
-![Vision-Language Model Architecture](../assets/diagrams/ch28-vision-llm-architecture.svg)
+![Vision-Language Model Architecture](../assets/diagrams/ch24-vision-llm-architecture.svg)
 
 This diagram shows the complete flow from image and text inputs through the vision encoder, projection layer, concatenation, and final processing by the LLM. The key insight is that vision features are projected into the same embedding space as text, allowing the LLM to process them jointly through its transformer layers.
 
@@ -859,7 +859,7 @@ def train_llava_stage2(
     for param in model.vision_projection.parameters():
         param.requires_grad = True
 
-    # Use LoRA for efficient fine-tuning (see Chapter 19)
+    # Use LoRA for efficient fine-tuning (see Chapter 18)
     optimizer = torch.optim.AdamW(
         [p for p in model.parameters() if p.requires_grad],
         lr=2e-5
@@ -3267,7 +3267,7 @@ Different approaches to handling multiple modalities:
 
 **The Problem:** Text is naturally discrete (words/subwords), but images, audio, and video are continuous signals. How do we represent all modalities in a way that a transformer can process them together? The tokenization strategy fundamentally affects model architecture, training requirements, and performance.
 
-![Multimodal Tokenization Process](../assets/diagrams/ch28-multimodal-tokenization.svg)
+![Multimodal Tokenization Process](../assets/diagrams/ch24-multimodal-tokenization.svg)
 
 The visualization above shows the complete multimodal tokenization pipeline: images are split into patches and linearly embedded, text is tokenized and embedded, both are projected to a shared dimension space, and finally concatenated into a unified sequence that the LLM can process. This late fusion approach is used by models like LLaVA and BLIP-2.
 
@@ -3598,7 +3598,7 @@ def example_multimodal_usage():
 
 1. **Use pre-trained encoders** when possible (CLIP, Whisper)
 2. **Stage training**: Align first, then instruct
-3. **LoRA for efficiency** when fine-tuning large LLMs (see [LoRA and PEFT](20-peft.md))
+3. **LoRA for efficiency** when fine-tuning large LLMs (see [LoRA and PEFT](19-peft.md))
 4. **Perceiver Resampler** for variable-length inputs
 5. **Data quality over quantity** for instruction tuning
 

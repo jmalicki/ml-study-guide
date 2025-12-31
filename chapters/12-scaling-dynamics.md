@@ -1,4 +1,4 @@
-# Chapter 18: Scaling Laws and Training Dynamics
+# Chapter 12: Scaling Laws and Training Dynamics
 
 This chapter explores the empirical relationships that govern how language model performance scales with size, data, and compute, along with fascinating phenomena that emerge during training. Understanding these dynamics helps predict model performance, allocate resources optimally, and reveals deep insights about how neural networks learn.
 
@@ -47,7 +47,7 @@ Understanding how language models scale is one of the most important questions i
 
 **Prerequisites:** This chapter assumes familiarity with:
 
-- Basic neural network training ([Chapter 15](15-lm-training.md))
+- Basic neural network training ([Chapter 26](16-lm-training.md))
 - Understanding of optimization and training dynamics ([Chapter 17](17-scaling-optimization.md))
 
 ---
@@ -97,7 +97,7 @@ where $N_c$, $D_c$, $C_c$ are constants and $\alpha_{N} \approx 0.076$, $\alpha_
 
 **Kaplan Scaling Laws Visualization:**
 
-![Chapter 18 scaling dynamics diagram](../assets/diagrams/ch18-scaling-dynamics-diagram.svg)
+![Chapter 13 scaling dynamics diagram](../assets/diagrams/ch18-scaling-dynamics-diagram.svg)
 
 ### The Chinchilla Scaling Laws
 
@@ -160,7 +160,7 @@ Optimizing this under the compute constraint $C = 6ND$ shows that $N_{opt}$ and 
 
 **Kaplan vs Chinchilla Comparison:**
 
-![Chapter 18 scaling dynamics diagram 2](../assets/diagrams/ch18-scaling-dynamics-diagram-2.svg)
+![Chapter 13 scaling dynamics diagram 2](../assets/diagrams/ch18-scaling-dynamics-diagram-2.svg)
 
 **Examples of Models and Their Training Regimes:**
 
@@ -652,7 +652,7 @@ if __name__ == "__main__":
 
 **Grokking Phenomenon Visualization:**
 
-![Chapter 18 scaling dynamics diagram 3](../assets/diagrams/ch18-scaling-dynamics-diagram-3.svg)
+![Chapter 13 scaling dynamics diagram 3](../assets/diagrams/ch18-scaling-dynamics-diagram-3.svg)
 
 **Key Observations from the Implementation:**
 
@@ -953,7 +953,7 @@ if __name__ == "__main__":
 
 **Double Descent Visualization:**
 
-![Chapter 18 scaling dynamics diagram 4](../assets/diagrams/ch18-scaling-dynamics-diagram-4.svg)
+![Chapter 13 scaling dynamics diagram 4](../assets/diagrams/ch18-scaling-dynamics-diagram-4.svg)
 
 **What to observe in the results:**
 
@@ -1379,5 +1379,5 @@ For practical training techniques (optimizers, learning rates, etc.), see [Chapt
 
 **Previous Chapter**: [Optimizers and Training Techniques](17-scaling-optimization.md) - AdamW, learning rate schedules, and training best practices.
 
-**Next Chapter**: [Supervised Fine-tuning (SFT)](19-sft.md) - Instruction tuning and task-specific adaptation.
+**Next Chapter**: [Supervised Fine-tuning (SFT)](18-sft.md) - Instruction tuning and task-specific adaptation.
 

@@ -1,4 +1,4 @@
-# Chapter 34: Evaluation and Benchmarks
+# Chapter 28: Evaluation and Benchmarks
 
 ## Introduction
 
@@ -211,7 +211,7 @@ text = "Hello, world! 你好世界"
 
 Modern LLMs are evaluated across a diverse suite of benchmarks, each targeting different capabilities. The following chart compares performance of leading models across major benchmarks:
 
-![Benchmark Comparison](../assets/diagrams/ch34-benchmark-comparison.svg)
+![Benchmark Comparison](../assets/diagrams/ch31-benchmark-comparison.svg)
 
 ### 32.2.1 MMLU (Massive Multitask Language Understanding)
 
@@ -1781,7 +1781,7 @@ class ARCEvaluator:
 
 ### 32.3.2 MATH Dataset
 
-The MATH dataset ([Hendrycks et al., 2021](https://arxiv.org/abs/2103.03874)) contains challenging competition mathematics problems. Related to [Reasoning and Chain-of-Thought](30-reasoning.md).
+The MATH dataset ([Hendrycks et al., 2021](https://arxiv.org/abs/2103.03874)) contains challenging competition mathematics problems. Related to [Reasoning and Chain-of-Thought](26-reasoning.md).
 
 **Why MATH Dataset Matters**: While GSM8K tests elementary arithmetic reasoning, MATH tests **advanced mathematical problem-solving** at the competition level (AMC, AIME, etc.). This is important because:
 
@@ -2029,7 +2029,7 @@ class BigBenchEvaluator:
 
 ## 32.4 Safety and Alignment Evaluations
 
-Safety evaluations are critical for deployed models. See [Safety and Alignment Techniques](23-safety-alignment.md) for training methods.
+Safety evaluations are critical for deployed models. See [Safety and Alignment Techniques](22-safety-alignment.md) for training methods.
 
 ### 32.4.1 Toxicity Detection
 
@@ -2433,7 +2433,7 @@ class TruthfulnessEvaluator:
 
 Chatbot Arena ([Zheng et al., 2023](https://arxiv.org/abs/2403.04132)) uses pairwise comparisons with Elo ratings.
 
-![Elo Rating Evolution](../assets/diagrams/ch34-elo-evolution.svg)
+![Elo Rating Evolution](../assets/diagrams/ch31-elo-evolution.svg)
 
 **Why Chatbot Arena / Elo Ratings Matter**: Traditional benchmarks measure narrow capabilities, but users care about **overall helpfulness** in conversations. Chatbot Arena addresses this by:
 
@@ -3737,7 +3737,7 @@ def example_cost_estimation():
 
 A comprehensive evaluation requires assessing models across multiple capability dimensions. The radar chart below visualizes how different models perform across key evaluation areas:
 
-![Capability Radar Chart](../assets/diagrams/ch34-capability-radar.svg)
+![Capability Radar Chart](../assets/diagrams/ch31-capability-radar.svg)
 
 ```python
 from dataclasses import dataclass

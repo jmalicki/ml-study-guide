@@ -478,7 +478,7 @@ def demonstrate_temperature():
 **Comparison to Alternatives**:
 
 - **Pre-norm vs post-norm**: This shows the core attention; layer normalization placement varies (we'll see this in full transformer layers)
-- **Flash Attention**: Computes the exact same result but with better memory access patterns (Chapter 12)
+- **Flash Attention**: Computes the exact same result but with better memory access patterns (Chapter 26)
 - **Relative positional bias**: Some variants (like T5) add learned biases to attention scores before softmax
 
 **Key Implementation Insights**:
@@ -1281,7 +1281,7 @@ For long sequences (e.g., $n = 10000$), the $O(n^2)$ memory can be prohibitive.
 
 - GPT-3 uses 2048 context: ~4 MB per attention head per example
 - 100K context (long-context models): ~40 GB per head - barely fits on largest GPUs!
-- This quadratic bottleneck is why techniques like Flash Attention (Chapter 12) and sparse attention (Chapter 13) are critical for modern LLMs
+- This quadratic bottleneck is why techniques like Flash Attention (Chapter 26) and sparse attention (Chapter 26) are critical for modern LLMs
 
 **Key Insight**: The attention matrix memory ($n \times n$ floats) is often the limiting factor, not compute time. Even if we could compute it quickly, storing it for backpropagation becomes prohibitive for long sequences.
 
@@ -1375,9 +1375,9 @@ The $O(n^2)$ complexity limits vanilla attention:
 
 Solutions (covered in later chapters):
 
-- [Flash Attention](12-flash-attention.md): Same complexity but 2-4x faster via better memory access
-- [Efficient Attention](13-efficient-attention.md): Linear or sparse attention variants
-- [Long Context Techniques](27-long-context.md): Specialized methods for ultra-long contexts
+- [Flash Attention](13-flash-attention.md): Same complexity but 2-4x faster via better memory access
+- [Efficient Attention](14-efficient-attention.md): Linear or sparse attention variants
+- [Long Context Techniques](23-long-context.md): Specialized methods for ultra-long contexts
 
 ---
 
@@ -1486,7 +1486,7 @@ V &\in \mathbb{R}^{n_k \times d_v} \\
 - **Next**: [Multi-Head Attention](04-multi-head-attention.md) - Running attention multiple times in parallel
 - **Related**:
   - [Bidirectional vs Causal Attention](05-bidirectional-causal-attention.md) - Different masking strategies
-  - [Flash Attention](12-flash-attention.md) - Efficient implementation
+  - [Flash Attention](13-flash-attention.md) - Efficient implementation
 
 ### Interview Talking Points
 

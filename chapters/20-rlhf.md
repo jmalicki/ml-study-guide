@@ -1,4 +1,4 @@
-# Chapter 21: Reinforcement Learning from Human Feedback (RLHF)
+# Chapter 20: Reinforcement Learning from Human Feedback (RLHF)
 
 Reinforcement Learning from Human Feedback (RLHF) is the technique that transformed base language models into helpful, harmless assistants like ChatGPT and Claude. This chapter covers the complete RLHF pipeline, from collecting human preferences to training models with PPO while maintaining alignment with the original supervised fine-tuned model.
 
@@ -18,12 +18,12 @@ Reinforcement Learning from Human Feedback (RLHF) is the technique that transfor
 
 ## Overview
 
-After supervised fine-tuning (see [Supervised Fine-tuning (SFT)](19-sft.md)), a language model can follow instructions, but it may not produce outputs that align with human preferences regarding helpfulness, harmlessness, and honesty. RLHF solves this by:
+After supervised fine-tuning (see [Supervised Fine-tuning (SFT)](18-sft.md)), a language model can follow instructions, but it may not produce outputs that align with human preferences regarding helpfulness, harmlessness, and honesty. RLHF solves this by:
 
 1. **Reward Modeling**: Training a model to predict human preferences
 2. **RL Fine-tuning**: Using reinforcement learning (PPO) to maximize the reward while staying close to the SFT model
 
-The technique was popularized by OpenAI's InstructGPT and Anthropic's Constitutional AI work, though simpler alternatives like DPO (see [Direct Preference Optimization (DPO)](22-dpo.md)) have since emerged.
+The technique was popularized by OpenAI's InstructGPT and Anthropic's Constitutional AI work, though simpler alternatives like DPO (see [Direct Preference Optimization (DPO)](21-dpo.md)) have since emerged.
 
 **Key Papers:**
 
@@ -37,13 +37,13 @@ The technique was popularized by OpenAI's InstructGPT and Anthropic's Constituti
 
 The complete RLHF pipeline consists of three stages:
 
-![Chapter 21 rlhf diagram](../assets/diagrams/ch21-rlhf-diagram.svg)
+![Chapter 20 rlhf diagram](../assets/diagrams/ch21-rlhf-diagram.svg)
 
 **Stage 1: Supervised Fine-tuning (SFT)**
 
 - Train on high-quality (prompt, response) pairs
 - Creates the reference model $\pi_{\text{ref}}$
-- See [Chapter 19](19-sft.md) for details
+- See [Chapter 18](18-sft.md) for details
 
 **Stage 2: Reward Model Training**
 
@@ -1419,7 +1419,7 @@ RLHF is expensive because it requires:
 
 - Use smaller models for reward/value
 - Offload reference model to CPU
-- Use parameter-efficient fine-tuning (see [LoRA](20-peft.md))
+- Use parameter-efficient fine-tuning (see [LoRA](19-peft.md))
 
 ### 2. Hyperparameter Tuning
 
@@ -1469,7 +1469,7 @@ Other RL algorithms have been explored:
 - **A2C/A3C**: More sample efficient
 - **RLOO (REINFORCE Leave-One-Out)**: Used by some recent systems
 
-However, **DPO** (see [Chapter 22](22-dpo.md)) has largely replaced PPO for many applications due to its simplicity and stability.
+However, **DPO** (see [Chapter 21](21-dpo.md)) has largely replaced PPO for many applications due to its simplicity and stability.
 
 ---
 
@@ -2344,14 +2344,14 @@ RLHF is a powerful technique for aligning language models with human preferences
 
 **Alternatives:**
 
-- **DPO** (see [Chapter 22](22-dpo.md)): Simpler, more stable
+- **DPO** (see [Chapter 21](21-dpo.md)): Simpler, more stable
 - **RLAIF**: Use AI feedback instead of human feedback
-- **Constitutional AI** (see [Chapter 23](23-safety-alignment.md)): Self-improvement through principles
+- **Constitutional AI** (see [Chapter 22](22-safety-alignment.md)): Self-improvement through principles
 
 In practice, modern alignment pipelines often use a combination of SFT, RLHF/DPO, and other techniques to achieve safe and helpful behavior.
 
 **Next Steps:**
 
-- [Direct Preference Optimization (DPO)](22-dpo.md): A simpler alternative to RLHF
-- [Safety and Alignment Techniques](23-safety-alignment.md): Additional alignment methods
-- [Supervised Fine-tuning (SFT)](19-sft.md): Review the first step before RLHF
+- [Direct Preference Optimization (DPO)](21-dpo.md): A simpler alternative to RLHF
+- [Safety and Alignment Techniques](22-safety-alignment.md): Additional alignment methods
+- [Supervised Fine-tuning (SFT)](18-sft.md): Review the first step before RLHF

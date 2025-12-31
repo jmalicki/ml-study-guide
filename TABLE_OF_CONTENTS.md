@@ -73,19 +73,19 @@
 
 ## Part 5: Efficient Attention
 
-1. [Flash Attention](chapters/12-flash-attention.md)
+1. [Flash Attention](chapters/13-flash-attention.md)
    - Memory bottlenecks in attention
    - IO-aware algorithm design
    - Tiling and recomputation
    - Implementation considerations
 
-2. [Other Efficient Attention Variants](chapters/13-efficient-attention.md)
+2. [Other Efficient Attention Variants](chapters/14-efficient-attention.md)
    - Linear attention
    - Sparse attention
    - Sliding window attention
    - Multi-query and grouped-query attention
 
-3. [KV Cache](chapters/14-kv-cache.md)
+3. [KV Cache](chapters/15-kv-cache.md)
    - Why KV cache exists
    - Memory analysis and scaling
    - Basic implementation
@@ -98,28 +98,20 @@
 
 ## Part 6: Training Large Language Models
 
-1. [Language Model Training](chapters/15-lm-training.md)
+1. [Language Model Training](chapters/16-lm-training.md)
    - Causal language modeling objective
    - Training loop implementation
    - Gradient accumulation
    - Mixed precision training
 
-2. [Distributed Training and Parallelism](chapters/16-distributed-training.md)
-   - Data Parallelism (DP, DDP)
-   - Tensor Parallelism (TP)
-   - Pipeline Parallelism (PP)
-   - Fully Sharded Data Parallel (FSDP)
-   - ZeRO optimization stages
-   - 3D parallelism strategies
-
-3. [Optimizers and Training Techniques](chapters/17-scaling-optimization.md)
+2. [Optimizers and Training Techniques](chapters/17-scaling-optimization.md)
    - AdamW and optimizer choices
    - Learning rate schedules (warmup, cosine, WSD)
    - Gradient clipping
    - Batch size scaling
    - Troubleshooting training issues
 
-4. [Scaling Laws and Training Dynamics](chapters/18-scaling-dynamics.md)
+3. [Scaling Laws and Training Dynamics](chapters/12-scaling-dynamics.md)
    - Kaplan and Chinchilla scaling laws
    - Compute-optimal training
    - Grokking: delayed generalization
@@ -129,60 +121,40 @@
 
 ## Part 7: Alignment and Fine-tuning
 
-1. [Supervised Fine-tuning (SFT)](chapters/19-sft.md)
+1. [Supervised Fine-tuning (SFT)](chapters/18-sft.md)
    - Instruction tuning
    - Dataset preparation
    - Fine-tuning strategies
 
-2. [LoRA and Parameter-Efficient Fine-tuning](chapters/20-peft.md)
+2. [LoRA and Parameter-Efficient Fine-tuning](chapters/19-peft.md)
    - Low-Rank Adaptation (LoRA)
    - QLoRA (quantized LoRA)
    - Prefix tuning and prompt tuning
    - Adapters and other PEFT methods
    - When to use PEFT vs full fine-tuning
 
-3. [Reinforcement Learning from Human Feedback (RLHF)](chapters/21-rlhf.md)
+3. [Reinforcement Learning from Human Feedback (RLHF)](chapters/20-rlhf.md)
    - Reward modeling
    - PPO for language models
    - KL divergence constraints
    - Implementation walkthrough
 
-4. [Direct Preference Optimization (DPO)](chapters/22-dpo.md)
+4. [Direct Preference Optimization (DPO)](chapters/21-dpo.md)
    - From RLHF to DPO
    - Mathematical derivation
    - Implementation
    - Variants (IPO, KTO, etc.)
 
-5. [Safety and Alignment Techniques](chapters/23-safety-alignment.md)
+5. [Safety and Alignment Techniques](chapters/22-safety-alignment.md)
    - Constitutional AI (CAI)
    - Red teaming and adversarial testing
    - Harmlessness training
    - Refusal training and jailbreak prevention
    - Alignment tax and capability tradeoffs
 
-## Part 8: Diffusion Models
+## Part 8: Advanced Capabilities
 
-1. [Diffusion Model Fundamentals](chapters/24-diffusion-fundamentals.md)
-   - Forward diffusion process
-   - Reverse denoising process
-   - Score matching
-   - DDPM formulation
-
-2. [Implementing Diffusion Models](chapters/25-diffusion-implementation.md)
-   - U-Net architecture
-   - Noise scheduling
-   - Training loop
-   - Sampling algorithms (DDPM, DDIM)
-
-3. [Advanced Diffusion Topics](chapters/26-diffusion-advanced.md)
-   - Classifier-free guidance
-   - Latent diffusion (Stable Diffusion)
-   - Conditioning mechanisms
-   - Recent advances
-
-## Part 9: Advanced Capabilities
-
-1. [Long Context Techniques](chapters/27-long-context.md)
+1. [Long Context Techniques](chapters/23-long-context.md)
    - RoPE scaling methods (NTK-aware, YaRN)
    - Attention sinks and StreamingLLM
    - Memory-augmented architectures
@@ -190,14 +162,14 @@
    - Ring attention for distributed long context
    - Evaluation on long-range tasks
 
-2. [Multimodality](chapters/28-multimodality.md)
+2. [Multimodality](chapters/24-multimodality.md)
    - Vision encoders (ViT, SigLIP)
    - Cross-modal attention mechanisms
    - Vision-language models (LLaVA, GPT-4V)
    - Audio and speech integration
    - Multimodal tokenization strategies
 
-3. [In-Context Learning](chapters/29-in-context-learning.md)
+3. [In-Context Learning](chapters/25-in-context-learning.md)
    - Zero-shot, one-shot, and few-shot learning
    - Induction heads and mechanistic interpretability
    - Theoretical frameworks (meta-learning, Bayesian inference, implicit gradient descent)
@@ -206,7 +178,7 @@
    - Advanced ICL techniques
    - Connection to reasoning
 
-4. [Reasoning and Chain-of-Thought](chapters/30-reasoning.md)
+4. [Reasoning and Chain-of-Thought](chapters/26-reasoning.md)
    - Chain-of-thought prompting
    - Self-consistency and voting
    - Tree-of-thought reasoning
@@ -214,9 +186,9 @@
    - Reasoning traces and verification
    - Test-time compute scaling
 
-## Part 10: Model Architectures in Practice
+## Part 9: Model Architectures in Practice
 
-1. [Architecture Comparison: Modern LLMs](chapters/31-model-architectures.md)
+1. [Architecture Comparison: Modern LLMs](chapters/27-model-architectures.md)
    - GPT series (GPT-2, GPT-3, GPT-4)
    - Claude (Anthropic)
    - Gemini (Google DeepMind)
@@ -238,16 +210,16 @@
      - Mixture of Experts (MoE) vs dense
      - Autoregressive vs diffusion-based generation
 
-2. [Model Merging and Distillation](chapters/32-merging-distillation.md)
+2. [Model Merging and Distillation](chapters/28-merging-distillation.md)
    - Knowledge distillation techniques
    - Model merging (TIES, DARE, SLERP)
    - Pruning and sparsification
    - Weight averaging methods
    - Creating specialized models from general ones
 
-## Part 11: Hardware and Optimization
+## Part 10: Hardware and Optimization
 
-1. [Hardware, Quantization, and Training Optimization](chapters/33-hardware-quantization-optimization.md)
+1. [Hardware, Quantization, and Training Optimization](chapters/29-hardware-quantization-optimization.md)
    - **Hardware**
      - NVIDIA GPUs (Ampere, Hopper, Blackwell)
      - Google TPUs (v5, v6 Trillium, v7 Ironwood)
@@ -276,15 +248,45 @@
      - Cosine with warmup
      - Warmup-Stable-Decay (WSD)
 
+## Part 11: Distributed Training
+
+1. [Distributed Training and Parallelism](chapters/30-distributed-training.md)
+   - Data Parallelism (DP, DDP)
+   - Tensor Parallelism (TP)
+   - Pipeline Parallelism (PP)
+   - Fully Sharded Data Parallel (FSDP)
+   - ZeRO optimization stages
+   - 3D parallelism strategies
+
 ## Part 12: Evaluation and Deployment
 
-1. [Evaluation and Benchmarks](chapters/34-evaluation-benchmarks.md)
+1. [Evaluation and Benchmarks](chapters/31-evaluation-benchmarks.md)
    - Perplexity and language modeling metrics
    - Common benchmarks (MMLU, HellaSwag, GSM8K, HumanEval)
    - Reasoning benchmarks (ARC, MATH, BigBench)
    - Safety and alignment evaluations
    - Human evaluation methods
    - Contamination detection and mitigation
+
+## Part 13: Diffusion Models
+
+1. [Diffusion Model Fundamentals](chapters/32-diffusion-fundamentals.md)
+   - Forward diffusion process
+   - Reverse denoising process
+   - Score matching
+   - DDPM formulation
+
+2. [Implementing Diffusion Models](chapters/33-diffusion-implementation.md)
+   - U-Net architecture
+   - Noise scheduling
+   - Training loop
+   - Sampling algorithms (DDPM, DDIM)
+
+3. [Advanced Diffusion Topics](chapters/34-diffusion-advanced.md)
+   - Classifier-free guidance
+   - Latent diffusion (Stable Diffusion)
+   - Conditioning mechanisms
+   - Recent advances
 
 ## Appendices
 

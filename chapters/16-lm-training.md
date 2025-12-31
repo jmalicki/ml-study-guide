@@ -1,4 +1,4 @@
-# Chapter 15: Language Model Training
+# Chapter 26: Language Model Training
 
 This chapter covers the fundamentals of training large language models (LLMs) through causal language modeling. We'll explore the training objective, loss functions, implementation details, and practical techniques like gradient accumulation and mixed precision training. Understanding these fundamentals is essential for ML interviews, as they form the foundation of how modern LLMs are trained.
 
@@ -1070,7 +1070,7 @@ Mixed precision training uses FP16 or BF16 for most operations while keeping FP3
 - ~40% less memory usage
 - Minimal accuracy loss
 
-See [Hardware, Quantization, and Training Optimization](33-hardware-quantization-optimization.md) for detailed coverage of mixed precision training, including FP8.
+See [Hardware, Quantization, and Training Optimization](29-hardware-quantization-optimization.md) for detailed coverage of mixed precision training, including FP8.
 
 ![Mixed Precision Training Flow](../assets/diagrams/ch15-mixed-precision-flow.svg)
 
@@ -1093,7 +1093,7 @@ class MixedPrecisionTrainer(LanguageModelTrainer):
 
     Uses PyTorch's built-in AMP for efficient training.
 
-    See [Hardware, Quantization, and Training Optimization](33-hardware-quantization-optimization.md)
+    See [Hardware, Quantization, and Training Optimization](29-hardware-quantization-optimization.md)
     for more details on mixed precision training.
     """
 
@@ -1177,7 +1177,7 @@ def compare_precision_formats():
     - Simpler training pipeline
     - Supported on modern hardware (Ampere+, TPU, etc.)
 
-    See [Hardware, Quantization, and Training Optimization](33-hardware-quantization-optimization.md)
+    See [Hardware, Quantization, and Training Optimization](29-hardware-quantization-optimization.md)
     for more details.
     """
 
@@ -2770,7 +2770,7 @@ def debug_oom_errors():
 
     5. Model parallelism:
        - Split model across multiple GPUs
-       - See Chapter 16 on distributed training
+       - See Chapter 26 on distributed training
 
     6. Offloading:
        - Move optimizer states to CPU

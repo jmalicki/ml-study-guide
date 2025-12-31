@@ -1,4 +1,4 @@
-# Chapter 33: Hardware, Quantization, and Training Optimization
+# Chapter 26: Hardware, Quantization, and Training Optimization
 
 This chapter covers the practical aspects of training and deploying LLMs efficiently: hardware considerations, quantization techniques, optimizers, and learning rate schedules. Understanding these topics is essential for ML interviews, as they bridge the gap between theoretical architecture and real-world deployment.
 
@@ -222,7 +222,7 @@ Understanding data types is fundamental to quantization and mixed-precision trai
 
 ### Common Data Types
 
-![Numerical Precision Formats Comparison](../assets/diagrams/ch33-precision-formats.svg)
+![Numerical Precision Formats Comparison](../assets/diagrams/ch29-precision-formats.svg)
 
 ```python
 import torch
@@ -300,7 +300,7 @@ def bf16_vs_fp16():
 
 Quantization reduces model size and speeds up inference by using lower-precision representations.
 
-![Quantization Levels Memory Comparison](../assets/diagrams/ch33-quantization-comparison.svg)
+![Quantization Levels Memory Comparison](../assets/diagrams/ch29-quantization-comparison.svg)
 
 ### Post-Training Quantization (PTQ)
 
@@ -1048,7 +1048,7 @@ def transformer_engine_usage():
 
 Flash Attention is a critical IO-aware optimization that reduces attention's memory usage from O(N²) to O(N) and achieves 2-15x speedup depending on the version and hardware.
 
-**For comprehensive coverage of Flash Attention, see [Chapter 12: Flash Attention](12-flash-attention.md)**, which includes:
+**For comprehensive coverage of Flash Attention, see [Chapter 26: Flash Attention](13-flash-attention.md)**, which includes:
 
 - Detailed explanation of the memory bottleneck problem
 - GPU memory hierarchy and IO-aware algorithm design
@@ -1520,7 +1520,7 @@ class KVCacheQuantization:
 
 ### PagedAttention
 
-**Note**: For comprehensive coverage of PagedAttention including full implementation details, see [Chapter 14: KV-Cache](14-kv-cache.md). This section provides a brief overview focused on hardware optimization context.
+**Note**: For comprehensive coverage of PagedAttention including full implementation details, see [Chapter 26: KV-Cache](15-kv-cache.md). This section provides a brief overview focused on hardware optimization context.
 
 PagedAttention manages KV cache memory like virtual memory pages.
 
@@ -2570,7 +2570,7 @@ class DistributedTrainingComparison:
 - [DeepSpeed ZeRO Documentation](https://www.deepspeed.ai/tutorials/zero/)
 - [Megatron-LM GitHub](https://github.com/NVIDIA/Megatron-LM)
 
-**Cross-reference:** For more on distributed training patterns and frameworks, see [Chapter 16: Distributed Training](16-distributed-training.md) (if available).
+**Cross-reference:** For more on distributed training patterns and frameworks, see [Chapter 26: Distributed Training](30-distributed-training.md) (if available).
 
 ---
 

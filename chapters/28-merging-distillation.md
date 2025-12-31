@@ -1,4 +1,4 @@
-# Chapter 32: Model Merging and Distillation
+# Chapter 25: Model Merging and Distillation
 
 This chapter covers techniques for combining and compressing models: knowledge distillation transfers knowledge from large "teacher" models to smaller "student" models, while model merging combines multiple fine-tuned models into a single model without additional training. These techniques are essential for creating efficient, specialized models from general-purpose ones.
 
@@ -1454,7 +1454,7 @@ def create_intermediate_checkpoint():
 
 ## LoRA Merging
 
-LoRA adapters (see [Chapter 20: LoRA and Parameter-Efficient Fine-tuning](20-peft.md)) can be merged into the base model or combined with other LoRAs.
+LoRA adapters (see [Chapter 19: LoRA and Parameter-Efficient Fine-tuning](19-peft.md)) can be merged into the base model or combined with other LoRAs.
 
 **LoRA Formulation Recap:**
 
@@ -2444,7 +2444,7 @@ When faced with model compression or combination tasks, selecting the right appr
 
 ### Decision Guide: Technique Selection
 
-![Chapter 31 merging distillation diagram](../assets/diagrams/ch32-merging-distillation-diagram.svg)
+![Chapter 27 merging distillation diagram](../assets/diagrams/ch28-merging-distillation-diagram.svg)
 
 ### Detailed Comparison Table
 
@@ -2474,11 +2474,11 @@ When faced with model compression or combination tasks, selecting the right appr
 1. Distill large model → medium model (70B → 7B)
 2. Fine-tune medium model on target tasks
 3. Prune with Wanda or SparseGPT (50-70% sparsity)
-4. Quantize (see Chapter 31)
+4. Quantize (see Chapter 27)
 
 **Example**: Deploy GPT-4 level capability on mobile
 
-![Chapter 31 merging distillation diagram 2](../assets/diagrams/ch32-merging-distillation-diagram-2.svg)
+![Chapter 27 merging distillation diagram 2](../assets/diagrams/ch28-merging-distillation-diagram-2.svg)
 
 #### Multi-Task Learning
 **Best Approach**: Specialize-then-merge
@@ -2489,7 +2489,7 @@ When faced with model compression or combination tasks, selecting the right appr
 
 **Example**: Create generalist assistant
 
-![Chapter 31 merging distillation diagram 3](../assets/diagrams/ch32-merging-distillation-diagram-3.svg)
+![Chapter 27 merging distillation diagram 3](../assets/diagrams/ch28-merging-distillation-diagram-3.svg)
 
 #### Research/Safety
 **Best Approach**: Task arithmetic with ablation
@@ -2501,7 +2501,7 @@ When faced with model compression or combination tasks, selecting the right appr
 
 **Example**: Remove harmful capabilities
 
-![Chapter 31 merging distillation diagram 4](../assets/diagrams/ch32-merging-distillation-diagram-4.svg)
+![Chapter 27 merging distillation diagram 4](../assets/diagrams/ch28-merging-distillation-diagram-4.svg)
 
 #### Domain Adaptation
 **Best Approach**: LoRA specialization + merging
@@ -2512,7 +2512,7 @@ When faced with model compression or combination tasks, selecting the right appr
 
 **Example**: Medical domain expert
 
-![Chapter 31 merging distillation diagram 5](../assets/diagrams/ch32-merging-distillation-diagram-5.svg)
+![Chapter 27 merging distillation diagram 5](../assets/diagrams/ch28-merging-distillation-diagram-5.svg)
 
 ### Hyperparameter Guidelines
 
@@ -2910,10 +2910,10 @@ This chapter covered:
 - Combining techniques creates efficient specialized models
 
 **Next Chapter:**
-[Hardware, Quantization, and Training Optimization](33-hardware-quantization-optimization.md) - Learn about efficient deployment and training.
+[Hardware, Quantization, and Training Optimization](29-hardware-quantization-optimization.md) - Learn about efficient deployment and training.
 
 **Related Chapters:**
 
-- [Supervised Fine-tuning (SFT)](19-sft.md) - Creating models to merge
-- [LoRA and Parameter-Efficient Fine-tuning](20-peft.md) - Efficient adaptation
-- [Architecture Comparison: Modern LLMs](31-model-architectures.md) - Understanding distilled models
+- [Supervised Fine-tuning (SFT)](18-sft.md) - Creating models to merge
+- [LoRA and Parameter-Efficient Fine-tuning](19-peft.md) - Efficient adaptation
+- [Architecture Comparison: Modern LLMs](27-model-architectures.md) - Understanding distilled models

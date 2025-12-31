@@ -39,9 +39,9 @@ Training large language models requires careful selection of optimization algori
 
 **Prerequisites:** This chapter assumes familiarity with:
 
-- Basic gradient descent and backpropagation ([Chapter 15](15-lm-training.md))
-- Distributed training concepts ([Chapter 16](16-distributed-training.md))
-- Understanding of compute budgets and model sizing ([Chapter 18](18-scaling-dynamics.md))
+- Basic gradient descent and backpropagation ([Chapter 15](16-lm-training.md))
+- Distributed training concepts ([Chapter 31](30-distributed-training.md))
+- Understanding of compute budgets and model sizing ([Chapter 18](12-scaling-dynamics.md))
 
 ---
 
@@ -498,7 +498,7 @@ While AdamW is the standard baseline for LLM training, several alternatives addr
 - Extreme scale where small improvements compound significantly
 - Research settings exploring optimization frontiers
 
-See [Hardware, Quantization, and Training Optimization](33-hardware-quantization-optimization.md) for detailed coverage of Muon, Shampoo, and SOAP optimizers.
+See [Hardware, Quantization, and Training Optimization](29-hardware-quantization-optimization.md) for detailed coverage of Muon, Shampoo, and SOAP optimizers.
 
 #### Muon Optimizer
 
@@ -551,7 +551,7 @@ AdamW maintains second-moment statistics for every parameter, which:
 - ❌ Less battle-tested
 - ❌ Requires careful orthogonalization tuning
 
-For full implementation details and empirical comparisons, see Chapter 31.
+For full implementation details and empirical comparisons, see Chapter 27.
 
 #### Other Alternatives
 
@@ -1750,7 +1750,7 @@ for batch in dataloader:
 
 - Optimized attention that reduces memory from O(N²) to O(N)
 - Enables longer sequences and larger batches
-- See Chapter 12 for details
+- See Chapter 26 for details
 
 **Impact on batch size:**
 
@@ -2450,7 +2450,7 @@ class LLMTrainer:
 5. **Start training** with monitoring
 6. **Adjust if needed** based on loss curves and gradient norms
 
-For guidance on choosing model size and compute budgets, see [Chapter 18: Scaling Laws and Training Dynamics](18-scaling-dynamics.md).
+For guidance on choosing model size and compute budgets, see [Chapter 13: Scaling Laws and Training Dynamics](12-scaling-dynamics.md).
 
 ---
 
@@ -2477,7 +2477,7 @@ For guidance on choosing model size and compute budgets, see [Chapter 18: Scalin
 ### Alternative Optimizers
 
 10. [Shampoo: Preconditioned Stochastic Tensor Optimization](https://arxiv.org/abs/1802.09568) (Gupta et al., 2018)
-11. See [Chapter 33: Hardware, Quantization, and Training Optimization](33-hardware-quantization-optimization.md) for Muon and SOAP
+11. See [Chapter 29: Hardware, Quantization, and Training Optimization](29-hardware-quantization-optimization.md) for Muon and SOAP
 
 ### Model Papers (for training details)
 
@@ -2544,6 +2544,6 @@ For guidance on choosing model size and compute budgets, see [Chapter 18: Scalin
 
 ---
 
-**Previous Chapter**: [Distributed Training and Parallelism](16-distributed-training.md) - Multi-GPU training strategies.
+**Previous Chapter**: [Distributed Training and Parallelism](30-distributed-training.md) - Multi-GPU training strategies.
 
-**Next Chapter**: [Scaling Laws and Training Dynamics](18-scaling-dynamics.md) - Understanding how model performance scales and fascinating training phenomena.
+**Next Chapter**: [Scaling Laws and Training Dynamics](12-scaling-dynamics.md) - Understanding how model performance scales and fascinating training phenomena.

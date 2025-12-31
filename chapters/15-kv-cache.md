@@ -1,4 +1,4 @@
-# Chapter 14: KV Cache
+# Chapter 26: KV Cache
 
 The Key-Value (KV) cache is one of the most important optimizations for autoregressive language model inference. Understanding KV caching is essential for ML interviews, as it's the primary technique that makes modern chatbots like ChatGPT and Claude practical. This chapter consolidates KV cache concepts scattered across the guide into a comprehensive treatment.
 
@@ -705,7 +705,7 @@ def compare_cache_sizes():
 
 Quantizing the KV cache to lower precision (INT8, FP8, or INT4) provides significant memory savings with minimal quality loss.
 
-See [Hardware, Quantization, and Training Optimization](33-hardware-quantization-optimization.md) for more quantization details.
+See [Hardware, Quantization, and Training Optimization](29-hardware-quantization-optimization.md) for more quantization details.
 
 ### Why Quantization Works for KV Cache
 
@@ -1090,7 +1090,7 @@ class PagedAttention(nn.Module):
     Model Serving with PagedAttention" (SOSP 2023)
     https://arxiv.org/abs/2309.06180
 
-    See also: [Hardware and Optimization](33-hardware-quantization-optimization.md)
+    See also: [Hardware and Optimization](29-hardware-quantization-optimization.md)
     for integration with quantization and other optimizations.
     """
 
@@ -1415,7 +1415,7 @@ For streaming applications (chatbots, real-time systems) or extremely long conte
 
 **Solution** (StreamingLLM): Keep attention sink tokens (typically first 4) + recent window.
 
-See [Chapter 27: Long Context Techniques](27-long-context.md) for full details.
+See [Chapter 23: Long Context Techniques](23-long-context.md) for full details.
 
 ```python
 class StreamingKVCache:
@@ -1427,7 +1427,7 @@ class StreamingKVCache:
     - First k tokens (attention sinks)
     - Most recent w tokens (sliding window)
 
-    See Chapter 27 for implementation details.
+    See Chapter 23 for implementation details.
     """
 
     def __init__(
@@ -1438,7 +1438,7 @@ class StreamingKVCache:
     ):
         self.n_sink_tokens = n_sink_tokens
         self.window_size = window_size
-        # Implementation in Chapter 27...
+        # Implementation in Chapter 23...
 ```
 
 ### Rolling Buffer Cache
@@ -1633,7 +1633,7 @@ They have different optimization strategies: prefill wants throughput, decode wa
 
 7. **Prefill and decode have different bottlenecks**: Compute vs memory bandwidth.
 
-8. **For streaming**: Use attention sinks + rolling buffer (Chapter 27).
+8. **For streaming**: Use attention sinks + rolling buffer (Chapter 23).
 
 ### Memory Optimization Hierarchy
 
@@ -1658,12 +1658,12 @@ From most to least impactful for reducing KV cache memory:
 
 - [Chapter 4: Multi-Head Attention](04-multi-head-attention.md) - MQA and GQA details
 - [Chapter 8: RoPE](08-rope.md) - Position encoding interaction with cache
-- [Chapter 13: Efficient Attention](13-efficient-attention.md) - Linear attention, sparse attention, sliding window
-- [Chapter 27: Long Context Techniques](27-long-context.md) - Streaming and attention sinks
-- [Chapter 33: Hardware and Quantization](33-hardware-quantization-optimization.md) - Cache quantization
+- [Chapter 26: Efficient Attention](14-efficient-attention.md) - Linear attention, sparse attention, sliding window
+- [Chapter 23: Long Context Techniques](23-long-context.md) - Streaming and attention sinks
+- [Chapter 29: Hardware and Quantization](29-hardware-quantization-optimization.md) - Cache quantization
 
 ---
 
-**Next Chapter**: [Language Model Training](15-lm-training.md) - Training objectives and loops
+**Next Chapter**: [Language Model Training](16-lm-training.md) - Training objectives and loops
 
-**Previous Chapter**: [Other Efficient Attention Variants](13-efficient-attention.md) - Flash Attention and sparse patterns
+**Previous Chapter**: [Other Efficient Attention Variants](14-efficient-attention.md) - Flash Attention and sparse patterns

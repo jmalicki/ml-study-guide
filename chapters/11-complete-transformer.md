@@ -39,7 +39,7 @@ Modern LLMs (GPT-4, Claude, LLaMA, Gemini) are all decoder-only because:
 3. **Generality**: Can be adapted to any task via prompting
 4. **Training simplicity**: Single causal language modeling objective
 
-See [Architecture Comparison: Modern LLMs](31-model-architectures.md) for details on production models.
+See [Architecture Comparison: Modern LLMs](27-model-architectures.md) for details on production models.
 
 ---
 
@@ -911,7 +911,7 @@ Modern LLMs (LLaMA, GPT-4, Claude) use advanced techniques beyond the basic deco
 4. **Grouped Query Attention** (GQA) for efficient inference
 5. **Pre-normalization** (more stable training)
 
-See [Architecture Comparison: Modern LLMs](31-model-architectures.md) for why these choices matter.
+See [Architecture Comparison: Modern LLMs](27-model-architectures.md) for why these choices matter.
 
 ### Implementation
 
@@ -2145,7 +2145,7 @@ This prevents rare catastrophic updates that can destabilize training.
 
 Now let's train our modern transformer on the text data.
 
-See [Language Model Training](15-lm-training.md) for more advanced training techniques.
+See [Language Model Training](16-lm-training.md) for more advanced training techniques.
 
 ```python
 import torch.nn.functional as F
@@ -2973,7 +2973,7 @@ print(f"Perplexity: {perplexity:.2f}")
    - Gradient accumulation for large batches - see `train_with_mixed_precision`
    - Gradient checkpointing for memory savings
    - Flash Attention for long sequences
-   - See [Flash Attention](12-flash-attention.md)
+   - See [Flash Attention](13-flash-attention.md)
 
 ### Gradient Checkpointing
 
@@ -3268,13 +3268,13 @@ model_with_cp = ModernTransformerWithCheckpointing(
 
 **Extensions**:
 
-- Add instruction tuning (see [Supervised Fine-tuning](19-sft.md))
-- Implement LoRA for efficient fine-tuning (see [LoRA and PEFT](20-peft.md))
+- Add instruction tuning (see [Supervised Fine-tuning](18-sft.md))
+- Implement LoRA for efficient fine-tuning (see [LoRA and PEFT](19-peft.md))
 - Deploy with inference optimizations
 
 ---
 
-**Next Chapter**: [Flash Attention](12-flash-attention.md) - Learn how to make attention computations faster and more memory-efficient.
+**Next Chapter**: [Flash Attention](13-flash-attention.md) - Learn how to make attention computations faster and more memory-efficient.
 
 **Previous Chapters**:
 

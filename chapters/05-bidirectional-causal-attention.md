@@ -1421,7 +1421,7 @@ Key Takeaways:
 **Training:**
 
 - Both require $O(n^2)$ memory for attention matrices
-- Causal attention can use Flash Attention optimizations (see [Chapter 12: Flash Attention](12-flash-attention.md))
+- Causal attention can use Flash Attention optimizations (see [Chapter 26: Flash Attention](13-flash-attention.md))
 
 **Inference:**
 
@@ -1800,7 +1800,7 @@ if __name__ == "__main__":
 - [Chapter 4: Multi-Head Attention](04-multi-head-attention.md) - Multi-head with masking
 - [Chapter 6: Cross-Attention](06-cross-attention.md) - Attention between sequences
 - [Chapter 11: Building a Complete Transformer](11-complete-transformer.md) - Full architectures
-- [Chapter 12: Flash Attention](12-flash-attention.md) - Efficient attention computation
+- [Chapter 26: Flash Attention](13-flash-attention.md) - Efficient attention computation
 
 ---
 
