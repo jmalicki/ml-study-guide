@@ -152,9 +152,7 @@
   </g>
 
 
-  <g transform="translate(50, 230)">
-    <text x="0" y="0" font-size="11" font-weight="bold" fill="#000">Key Concept:</text>
-    <text x="0" y="18" font-size="10" fill="#000">As t increases, signal √(ᾱ_t) decreases while noise √(1-ᾱ_t) increases</text>
-    <text x="0" y="35" font-size="10" fill="#000">Information from x₀ is gradually destroyed until only Gaussian noise remains</text>
-  </g>
+  <text x="50" y="230" font-size="11" font-weight="bold" fill="#000">Key Concept:</text>
+  <text x="50" y="248" font-size="10" fill="#000">As t increases, signal √(ᾱ_t) decreases while noise √(1-ᾱ_t) increases</text>
+  <text x="50" y="265" font-size="10" fill="#000">Information from x₀ is gradually destroyed until only Gaussian noise remains</text>
 </svg>

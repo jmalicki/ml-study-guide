@@ -51,9 +51,9 @@
     <rect x="32" y="10" width="80" height="40" fill="#388e3c" stroke="#333" stroke-width="1" />
     <rect x="112" y="10" width="230" height="40" fill="#2e7d92" stroke="#333" stroke-width="1" />
 
-    <text x="16" y="35" font-size="12" fill="#fff" text-anchor="middle">S</text>
-    <text x="72" y="35" font-size="12" fill="#fff" text-anchor="middle">Exp (8)</text>
-    <text x="227" y="35" font-size="12" fill="#fff" text-anchor="middle">Mantissa (23)</text>
+    <text x="16" y="35" font-size="12" fill="#fff" text-anchor="middle" style="fill: #fff !important">S</text>
+    <text x="72" y="35" font-size="12" fill="#fff" text-anchor="middle" style="fill: #fff !important">Exp (8)</text>
+    <text x="227" y="35" font-size="12" fill="#fff" text-anchor="middle" style="fill: #fff !important">Mantissa (23)</text>
 
     <text x="0" y="70" font-size="11" fill="#666">Range: ±3.4×10³⁸</text>
     <text x="0" y="85" font-size="11" fill="#666">Precision: ~7 decimal digits</text>
@@ -66,9 +66,9 @@
     <rect x="32" y="10" width="50" height="40" fill="#388e3c" stroke="#333" stroke-width="1" />
     <rect x="82" y="10" width="100" height="40" fill="#2e7d92" stroke="#333" stroke-width="1" />
 
-    <text x="16" y="35" font-size="12" fill="#fff" text-anchor="middle">S</text>
-    <text x="57" y="35" font-size="12" fill="#fff" text-anchor="middle">E(5)</text>
-    <text x="132" y="35" font-size="12" fill="#fff" text-anchor="middle">M (10)</text>
+    <text x="16" y="35" font-size="12" fill="#fff" text-anchor="middle" style="fill: #fff !important">S</text>
+    <text x="57" y="35" font-size="12" fill="#fff" text-anchor="middle" style="fill: #fff !important">E(5)</text>
+    <text x="132" y="35" font-size="12" fill="#fff" text-anchor="middle" style="fill: #fff !important">M (10)</text>
 
     <text x="0" y="70" font-size="11" fill="#666">Range: ±6.55×10⁴</text>
     <text x="0" y="85" font-size="11" fill="#666">Precision: ~3 decimal digits</text>
@@ -81,9 +81,9 @@
     <rect x="32" y="10" width="80" height="40" fill="#388e3c" stroke="#333" stroke-width="1" />
     <rect x="112" y="10" width="70" height="40" fill="#2e7d92" stroke="#333" stroke-width="1" />
 
-    <text x="16" y="35" font-size="12" fill="#fff" text-anchor="middle">S</text>
-    <text x="72" y="35" font-size="12" fill="#fff" text-anchor="middle">Exp (8)</text>
-    <text x="147" y="35" font-size="12" fill="#fff" text-anchor="middle">M (7)</text>
+    <text x="16" y="35" font-size="12" fill="#fff" text-anchor="middle" style="fill: #fff !important">S</text>
+    <text x="72" y="35" font-size="12" fill="#fff" text-anchor="middle" style="fill: #fff !important">Exp (8)</text>
+    <text x="147" y="35" font-size="12" fill="#fff" text-anchor="middle" style="fill: #fff !important">M (7)</text>
 
     <text x="0" y="70" font-size="11" fill="#666">Range: ±3.4×10³⁸ (same as FP32!)</text>
     <text x="0" y="85" font-size="11" fill="#666">Precision: ~2 decimal digits</text>
@@ -97,9 +97,9 @@
     <rect x="32" y="10" width="50" height="40" fill="#388e3c" stroke="#333" stroke-width="1" />
     <rect x="82" y="10" width="38" height="40" fill="#2e7d92" stroke="#333" stroke-width="1" />
 
-    <text x="16" y="35" font-size="12" fill="#fff" text-anchor="middle">S</text>
-    <text x="57" y="35" font-size="12" fill="#fff" text-anchor="middle">E(4)</text>
-    <text x="101" y="35" font-size="12" fill="#fff" text-anchor="middle">M(3)</text>
+    <text x="16" y="35" font-size="12" fill="#fff" text-anchor="middle" style="fill: #fff !important">S</text>
+    <text x="57" y="35" font-size="12" fill="#fff" text-anchor="middle" style="fill: #fff !important">E(4)</text>
+    <text x="101" y="35" font-size="12" fill="#fff" text-anchor="middle" style="fill: #fff !important">M(3)</text>
 
     <text x="0" y="70" font-size="11" fill="#666">Range: ±448</text>
     <text x="0" y="85" font-size="11" fill="#666">For activations/forward pass</text>
@@ -112,9 +112,9 @@
     <rect x="32" y="10" width="63" height="40" fill="#388e3c" stroke="#333" stroke-width="1" />
     <rect x="95" y="10" width="25" height="40" fill="#2e7d92" stroke="#333" stroke-width="1" />
 
-    <text x="16" y="35" font-size="12" fill="#fff" text-anchor="middle">S</text>
-    <text x="63" y="35" font-size="12" fill="#fff" text-anchor="middle">E (5)</text>
-    <text x="107" y="35" font-size="12" fill="#fff" text-anchor="middle">M(2)</text>
+    <text x="16" y="35" font-size="12" fill="#fff" text-anchor="middle" style="fill: #fff !important">S</text>
+    <text x="63" y="35" font-size="12" fill="#fff" text-anchor="middle" style="fill: #fff !important">E (5)</text>
+    <text x="107" y="35" font-size="12" fill="#fff" text-anchor="middle" style="fill: #fff !important">M(2)</text>
 
     <text x="0" y="70" font-size="11" fill="#666">Range: ±5.7×10⁴</text>
     <text x="0" y="85" font-size="11" fill="#666">For gradients/backward pass</text>
@@ -126,8 +126,8 @@
     <rect x="0" y="10" width="32" height="40" fill="#c62828" stroke="#333" stroke-width="1" />
     <rect x="32" y="10" width="220" height="40" fill="#2e7d92" stroke="#333" stroke-width="1" />
 
-    <text x="16" y="35" font-size="12" fill="#fff" text-anchor="middle">S</text>
-    <text x="142" y="35" font-size="12" fill="#fff" text-anchor="middle">Integer Value (7)</text>
+    <text x="16" y="35" font-size="12" fill="#fff" text-anchor="middle" style="fill: #fff !important">S</text>
+    <text x="142" y="35" font-size="12" fill="#fff" text-anchor="middle" style="fill: #fff !important">Integer Value (7)</text>
 
     <text x="0" y="70" font-size="11" fill="#666">Range: -128 to 127</text>
     <text x="0" y="85" font-size="11" fill="#666">Requires scale factor</text>
@@ -140,8 +140,8 @@
     <rect x="0" y="10" width="32" height="40" fill="#c62828" stroke="#333" stroke-width="1" />
     <rect x="32" y="10" width="100" height="40" fill="#2e7d92" stroke="#333" stroke-width="1" />
 
-    <text x="16" y="35" font-size="12" fill="#fff" text-anchor="middle">S</text>
-    <text x="82" y="35" font-size="12" fill="#fff" text-anchor="middle">Value (3)</text>
+    <text x="16" y="35" font-size="12" fill="#fff" text-anchor="middle" style="fill: #fff !important">S</text>
+    <text x="82" y="35" font-size="12" fill="#fff" text-anchor="middle" style="fill: #fff !important">Value (3)</text>
 
     <text x="0" y="70" font-size="11" fill="#666">Range: -8 to 7</text>
     <text x="0" y="85" font-size="11" fill="#666">Block-wise scaling essential</text>
@@ -149,15 +149,13 @@
   </g>
 
   
-  <g transform="translate(450, 370)">
-    <text x="0" y="0" font-size="14" font-weight="bold" fill="#000">Legend:</text>
-    <rect x="0" y="10" width="20" height="15" fill="#c62828" />
-    <text x="25" y="22" font-size="11" fill="#000">Sign bit</text>
+  <text x="450" y="370" font-size="14" font-weight="bold" fill="#000">Legend:</text>
+  <rect x="450" y="382" width="20" height="15" fill="#c62828" />
+  <text x="475" y="380" font-size="11" fill="#000">Sign bit</text>
 
-    <rect x="0" y="30" width="20" height="15" fill="#388e3c" />
-    <text x="25" y="42" font-size="11" fill="#000">Exponent</text>
+  <rect x="450" y="402" width="20" height="15" fill="#388e3c" />
+  <text x="475" y="400" font-size="11" fill="#000">Exponent</text>
 
-    <rect x="0" y="50" width="20" height="15" fill="#2e7d92" />
-    <text x="25" y="62" font-size="11" fill="#000">Mantissa/Value</text>
-  </g>
+  <rect x="450" y="422" width="20" height="15" fill="#2e7d92" />
+  <text x="475" y="420" font-size="11" fill="#000">Mantissa/Value</text>
 </svg>

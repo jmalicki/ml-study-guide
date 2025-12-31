@@ -32,8 +32,16 @@
       text[fill="#000"],
       text[fill="#000000"],
       text[fill="#333"],
-      text[fill="#555"],
       text[fill="#666"] {
+        fill: #ffffff;
+      }
+
+      /* Keep dark text dark on light-colored backgrounds */
+      text[style*="fill: #333"] { fill: #333333 !important; }
+      text[style*="fill: #555"] { fill: #555555 !important; }
+
+      /* Text on light backgrounds that will become dark in dark mode */
+      text[fill="#555"] {
         fill: #ffffff;
       }
 
@@ -41,6 +49,7 @@
       rect[fill="#E57373"] { fill: #8b3d3d; }
       rect[fill="#4A90A4"] { fill: #2d5f6f; }
       rect[fill="#81C784"] { fill: #4a7c4e; }
+      rect[fill="#F5F5F5"] { fill: #2a2a2a; }
     }
   </style><text x="400" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#333">
     Softmax Temperature Effects on Attention Distribution
@@ -161,7 +170,7 @@
   <rect x="50" y="440" width="700" height="90" fill="#F5F5F5" stroke="#999" stroke-width="1.5" rx="5" />
   <text x="400" y="462" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" >Temperature Formula: softmax(scores / T)</text>
 
-  <text x="60" y="485" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#555">• T &lt; 1 (low): Divides scores by smaller number → larger values → sharper distribution (peaked)</text>
-  <text x="60" y="503" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#555">• T = 1 (standard): No scaling beyond sqrt(d_k) → balanced distribution (typical in transformers)</text>
-  <text x="60" y="521" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#555">• T &gt; 1 (high): Divides scores by larger number → smaller differences → softer distribution (uniform)</text>
+  <text x="60" y="485" font-family="system-ui, -apple-system, sans-serif" font-size="11" style="fill: #555">• T &lt; 1 (low): Divides scores by smaller number → larger values → sharper distribution (peaked)</text>
+  <text x="60" y="503" font-family="system-ui, -apple-system, sans-serif" font-size="11" style="fill: #555">• T = 1 (standard): No scaling beyond sqrt(d_k) → balanced distribution (typical in transformers)</text>
+  <text x="60" y="521" font-family="system-ui, -apple-system, sans-serif" font-size="11" style="fill: #555">• T &gt; 1 (high): Divides scores by larger number → smaller differences → softer distribution (uniform)</text>
 </svg>

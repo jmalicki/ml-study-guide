@@ -46,14 +46,17 @@
       rect[fill="#e65100"] { fill: #a66a2a; }
       rect[fill="#f0f0f0"] { fill: #3a3a3a; }
     }
-  </style><text x="450" y="30" font-size="22" font-weight="bold" fill="#000" text-anchor="middle">
-    Quantization Levels: Memory Savings Comparison
-  </text>
-  <text x="450" y="55" font-size="14"  text-anchor="middle">
-    70B Parameter Model Example
-  </text>
+  </style>
 
-  
+  <g transform="translate(50, 70)">
+    <text x="400" y="0" font-size="22" font-weight="bold" fill="#000" text-anchor="middle">
+      Quantization Levels: Memory Savings Comparison
+    </text>
+    <text x="400" y="20" font-size="14" text-anchor="middle">
+      70B Parameter Model Example
+    </text>
+  </g>
+
   <g transform="translate(50, 90)">
     <text x="0" y="0" font-size="16" font-weight="bold" fill="#333">FP32</text>
     <rect x="0" y="10" width="800" height="60" fill="#c62828" stroke="#333" stroke-width="2" rx="5" />
@@ -111,10 +114,8 @@
   </g>
 
   
-  <g transform="translate(50, 570)">
-    <rect x="0" y="0" width="800" height="20" class="bg-main" stroke="#333" stroke-width="1" rx="3" />
-    <text x="10" y="14" font-size="12" font-weight="bold" fill="#000">
-      Key: Shaded boxes represent saved memory. Quantization enables running larger models on consumer hardware.
-    </text>
-  </g>
+  <rect x="50" y="570" width="800" height="20" class="bg-main" stroke="#333" stroke-width="1" rx="3" />
+  <text x="60" y="560" font-size="12" font-weight="bold" fill="#000">
+    Key: Shaded boxes represent saved memory. Quantization enables running larger models on consumer hardware.
+  </text>
 </svg>

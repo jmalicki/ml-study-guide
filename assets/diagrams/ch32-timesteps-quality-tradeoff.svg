@@ -144,19 +144,19 @@
   <text x="550" y="180" text-anchor="middle" class="annotation" fill="#1565C0">• Very slow (100s)</text>
   <text x="550" y="195" text-anchor="middle" class="annotation" fill="#1565C0">• Diminishing returns</text>
 
-  <!-- Optimal zone -->
-  <text x="300" y="200" text-anchor="middle" class="annotation" fill="#E65100" font-weight="600">Practical Range</text>
-  <text x="300" y="215" text-anchor="middle" class="annotation" fill="#E65100">25-100 steps</text>
-
   <!-- Key insights box -->
   <rect x="110" y="110" width="240" height="120" fill="white" stroke="#333" stroke-width="1" rx="5" opacity="0.95"/>
-  <text x="120" y="130" class="annotation" fill="#000" font-weight="600">Key Insights:</text>
-  <text x="120" y="148" class="annotation" fill="#000">• DDPM: 1000 steps (slow, high quality)</text>
-  <text x="120" y="163" class="annotation" fill="#000">• DDIM: 50 steps (fast, good quality)</text>
-  <text x="120" y="178" class="annotation" fill="#000">• Modern: 20-50 steps typical</text>
-  <text x="120" y="193" class="annotation" fill="#000">• Quality improves logarithmically</text>
-  <text x="120" y="208" class="annotation" fill="#000">• Time cost is linear</text>
-  <text x="120" y="223" class="annotation" fill="#000">• Returns diminish after ~100 steps</text>
+  <text x="120" y="105" class="annotation" fill="#000" font-weight="600">Key Insights:</text>
+  <text x="120" y="235" class="annotation" fill="#000">• DDPM: 1000 steps (slow, high quality)</text>
+  <text x="120" y="250" class="annotation" fill="#000">• DDIM: 50 steps (fast, good quality)</text>
+  <text x="120" y="265" class="annotation" fill="#000">• Modern: 20-50 steps typical</text>
+  <text x="120" y="280" class="annotation" fill="#000">• Quality improves logarithmically</text>
+  <text x="120" y="295" class="annotation" fill="#000">• Time cost is linear</text>
+  <text x="120" y="310" class="annotation" fill="#000">• Returns diminish after ~100 steps</text>
+
+  <!-- Optimal zone -->
+  <text x="230" y="100" text-anchor="middle" class="annotation" fill="#E65100" font-weight="600">Practical Range</text>
+  <text x="230" y="245" text-anchor="middle" class="annotation" fill="#E65100">25-100 steps</text>
 
   <!-- Arrows showing diminishing returns -->
   <defs>
