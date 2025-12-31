@@ -38,7 +38,7 @@ At step $t$, we process all $t$ previous tokens, resulting in $O(t^2)$ computati
 **The key insight**: In attention, the key and value representations of token $i$ don't change when we add token $i+1$.
 
 ```math
-K_i = W_K \cdot h_i, \quad V_i = W_V \cdot h_i
+K_i = W_{K} \cdot h_i, \quad V_i = W_{V} \cdot h_i
 ```
 
 where $h_i$ is the hidden state at position $i$. Once computed, $K_i$ and $V_i$ remain constant for all future tokens.

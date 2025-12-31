@@ -362,7 +362,7 @@ Now we combine RoPE with standard multi-head attention. The key design decision 
 Each attention head operates on head_dim dimensions independently. Applying RoPE at the head level allows each head to learn different positional relationships - some heads might focus on local patterns (where position matters greatly) while others capture global patterns.
 
 **Critical implementation detail:**
-We apply RoPE ONLY to queries and keys, not values. Values represent "what information to pass forward" and don't need positional encoding - only the attention weights (computed from Q×K^T) need to be position-aware.
+We apply RoPE ONLY to queries and keys, not values. Values represent "what information to pass forward" and don't need positional encoding - only the attention weights (computed from $Q \times K^T$) need to be position-aware.
 
 ```python
 class RoPEAttention(nn.Module):
@@ -553,7 +553,7 @@ Since RoPE rotations are deterministic functions of position, we can rotate K at
 2. **Generation step t** (decode): Generate one token at a time
    - Compute Q, K for new token only
    - Apply RoPE with position [n + t]
-   - Concatenate new K to cache: `K_cache = concat([K_cache, K_new])`
+   - Concatenate new K to cache: `K_cache = concat([K_cache, $K_{\text{new}}$])`
    - Attention: new Q attends to all cached K values
 
 **Key insight**: Once K is rotated by RoPE and cached, we never need to re-rotate it. The rotation is "baked in" to the cached values.

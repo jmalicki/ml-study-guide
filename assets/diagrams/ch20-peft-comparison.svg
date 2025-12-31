@@ -59,32 +59,32 @@
 
   <g id="full-ft">
     <rect x="40" y="85" width="220" height="50" fill="#E57373" fill-opacity="0.3" stroke="#333" stroke-width="2" rx="5" />
-    <text x="150" y="115" font-size="14" font-weight="bold" text-anchor="middle" style="fill: #333 !important">Full Fine-tuning</text>
+    <text x="150" y="115" font-size="14" font-weight="bold" text-anchor="middle" >Full Fine-tuning</text>
 
 
     <rect x="280" y="85" width="120" height="50" fill="#dc6868" stroke="#333" stroke-width="2" rx="5" />
-    <text x="340" y="115" font-size="16" font-weight="bold" text-anchor="middle" style="fill: #fff !important">100%</text>
+    <text x="340" y="115" font-size="16" font-weight="bold" text-anchor="middle" >100%</text>
 
 
     <rect x="430" y="85" width="240" height="50" fill="#E57373" fill-opacity="0.5" stroke="#333" stroke-width="2" rx="5" />
-    <text x="550" y="115" font-size="14" font-weight="bold" text-anchor="middle" style="fill: #333 !important">~98 GB</text>
+    <text x="550" y="115" font-size="14" font-weight="bold" text-anchor="middle" >~98 GB</text>
 
 
-    <text x="750" y="115" font-size="14" font-weight="bold" text-anchor="middle" style="fill: #333 !important">100%</text>
+    <text x="750" y="115" font-size="14" font-weight="bold" text-anchor="middle" >100%</text>
   </g>
 
 
   <g id="lora-16">
     <rect x="40" y="155" width="220" height="50" fill="#4A90A4" fill-opacity="0.3" stroke="#333" stroke-width="2" rx="5" />
-    <text x="150" y="185" font-size="14" font-weight="bold" text-anchor="middle" style="fill: #333 !important">LoRA (r=16)</text>
+    <text x="150" y="185" font-size="14" font-weight="bold" text-anchor="middle" >LoRA (r=16)</text>
 
 
     <rect x="280" y="155" width="2.4" height="50" fill="#4A90A4" fill-opacity="0.9" stroke="#333" stroke-width="1" rx="2" />
-    <text x="340" y="185" font-size="14" font-weight="bold" text-anchor="middle" style="fill: #333 !important">0.2%</text>
+    <text x="340" y="185" font-size="14" font-weight="bold" text-anchor="middle" >0.2%</text>
 
 
     <rect x="430" y="155" width="36" height="50" fill="#4A90A4" fill-opacity="0.7" stroke="#333" stroke-width="2" rx="5" />
-    <text x="550" y="185" font-size="14" font-weight="bold" text-anchor="middle" style="fill: #333 !important">~15 GB</text>
+    <text x="550" y="185" font-size="14" font-weight="bold" text-anchor="middle" >~15 GB</text>
 
     
     <text x="750" y="185" font-size="14" font-weight="bold" text-anchor="middle" fill="#81C784">96-97%</text>
@@ -94,11 +94,11 @@
 
   <g id="qlora">
     <rect x="40" y="225" width="220" height="50" fill="#4A90A4" fill-opacity="0.3" stroke="#333" stroke-width="2" rx="5" />
-    <text x="150" y="255" font-size="14" font-weight="bold" text-anchor="middle" style="fill: #333 !important">QLoRA (r=16)</text>
+    <text x="150" y="255" font-size="14" font-weight="bold" text-anchor="middle" >QLoRA (r=16)</text>
 
 
     <rect x="280" y="225" width="2.4" height="50" fill="#4A90A4" fill-opacity="0.9" stroke="#333" stroke-width="1" rx="2" />
-    <text x="340" y="255" font-size="14" font-weight="bold" text-anchor="middle" style="fill: #333 !important">0.2%</text>
+    <text x="340" y="255" font-size="14" font-weight="bold" text-anchor="middle" >0.2%</text>
 
 
     <rect x="430" y="225" width="12" height="50" fill="#81C784" fill-opacity="0.7" stroke="#333" stroke-width="2" rx="5" />
@@ -111,24 +111,24 @@
 
   <g id="adapters">
     <rect x="40" y="295" width="220" height="50" fill="#9575CD" fill-opacity="0.3" stroke="#333" stroke-width="2" rx="5" />
-    <text x="150" y="325" font-size="14" font-weight="bold" text-anchor="middle" style="fill: #333 !important">Adapters</text>
+    <text x="150" y="325" font-size="14" font-weight="bold" text-anchor="middle" >Adapters</text>
 
 
     <rect x="280" y="295" width="8" height="50" fill="#9575CD" fill-opacity="0.7" stroke="#333" stroke-width="2" rx="5" />
-    <text x="340" y="325" font-size="14" font-weight="bold" text-anchor="middle" style="fill: #333 !important">0.5-2%</text>
+    <text x="340" y="325" font-size="14" font-weight="bold" text-anchor="middle" >0.5-2%</text>
 
 
     <rect x="430" y="295" width="40" height="50" fill="#9575CD" fill-opacity="0.5" stroke="#333" stroke-width="2" rx="5" />
-    <text x="550" y="325" font-size="14" font-weight="bold" text-anchor="middle" style="fill: #333 !important">~16 GB</text>
+    <text x="550" y="325" font-size="14" font-weight="bold" text-anchor="middle" >~16 GB</text>
 
 
-    <text x="750" y="325" font-size="14" font-weight="bold" text-anchor="middle" style="fill: #333 !important">95-98%</text>
+    <text x="750" y="325" font-size="14" font-weight="bold" text-anchor="middle" >95-98%</text>
   </g>
 
 
   <g id="prefix">
     <rect x="40" y="365" width="220" height="50" fill="#FFB74D" fill-opacity="0.3" stroke="#333" stroke-width="2" rx="5" />
-    <text x="150" y="395" font-size="14" font-weight="bold" text-anchor="middle" style="fill: #333 !important">Prefix Tuning</text>
+    <text x="150" y="395" font-size="14" font-weight="bold" text-anchor="middle" >Prefix Tuning</text>
 
     
     <rect x="280" y="365" width="1.2" height="50" fill="#FFB74D" fill-opacity="0.9" stroke="#333" stroke-width="1" rx="2" />

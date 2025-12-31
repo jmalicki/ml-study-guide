@@ -1134,7 +1134,7 @@ Gradient clipping works by ensuring no single update can move parameters too far
 **How This Relates to Alternatives:**
 
 - **No clipping**: Training fails completely on many LLM runs (diverges to NaN)
-- **Per-parameter clipping**: `clip(g_i, -τ, τ)` distorts gradient direction, poor performance
+- **Per-parameter clipping**: `clip($g_i$, -τ, τ)` distorts gradient direction, poor performance
 - **Value clipping**: `clip(θ_i, min, max)` prevents divergence but limits model capacity
 - **Gradient norm clipping**: Best of all - safe, direction-preserving, widely used
 

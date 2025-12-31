@@ -348,7 +348,7 @@ The FFN serves multiple theoretical roles:
 
 1. **The 4x expansion ratio**: Empirically discovered sweet spot balancing capacity and efficiency; too small underfits, too large shows diminishing returns
 2. **Position-wise independence**: Processing each position separately is computationally efficient (fully parallelizable) and provides a different inductive bias from attention
-3. **Bottleneck architecture**: Expanding then contracting (d_model → d_ff → d_model) forces learning of compressed, useful representations
+3. **Bottleneck architecture**: Expanding then contracting ($d_{\text{model}} \to d_{\text{ff}} \to d_{\text{model}}$) forces learning of compressed, useful representations
 4. **Where parameters go**: FFN typically contains 60-70% of transformer parameters, making it the primary storage for learned knowledge
 
 ```python

@@ -3640,7 +3640,7 @@ def example_multimodal_usage():
 
 5. **Multimodal Data Pipeline**: Create a data pipeline that processes image-text pairs for LLaVA-style training. Include data augmentation and proper formatting.
 
-6. **Audio Mel Spectrogram**: Convert audio waveforms to mel spectrograms suitable for Whisper. Visualize the spectrograms and understand the parameters (n_fft, hop_length, n_mels).
+6. **Audio Mel Spectrogram**: Convert audio waveforms to mel spectrograms suitable for Whisper. Visualize the spectrograms and understand the parameters ($n_{\text{fft}}$, hop_length, n_mels).
 
 7. **Cross-Modal Retrieval**: Implement image-text retrieval using CLIP. Given a text query, retrieve the most similar images from a dataset.
 

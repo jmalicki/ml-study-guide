@@ -839,27 +839,21 @@ class ColumnParallelLinear(nn.Module):
 
 **Theoretical Justification**: For row parallelism, partition the weight matrix $W \in \mathbb{R}^{d_{in} \times d_{out}}$ along rows and the input $X \in \mathbb{R}^{B \times d_{in}}$ along the feature dimension:
 
-```
-
+$$
 W = \begin{bmatrix} W_1 \\ W_2 \\ \vdots \\ W_{N} \end{bmatrix}, \quad X = [X_1 | X_2 | \cdots | X_{N}]
-
-```text
+$$
 
 Then each GPU computes a partial result:
 
-```
-
+$$
 Y_i = X_i W_i
-
-```text
+$$
 
 The full output is the sum of partial results:
 
-```
-
+$$
 Y = XW = \sum_{i=1}^{N} X_i W_i = \sum_{i=1}^{N} Y_i
-
-```text
+$$
 
 This requires an **all-reduce** to sum $Y_i$ across GPUs.
 

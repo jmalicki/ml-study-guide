@@ -325,7 +325,7 @@ Copies the embedding from the previous token position.
 
 Where the key $K_j$ includes the previous-token information:
 ```math
-K_j = W_K (\text{embed}[j] + \text{Attn}_{\text{prev}}[j])
+K_j = W_{K} (\text{embed}[j] + \text{Attn}_{\text{prev}}[j])
 ```
 
 This allows the induction head to match based on "what came before this token" rather than just the token itself.

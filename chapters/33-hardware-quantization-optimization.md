@@ -62,7 +62,7 @@ NVIDIA dominates the LLM training and inference landscape. Understanding GPU gen
 Tensor Cores are specialized hardware units for matrix multiply-accumulate operations, essential for transformer training and inference.
 
 **Problem and Motivation:**
-Matrix multiplications dominate LLM computation (attention's QK^T, attention output, feed-forward layers). Standard CUDA cores process one multiply-add per cycle, which is inefficient for the massive matrix operations in transformers. For a 70B parameter model, billions of matrix operations occur per token.
+Matrix multiplications dominate LLM computation (attention's $QK^T$, attention output, feed-forward layers). Standard CUDA cores process one multiply-add per cycle, which is inefficient for the massive matrix operations in transformers. For a 70B parameter model, billions of matrix operations occur per token.
 
 **Theoretical Justification:**
 Tensor Cores implement fused multiply-accumulate (FMA) operations on matrix tiles (e.g., 16×16 elements) in a single clock cycle. This provides:

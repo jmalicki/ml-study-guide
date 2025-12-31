@@ -48,17 +48,17 @@
 
   <g id="unconditional">
     <rect x="50" y="80" width="180" height="80" fill="#E57373" opacity="0.2" stroke="#E57373" stroke-width="2" />
-    <text x="140" y="110" font-size="14" font-weight="bold" text-anchor="middle" style="fill: #000 !important;">Unconditional</text>
-    <text x="140" y="130" font-size="12" text-anchor="middle" style="fill: #000 !important;">ε(x_t, t, ∅)</text>
-    <text x="140" y="148" font-size="11" text-anchor="middle" style="fill: #000 !important;">Broad distribution</text>
+    <text x="140" y="110" font-size="14" font-weight="bold" text-anchor="middle" >Unconditional</text>
+    <text x="140" y="130" font-size="12" text-anchor="middle" >ε(x_t, t, ∅)</text>
+    <text x="140" y="148" font-size="11" text-anchor="middle" >Broad distribution</text>
   </g>
 
 
   <g id="conditional">
     <rect x="570" y="80" width="180" height="80" fill="#81C784" opacity="0.2" stroke="#81C784" stroke-width="2" />
-    <text x="660" y="110" font-size="14" font-weight="bold" text-anchor="middle" style="fill: #000 !important;">Conditional</text>
-    <text x="660" y="130" font-size="12" text-anchor="middle" style="fill: #000 !important;">ε(x_t, t, c)</text>
-    <text x="660" y="148" font-size="11" text-anchor="middle" style="fill: #000 !important;">Prompt-aligned</text>
+    <text x="660" y="110" font-size="14" font-weight="bold" text-anchor="middle" >Conditional</text>
+    <text x="660" y="130" font-size="12" text-anchor="middle" >ε(x_t, t, c)</text>
+    <text x="660" y="148" font-size="11" text-anchor="middle" >Prompt-aligned</text>
   </g>
 
   
@@ -72,10 +72,10 @@
 
   <g id="formula">
     <rect x="250" y="200" width="300" height="60" fill="#4A90A4" opacity="0.1" stroke="#4A90A4" stroke-width="2" rx="5" />
-    <text x="400" y="225" font-size="13" text-anchor="middle" style="fill: #000 !important;" font-family="monospace">
+    <text x="400" y="225" font-size="13" text-anchor="middle"  font-family="monospace">
       ε̃ = ε_uncond + s · (ε_cond - ε_uncond)
     </text>
-    <text x="400" y="250" font-size="11" text-anchor="middle" style="fill: #000 !important;">
+    <text x="400" y="250" font-size="11" text-anchor="middle" >
       where s = guidance scale
     </text>
   </g>

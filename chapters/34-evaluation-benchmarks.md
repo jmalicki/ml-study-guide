@@ -2465,7 +2465,7 @@ This is theoretically grounded in the **Bradley-Terry model** for pairwise compa
 
 1. **K-Factor Tuning**: The `k_factor` controls how quickly ratings change. Higher values (32) allow faster adaptation but more volatility; lower values (16) provide stability.
 2. **Initial Rating**: Starting all models at 1500 is standard. The absolute value doesn't matter—only relative differences.
-3. **Win Probability Calculation**: The Elo formula `1 / (1 + 10^((R_B - R_A)/400))` gives the probability model A beats model B, enabling statistical significance testing.
+3. **Win Probability Calculation**: The Elo formula `1 / (1 + 10^(($R_{B}$ - $R_{A}$)/400))` gives the probability model A beats model B, enabling statistical significance testing.
 4. **Tie Handling**: Ties (outcome=0.5) update both ratings symmetrically, important for cases where both responses are equally good.
 5. **Convergence**: Elo ratings converge as the number of comparisons increases, so more data = more reliable rankings.
 

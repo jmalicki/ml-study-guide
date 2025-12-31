@@ -196,7 +196,7 @@ The shift from Kaplan to Chinchilla scaling laws had major implications:
 
 ![Compute-Optimal Training Frontier](../assets/diagrams/ch18-compute-optimal-frontier.svg)
 
-This visualization maps different models in the parameter-token space, showing the stark contrast between Kaplan's approach (favoring larger models with less data) and Chinchilla's optimal line (balanced scaling). GPT-3 and Gopher fall in the undertrained region, while Chinchilla and LLaMA align closer to the compute-optimal frontier. The equal scaling law (N, D ∝ C^0.5) represents the efficient frontier where both dimensions contribute equally to performance improvement.
+This visualization maps different models in the parameter-token space, showing the stark contrast between Kaplan's approach (favoring larger models with less data) and Chinchilla's optimal line (balanced scaling). GPT-3 and Gopher fall in the undertrained region, while Chinchilla and LLaMA align closer to the compute-optimal frontier. The equal scaling law (N, D ∝ $C^{0.5}$) represents the efficient frontier where both dimensions contribute equally to performance improvement.
 
 ---
 
@@ -1235,8 +1235,8 @@ L(N, D) = \frac{A}{N^\alpha} + \frac{B}{D^\beta} + L_\infty
 ### Key Takeaways
 
 1. **Scaling Laws**
-   - Kaplan (2020): Model size matters most (N ∝ C^0.73)
-   - Chinchilla (2022): Equal scaling of model and data (N, D ∝ C^0.5)
+   - Kaplan (2020): Model size matters most (N ∝ $C^{0.73}$)
+   - Chinchilla (2022): Equal scaling of model and data (N, D ∝ $C^{0.5}$)
    - Modern practice: Train beyond Chinchilla optimal for quality improvements
    - Tokens per parameter: ~20 (Chinchilla optimal), but many models train longer
 

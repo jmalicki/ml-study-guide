@@ -82,9 +82,9 @@
 
     
     <rect x="50" y="360" width="240" height="55" fill="#FFE6E6" stroke="#E57373" stroke-width="1.5" rx="3" />
-    <text x="170" y="377" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" style="fill: #333 !important">Model focuses strongly</text>
-    <text x="170" y="392" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" style="fill: #555 !important">Almost all weight on highest</text>
-    <text x="170" y="405" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" style="fill: #555 !important">score (greedy behavior)</text>
+    <text x="170" y="377" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" >Model focuses strongly</text>
+    <text x="170" y="392" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" >Almost all weight on highest</text>
+    <text x="170" y="405" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" >score (greedy behavior)</text>
   </g>
 
   
@@ -117,9 +117,9 @@
 
     
     <rect x="310" y="360" width="240" height="55" fill="#E6F3F7" stroke="#4A90A4" stroke-width="1.5" rx="3" />
-    <text x="430" y="377" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" style="fill: #333 !important">Standard attention</text>
-    <text x="430" y="392" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" style="fill: #555 !important">Uses sqrt(d_k) for stable</text>
-    <text x="430" y="405" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" style="fill: #555 !important">gradients (default in transformers)</text>
+    <text x="430" y="377" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" >Standard attention</text>
+    <text x="430" y="392" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" >Uses sqrt(d_k) for stable</text>
+    <text x="430" y="405" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" >gradients (default in transformers)</text>
   </g>
 
   
@@ -152,14 +152,14 @@
 
     
     <rect x="570" y="360" width="240" height="55" fill="#E8F5E9" stroke="#81C784" stroke-width="1.5" rx="3" />
-    <text x="690" y="377" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" style="fill: #333 !important">More uniform attention</text>
-    <text x="690" y="392" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" style="fill: #555 !important">Spreads attention across many</text>
-    <text x="690" y="405" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" style="fill: #555 !important">positions (exploration)</text>
+    <text x="690" y="377" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" >More uniform attention</text>
+    <text x="690" y="392" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" >Spreads attention across many</text>
+    <text x="690" y="405" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" >positions (exploration)</text>
   </g>
 
   
   <rect x="50" y="440" width="700" height="90" fill="#F5F5F5" stroke="#999" stroke-width="1.5" rx="5" />
-  <text x="400" y="462" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" style="fill: #333 !important">Temperature Formula: softmax(scores / T)</text>
+  <text x="400" y="462" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" >Temperature Formula: softmax(scores / T)</text>
 
   <text x="60" y="485" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#555">• T &lt; 1 (low): Divides scores by smaller number → larger values → sharper distribution (peaked)</text>
   <text x="60" y="503" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#555">• T = 1 (standard): No scaling beyond sqrt(d_k) → balanced distribution (typical in transformers)</text>

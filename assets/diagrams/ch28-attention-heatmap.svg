@@ -82,13 +82,13 @@
     <rect class="attn-1" x="10" y="60" width="50" height="50"/>
     <text x="35" y="90" class="cell-text text-color" text-anchor="middle">0.05</text>
     <rect class="attn-5" x="60" y="60" width="50" height="50"/>
-    <text x="85" y="90" class="cell-text" style="fill: #fff !important;" text-anchor="middle">0.85</text>
+    <text x="85" y="90" class="cell-text"  text-anchor="middle">0.85</text>
     <rect class="attn-4" x="110" y="60" width="50" height="50"/>
-    <text x="135" y="90" class="cell-text" style="fill: #fff !important;" text-anchor="middle">0.72</text>
+    <text x="135" y="90" class="cell-text"  text-anchor="middle">0.72</text>
     <rect class="attn-5" x="160" y="60" width="50" height="50"/>
-    <text x="185" y="90" class="cell-text" style="fill: #fff !important;" text-anchor="middle">0.91</text>
+    <text x="185" y="90" class="cell-text"  text-anchor="middle">0.91</text>
     <rect class="attn-4" x="210" y="60" width="50" height="50"/>
-    <text x="235" y="90" class="cell-text" style="fill: #fff !important;" text-anchor="middle">0.68</text>
+    <text x="235" y="90" class="cell-text"  text-anchor="middle">0.68</text>
     <rect class="attn-1" x="260" y="60" width="50" height="50"/>
     <text x="285" y="90" class="cell-text text-color" text-anchor="middle">0.08</text>
     <rect class="attn-1" x="310" y="60" width="50" height="50"/>
@@ -160,13 +160,13 @@
     <rect class="attn-1" x="160" y="260" width="50" height="50"/>
     <text x="185" y="290" class="cell-text text-color" text-anchor="middle">0.06</text>
     <rect class="attn-4" x="210" y="260" width="50" height="50"/>
-    <text x="235" y="290" class="cell-text" style="fill: #fff !important;" text-anchor="middle">0.78</text>
+    <text x="235" y="290" class="cell-text"  text-anchor="middle">0.78</text>
     <rect class="attn-5" x="260" y="260" width="50" height="50"/>
-    <text x="285" y="290" class="cell-text" style="fill: #fff !important;" text-anchor="middle">0.88</text>
+    <text x="285" y="290" class="cell-text"  text-anchor="middle">0.88</text>
     <rect class="attn-5" x="310" y="260" width="50" height="50"/>
-    <text x="335" y="290" class="cell-text" style="fill: #fff !important;" text-anchor="middle">0.92</text>
+    <text x="335" y="290" class="cell-text"  text-anchor="middle">0.92</text>
     <rect class="attn-4" x="360" y="260" width="50" height="50"/>
-    <text x="385" y="290" class="cell-text" style="fill: #fff !important;" text-anchor="middle">0.71</text>
+    <text x="385" y="290" class="cell-text"  text-anchor="middle">0.71</text>
 
     <!-- Grid lines -->
     <line class="grid-line" x1="10" y1="10" x2="410" y2="10"/>
@@ -208,9 +208,9 @@
     <rect class="attn-3" x="180" y="10" width="60" height="30"/>
     <text x="210" y="30" class="small-text text-color" text-anchor="middle">0.6</text>
     <rect class="attn-4" x="240" y="10" width="60" height="30" fill="#E63939"/>
-    <text x="270" y="30" class="small-text" style="fill: #fff !important;" text-anchor="middle">0.8</text>
+    <text x="270" y="30" class="small-text"  text-anchor="middle">0.8</text>
     <rect class="attn-5" x="300" y="10" width="60" height="30" fill="#CC0000"/>
-    <text x="330" y="30" class="small-text" style="fill: #fff !important;" text-anchor="middle">1.0</text>
+    <text x="330" y="30" class="small-text"  text-anchor="middle">1.0</text>
   </g>
 
   <!-- Key insight -->

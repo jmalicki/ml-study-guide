@@ -26,6 +26,9 @@
       rect.attn { fill: #1a4d45; stroke: #4DB6AC; }
       circle.node { fill: #4fc3f7; stroke: #0288d1; }
 
+      /* Override dark inline text colors */
+      text[fill="#000000"] { fill: #ffffff; }
+
       /* Keep text on colored backgrounds readable */
       .box-text, .embed-text, .attn-text { fill: #ffffff; }
     }

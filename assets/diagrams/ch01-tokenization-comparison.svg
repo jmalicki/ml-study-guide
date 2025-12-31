@@ -34,9 +34,9 @@
       text[fill="#F57C00"] { fill: #ffa726; }
       text[fill="#673AB7"] { fill: #9575cd; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
-      text[style*="fill: #C62828"] { fill: #ef5350 !important; }
-      text[style*="fill: #388E3C"] { fill: #66bb6a !important; }
-      text[style*="fill: #F57C00"] { fill: #ffa726 !important; }
+      text[style*="fill: #C62828"] { fill: #ef5350; }
+      text[style*="fill: #388E3C"] { fill: #66bb6a; }
+      text[style*="fill: #F57C00"] { fill: #ffa726; }
 
       /* Override dark inline text colors */
       text[fill="#000"],
@@ -65,7 +65,7 @@
 
   
   <g transform="translate(50, 120)">
-    <text x="0" y="0" font-size="14" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#000" style="fill: #000 !important;">Character-level</text>
+    <text x="0" y="0" font-size="14" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#000">Character-level</text>
     <text x="650" y="0" text-anchor="end" font-size="11" font-family="system-ui, -apple-system, sans-serif" fill="#666">25 tokens</text>
 
     <g transform="translate(0, 10)">
@@ -96,7 +96,7 @@
       <rect x="240" y="1" width="25" height="30" fill="#E57373" fill-opacity="0.2" stroke="#E57373" stroke-width="1" rx="2" />
       <text x="252.5" y="21" text-anchor="middle" font-size="11" font-family="monospace" fill="#333">n</text>
 
-      <text x="275" y="20" font-size="11" font-family="monospace" fill="#000" style="fill: #000 !important;">... (16 more)</text>
+      <text x="275" y="20" font-size="11" font-family="monospace" fill="#000">... (16 more)</text>
     </g>
 
     <text x="0" y="50" font-size="10" font-style="italic" font-family="system-ui, -apple-system, sans-serif" fill="#666">
@@ -106,7 +106,7 @@
 
   
   <g transform="translate(50, 210)">
-    <text x="0" y="0" font-size="14" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#000" style="fill: #000 !important;">Word-level</text>
+    <text x="0" y="0" font-size="14" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#000">Word-level</text>
     <text x="650" y="0" text-anchor="end" font-size="11" font-family="system-ui, -apple-system, sans-serif" fill="#666">3 tokens</text>
 
     <g transform="translate(0, 10)">
@@ -127,7 +127,7 @@
 
   
   <g transform="translate(50, 300)">
-    <text x="0" y="0" font-size="14" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#000" style="fill: #000 !important;">BPE (Subword)</text>
+    <text x="0" y="0" font-size="14" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#000">BPE (Subword)</text>
     <text x="650" y="0" text-anchor="end" font-size="11" font-family="system-ui, -apple-system, sans-serif" fill="#666">6 tokens</text>
 
     <g transform="translate(0, 10)">
@@ -154,7 +154,7 @@
 
   
   <g transform="translate(50, 390)">
-    <text x="0" y="0" font-size="14" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#000" style="fill: #000 !important;">WordPiece</text>
+    <text x="0" y="0" font-size="14" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#000">WordPiece</text>
     <text x="650" y="0" text-anchor="end" font-size="11" font-family="system-ui, -apple-system, sans-serif" fill="#666">7 tokens</text>
 
     <g transform="translate(0, 10)">
@@ -182,17 +182,17 @@
   
   <g transform="translate(50, 480)">
     <rect x="0" y="0" width="700" height="55" class="bg-info" stroke="#4A90A4" stroke-width="2" rx="5" />
-    <text x="10" y="20" font-size="13" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#000" style="fill: #000 !important;">Quantitative Comparison:</text>
+    <text x="10" y="20" font-size="13" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#000">Quantitative Comparison:</text>
 
     <g transform="translate(10, 28)">
       <text x="0" y="12" font-size="10" font-family="system-ui, -apple-system, sans-serif" fill="#333">
-        <tspan fill="#000" font-weight="bold" style="fill: #000 !important;">Character:</tspan> 25 tokens × 256 vocab = minimal embeddings, but 25² = 625 attention ops
+        <tspan fill="#000" font-weight="bold">Character:</tspan> 25 tokens × 256 vocab = minimal embeddings, but 25² = 625 attention ops
       </text>
       <text x="0" y="24" font-size="10" font-family="system-ui, -apple-system, sans-serif" fill="#333">
-        <tspan fill="#000" font-weight="bold" style="fill: #000 !important;">Word:</tspan> 3 tokens × 50K vocab = 50K embeddings, but only 3² = 9 attention ops
+        <tspan fill="#000" font-weight="bold">Word:</tspan> 3 tokens × 50K vocab = 50K embeddings, but only 3² = 9 attention ops
       </text>
       <text x="360" y="12" font-size="10" font-family="system-ui, -apple-system, sans-serif" fill="#333">
-        <tspan fill="#000" font-weight="bold" style="fill: #000 !important;">Subword:</tspan> 6 tokens × 32K vocab = balanced
+        <tspan fill="#000" font-weight="bold">Subword:</tspan> 6 tokens × 32K vocab = balanced
       </text>
       <text x="360" y="24" font-size="10" font-family="system-ui, -apple-system, sans-serif" fill="#333">
         → Sweet spot: 32K embeddings, 36 attention ops

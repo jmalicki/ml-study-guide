@@ -1,6 +1,6 @@
 # Chapter 12: Flash Attention
 
-Flash Attention is an IO-aware attention algorithm that achieves 2-4x speedup and reduces memory usage from O(N²) to O(N) for sequence length N. Understanding Flash Attention is essential for ML interviews because it demonstrates how algorithm design must consider hardware characteristics, not just theoretical complexity.
+Flash Attention is an IO-aware attention algorithm that achieves 2-4x speedup and reduces memory usage from $O(N^2)$ to $O(N)$ for sequence length N. Understanding Flash Attention is essential for ML interviews because it demonstrates how algorithm design must consider hardware characteristics, not just theoretical complexity.
 
 This chapter covers the fundamental problem Flash Attention solves, the algorithmic techniques it uses, and practical implementation considerations.
 
@@ -779,7 +779,7 @@ This allows us to maintain exact softmax while processing in blocks!
 Now we can put together the complete Flash Attention forward pass.
 
 **The Problem Being Solved:**
-Standard attention computes the full N×N attention matrix and stores it in HBM between operations. For a 4K sequence with FP16, this is 32 MB per head—small enough to fit in HBM but too large for SRAM. The result: every operation (QK^T, softmax, multiply by V) requires slow HBM reads/writes.
+Standard attention computes the full N×N attention matrix and stores it in HBM between operations. For a 4K sequence with FP16, this is 32 MB per head—small enough to fit in HBM but too large for SRAM. The result: every operation ($QK^T$, softmax, multiply by V) requires slow HBM reads/writes.
 
 **Theoretical Justification:**
 Flash Attention's forward pass is based on the associativity of attention operations. Mathematically:
@@ -839,9 +839,9 @@ class FlashAttentionForward:
 
         4. Concatenate all O_i blocks
 
-        Memory complexity: O(N) instead of O(N²)
+        Memory complexity: $O(N)$ instead of $O(N^2)$
 
-        - Never store full N×N attention matrix
+        - Never store full $N \times N$ attention matrix
         - Only store Br×Bc blocks in SRAM at a time
 
         """
@@ -979,7 +979,7 @@ if __name__ == "__main__":
 
 **Complexity analysis:**
 
-- **Memory:** O(N) - only store O_i blocks, not full N×N matrix
+- **Memory:** $O(N)$ - only store $O_i$ blocks, not full $N \times N$ matrix
 - **HBM reads:** O(N²d) - still need to read Q, K, V multiple times across blocks
 - **HBM writes:** O(Nd) - only write final output
 - **FLOPs:** O(N²d) - same as standard attention (no approximation!)
@@ -1162,7 +1162,7 @@ Standard attention computes the full $N \times N$ matrix $S = QK^T$, then softma
 Flash Attention achieves O(N) memory in the backward pass by recomputing attention on-the-fly.
 
 **The Problem Being Solved:**
-Standard attention backward pass needs the attention matrix P = softmax(QK^T/√d) to compute gradients. For a 4K sequence, storing P requires 32 MB per head. Across 32 heads and 8 batches, that's 8 GB just for the attention matrices. This memory is the primary blocker for training on long sequences.
+Standard attention backward pass needs the attention matrix P = softmax($QK^T$/√d) to compute gradients. For a 4K sequence, storing P requires 32 MB per head. Across 32 heads and 8 batches, that's 8 GB just for the attention matrices. This memory is the primary blocker for training on long sequences.
 
 **Why Recomputation Makes Sense:**
 This seems counterintuitive—why recompute when we could save? The answer lies in the arithmetic intensity of modern GPUs:

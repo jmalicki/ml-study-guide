@@ -2258,30 +2258,28 @@ Mixed precision uses different numerical formats for different operations:
 - **BF16** (16 bits): 1 sign + 8 exponent + 7 mantissa → same range as FP32, precision $\approx 2$ decimal digits
 
 **The Mixed Precision Strategy:**
-```
 
+$$
 \begin{align}
 \text{Forward/Backward:} &\quad \text{FP16/BF16} \quad \text{(2x memory, 2-8x faster compute)} \\
 \text{Weights (master copy):} &\quad \text{FP32} \quad \text{(numerical stability)} \\
 \text{Optimizer states:} &\quad \text{FP32} \quad \text{(accumulation precision)} \\
 \text{Loss scaling:} &\quad \text{FP32} \quad \text{(prevent underflow)}
 \end{align}
-
-```text
+$$
 
 **Key Technique: Loss Scaling**
 
 Problem: FP16 gradients can underflow (become 0) for small values.
 Solution: Scale loss by $S$ before backward pass:
-```
 
+$$
 \begin{align}
 \mathcal{L}_{\text{scaled}} &= S \cdot \mathcal{L} \\
 g_{\text{scaled}} &= \nabla_\theta \mathcal{L}_{\text{scaled}} = S \cdot g \\
 g &= g_{\text{scaled}} / S \quad \text{(unscale before optimizer)}
 \end{align}
-
-```text
+$$
 
 The GradScaler dynamically adjusts $S$:
 

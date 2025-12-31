@@ -1810,7 +1810,7 @@ config_large = {
 1. **Improper variance schedule**: Too aggressive → training instability
 2. **Not enough timesteps**: Poor sample quality
 3. **Insufficient model capacity**: Can't model complex distributions
-4. **Wrong noise prediction scaling**: Check that noise and x_t are properly normalized
+4. **Wrong noise prediction scaling**: Check that noise and $x_t$ are properly normalized
 5. **Data not normalized to [-1, 1]**: Most implementations expect this range
 6. **Forgetting to call model.eval() during sampling**: Causes BatchNorm issues
 7. **Not moving diffusion parameters to GPU**: Causes device mismatch errors

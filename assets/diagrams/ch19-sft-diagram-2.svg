@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 260" style="max-width: 700px; width: 100%; height: auto;">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 260" style="max-width: 700px; width: 100%; height: auto">
   
   <style>
     /* Light mode (default) */
@@ -44,7 +44,7 @@
   </style>
 
   <rect x="20" y="20" width="400" height="40" class="bg-box" stroke="#4A90A4" stroke-width="2" rx="3" />
-  <text x="30" y="45" font-family="system-ui, -apple-system, sans-serif" font-size="14" style="fill: #333 !important" font-weight="600">[SYSTEM: instructions]</text>
+  <text x="30" y="45" font-family="system-ui, -apple-system, sans-serif" font-size="14"  font-weight="600">[SYSTEM: instructions]</text>
   <line x1="440" y1="40" x2="520" y2="40" stroke="#999" stroke-width="2" marker-end="url(#arrow-gray)" />
   <text x="530" y="45" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#999">masked</text>
 
@@ -57,7 +57,7 @@
 
 
   <rect x="20" y="130" width="400" height="40" fill="#e8f4f8" stroke="#4A90A4" stroke-width="3" rx="3" />
-  <text x="30" y="155" font-family="system-ui, -apple-system, sans-serif" font-size="14" style="fill: #333 !important" font-weight="600">[ASSISTANT: answer 1]</text>
+  <text x="30" y="155" font-family="system-ui, -apple-system, sans-serif" font-size="14"  font-weight="600">[ASSISTANT: answer 1]</text>
   <line x1="440" y1="150" x2="520" y2="150" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrow-blue)" />
   <text x="530" y="155" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#4A90A4" font-weight="600">LEARNED</text>
 
@@ -70,7 +70,7 @@
 
 
   <rect x="20" y="240" width="400" height="40" fill="#e8f4f8" stroke="#4A90A4" stroke-width="3" rx="3" />
-  <text x="30" y="265" font-family="system-ui, -apple-system, sans-serif" font-size="14" style="fill: #333 !important" font-weight="600">[ASSISTANT: answer 2]</text>
+  <text x="30" y="265" font-family="system-ui, -apple-system, sans-serif" font-size="14"  font-weight="600">[ASSISTANT: answer 2]</text>
   <line x1="440" y1="260" x2="520" y2="260" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrow-blue)" />
   <text x="530" y="265" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#4A90A4" font-weight="600">LEARNED</text>
 

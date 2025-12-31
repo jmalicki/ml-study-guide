@@ -1121,11 +1121,10 @@ The key insight is the **synergy between reasoning and acting**:
 - **Acting helps reasoning**: Observations ground reasoning in reality, correct errors
 
 Formally, this creates a feedback loop:
-```
 
+$$
 t_1 \rightarrow a_1 \rightarrow o_1 \rightarrow t_2 \rightarrow a_2 \rightarrow o_2 \rightarrow ... \rightarrow a_{\text{final}}
-
-```text
+$$
 
 This is a form of **interactive planning** where the agent updates its plan based on environmental feedback.
 
@@ -1510,11 +1509,9 @@ Linear CoT commits to a single path with no ability to backtrack. Self-consisten
 
 Tree-of-Thought extends the marginalization principle from self-consistency to a **hierarchical search space**:
 
-```
-
+$$
 P(a|q) = \sum_{r \in \mathcal{R}} P(a|r) P(r|q) = \sum_{T \in \text{Trees}} \sum_{r \in T} P(a|r) P(r|q)
-
-```text
+$$
 
 where we search over tree structures $T$ rather than just linear paths.
 
@@ -1782,20 +1779,18 @@ Process Reward Models (PRMs), introduced by OpenAI for improving mathematical re
 ### Outcome vs Process Supervision
 
 **Outcome Reward Model (ORM):**
-```
 
+$$
 r_{\text{outcome}}(q, r, a) = \mathbb{1}[a = a^*]
-
-```text
+$$
 
 Only rewards correct final answers, regardless of reasoning quality.
 
 **Process Reward Model (PRM):**
-```
 
+$$
 r_{\text{process}}(q, r, a) = \sum_{i=1}^{n} w_i \cdot \text{score}(r_i | r_{<i}, q)
-
-```text
+$$
 
 Rewards correct reasoning at each step $r_i$.
 
@@ -1822,11 +1817,9 @@ This leads to models that learn shortcuts and fail to generalize. PRMs solve thi
 
 The key insight comes from **reinforcement learning theory**. The value of a reasoning path can be decomposed:
 
-```
-
+$$
 V(r) = \sum_{i=1}^{n} V(r_i | r_{<i})
-
-```text
+$$
 
 where $V(r_i | r_{<i})$ is the value of step $i$ given previous steps.
 
@@ -1837,11 +1830,10 @@ This is analogous to **temporal difference learning** in RL:
 - **PRMs**: Intermediate between these - step-level rewards for reasoning "trajectory"
 
 The advantage of step-level rewards is better **credit assignment**:
-```
 
+$$
 \nabla_\theta \mathbb{E}[\text{reward}] = \sum_{i=1}^{n} \nabla_\theta \log P_\theta(r_i | r_{<i}) \cdot V(r_i)
-
-```text
+$$
 
 Each step gets its own gradient signal, enabling faster and more accurate learning.
 
@@ -2324,11 +2316,9 @@ Traditional scaling: Better models require more **training** compute.
 
 Test-time scaling: Better answers require more **inference** compute.
 
-```
-
+$$
 \text{Quality}(a) \propto f(\text{compute}_{\text{test}})
-
-```text
+$$
 
 ### Methods for Test-Time Scaling
 
@@ -2366,11 +2356,10 @@ We can improve this optimization by:
 3. **Iterating longer**: Refining until convergence
 
 This creates a **compute-quality tradeoff**:
-```
 
+$$
 \text{Quality}(C) = f(C) \quad \text{where } f \text{ is monotonic increasing}
-
-```text
+$$
 
 The scaling law: doubling test-time compute can yield 5-15% accuracy improvements (up to a saturation point).
 
@@ -2603,11 +2592,9 @@ for entry in result_refine['history']:
 
 There's a tradeoff between compute and quality:
 
-```
-
+$$
 \text{Quality} = f(\text{compute}) - \text{cost} \cdot \text{compute}
-
-```text
+$$
 
 Find the optimal compute budget:
 

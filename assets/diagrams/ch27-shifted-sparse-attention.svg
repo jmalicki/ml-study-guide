@@ -50,7 +50,7 @@
 
   
   <g transform="translate(50, 90)">
-    <text x="150" y="0" font-family="Arial, sans-serif" font-size="15" font-weight="bold" style="fill: #333 !important;" text-anchor="middle">
+    <text x="150" y="0" font-family="Arial, sans-serif" font-size="15" font-weight="bold"  text-anchor="middle">
       Full Attention (Inference)
     </text>
 

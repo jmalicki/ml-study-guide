@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 340" style="max-width: 400px; margin: 20px 0;">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 340" style="max-width: 400px; margin: 20px 0">
   
   <style>
     /* Light mode (default) */
@@ -43,8 +43,8 @@
   </style>
 
   <rect x="50" y="20" width="150" height="300" fill="#e8f4f8" stroke="#4A90A4" stroke-width="2" rx="5" />
-  <text x="125" y="50" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="bold" style="fill: #333 !important" text-anchor="middle">SRAM</text>
-  <text x="125" y="75" font-family="system-ui, -apple-system, sans-serif" font-size="12" style="fill: #2d7a8e !important" text-anchor="middle">(Fast)</text>
+  <text x="125" y="50" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="bold"  text-anchor="middle">SRAM</text>
+  <text x="125" y="75" font-family="system-ui, -apple-system, sans-serif" font-size="12"  text-anchor="middle">(Fast)</text>
 
   
   <line x1="210" y1="100" x2="210" y2="120" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead2)" />
