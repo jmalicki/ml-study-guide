@@ -40,9 +40,9 @@
       text[style*="fill: #333"] { fill: #333333; }
 
       /* Darken colored backgrounds for dark mode */
-      rect[fill="#81C784"] { fill: #4a7c4e; }
+      rect[fill="#388E3C"] { fill: #2e7d32; }
       rect[fill="#FFB74D"] { fill: #8b5e28; }
-      rect[fill="#9575CD"] { fill: #5c4a7a; }
+      rect[fill="#673AB7"] { fill: #4527a0; }
     }
   </style><text x="400" y="30" text-anchor="middle" font-size="18" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#333">
     BPE Merge Process: Building Subwords from Characters
@@ -55,7 +55,7 @@
 
   
   <g transform="translate(50, 90)">
-    <text x="0" y="0" font-size="14" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#4A90A4">Step 0: Character initialization</text>
+    <text x="0" y="0" font-size="14" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#4A90A4" style="fill: #4A90A4 !important;">Step 0: Character initialization</text>
     <rect x="0" y="10" width="700" height="60" class="bg-main" stroke="#ddd" stroke-width="1" rx="5" />
 
     <text x="10" y="30" font-size="12" font-family="monospace" fill="#333">Word: "lowest"</text>
@@ -90,7 +90,7 @@
 
   
   <g transform="translate(50, 200)">
-    <text x="0" y="0" font-size="14" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#4A90A4">Step 1: Merge most frequent pair (e, s) → "es"</text>
+    <text x="0" y="0" font-size="14" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#4A90A4" style="fill: #4A90A4 !important;">Step 1: Merge most frequent pair (e, s) → "es"</text>
     <rect x="0" y="10" width="700" height="60" class="bg-main" stroke="#ddd" stroke-width="1" rx="5" />
 
     <text x="10" y="30" font-size="12" font-family="monospace" fill="#333">Word: "lowest"</text>
@@ -104,8 +104,8 @@
       <rect x="100" y="0" width="40" height="30" class="bg-box" stroke="#999" stroke-width="1" rx="3" />
       <text x="120" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#333">w</text>
 
-      <rect x="150" y="0" width="50" height="30" fill="#81C784" stroke="#4CAF50" stroke-width="2" rx="3" />
-      <text x="175" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#fff" font-weight="bold">es</text>
+      <rect x="150" y="0" width="50" height="30" fill="#388E3C" stroke="#388E3C" stroke-width="2" rx="3" />
+      <text x="175" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#fff" font-weight="bold" style="fill: #fff !important;">es</text>
 
       <rect x="210" y="0" width="40" height="30" class="bg-box" stroke="#999" stroke-width="1" rx="3" />
       <text x="230" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#333">t</text>
@@ -123,7 +123,7 @@
 
   
   <g transform="translate(50, 310)">
-    <text x="0" y="0" font-size="14" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#4A90A4">Step 2: Merge next frequent pair (es, t) → "est"</text>
+    <text x="0" y="0" font-size="14" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#4A90A4" style="fill: #4A90A4 !important;">Step 2: Merge next frequent pair (es, t) → "est"</text>
     <rect x="0" y="10" width="700" height="60" class="bg-main" stroke="#ddd" stroke-width="1" rx="5" />
 
     <text x="10" y="30" font-size="12" font-family="monospace" fill="#333">Word: "lowest"</text>
@@ -153,13 +153,13 @@
 
   
   <g transform="translate(50, 420)">
-    <text x="0" y="0" font-size="14" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#4A90A4">Step 3: Continue merging...</text>
+    <text x="0" y="0" font-size="14" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#4A90A4" style="fill: #4A90A4 !important;">Step 3: Continue merging...</text>
     <rect x="0" y="10" width="700" height="60" class="bg-main" stroke="#ddd" stroke-width="1" rx="5" />
 
     <text x="10" y="30" font-size="12" font-family="monospace" fill="#333">Word: "lowest"</text>
     <g transform="translate(10, 45)">
-      <rect x="0" y="0" width="50" height="30" fill="#9575CD" stroke="#673AB7" stroke-width="2" rx="3" />
-      <text x="25" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#fff" font-weight="bold">low</text>
+      <rect x="0" y="0" width="50" height="30" fill="#673AB7" stroke="#673AB7" stroke-width="2" rx="3" />
+      <text x="25" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#fff" font-weight="bold" style="fill: #fff !important;">low</text>
 
       <rect x="60" y="0" width="60" height="30" fill="#FFB74D" stroke="#FF9800" stroke-width="2" rx="3" />
       <text x="90" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#333" font-weight="bold" style="fill: #333 !important;">est</text>
@@ -175,7 +175,7 @@
   
   <g transform="translate(50, 510)">
     <rect x="0" y="0" width="700" height="70" class="bg-info" stroke="#4A90A4" stroke-width="2" rx="5" />
-    <text x="10" y="22" font-size="13" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#4A90A4">Key Insights:</text>
+    <text x="10" y="22" font-size="13" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#4A90A4" style="fill: #4A90A4 !important;">Key Insights:</text>
     <text x="20" y="40" font-size="11" font-family="system-ui, -apple-system, sans-serif" fill="#333">
       <tspan x="20" dy="0">• BPE is greedy: always merges most frequent pair</tspan>
       <tspan x="20" dy="15">• Learns common morphemes: "est" (superlative), "ing" (gerund), "er" (comparative)</tspan>

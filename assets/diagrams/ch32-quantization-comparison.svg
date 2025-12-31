@@ -38,7 +38,7 @@
       rect[fill="#e65100"] { fill: #a66a2a; }
       rect[fill="#f0f0f0"] { fill: #3a3a3a; }
     }
-  </style><text x="450" y="30" font-size="22" font-weight="bold" fill="#333" text-anchor="middle">
+  </style><text x="450" y="30" font-size="22" font-weight="bold" fill="#000" text-anchor="middle">
     Quantization Levels: Memory Savings Comparison
   </text>
   <text x="450" y="55" font-size="14" fill="#666" text-anchor="middle">

@@ -79,21 +79,21 @@
     
     <g transform="translate(180, 120)">
       <path d="M 0 0 L 0 -30" stroke="#E57373" stroke-width="1.5" marker-start="url(#arrowup)" marker-end="url(#arrowdown)" />
-      <text x="10" y="-10" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#E57373">1st</text>
-      <text x="10" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#E57373">Descent</text>
+      <text x="10" y="-10" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#C62828">1st</text>
+      <text x="10" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#C62828">Descent</text>
     </g>
 
     <g transform="translate(550, 100)">
       <path d="M 0 0 L 0 -40" stroke="#E57373" stroke-width="1.5" marker-start="url(#arrowup)" marker-end="url(#arrowdown)" />
-      <text x="10" y="-20" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#E57373">2nd</text>
-      <text x="10" y="-10" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#E57373">Descent</text>
+      <text x="10" y="-20" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#C62828">2nd</text>
+      <text x="10" y="-10" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#C62828">Descent</text>
     </g>
 
     
     <g transform="translate(340, 200)">
       <circle cx="0" cy="-20" r="4" fill="#E57373" />
-      <text x="10" y="-15" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#E57373">Peak at</text>
-      <text x="10" y="-5" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#E57373">threshold</text>
+      <text x="10" y="-15" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#C62828">Peak at</text>
+      <text x="10" y="-5" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#C62828">threshold</text>
     </g>
 
     

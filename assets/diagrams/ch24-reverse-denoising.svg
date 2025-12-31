@@ -38,9 +38,9 @@
 
   
   <g id="timesteps">
-    
+
     <g transform="translate(50, 80)">
-      <rect x="0" y="0" width="80" height="80" fill="#666" opacity="0.2" rx="4" />
+      <rect x="0" y="0" width="80" height="80" fill="#999" opacity="0.2" rx="4" />
       <circle cx="15" cy="20" r="2.5" fill="#666" opacity="0.7" />
       <circle cx="40" cy="35" r="2.5" fill="#666" opacity="0.7" />
       <circle cx="65" cy="25" r="2.5" fill="#666" opacity="0.7" />
@@ -51,9 +51,9 @@
       <circle cx="45" cy="15" r="2.5" fill="#666" opacity="0.7" />
       <circle cx="35" cy="75" r="2.5" fill="#666" opacity="0.7" />
       <circle cx="60" cy="40" r="2.5" fill="#666" opacity="0.7" />
-      <text x="40" y="105" font-size="12" fill="#333" text-anchor="middle">t = T</text>
-      <text x="40" y="120" font-size="10" fill="#666" text-anchor="middle">x_T ~ N(0,I)</text>
-      <text x="40" y="135" font-size="9" fill="#4A90A4" text-anchor="middle">Start here</text>
+      <text x="40" y="105" font-size="12" fill="#000" text-anchor="middle">t = T</text>
+      <text x="40" y="120" font-size="10" fill="#000" text-anchor="middle">x_T ~ N(0,I)</text>
+      <text x="40" y="135" font-size="9" fill="#00627A" text-anchor="middle">Start here</text>
     </g>
 
     
@@ -134,18 +134,18 @@
     </g>
   </g>
 
-  
+
   <g transform="translate(320, 190)">
     <rect x="0" y="0" width="160" height="50" fill="#4A90A4" opacity="0.15" rx="6" stroke="#4A90A4" stroke-width="2" stroke-dasharray="4,4" />
-    <text x="80" y="18" font-size="11" font-weight="bold" fill="#333" text-anchor="middle">Neural Network ε_θ</text>
-    <text x="80" y="33" font-size="9" fill="#666" text-anchor="middle">Predicts noise at each step</text>
-    <text x="80" y="46" font-size="9" fill="#666" text-anchor="middle">Trained via MSE loss</text>
+    <text x="80" y="18" font-size="11" font-weight="bold" fill="#000" text-anchor="middle">Neural Network ε_θ</text>
+    <text x="80" y="33" font-size="9" fill="#000" text-anchor="middle">Predicts noise at each step</text>
+    <text x="80" y="46" font-size="9" fill="#000" text-anchor="middle">Trained via MSE loss</text>
   </g>
 
-  
+
   <g transform="translate(50, 250)">
-    <text x="0" y="0" font-size="11" font-weight="bold" fill="#333">Key Concept:</text>
-    <text x="0" y="18" font-size="10" fill="#666">Model iteratively removes predicted noise to recover clean image from pure noise</text>
-    <text x="0" y="35" font-size="10" fill="#666">Each denoising step uses learned p_θ(x_{t-1} | x_t) = N(μ_θ(x_t,t), σ_t²I)</text>
+    <text x="0" y="0" font-size="11" font-weight="bold" fill="#000">Key Concept:</text>
+    <text x="0" y="18" font-size="10" fill="#000">Model iteratively removes predicted noise to recover clean image from pure noise</text>
+    <text x="0" y="35" font-size="10" fill="#000">Each denoising step uses learned p_θ(x_{t-1} | x_t) = N(μ_θ(x_t,t), σ_t²I)</text>
   </g>
 </svg>

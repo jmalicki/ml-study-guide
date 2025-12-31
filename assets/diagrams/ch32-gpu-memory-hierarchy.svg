@@ -34,7 +34,7 @@
       rect[fill="#388e3c"] { fill: #4a7c4e; }
       rect[fill="#616161"] { fill: #5a5a5a; }
     }
-  </style><text x="400" y="30" font-size="22" font-weight="bold" fill="#333" text-anchor="middle">
+  </style><text x="400" y="30" font-size="22" font-weight="bold" fill="#000" text-anchor="middle">
     GPU Memory Hierarchy
   </text>
   <text x="400" y="55" font-size="14" fill="#666" text-anchor="middle">

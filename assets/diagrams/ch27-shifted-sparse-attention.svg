@@ -88,7 +88,7 @@
     <text x="150" y="0" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#333" text-anchor="middle">
       Head Group 1 (Training)
     </text>
-    <text x="150" y="17" font-family="Arial, sans-serif" font-size="12" fill="#4A90A4" text-anchor="middle">
+    <text x="150" y="17" font-family="Arial, sans-serif" font-size="12" fill="#2E7D8E" text-anchor="middle">
       Attend to: i, i-2, i-4, i-6, ...
     </text>
 
@@ -131,7 +131,7 @@
     <text x="150" y="0" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#333" text-anchor="middle">
       Head Group 2 (Training)
     </text>
-    <text x="150" y="17" font-family="Arial, sans-serif" font-size="12" fill="#81C784" text-anchor="middle">
+    <text x="150" y="17" font-family="Arial, sans-serif" font-size="12" fill="#388E3C" text-anchor="middle">
       Attend to: i-1, i-3, i-5, i-7, ...
     </text>
 

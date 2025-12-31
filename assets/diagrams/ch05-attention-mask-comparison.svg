@@ -33,7 +33,7 @@
     }
   </style><g id="bidirectional">
     <text x="150" y="30" font-family="Arial, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="#333">Bidirectional Attention</text>
-    <text x="150" y="50" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#666">(All tokens visible)</text>
+    <text x="150" y="50" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#000">(All tokens visible)</text>
 
     
     <g transform="translate(50, 70)">
@@ -71,25 +71,25 @@
       <rect x="130" y="130" width="30" height="30" fill="#4A90A4" stroke="#333" stroke-width="1" />
 
       
-      <text x="25" y="30" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle">✓</text>
-      <text x="65" y="30" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle">✓</text>
-      <text x="105" y="30" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle">✓</text>
-      <text x="145" y="30" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle">✓</text>
+      <text x="25" y="30" font-family="Arial, sans-serif" font-size="18" fill="#fff" text-anchor="middle">✓</text>
+      <text x="65" y="30" font-family="Arial, sans-serif" font-size="18" fill="#fff" text-anchor="middle">✓</text>
+      <text x="105" y="30" font-family="Arial, sans-serif" font-size="18" fill="#fff" text-anchor="middle">✓</text>
+      <text x="145" y="30" font-family="Arial, sans-serif" font-size="18" fill="#fff" text-anchor="middle">✓</text>
 
-      <text x="25" y="70" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle">✓</text>
-      <text x="65" y="70" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle">✓</text>
-      <text x="105" y="70" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle">✓</text>
-      <text x="145" y="70" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle">✓</text>
+      <text x="25" y="70" font-family="Arial, sans-serif" font-size="18" fill="#fff" text-anchor="middle">✓</text>
+      <text x="65" y="70" font-family="Arial, sans-serif" font-size="18" fill="#fff" text-anchor="middle">✓</text>
+      <text x="105" y="70" font-family="Arial, sans-serif" font-size="18" fill="#fff" text-anchor="middle">✓</text>
+      <text x="145" y="70" font-family="Arial, sans-serif" font-size="18" fill="#fff" text-anchor="middle">✓</text>
 
-      <text x="25" y="110" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle">✓</text>
-      <text x="65" y="110" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle">✓</text>
-      <text x="105" y="110" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle">✓</text>
-      <text x="145" y="110" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle">✓</text>
+      <text x="25" y="110" font-family="Arial, sans-serif" font-size="18" fill="#fff" text-anchor="middle">✓</text>
+      <text x="65" y="110" font-family="Arial, sans-serif" font-size="18" fill="#fff" text-anchor="middle">✓</text>
+      <text x="105" y="110" font-family="Arial, sans-serif" font-size="18" fill="#fff" text-anchor="middle">✓</text>
+      <text x="145" y="110" font-family="Arial, sans-serif" font-size="18" fill="#fff" text-anchor="middle">✓</text>
 
-      <text x="25" y="150" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle">✓</text>
-      <text x="65" y="150" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle">✓</text>
-      <text x="105" y="150" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle">✓</text>
-      <text x="145" y="150" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle">✓</text>
+      <text x="25" y="150" font-family="Arial, sans-serif" font-size="18" fill="#fff" text-anchor="middle">✓</text>
+      <text x="65" y="150" font-family="Arial, sans-serif" font-size="18" fill="#fff" text-anchor="middle">✓</text>
+      <text x="105" y="150" font-family="Arial, sans-serif" font-size="18" fill="#fff" text-anchor="middle">✓</text>
+      <text x="145" y="150" font-family="Arial, sans-serif" font-size="18" fill="#fff" text-anchor="middle">✓</text>
     </g>
 
     
@@ -106,7 +106,7 @@
   
   <g id="causal" transform="translate(400, 0)">
     <text x="150" y="30" font-family="Arial, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="#333">Causal Attention</text>
-    <text x="150" y="50" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#666">(Lower triangular mask)</text>
+    <text x="150" y="50" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#000">(Lower triangular mask)</text>
 
     
     <g transform="translate(50, 70)">
@@ -147,25 +147,25 @@
       <rect x="130" y="130" width="30" height="30" fill="#4A90A4" stroke="#333" stroke-width="1" />
 
       
-      <text x="25" y="30" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle">✓</text>
-      <text x="65" y="30" font-family="Arial, sans-serif" font-size="18" fill="#999" text-anchor="middle">✗</text>
-      <text x="105" y="30" font-family="Arial, sans-serif" font-size="18" fill="#999" text-anchor="middle">✗</text>
-      <text x="145" y="30" font-family="Arial, sans-serif" font-size="18" fill="#999" text-anchor="middle">✗</text>
+      <text x="25" y="30" font-family="Arial, sans-serif" font-size="18" fill="#fff" text-anchor="middle">✓</text>
+      <text x="65" y="30" font-family="Arial, sans-serif" font-size="18" fill="#333" text-anchor="middle">✗</text>
+      <text x="105" y="30" font-family="Arial, sans-serif" font-size="18" fill="#333" text-anchor="middle">✗</text>
+      <text x="145" y="30" font-family="Arial, sans-serif" font-size="18" fill="#333" text-anchor="middle">✗</text>
 
-      <text x="25" y="70" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle">✓</text>
-      <text x="65" y="70" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle">✓</text>
-      <text x="105" y="70" font-family="Arial, sans-serif" font-size="18" fill="#999" text-anchor="middle">✗</text>
-      <text x="145" y="70" font-family="Arial, sans-serif" font-size="18" fill="#999" text-anchor="middle">✗</text>
+      <text x="25" y="70" font-family="Arial, sans-serif" font-size="18" fill="#fff" text-anchor="middle">✓</text>
+      <text x="65" y="70" font-family="Arial, sans-serif" font-size="18" fill="#fff" text-anchor="middle">✓</text>
+      <text x="105" y="70" font-family="Arial, sans-serif" font-size="18" fill="#333" text-anchor="middle">✗</text>
+      <text x="145" y="70" font-family="Arial, sans-serif" font-size="18" fill="#333" text-anchor="middle">✗</text>
 
-      <text x="25" y="110" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle">✓</text>
-      <text x="65" y="110" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle">✓</text>
-      <text x="105" y="110" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle">✓</text>
-      <text x="145" y="110" font-family="Arial, sans-serif" font-size="18" fill="#999" text-anchor="middle">✗</text>
+      <text x="25" y="110" font-family="Arial, sans-serif" font-size="18" fill="#fff" text-anchor="middle">✓</text>
+      <text x="65" y="110" font-family="Arial, sans-serif" font-size="18" fill="#fff" text-anchor="middle">✓</text>
+      <text x="105" y="110" font-family="Arial, sans-serif" font-size="18" fill="#fff" text-anchor="middle">✓</text>
+      <text x="145" y="110" font-family="Arial, sans-serif" font-size="18" fill="#333" text-anchor="middle">✗</text>
 
-      <text x="25" y="150" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle">✓</text>
-      <text x="65" y="150" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle">✓</text>
-      <text x="105" y="150" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle">✓</text>
-      <text x="145" y="150" font-family="Arial, sans-serif" font-size="18" fill="white" text-anchor="middle">✓</text>
+      <text x="25" y="150" font-family="Arial, sans-serif" font-size="18" fill="#fff" text-anchor="middle">✓</text>
+      <text x="65" y="150" font-family="Arial, sans-serif" font-size="18" fill="#fff" text-anchor="middle">✓</text>
+      <text x="105" y="150" font-family="Arial, sans-serif" font-size="18" fill="#fff" text-anchor="middle">✓</text>
+      <text x="145" y="150" font-family="Arial, sans-serif" font-size="18" fill="#fff" text-anchor="middle">✓</text>
     </g>
 
     

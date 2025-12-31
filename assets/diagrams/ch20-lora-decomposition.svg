@@ -20,6 +20,7 @@
       /* Darken colored backgrounds in dark mode for proper contrast with white text */
       rect[fill="#4A90A4"] { fill: #2d5f6f; }
       rect[fill="#81C784"] { fill: #4a7c4e; }
+      rect[fill="#4a7c4e"] { fill: #2d4a2e; }
 
       /* Keep white text white in dark mode (for colored backgrounds) */
       text[fill="#fff"],
@@ -68,7 +69,7 @@
     <text x="370" y="230" font-size="14" font-weight="bold" text-anchor="middle" fill="#FFF">Proj</text>
 
     
-    <rect x="420" y="150" width="120" height="100" fill="#81C784" fill-opacity="0.7" stroke="#333" stroke-width="2" />
+    <rect x="420" y="150" width="120" height="100" fill="#4a7c4e" fill-opacity="0.9" stroke="#333" stroke-width="2" />
     <text x="480" y="180" font-size="16" font-weight="bold" text-anchor="middle" fill="#FFF">A</text>
     <text x="480" y="200" font-size="12" text-anchor="middle" fill="#FFF">(r × k)</text>
     <text x="480" y="230" font-size="14" font-weight="bold" text-anchor="middle" fill="#FFF">Up Proj</text>
@@ -88,10 +89,10 @@
   <g id="w-matrix">
     <rect x="640" y="80" width="140" height="240" fill="#4A90A4" fill-opacity="0.3" stroke="#333" stroke-width="2" />
     <text x="710" y="110" font-size="16" font-weight="bold" text-anchor="middle" fill="#333">W</text>
-    <text x="710" y="135" font-size="14" text-anchor="middle" fill="#666">(d × k)</text>
-    <text x="710" y="200" font-size="14" font-weight="bold" text-anchor="middle" fill="#333">W = W₀ + BA</text>
-    <text x="710" y="230" font-size="12" text-anchor="middle" fill="#666">Effective</text>
-    <text x="710" y="250" font-size="12" text-anchor="middle" fill="#666">Weights</text>
+    <text x="710" y="135" font-size="14" text-anchor="middle" fill="#000">(d × k)</text>
+    <text x="710" y="200" font-size="14" font-weight="bold" text-anchor="middle" fill="#000">W = W₀ + BA</text>
+    <text x="710" y="230" font-size="12" text-anchor="middle" fill="#000">Effective</text>
+    <text x="710" y="250" font-size="12" text-anchor="middle" fill="#000">Weights</text>
 
     
     <polyline points="690,280 700,295 730,265" fill="none" stroke="#81C784" stroke-width="3" />

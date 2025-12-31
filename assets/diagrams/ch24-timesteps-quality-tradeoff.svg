@@ -132,8 +132,8 @@
   <text x="550" y="195" text-anchor="middle" class="annotation" fill="#1565C0">• Diminishing returns</text>
 
   <!-- Optimal zone -->
-  <text x="300" y="200" text-anchor="middle" class="annotation" fill="#F57C00" font-weight="600">Practical Range</text>
-  <text x="300" y="215" text-anchor="middle" class="annotation" fill="#F57C00">25-100 steps</text>
+  <text x="300" y="200" text-anchor="middle" class="annotation" fill="#E65100" font-weight="600">Practical Range</text>
+  <text x="300" y="215" text-anchor="middle" class="annotation" fill="#E65100">25-100 steps</text>
 
   <!-- Key insights box -->
   <rect x="110" y="110" width="240" height="120" fill="white" stroke="#333" stroke-width="1" rx="5" opacity="0.95"/>

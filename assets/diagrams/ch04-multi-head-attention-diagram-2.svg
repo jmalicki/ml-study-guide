@@ -59,8 +59,8 @@
   <rect x="20" y="190" width="260" height="100" fill="#d4edda" stroke="#4A90A4" stroke-width="2" rx="5" />
   <text x="150" y="210" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333" font-weight="bold">Use GQA (4:1 or 8:1 ratio)</text>
   <text x="150" y="230" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#555">Best balance of quality and speed</text>
-  <text x="150" y="250" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666" font-style="italic">Example: LLaMA 2</text>
-  <text x="150" y="270" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666" font-style="italic">(64 heads, 8 KV heads)</text>
+  <text x="150" y="250" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#000" font-style="italic">Example: LLaMA 2</text>
+  <text x="150" y="270" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#000" font-style="italic">(64 heads, 8 KV heads)</text>
 
   
   <line x1="300" y1="160" x2="350" y2="190" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrow)" />
@@ -69,7 +69,7 @@
   <rect x="290" y="190" width="260" height="100" fill="#d4edda" stroke="#4A90A4" stroke-width="2" rx="5" />
   <text x="420" y="210" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333" font-weight="bold">Use MHA</text>
   <text x="420" y="230" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#555">Maximum quality, standard approach</text>
-  <text x="420" y="250" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666" font-style="italic">Example: GPT-3, BERT</text>
+  <text x="420" y="250" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#000" font-style="italic">Example: GPT-3, BERT</text>
 
   
   <line x1="550" y1="70" x2="650" y2="100" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrow)" />
@@ -91,7 +91,7 @@
   <rect x="330" y="410" width="240" height="90" fill="#d4edda" stroke="#4A90A4" stroke-width="2" rx="5" />
   <text x="450" y="430" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333" font-weight="bold">Use MQA or convert to MQA</text>
   <text x="450" y="450" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#555">Smallest cache, fastest inference</text>
-  <text x="450" y="470" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666" font-style="italic">Example: Falcon, PaLM</text>
+  <text x="450" y="470" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#000" font-style="italic">Example: Falcon, PaLM</text>
 
   
   <line x1="650" y1="160" x2="650" y2="330" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrow)" />
@@ -104,8 +104,8 @@
   <rect x="530" y="410" width="240" height="90" fill="#d4edda" stroke="#4A90A4" stroke-width="2" rx="5" />
   <text x="650" y="430" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333" font-weight="bold">Use GQA or convert to GQA</text>
   <text x="650" y="450" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#555">Good middle ground</text>
-  <text x="650" y="470" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666" font-style="italic">Example: Mistral 7B</text>
-  <text x="650" y="487" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666" font-style="italic">(32 heads, 8 KV heads)</text>
+  <text x="650" y="470" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#000" font-style="italic">Example: Mistral 7B</text>
+  <text x="650" y="487" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#000" font-style="italic">(32 heads, 8 KV heads)</text>
 
   
   <line x1="750" y1="160" x2="800" y2="330" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrow)" />

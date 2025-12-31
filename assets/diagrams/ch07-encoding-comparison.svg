@@ -52,7 +52,7 @@
     <rect x="0" y="0" width="380" height="240" class="bg-main" stroke="#4A90A4" stroke-width="2" rx="8" />
 
     
-    <text x="190" y="25" text-anchor="middle" font-size="16" font-weight="bold" fill="#4A90A4">
+    <text x="190" y="25" text-anchor="middle" font-size="16" font-weight="bold" fill="#000">
       Sinusoidal Encoding
     </text>
 
@@ -115,7 +115,7 @@
     <rect x="0" y="0" width="380" height="240" class="bg-main" stroke="#E57373" stroke-width="2" rx="8" />
 
     
-    <text x="190" y="25" text-anchor="middle" font-size="16" font-weight="bold" fill="#E57373">
+    <text x="190" y="25" text-anchor="middle" font-size="16" font-weight="bold" fill="#000">
       Learned Embeddings
     </text>
 
@@ -184,7 +184,7 @@
     <rect x="0" y="0" width="380" height="210" class="bg-main" stroke="#81C784" stroke-width="2" rx="8" />
 
     
-    <text x="190" y="25" text-anchor="middle" font-size="16" font-weight="bold" fill="#81C784">
+    <text x="190" y="25" text-anchor="middle" font-size="16" font-weight="bold" fill="#000">
       ALiBi (Attention Linear Bias)
     </text>
 
@@ -256,8 +256,8 @@
         <line x1="240" y1="0" x2="240" y2="120" stroke="#ccc" stroke-width="0.5" />
 
         
-        <text x="250" y="65" font-size="9" fill="#666">Darker =</text>
-        <text x="250" y="77" font-size="9" fill="#666">More penalty</text>
+        <text x="250" y="65" font-size="9" fill="#000">Darker =</text>
+        <text x="250" y="77" font-size="9" fill="#000">More penalty</text>
       </g>
     </g>
 
@@ -275,7 +275,7 @@
     <rect x="0" y="0" width="380" height="210" class="bg-main" stroke="#BA68C8" stroke-width="2" rx="8" />
 
     
-    <text x="190" y="25" text-anchor="middle" font-size="16" font-weight="bold" fill="#BA68C8">
+    <text x="190" y="25" text-anchor="middle" font-size="16" font-weight="bold" fill="#000">
       RoPE (Rotary Position Embedding)
     </text>
 
@@ -286,16 +286,16 @@
 
       
       <line x1="60" y1="50" x2="105" y2="50" stroke="#E57373" stroke-width="2" marker-end="url(#arrowE57373)" />
-      <text x="110" y="54" font-size="10" fill="#E57373">pos 0</text>
+      <text x="110" y="54" font-size="10" fill="#000">pos 0</text>
 
       <line x1="60" y1="50" x2="92" y2="18" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrow4A90A4)" />
-      <text x="95" y="15" font-size="10" fill="#4A90A4">pos 1</text>
+      <text x="95" y="15" font-size="10" fill="#000">pos 1</text>
 
       <line x1="60" y1="50" x2="60" y2="5" stroke="#81C784" stroke-width="2" marker-end="url(#arrow81C784)" />
-      <text x="35" y="5" font-size="10" fill="#81C784">pos 2</text>
+      <text x="35" y="5" font-size="10" fill="#000">pos 2</text>
 
       <line x1="60" y1="50" x2="28" y2="18" stroke="#FFB74D" stroke-width="2" marker-end="url(#arrowFFB74D)" />
-      <text x="5" y="15" font-size="10" fill="#FFB74D">pos 3</text>
+      <text x="5" y="15" font-size="10" fill="#000">pos 3</text>
 
       
       <circle cx="60" cy="50" r="3" fill="#333" />
@@ -316,8 +316,8 @@
         </marker>
       </defs>
 
-      <text x="60" y="115" text-anchor="middle" font-size="9" fill="#666">Positions as rotations</text>
-      <text x="60" y="127" text-anchor="middle" font-size="9" fill="#666">in complex space</text>
+      <text x="60" y="115" text-anchor="middle" font-size="9" fill="#000">Positions as rotations</text>
+      <text x="60" y="127" text-anchor="middle" font-size="9" fill="#000">in complex space</text>
     </g>
 
     

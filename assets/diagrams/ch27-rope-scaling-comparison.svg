@@ -29,10 +29,10 @@
       text[fill="#4A90A4"] { fill: #4fc3f7; }
 
       /* Darken colored backgrounds for contrast with white text */
-      rect[fill="#4A90A4"] { fill: #2d5f6f; }
-      rect[fill="#5FA4B8"] { fill: #3a6a7a; }
+      rect[fill="#2E7D8E"] { fill: #1d4f5c; }
+      rect[fill="#1F5A6A"] { fill: #14414d; }
       rect[fill="#81C784"] { fill: #4a7c4e; }
-      rect[fill="#E57373"] { fill: #8b3d3d; }
+      rect[fill="#D32F2F"] { fill: #8b1f1f; }
     }
   </style><text x="450" y="30" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#333" text-anchor="middle">
     RoPE Scaling Methods Comparison
@@ -52,11 +52,11 @@
     <text x="80" y="30" font-family="Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">
       Trained (0-2K)
     </text>
-    <rect x="160" y="10" width="480" height="30" fill="#E57373" stroke="#333" stroke-width="1.5" stroke-dasharray="4,4" />
+    <rect x="160" y="10" width="480" height="30" fill="#D32F2F" stroke="#333" stroke-width="1.5" stroke-dasharray="4,4" />
     <text x="400" y="30" font-family="Arial, sans-serif" font-size="11" fill="#fff" text-anchor="middle">
       Unseen Rotations (2K-8K) ✗
     </text>
-    <text x="0" y="60" font-family="Arial, sans-serif" font-size="11" fill="#666">
+    <text x="0" y="60" font-family="Arial, sans-serif" font-size="11" fill="#000">
       ⚠ Extrapolation: Performance degrades
     </text>
   </g>
@@ -66,16 +66,16 @@
     <text x="0" y="0" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#333">
       Linear Scaling
     </text>
-    <rect x="0" y="10" width="640" height="30" fill="#4A90A4" stroke="#333" stroke-width="1.5" />
+    <rect x="0" y="10" width="640" height="30" fill="#2E7D8E" stroke="#333" stroke-width="1.5" />
     <text x="320" y="30" font-family="Arial, sans-serif" font-size="11" fill="#fff" text-anchor="middle">
       Position m → m/4 (compresses all positions)
     </text>
 
-    
+
     <path d="M 160 50 L 160 70 L 40 70 L 40 50" fill="none" stroke="#666" stroke-width="1.5" marker-end="url(#arrowhead)" />
     <path d="M 640 50 L 640 70 L 160 70" fill="none" stroke="#666" stroke-width="1.5" marker-end="url(#arrowhead)" />
 
-    <text x="0" y="95" font-family="Arial, sans-serif" font-size="11" fill="#666">
+    <text x="0" y="95" font-family="Arial, sans-serif" font-size="11" fill="#000">
       ⚠ Distorts relative distances, needs fine-tuning
     </text>
   </g>
@@ -85,7 +85,7 @@
     <text x="0" y="0" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#333">
       NTK-Aware Scaling
     </text>
-    <rect x="0" y="10" width="640" height="30" fill="#4A90A4" stroke="#333" stroke-width="1.5" />
+    <rect x="0" y="10" width="640" height="30" fill="#2E7D8E" stroke="#333" stroke-width="1.5" />
     <text x="320" y="30" font-family="Arial, sans-serif" font-size="11" fill="#fff" text-anchor="middle">
       Base frequency: 10000 → 10000 × 4^(d/(d-2)) (stretches wavelengths)
     </text>
@@ -110,7 +110,7 @@
     <text x="80" y="30" font-family="Arial, sans-serif" font-size="11" fill="#333" text-anchor="middle">
       ≤ 2K: Original
     </text>
-    <rect x="160" y="10" width="480" height="30" fill="#4A90A4" stroke="#333" stroke-width="1.5" />
+    <rect x="160" y="10" width="480" height="30" fill="#2E7D8E" stroke="#333" stroke-width="1.5" />
     <text x="400" y="30" font-family="Arial, sans-serif" font-size="11" fill="#fff" text-anchor="middle">
       &gt; 2K: Adaptive NTK based on length
     </text>
@@ -131,12 +131,12 @@
       High freq: No scale
     </text>
 
-    <rect x="213" y="10" width="214" height="30" fill="#4A90A4" stroke="#333" stroke-width="1.5" />
+    <rect x="213" y="10" width="214" height="30" fill="#2E7D8E" stroke="#333" stroke-width="1.5" />
     <text x="320" y="30" font-family="Arial, sans-serif" font-size="10" fill="#fff" text-anchor="middle">
       Mid freq: Interpolate
     </text>
 
-    <rect x="427" y="10" width="213" height="30" fill="#5FA4B8" stroke="#333" stroke-width="1.5" />
+    <rect x="427" y="10" width="213" height="30" fill="#1F5A6A" stroke="#333" stroke-width="1.5" />
     <text x="533" y="30" font-family="Arial, sans-serif" font-size="10" fill="#fff" text-anchor="middle">
       Low freq: Full scale
     </text>

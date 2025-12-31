@@ -14,8 +14,8 @@
     .attn-1 { fill: #FFE0E0; }
     .attn-2 { fill: #FFB3B3; }
     .attn-3 { fill: #FF8080; }
-    .attn-4 { fill: #FF4D4D; }
-    .attn-5 { fill: #FF0000; }
+    .attn-4 { fill: #E63939; }
+    .attn-5 { fill: #CC0000; }
 
     @media (prefers-color-scheme: dark) {
       .bg-main { fill: #1a1a1a; }
@@ -28,7 +28,7 @@
       .attn-3 { fill: #8A4040; }
       .attn-4 { fill: #7a3535; }
       .attn-5 { fill: #6a2d2d; }
-      rect[fill="#E3F2FD"] { fill: #1a3a4a; }
+      rect[fill="#BBDEFB"] { fill: #1a3a4a; }
     }
   </style>
 
@@ -207,15 +207,15 @@
     <text x="150" y="30" class="small-text text-color" text-anchor="middle">0.4</text>
     <rect class="attn-3" x="180" y="10" width="60" height="30"/>
     <text x="210" y="30" class="small-text text-color" text-anchor="middle">0.6</text>
-    <rect class="attn-4" x="240" y="10" width="60" height="30"/>
-    <text x="270" y="30" class="small-text" style="fill: white;" text-anchor="middle">0.8</text>
-    <rect class="attn-5" x="300" y="10" width="60" height="30"/>
-    <text x="330" y="30" class="small-text" style="fill: white;" text-anchor="middle">1.0</text>
+    <rect class="attn-4" x="240" y="10" width="60" height="30" fill="#E63939"/>
+    <text x="270" y="30" class="small-text" style="fill: #fff;" text-anchor="middle">0.8</text>
+    <rect class="attn-5" x="300" y="10" width="60" height="30" fill="#CC0000"/>
+    <text x="330" y="30" class="small-text" style="fill: #fff;" text-anchor="middle">1.0</text>
   </g>
 
   <!-- Key insight -->
   <g transform="translate(50, 550)">
-    <rect fill="#E3F2FD" stroke="#1976D2" stroke-width="2" width="800" height="80" rx="4" opacity="0.3"/>
+    <rect fill="#BBDEFB" stroke="#1976D2" stroke-width="2" width="800" height="80" rx="4" opacity="0.5"/>
     <text x="400" y="25" class="label-text text-color" text-anchor="middle" font-weight="600">Key Insights:</text>
     <text x="400" y="45" class="small-text text-color" text-anchor="middle">• Semantic words ("cat", "mat") attend strongly to relevant visual regions</text>
     <text x="400" y="62" class="small-text text-color" text-anchor="middle">• Function words ("a", "on") distribute attention more uniformly</text>
