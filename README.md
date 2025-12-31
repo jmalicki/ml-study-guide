@@ -2,6 +2,13 @@
 
 A comprehensive, hands-on study guide for machine learning interviews with a focus on Large Language Models. Each chapter includes theoretical explanations with LaTeX notation and runnable PyTorch implementations.
 
+This is my own study guide, largely written by Claude Opus 4.5.  My philosophy was to give Claude a basic concept of an outline, have it write an outline that I reviewed, and get it to write most of it.
+
+After the basics were there, I have reviewed and studied the guide as I have gone along, but using the source materials and published papers as primary references, using this guide as only "Cliff's Notes" to help understand,
+and have been correcting it as I have gone along (and there have been many huge, qualitative even, mistakes!!!).  Yet, I have found it helpful - an attempt at code and commentary in a single style written in a cohesive
+narrative to compare papers to, and when the Claude AI output has been wrong, that has even sharpened my skills, as Claude mistakes are reasonably likely to be common misconceptions - testing myself against that
+IMO strengthens my knowledge.
+
 ## What's Covered
 
 This guide covers the complete stack of modern LLM development:
