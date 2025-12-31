@@ -9,6 +9,8 @@ This script:
    - Balanced braces { }
    - Balanced \left and \right delimiters
    - Balanced \begin and \end environments
+   - Proper bracing for multi-character superscripts and subscripts (^{...} and _{...})
+   - Common LaTeX command errors (\frac, \sqrt)
 4. Reports any syntax errors found
 """
 
@@ -208,6 +210,212 @@ class LatexValidator:
 
         return None
 
+    def check_superscript_subscript_braces(self, latex: str) -> Optional[str]:
+        r"""
+        Check that superscripts (^) and subscripts (_) use proper bracing.
+        Multi-character superscripts/subscripts need braces: ^{abc} not ^abc.
+        Returns error message if improper usage found, None if valid.
+        """
+        issues = []
+
+        # Find all superscripts and subscripts
+        i = 0
+        while i < len(latex):
+            # Skip escaped characters
+            if latex[i] == '\\' and i + 1 < len(latex):
+                i += 2
+                continue
+
+            if latex[i] in ('^', '_'):
+                operator = latex[i]
+                i += 1
+
+                # Skip whitespace after operator
+                while i < len(latex) and latex[i].isspace():
+                    i += 1
+
+                if i >= len(latex):
+                    continue
+
+                # Check what follows
+                if latex[i] == '{':
+                    # Properly braced - find matching closing brace
+                    brace_count = 1
+                    i += 1
+                    while i < len(latex) and brace_count > 0:
+                        if latex[i] == '\\' and i + 1 < len(latex):
+                            i += 2
+                            continue
+                        if latex[i] == '{':
+                            brace_count += 1
+                        elif latex[i] == '}':
+                            brace_count -= 1
+                        i += 1
+                elif latex[i] == '\\':
+                    # Backslash command - check if it's a single command or needs braces
+                    # Single commands like \alpha, \beta are OK
+                    # Commands like \mathbb{R} followed by more content may need braces
+                    start = i
+                    i += 1
+                    # Get the command name
+                    while i < len(latex) and latex[i].isalpha():
+                        i += 1
+                    command = latex[start:i]
+
+                    # If command has arguments like \mathbb{R}, process them
+                    if i < len(latex) and latex[i] == '{':
+                        # Skip the argument
+                        brace_count = 1
+                        i += 1
+                        while i < len(latex) and brace_count > 0:
+                            if latex[i] == '\\' and i + 1 < len(latex):
+                                i += 2
+                                continue
+                            if latex[i] == '{':
+                                brace_count += 1
+                            elif latex[i] == '}':
+                                brace_count -= 1
+                            i += 1
+
+                    # After command (and its arguments), check if there's more content
+                    if i < len(latex):
+                        # Skip whitespace
+                        j = i
+                        while j < len(latex) and latex[j].isspace():
+                            j += 1
+                        # If next char is alphanumeric or another command, might be an issue
+                        if j < len(latex) and (latex[j].isalnum() or latex[j] == '\\'):
+                            # Check for common patterns that should be braced
+                            # Look ahead to see if this looks like multiple elements
+                            lookahead = latex[i:i+10]
+                            # If we see letters/numbers after a command without braces, flag it
+                            if re.match(r'[A-Za-z0-9]', lookahead):
+                                issues.append(f"Superscript/subscript at position {start-1} may need braces: '{latex[start-1:i+5]}'")
+                else:
+                    # Single character - might be OK, but check for certain patterns
+                    start = i
+                    # Count how many non-space, non-operator chars follow
+                    char_count = 0
+                    has_uppercase = False
+                    while i < len(latex) and latex[i] not in ('^', '_', ' ', '\t', '\n', '{', '}', '(', ')', '[', ']', '+', '-', '*', '/', '=', '<', '>', ',', '.', '|', '\\'):
+                        if latex[i].isupper():
+                            has_uppercase = True
+                        char_count += 1
+                        i += 1
+
+                    # If more than 1 char without braces, that's an issue
+                    if char_count > 1:
+                        issues.append(f"Multi-character {operator} at position {start-1} needs braces: '{latex[start-1:i]}'")
+                    # Single uppercase letter as superscript might indicate a set/space (like R^V for R to the V dimension)
+                    # However, some patterns like ^T (transpose) are acceptable
+                    elif char_count == 1 and has_uppercase:
+                        # Common acceptable patterns: ^T (transpose), ^H (Hermitian), ^* (not uppercase but similar)
+                        # Skip these common patterns
+                        if latex[start] in ('T', 'H'):
+                            # ^T and ^H are commonly used for transpose/Hermitian without braces
+                            pass
+                        # For other single uppercase letters, check if at end or followed by delimiter
+                        elif i >= len(latex) or latex[i] in (' ', '\t', '\n', '$', ',', '.', ')', '}', ']'):
+                            issues.append(f"Single uppercase {operator}{latex[start]} at position {start-1} should be braced for clarity: '{latex[start-1:i]}'")
+
+            else:
+                i += 1
+
+        if issues:
+            return "; ".join(issues)
+        return None
+
+    def check_common_latex_errors(self, latex: str) -> Optional[str]:
+        r"""
+        Check for common LaTeX syntax errors.
+        Returns error message if errors found, None if valid.
+        """
+        errors = []
+
+        # Check for \frac with missing arguments
+        # \frac should be followed by two brace groups: \frac{...}{...}
+        # We need to properly count braces to find the end of the first argument
+        i = 0
+        while i < len(latex):
+            if latex[i:i+5] == r'\frac':
+                frac_start = i
+                i += 5
+
+                # Skip whitespace
+                while i < len(latex) and latex[i].isspace():
+                    i += 1
+
+                # First argument must be in braces
+                if i >= len(latex) or latex[i] != '{':
+                    errors.append(f"\\frac at position {frac_start} missing first argument in braces")
+                    continue
+
+                # Count braces to find end of first argument
+                brace_count = 1
+                i += 1
+                while i < len(latex) and brace_count > 0:
+                    if latex[i] == '\\' and i + 1 < len(latex):
+                        i += 2
+                        continue
+                    if latex[i] == '{':
+                        brace_count += 1
+                    elif latex[i] == '}':
+                        brace_count -= 1
+                    i += 1
+
+                if brace_count != 0:
+                    # Unclosed first argument
+                    continue
+
+                # Skip whitespace after first argument
+                while i < len(latex) and latex[i].isspace():
+                    i += 1
+
+                # Second argument must be in braces
+                if i >= len(latex) or latex[i] != '{':
+                    errors.append(f"\\frac at position {frac_start} missing second argument in braces")
+            else:
+                i += 1
+
+        # Check for \sqrt with improper usage
+        # \sqrt can have optional [n] for nth root: \sqrt[n]{...} or \sqrt{...}
+        i = 0
+        while i < len(latex):
+            if latex[i:i+5] == r'\sqrt':
+                sqrt_start = i
+                i += 5
+
+                # Skip whitespace
+                while i < len(latex) and latex[i].isspace():
+                    i += 1
+
+                # Check for optional [n] argument
+                if i < len(latex) and latex[i] == '[':
+                    # Find closing bracket
+                    i += 1
+                    while i < len(latex) and latex[i] != ']':
+                        if latex[i] == '\\' and i + 1 < len(latex):
+                            i += 2
+                            continue
+                        i += 1
+                    if i < len(latex):
+                        i += 1  # Skip closing ]
+
+                    # Skip whitespace after optional argument
+                    while i < len(latex) and latex[i].isspace():
+                        i += 1
+
+                # Argument should be in braces or be a single token
+                if i < len(latex):
+                    if latex[i] not in ('{', '\\') and not latex[i].isalnum():
+                        errors.append(f"\\sqrt at position {sqrt_start} needs an argument")
+            else:
+                i += 1
+
+        if errors:
+            return "; ".join(errors)
+        return None
+
     def validate_latex(self, latex: str, file_path: Path, line_num: int, math_type: str) -> None:
         """Validate a single LaTeX expression and record any errors."""
         # Check balanced braces
@@ -244,6 +452,28 @@ class LatexValidator:
                     message=error,
                     latex_snippet=latex[:100]
                 ))
+
+        # Check superscript/subscript bracing
+        error = self.check_superscript_subscript_braces(latex)
+        if error:
+            self.errors.append(LatexError(
+                file_path=file_path,
+                line_num=line_num,
+                error_type="Superscript/subscript bracing",
+                message=error,
+                latex_snippet=latex[:100]
+            ))
+
+        # Check common LaTeX errors
+        error = self.check_common_latex_errors(latex)
+        if error:
+            self.errors.append(LatexError(
+                file_path=file_path,
+                line_num=line_num,
+                error_type="Common LaTeX errors",
+                message=error,
+                latex_snippet=latex[:100]
+            ))
 
     def validate_file(self, file_path: Path) -> None:
         """Validate all LaTeX expressions in a markdown file."""

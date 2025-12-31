@@ -167,10 +167,10 @@ In practice, we minimize the negative log-likelihood (NLL):
 \text{Loss} = -\frac{1}{T} \sum_{t=1}^T \log P(x_t \mid x_1, \ldots, x_{t-1})
 ```
 
-The model outputs logits $\mathbf{z}_t \in \mathbb{R}^V$ at each position, which are converted to probabilities via softmax:
+The model outputs logits $\mathbf{z}_t \in \mathbb{R}^{V}$ at each position, which are converted to probabilities via softmax:
 
 ```math
-P(x_t = i \mid x_{<t}) = \frac{\exp(z_{t,i})}{\sum_{j=1}^V \exp(z_{t,j})}
+P(x_t = i \mid x_{<t}) = \frac{\exp(z_{t,i})}{\sum_{j=1}^{V} \exp(z_{t,j})}
 ```
 
 where $V$ is the vocabulary size.
