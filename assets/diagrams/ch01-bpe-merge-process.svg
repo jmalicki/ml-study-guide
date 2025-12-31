@@ -78,7 +78,7 @@
       <text x="120" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#333">w</text>
 
       <rect x="150" y="0" width="40" height="30" class="bg-box" stroke="#999" stroke-width="1" rx="3" />
-      <text x="170" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#333">e</text>
+      <text x="170" y="20" text-anchor="middle" font-size="12" font-family="monospace">e</text>
 
       <rect x="200" y="0" width="40" height="30" class="bg-box" stroke="#999" stroke-width="1" rx="3" />
       <text x="220" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#333">s</text>
@@ -113,7 +113,7 @@
       <text x="120" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#333">w</text>
 
       <rect x="150" y="0" width="50" height="30" fill="#388E3C" stroke="#388E3C" stroke-width="2" rx="3" />
-      <text x="175" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#fff" font-weight="bold">es</text>
+      <text x="175" y="20" text-anchor="middle" font-size="12" font-family="monospace" style="fill: #fff !important" font-weight="bold">es</text>
 
       <rect x="210" y="0" width="40" height="30" class="bg-box" stroke="#999" stroke-width="1" rx="3" />
       <text x="230" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#333">t</text>
@@ -146,7 +146,7 @@
       <text x="120" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#333">w</text>
 
       <rect x="150" y="0" width="60" height="30" fill="#FFB74D" stroke="#FF9800" stroke-width="2" rx="3" />
-      <text x="180" y="20" text-anchor="middle" font-size="12" font-family="monospace" fill="#333" font-weight="bold">est</text>
+      <text x="180" y="20" text-anchor="middle" font-size="12" font-family="monospace" font-weight="bold">est</text>
     </g>
 
     <text x="450" y="35" font-size="11" font-family="system-ui, -apple-system, sans-serif" fill="#666">
@@ -167,10 +167,10 @@
     <text x="10" y="30" font-size="12" font-family="monospace" fill="#333">Word: "lowest"</text>
     <g transform="translate(-490, 44)">
       <rect x="500" y="2" width="50" height="30" fill="#673AB7" stroke="#673AB7" stroke-width="2" rx="3" />
-      <text x="526" y="22" text-anchor="middle" font-size="12" font-family="monospace" fill="#fff" font-weight="bold">low</text>
+      <text x="526" y="22" text-anchor="middle" font-size="12" font-family="monospace" style="fill: #fff !important" font-weight="bold">low</text>
 
       <rect x="561" y="2" width="60" height="30" fill="#FFB74D" stroke="#FF9800" stroke-width="2" rx="3" />
-      <text x="591" y="22" text-anchor="middle" font-size="12" font-family="monospace" fill="#333" font-weight="bold">est</text>
+      <text x="591" y="22" text-anchor="middle" font-size="12" font-family="monospace" font-weight="bold">est</text>
     </g>
 
     <text x="450" y="35" font-size="11" font-family="system-ui, -apple-system, sans-serif" fill="#666">

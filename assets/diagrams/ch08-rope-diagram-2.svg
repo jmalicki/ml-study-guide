@@ -29,12 +29,16 @@
       text[fill="#81C784"] { fill: #66bb6a; }
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
+      text[fill="#1976D2"] { fill: #4fc3f7; }
+      text[fill="#E65100"] { fill: #ffa726; }
 
       .bg-main { fill: #2d2d2d; }
 
       /* Darken colored backgrounds for better contrast with white text */
       rect[fill="#E3F2FD"] { fill: #2d5f6f; }
       rect[fill="#FFF3E0"] { fill: #9b6b2e; }
+      rect[fill="#1565C0"] { fill: #1565C0; }
+      rect[fill="#EF6C00"] { fill: #EF6C00; }
 
       /* Handle #333 text in dark mode */
       text[fill="#333"] { fill: #ffffff; }
@@ -48,50 +52,50 @@
     }
   </style><rect width="600" height="380" class="bg-main" rx="4" />
 
-  
-  <text x="300" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#333" font-weight="600" text-anchor="middle">iRoPE Layer Pattern</text>
 
-  
+  <text x="300" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="600" text-anchor="middle">iRoPE Layer Pattern</text>
+
+
   <g>
-    <rect x="50" y="60" width="500" height="50" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2" rx="4" />
-    <text x="70" y="90" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="600">Layer 0:</text>
-    <text x="140" y="90" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#1976D2">RoPE + Chunked Attention</text>
+    <rect x="50" y="60" width="500" height="50" fill="#1565C0" stroke="#4A90A4" stroke-width="2" rx="4" />
+    <text x="70" y="90" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" style="fill: #fff !important">Layer 0:</text>
+    <text x="140" y="90" font-family="system-ui, -apple-system, sans-serif" font-size="14" style="fill: #fff !important">RoPE + Chunked Attention</text>
   </g>
 
-  
+
   <g>
-    <rect x="50" y="120" width="500" height="50" fill="#FFF3E0" stroke="#FF9800" stroke-width="2" rx="4" />
-    <text x="70" y="150" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="600">Layer 1:</text>
-    <text x="140" y="150" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#E65100">NoPE + Full Attention</text>
+    <rect x="50" y="120" width="500" height="50" fill="#EF6C00" stroke="#FF9800" stroke-width="2" rx="4" />
+    <text x="70" y="150" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" style="fill: #fff !important">Layer 1:</text>
+    <text x="140" y="150" font-family="system-ui, -apple-system, sans-serif" font-size="14" style="fill: #fff !important">NoPE + Full Attention</text>
   </g>
 
-  
+
   <g>
-    <rect x="50" y="180" width="500" height="50" fill="#FFF3E0" stroke="#FF9800" stroke-width="2" rx="4" />
-    <text x="70" y="210" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="600">Layer 2:</text>
-    <text x="140" y="210" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#E65100">NoPE + Full Attention</text>
+    <rect x="50" y="180" width="500" height="50" fill="#EF6C00" stroke="#FF9800" stroke-width="2" rx="4" />
+    <text x="70" y="210" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" style="fill: #fff !important">Layer 2:</text>
+    <text x="140" y="210" font-family="system-ui, -apple-system, sans-serif" font-size="14" style="fill: #fff !important">NoPE + Full Attention</text>
   </g>
 
-  
+
   <g>
-    <rect x="50" y="240" width="500" height="50" fill="#FFF3E0" stroke="#FF9800" stroke-width="2" rx="4" />
-    <text x="70" y="270" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="600">Layer 3:</text>
-    <text x="140" y="270" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#E65100">NoPE + Full Attention</text>
+    <rect x="50" y="240" width="500" height="50" fill="#EF6C00" stroke="#FF9800" stroke-width="2" rx="4" />
+    <text x="70" y="270" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" style="fill: #fff !important">Layer 3:</text>
+    <text x="140" y="270" font-family="system-ui, -apple-system, sans-serif" font-size="14" style="fill: #fff !important">NoPE + Full Attention</text>
   </g>
 
-  
+
   <g>
-    <rect x="50" y="300" width="500" height="50" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2" rx="4" />
-    <text x="70" y="330" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="600">Layer 4:</text>
-    <text x="140" y="330" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#1976D2">RoPE + Chunked Attention</text>
+    <rect x="50" y="300" width="500" height="50" fill="#1565C0" stroke="#4A90A4" stroke-width="2" rx="4" />
+    <text x="70" y="330" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" style="fill: #fff !important">Layer 4:</text>
+    <text x="140" y="330" font-family="system-ui, -apple-system, sans-serif" font-size="14" style="fill: #fff !important">RoPE + Chunked Attention</text>
   </g>
 
-  
-  <text x="300" y="370" font-family="system-ui, -apple-system, sans-serif" font-size="20" fill="#666" text-anchor="middle">...</text>
 
-  
+  <text x="300" y="370" font-family="system-ui, -apple-system, sans-serif" font-size="20" text-anchor="middle">...</text>
+
+
   <g>
     <rect x="420" y="15" width="15" height="15" fill="#E3F2FD" stroke="#4A90A4" stroke-width="1.5" rx="2" />
-    <text x="440" y="27" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">RoPE layer (every 4th)</text>
+    <text x="440" y="27" font-family="system-ui, -apple-system, sans-serif" font-size="12">RoPE layer (every 4th)</text>
   </g>
 </svg>

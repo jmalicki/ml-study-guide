@@ -155,13 +155,13 @@
   
   <g transform="translate(50, 395)">
     <rect x="0" y="0" width="20" height="20" fill="#81C784" stroke="#333" stroke-width="1" />
-    <text x="25" y="15" font-family="Arial, sans-serif" font-size="11" fill="#333">= Bidirectional attention (prefix)</text>
+    <text x="25" y="15" font-family="Arial, sans-serif" font-size="11">= Bidirectional attention (prefix)</text>
 
     <rect x="250" y="0" width="20" height="20" fill="#4A90A4" stroke="#333" stroke-width="1" />
-    <text x="275" y="15" font-family="Arial, sans-serif" font-size="11" fill="#333">= Causal attention</text>
+    <text x="275" y="15" font-family="Arial, sans-serif" font-size="11">= Causal attention</text>
 
     <rect x="0" y="25" width="20" height="20" fill="#E5E5E5" stroke="#333" stroke-width="1" />
-    <text x="25" y="40" font-family="Arial, sans-serif" font-size="11" fill="#333">= Masked (cannot attend)</text>
+    <text x="25" y="40" font-family="Arial, sans-serif" font-size="11">= Masked (cannot attend)</text>
   </g>
 
   

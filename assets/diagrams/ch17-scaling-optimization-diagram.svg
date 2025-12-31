@@ -62,7 +62,7 @@
   <line x1="200" y1="115" x2="200" y2="130" class="line" marker-end="url(#arrowhead)"/>
 
   <rect x="30" y="180" width="340" height="35" rx="5" style="fill: #e8f5e9; stroke: #4A90A4; stroke-width: 2"/>
-  <text x="200" y="202" text-anchor="middle" style="fill: #2d5f2e; font-family: system-ui, -apple-system, sans-serif; font-size: 12px;">Action: Reduce LR by 2×, increase max_grad_norm</text>
+  <text x="200" y="202" text-anchor="middle" style="font-family: system-ui, -apple-system, sans-serif; font-size: 12px;">Action: Reduce LR by 2×, increase max_grad_norm</text>
   <line x1="200" y1="165" x2="200" y2="180" class="line" marker-end="url(#arrowhead)"/>
 
   <!-- Branch 1.2: Normal gradient norm -->
@@ -73,7 +73,7 @@
   <line x1="100" y1="257" x2="50" y2="257" class="line" marker-end="url(#arrowhead)"/>
 
   <rect x="30" y="290" width="340" height="35" rx="5" style="fill: #e8f5e9; stroke: #4A90A4; stroke-width: 2"/>
-  <text x="200" y="312" text-anchor="middle" style="fill: #2d5f2e; font-family: system-ui, -apple-system, sans-serif; font-size: 12px;">Action: Log the batch, check for anomalies</text>
+  <text x="200" y="312" text-anchor="middle" style="font-family: system-ui, -apple-system, sans-serif; font-size: 12px;">Action: Log the batch, check for anomalies</text>
   <line x1="190" y1="275" x2="190" y2="290" class="line" marker-end="url(#arrowhead)"/>
 
   <!-- Branch 2: Check if spike recovers -->
@@ -89,7 +89,7 @@
   <line x1="450" y1="165" x2="450" y2="180" class="line" marker-end="url(#arrowhead)"/>
 
   <rect x="370" y="230" width="320" height="35" rx="5" style="fill: #e8f5e9; stroke: #4A90A4; stroke-width: 2"/>
-  <text x="530" y="252" text-anchor="middle" style="fill: #2d5f2e; font-family: system-ui, -apple-system, sans-serif; font-size: 12px;">Action: Continue training, might be rare bad batch</text>
+  <text x="530" y="252" text-anchor="middle" style="font-family: system-ui, -apple-system, sans-serif; font-size: 12px;">Action: Continue training, might be rare bad batch</text>
   <line x1="520" y1="215" x2="520" y2="230" class="line" marker-end="url(#arrowhead)"/>
 
   <!-- Branch 2.2: Doesn't recover -->
@@ -100,7 +100,7 @@
   <line x1="350" y1="307" x2="380" y2="307" class="line" marker-end="url(#arrowhead)"/>
 
   <rect x="410" y="340" width="240" height="35" rx="5" style="fill: #e8f5e9; stroke: #4A90A4; stroke-width: 2"/>
-  <text x="530" y="362" text-anchor="middle" style="fill: #2d5f2e; font-family: system-ui, -apple-system, sans-serif; font-size: 12px;">Action: Stop, diagnose further</text>
+  <text x="530" y="362" text-anchor="middle" style="font-family: system-ui, -apple-system, sans-serif; font-size: 12px;">Action: Stop, diagnose further</text>
   <line x1="520" y1="325" x2="520" y2="340" class="line" marker-end="url(#arrowhead)"/>
 
   <!-- Branch 3: Check training step -->
@@ -116,7 +116,7 @@
   <line x1="600" y1="435" x2="600" y2="450" class="line" marker-end="url(#arrowhead)"/>
 
   <rect x="470" y="500" width="260" height="35" rx="5" style="fill: #e8f5e9; stroke: #4A90A4; stroke-width: 2"/>
-  <text x="600" y="522" text-anchor="middle" style="fill: #2d5f2e; font-family: system-ui, -apple-system, sans-serif; font-size: 12px;">Action: Restart with longer warmup</text>
+  <text x="600" y="522" text-anchor="middle" style="font-family: system-ui, -apple-system, sans-serif; font-size: 12px;">Action: Restart with longer warmup</text>
   <line x1="570" y1="485" x2="570" y2="500" class="line" marker-end="url(#arrowhead)"/>
 
   <!-- Branch 3.2: Mid-training spike -->
@@ -127,6 +127,6 @@
   <line x1="500" y1="577" x2="400" y2="577" class="line" marker-end="url(#arrowhead)"/>
 
   <rect x="380" y="610" width="380" height="35" rx="5" style="fill: #e8f5e9; stroke: #4A90A4; stroke-width: 2"/>
-  <text x="570" y="632" text-anchor="middle" style="fill: #2d5f2e; font-family: system-ui, -apple-system, sans-serif; font-size: 12px;">Action: Ensure smooth decay, no sudden LR changes</text>
+  <text x="570" y="632" text-anchor="middle" style="font-family: system-ui, -apple-system, sans-serif; font-size: 12px;">Action: Ensure smooth decay, no sudden LR changes</text>
   <line x1="570" y1="595" x2="570" y2="610" class="line" marker-end="url(#arrowhead)"/>
 </svg>

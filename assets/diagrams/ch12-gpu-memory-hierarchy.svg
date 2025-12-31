@@ -39,10 +39,10 @@
     }
   </style>
 
-  <text x="400" y="30" font-size="22" font-weight="bold" fill="#000" text-anchor="middle">
+  <text x="400" y="30" font-size="22" font-weight="bold" text-anchor="middle">
     GPU Memory Hierarchy for Flash Attention
   </text>
-  <text x="400" y="55" font-size="14" fill="#666" text-anchor="middle">
+  <text x="400" y="55" font-size="14" text-anchor="middle">
     Fast memory is tiny, large memory is slow
   </text>
 
@@ -70,7 +70,7 @@
 
   <!-- Arrow showing bandwidth comparison -->
   <g transform="translate(100, 270)">
-    <text x="0" y="0" font-size="16" font-weight="bold" fill="#333">Bandwidth Comparison:</text>
+    <text x="0" y="0" font-size="16" font-weight="bold">Bandwidth Comparison:</text>
 
     <!-- SRAM bar -->
     <rect x="0" y="15" width="600" height="35" fill="#e65100" stroke="#333" stroke-width="1" rx="3" />
@@ -80,21 +80,21 @@
     <rect x="0" y="60" width="90" height="35" fill="#4A90A4" stroke="#333" stroke-width="1" rx="3" />
     <text x="10" y="83" font-size="14" fill="#fff" style="fill: #fff !important">HBM: 1.5 TB/s</text>
 
-    <text x="100" y="83" font-size="14" fill="#333">(~13× slower)</text>
+    <text x="100" y="83" font-size="14">(~13× slower)</text>
   </g>
 
   <!-- Key insight box -->
   <g transform="translate(100, 390)">
     <rect x="0" y="0" width="600" height="180" fill="none" stroke="#4A90A4" stroke-width="3" stroke-dasharray="5,5" rx="8" />
 
-    <text x="300" y="30" font-size="18" font-weight="bold" fill="#333" text-anchor="middle">Flash Attention's Key Insight</text>
+    <text x="300" y="30" font-size="18" font-weight="bold" text-anchor="middle">Flash Attention's Key Insight</text>
 
-    <text x="20" y="60" font-size="14" fill="#333">Problem: Standard attention writes intermediate results to HBM</text>
-    <text x="40" y="80" font-size="13" fill="#fff" style="fill: #fff !important">• Attention matrix S = QK^T stored in HBM (O(N²) memory)</text>
-    <text x="40" y="98" font-size="13" fill="#fff" style="fill: #fff !important">• Read/write to HBM is 13× slower than SRAM</text>
+    <text x="20" y="60" font-size="14">Problem: Standard attention writes intermediate results to HBM</text>
+    <text x="40" y="80" font-size="13">• Attention matrix S = QK^T stored in HBM (O(N²) memory)</text>
+    <text x="40" y="98" font-size="13">• Read/write to HBM is 13× slower than SRAM</text>
 
-    <text x="20" y="125" font-size="14" fill="#333">Solution: Keep intermediate results in SRAM</text>
-    <text x="40" y="145" font-size="13" fill="#666">• Process Q, K, V in small blocks (tiles) that fit in SRAM</text>
-    <text x="40" y="163" font-size="13" fill="#666">• Never materialize full N×N attention matrix in HBM</text>
+    <text x="20" y="125" font-size="14">Solution: Keep intermediate results in SRAM</text>
+    <text x="40" y="145" font-size="13">• Process Q, K, V in small blocks (tiles) that fit in SRAM</text>
+    <text x="40" y="163" font-size="13">• Never materialize full N×N attention matrix in HBM</text>
   </g>
 </svg>

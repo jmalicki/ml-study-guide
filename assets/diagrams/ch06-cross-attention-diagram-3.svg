@@ -42,29 +42,29 @@
       /* Handle #333 text in dark mode */
       text[fill="#333"] { fill: #ffffff; }
     }
-  </style><text x="20" y="35" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333" font-weight="bold">Input:</text>
+  </style><text x="20" y="35" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold">Input:</text>
 
-  
+
   <rect x="80" y="15" width="150" height="35" fill="#e8f4f8" stroke="#4A90A4" stroke-width="2" rx="3" />
-  <text x="155" y="37" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333" text-anchor="middle">System prompt</text>
+  <text x="155" y="37" font-family="system-ui, -apple-system, sans-serif" font-size="13" text-anchor="middle">System prompt</text>
 
-  
+
   <text x="235" y="37" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#666">|</text>
 
-  
-  <rect x="250" y="15" width="150" height="35" fill="#e8f4f8" stroke="#4A90A4" stroke-width="2" rx="3" />
-  <text x="325" y="37" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333" text-anchor="middle">User message</text>
 
-  
+  <rect x="250" y="15" width="150" height="35" fill="#e8f4f8" stroke="#4A90A4" stroke-width="2" rx="3" />
+  <text x="325" y="37" font-family="system-ui, -apple-system, sans-serif" font-size="13" text-anchor="middle">User message</text>
+
+
   <text x="405" y="37" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#666">|</text>
 
-  
-  <rect x="420" y="15" width="180" height="35" fill="#e8f4f8" stroke="#4A90A4" stroke-width="2" rx="3" />
-  <text x="510" y="37" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333" text-anchor="middle">Assistant response</text>
 
-  
+  <rect x="420" y="15" width="180" height="35" fill="#e8f4f8" stroke="#4A90A4" stroke-width="2" rx="3" />
+  <text x="510" y="37" font-family="system-ui, -apple-system, sans-serif" font-size="13" text-anchor="middle">Assistant response</text>
+
+
   <path d="M 80 60 Q 80 70 90 70 L 300 70 Q 310 70 310 80 Q 310 70 320 70 L 590 70 Q 600 70 600 60" stroke="#4A90A4" stroke-width="2" fill="none" />
 
-  
-  <text x="340" y="100" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333" text-anchor="middle">All processed with self-attention</text>
+
+  <text x="340" y="100" font-family="system-ui, -apple-system, sans-serif" font-size="13" text-anchor="middle">All processed with self-attention</text>
 </svg>

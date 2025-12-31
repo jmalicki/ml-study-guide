@@ -2,20 +2,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 200" style="max-width: 700px">
 
      <style>
-    /* Light mode (default) */
-    text { fill: #000000; }
-    .axis-text { fill: #000000; }
-    .label-text { fill: #666666; }
+    /* Light mode (default) - no global text styles, use inline fills */
     line[stroke="#333"] { stroke: #333333; }
 
     /* Dark mode */
     @media (prefers-color-scheme: dark) {
-      text { fill: #ffffff; }
-      .axis-text { fill: #ffffff; }
-      .label-text { fill: #cccccc; }
       line[stroke="#333"] { stroke: #cccccc; }
 
-      /* Override dark inline text colors */
+      /* Background adapts to dark (inherited from page) */
+      rect { fill: #1a1a1a; }
+
+      /* Override dark inline text colors to white */
       text[fill="#000"],
       text[fill="#000000"],
       text[fill="#333"],
@@ -23,18 +20,8 @@
         fill: #ffffff;
       }
 
-      /* Keep white text white in dark mode (for colored backgrounds) */
-      text[fill="#fff"],
-      text[fill="#ffffff"],
-      text[fill="white"] {
-        fill: #ffffff;
-      }
-
-      /* Keep colored text readable in dark mode */
-      text[fill="#E57373"] { fill: #ef5350; }
-      text[fill="#81C784"] { fill: #66bb6a; }
-      text[fill="#FFB74D"] { fill: #ffa726; }
-      text[fill="#4A90A4"] { fill: #4fc3f7; }
+      /* Keep colored elements readable in dark mode */
+      line[stroke="#4A90A4"] { stroke: #4fc3f7; }
     }
   </style>
 
