@@ -1060,7 +1060,7 @@ The key observation: we can gather K and V from non-contiguous blocks because ma
 
 **Theoretical advantages**:
 
-1. **Near-zero internal fragmentation**: Only waste memory within the last block of each sequence (average $\frac{\text{block\_size}}{2}$ tokens)
+1. **Near-zero internal fragmentation**: Only waste memory within the last block of each sequence (average `block_size / 2` tokens)
 2. **Perfect external fragmentation**: All free blocks can be used by any request
 3. **Dynamic batching**: Can batch any mix of sequence lengths without waste
 

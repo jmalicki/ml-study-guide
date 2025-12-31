@@ -71,7 +71,20 @@
    - Encoder-decoder models
    - Decoder-only models (GPT-style)
 
-## Part 5: Efficient Attention
+## Part 5: Inference and Generation
+
+1. [Inference and Generation Strategies](chapters/12-inference-generation.md)
+   - Autoregressive generation basics
+   - Greedy decoding
+   - Temperature scaling
+   - Top-k sampling
+   - Nucleus (Top-p) sampling
+   - Beam search
+   - Repetition penalties
+   - Stop conditions
+   - Connection to KV Cache and Speculative Decoding
+
+## Part 6: Efficient Attention
 
 1. [Flash Attention](chapters/13-flash-attention.md)
    - Memory bottlenecks in attention
@@ -96,7 +109,7 @@
    - Streaming and long context
    - Production considerations
 
-## Part 6: Training Large Language Models
+## Part 7: Training Large Language Models
 
 1. [Language Model Training](chapters/16-lm-training.md)
    - Causal language modeling objective
@@ -119,7 +132,7 @@
    - Emergent capabilities in LLMs
    - Neural scaling phenomena
 
-## Part 7: Alignment and Fine-tuning
+## Part 8: Alignment and Fine-tuning
 
 1. [Supervised Fine-tuning (SFT)](chapters/18-sft.md)
    - Instruction tuning
@@ -152,7 +165,7 @@
    - Refusal training and jailbreak prevention
    - Alignment tax and capability tradeoffs
 
-## Part 8: Advanced Capabilities
+## Part 9: Advanced Capabilities
 
 1. [Long Context Techniques](chapters/23-long-context.md)
    - RoPE scaling methods (NTK-aware, YaRN)
@@ -186,7 +199,7 @@
    - Reasoning traces and verification
    - Test-time compute scaling
 
-## Part 9: Model Architectures in Practice
+## Part 10: Model Architectures in Practice
 
 1. [Architecture Comparison: Modern LLMs](chapters/27-model-architectures.md)
    - GPT series (GPT-2, GPT-3, GPT-4)
@@ -217,7 +230,7 @@
    - Weight averaging methods
    - Creating specialized models from general ones
 
-## Part 10: Hardware and Optimization
+## Part 11: Hardware and Optimization
 
 1. [Hardware, Quantization, and Training Optimization](chapters/29-hardware-quantization-optimization.md)
    - **Hardware**
@@ -248,7 +261,7 @@
      - Cosine with warmup
      - Warmup-Stable-Decay (WSD)
 
-## Part 11: Distributed Training
+## Part 12: Distributed Training
 
 1. [Distributed Training and Parallelism](chapters/30-distributed-training.md)
    - Data Parallelism (DP, DDP)
@@ -258,7 +271,7 @@
    - ZeRO optimization stages
    - 3D parallelism strategies
 
-## Part 12: Evaluation and Deployment
+## Part 13: Evaluation and Deployment
 
 1. [Evaluation and Benchmarks](chapters/31-evaluation-benchmarks.md)
    - Perplexity and language modeling metrics
@@ -268,7 +281,7 @@
    - Human evaluation methods
    - Contamination detection and mitigation
 
-## Part 13: Diffusion Models
+## Part 14: Diffusion Models
 
 1. [Diffusion Model Fundamentals](chapters/32-diffusion-fundamentals.md)
    - Forward diffusion process

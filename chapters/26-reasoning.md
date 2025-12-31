@@ -2759,8 +2759,7 @@ Choosing the right reasoning strategy depends on your task requirements, constra
 
 ### Cost-Performance Tradeoffs
 
-```
-
+```python
 def estimate_reasoning_cost(
     method: str,
     model_cost_per_1k_tokens: float = 0.01,

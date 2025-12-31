@@ -29,12 +29,14 @@ class LatexError:
     error_type: str
     message: str
     latex_snippet: str
+    is_warning: bool = False  # Warnings don't cause failure
 
 
 class LatexValidator:
     def __init__(self, root_dir: Path):
         self.root_dir = root_dir
         self.errors: List[LatexError] = []
+        self.warnings: List[LatexError] = []
 
     def extract_math_blocks(self, content: str, file_path: Path) -> List[Tuple[int, str, str]]:
         """
@@ -412,6 +414,17 @@ class LatexValidator:
             else:
                 i += 1
 
+        # Check for underscores in \text{} commands
+        # Even escaped underscores (\\_) can cause rendering issues in some markdown renderers
+        # Pattern: \text{...} or \texttt{...} or \textrm{...} etc.
+        text_cmd_pattern = re.compile(r'\\text(?:tt|rm|bf|it|sf|sc)?\{([^}]*)\}')
+        for match in text_cmd_pattern.finditer(latex):
+            content = match.group(1)
+            # Check for unescaped underscores (not preceded by backslash)
+            unescaped_underscore = re.search(r'(?<!\\)_', content)
+            if unescaped_underscore:
+                errors.append(f"Unescaped underscore in \\text{{}} at position {match.start()}: '{match.group(0)}' - use \\_ or avoid underscores in \\text{{}}")
+
         if errors:
             return "; ".join(errors)
         return None
@@ -423,6 +436,8 @@ class LatexValidator:
         - LaTeX commands like \alpha, \beta, \times, \frac, etc.
         - Subscripts and superscripts outside math mode (e.g., x_i, 2^n)
         - Mathematical symbols like ∈, ⊙, Σ, ≈, etc. combined with LaTeX-like syntax
+        - Literal LaTeX error messages that shouldn't be in content
+        - Underscored identifiers in mathematical expressions (e.g., block_size/2)
         """
         lines = content.split('\n')
 
@@ -430,6 +445,18 @@ class LatexValidator:
         in_code_block = False
         in_math_block = False
         code_block_pattern = re.compile(r'^```')
+
+        # Common LaTeX error messages that shouldn't appear in content
+        latex_error_patterns = [
+            r"'_' allowed only in math mode",
+            r"Missing \$ inserted",
+            r"Undefined control sequence",
+            r"Missing { inserted",
+            r"Missing } inserted",
+            r"Extra }, or forgotten \$",
+            r"Bad math environment delimiter",
+            r"Display math should end with \$\$",
+        ]
 
         # Common LaTeX commands that should be in math mode
         latex_commands = [
@@ -462,14 +489,15 @@ class LatexValidator:
                 if stripped_line.startswith('```math'):
                     in_math_block = True
                     continue
-                # Check if closing any block
+                # Check if closing any block or toggling code block
                 elif stripped_line == '```':
                     if in_math_block:
                         in_math_block = False
-                    elif in_code_block:
-                        in_code_block = False
+                    else:
+                        # Toggle code block state (opening or closing)
+                        in_code_block = not in_code_block
                     continue
-                # Opening a non-math code block
+                # Opening a non-math code block (e.g., ```python)
                 else:
                     in_code_block = True
                     continue
@@ -477,6 +505,17 @@ class LatexValidator:
             # Skip lines inside code blocks or math blocks
             if in_code_block or in_math_block:
                 continue
+
+            # Check for literal LaTeX error messages in the content
+            for error_pattern in latex_error_patterns:
+                if re.search(error_pattern, line):
+                    self.errors.append(LatexError(
+                        file_path=file_path,
+                        line_num=line_num,
+                        error_type="Literal LaTeX error message",
+                        message=f"Found literal LaTeX error message in content: '{error_pattern}'",
+                        latex_snippet=line.strip()[:100]
+                    ))
 
             # Remove inline math ($...$) and display math ($$...$$) from the line
             # to check what remains
@@ -488,16 +527,33 @@ class LatexValidator:
             # Remove $...$ (but not escaped \$)
             line_without_math = re.sub(r'(?<!\\)\$[^$]+\$', '', line_without_math)
 
-            # Also remove ```math blocks (though we already skip code blocks)
-            # This is for inline references
+            # Remove inline code blocks
+            line_without_code = re.sub(r'`[^`]*`', '', line_without_math)
+
+            # Check for underscored identifiers in mathematical expressions
+            # Pattern: identifier_with_underscore followed by arithmetic operators and numbers
+            # Examples: block_size/2, avg_tokens/1000
+            math_expr_pattern = re.compile(r'\b([a-z_]+_[a-z_]+)\s*[/\*]\s*\d+')
+            for match in math_expr_pattern.finditer(line_without_code):
+                # Skip if it looks like a URL
+                if 'http://' in line or 'https://' in line:
+                    continue
+
+                self.errors.append(LatexError(
+                    file_path=file_path,
+                    line_num=line_num,
+                    error_type="Mathematical expression outside math mode",
+                    message=f"Mathematical expression '{match.group(0)}' should be in math mode",
+                    latex_snippet=line.strip()[:100]
+                ))
 
             # Check for LaTeX commands outside math mode
-            matches = latex_cmd_pattern.finditer(line_without_math)
+            matches = latex_cmd_pattern.finditer(line_without_code)
             for match in matches:
                 # Get context around the match
                 start = max(0, match.start() - 20)
-                end = min(len(line_without_math), match.end() + 20)
-                context = line_without_math[start:end].strip()
+                end = min(len(line_without_code), match.end() + 20)
+                context = line_without_code[start:end].strip()
 
                 self.errors.append(LatexError(
                     file_path=file_path,
@@ -516,7 +572,7 @@ class LatexValidator:
             superscript_pattern = re.compile(r'(?<![a-zA-Z_])([a-zA-Z0-9]+)\^([a-zA-Z0-9]+)(?![a-zA-Z0-9_])')
 
             # Check subscripts
-            for match in subscript_pattern.finditer(line_without_math):
+            for match in subscript_pattern.finditer(line_without_code):
                 # Additional heuristics to reduce false positives
                 full_match = match.group(0)
 
@@ -528,8 +584,8 @@ class LatexValidator:
                 # Check if this is in a context that looks like math
                 # (e.g., followed by math symbols or in a bullet point describing math)
                 context_start = max(0, match.start() - 10)
-                context_end = min(len(line_without_math), match.end() + 10)
-                context = line_without_math[context_start:context_end]
+                context_end = min(len(line_without_code), match.end() + 10)
+                context = line_without_code[context_start:context_end]
 
                 # If the subscript looks like math notation (short subscript)
                 if len(match.group(2)) <= 3:  # Short subscripts are more likely math
@@ -542,7 +598,7 @@ class LatexValidator:
                     ))
 
             # Check superscripts
-            for match in superscript_pattern.finditer(line_without_math):
+            for match in superscript_pattern.finditer(line_without_code):
                 full_match = match.group(0)
 
                 # Skip URLs
@@ -550,8 +606,8 @@ class LatexValidator:
                     continue
 
                 context_start = max(0, match.start() - 10)
-                context_end = min(len(line_without_math), match.end() + 10)
-                context = line_without_math[context_start:context_end]
+                context_end = min(len(line_without_code), match.end() + 10)
+                context = line_without_code[context_start:context_end]
 
                 # Superscripts are more likely to be math
                 self.errors.append(LatexError(
