@@ -331,7 +331,7 @@ if __name__ == "__main__":
 ### Key Implementation Details
 
 1. **Projection**: We use a single linear layer for each of Q, K, V that projects to `d_model`, then split into heads
-2. **Split Heads**: Reshape from `(batch, seq_len, d_model)` to `(batch, num_heads, seq_len, d_k)`
+2. **Split Heads**: Reshape from `(batch, seq_len, d_model)` to `(batch, num_heads, seq_len, $d_k$)`
 3. **Parallel Computation**: All heads compute attention simultaneously using batch matrix multiplication
 4. **Concatenation**: After attention, transpose and reshape to concatenate head outputs
 5. **Output Projection**: A final linear layer mixes information across heads
@@ -442,7 +442,7 @@ Why does sharing K and V across heads work?
 1. **Information Flow**: The diversity comes from different query projections, not from different key/value representations
 2. **Empirical Evidence**: PaLM paper showed only ~1% quality degradation on most benchmarks
 3. **Representation Redundancy**: Studies show high correlation between what different heads' K and V matrices learn
-4. **Attention Pattern Diversity**: The important diversity is in the attention patterns (determined by Q·K^T), not in the value transformations
+4. **Attention Pattern Diversity**: The important diversity is in the attention patterns (determined by Q·$K^T$), not in the value transformations
 
 ### Mathematical Formulation
 
@@ -871,7 +871,7 @@ Before running the benchmark, let's predict the results:
 **Speed**:
 
 - Smaller cache → better memory bandwidth utilization → faster
-- BUT: Differences are modest because compute (QK^T) dominates on small batches
+- BUT: Differences are modest because compute ($QK^T$) dominates on small batches
 - Speedup is more pronounced for: long sequences, large batch sizes, memory-bound hardware
 
 ### The Benchmark
@@ -1961,7 +1961,7 @@ When your multi-head attention isn't working, check:
 2. ✓ Is softmax applied on `dim=-1` (over keys)?
 3. ✓ Are mask shapes compatible for broadcasting?
 4. ✓ Did you use `.contiguous()` before `.view()`?
-5. ✓ Are head dimensions split correctly (`num_heads, d_k` order)?
+5. ✓ Are head dimensions split correctly (`num_heads, $d_k$` order)?
 6. ✓ For GQA: Did you repeat K,V to match Q's head count?
 7. ✓ Are you applying dropout to attention weights during training?
 8. ✓ Do all tensor shapes match at each operation?

@@ -3974,6 +3974,7 @@ Train a smaller model to mimic the reasoning of a larger model:
 
 ```
 
+```python
 def distill_reasoning(teacher_model, student_model, dataset, num_epochs=3):
     """
     Distill reasoning ability from teacher to student.
@@ -3990,7 +3991,7 @@ def distill_reasoning(teacher_model, student_model, dataset, num_epochs=3):
     # TODO: Implement distillation
     pass
 
-```text
+```
 
 ## Summary
 

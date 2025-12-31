@@ -962,8 +962,8 @@ Here's a complete, production-ready attention layer:
 
 **Key Design Decisions**:
 
-1. **Separate W_q, W_k, W_v**: Different projections for different roles is critical for expressiveness
-2. **Output projection W_o**: Maps back to d_model, enabling residual connections and stacking
+1. **Separate $W_q$, $W_k$, $W_v$**: Different projections for different roles is critical for expressiveness
+2. **Output projection $W_o$**: Maps back to d_model, enabling residual connections and stacking
 3. **Xavier initialization**: Keeps activation magnitudes stable across layers
 4. **No bias terms**: Standard in transformers; biases don't significantly help and add parameters
 
