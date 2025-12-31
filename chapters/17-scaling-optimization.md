@@ -6,7 +6,8 @@ This chapter covers the optimization techniques and best practices that enable s
 
 1. [Introduction](#introduction)
 2. [Optimizers for LLM Training](#optimizers-for-llm-training)
-   - [AdamW](#adamw)
+   - [Adam: The Foundation](#adam-the-foundation)
+   - [AdamW: The Standard for LLMs](#adamw-the-standard-for-llms)
    - [Optimizer Hyperparameters](#optimizer-hyperparameters)
    - [Alternative Optimizers](#alternative-optimizers)
 3. [Learning Rate Schedules](#learning-rate-schedules)
@@ -46,17 +47,102 @@ Training large language models requires careful selection of optimization algori
 
 The choice of optimizer and its hyperparameters critically affects training stability and final model quality.
 
-### AdamW
+### Adam: The Foundation
 
-AdamW (Adam with decoupled Weight decay) is the standard optimizer for LLM training. It combines adaptive learning rates with proper weight decay regularization.
+Before diving into AdamW (the standard for LLMs), let's briefly review the Adam optimizer that forms the foundation for modern deep learning optimization.
+
+**Key Paper:** [Adam: A Method for Stochastic Optimization](https://arxiv.org/abs/1412.6980) (Kingma & Ba, 2014)
+
+#### Why Adam Exists
+
+Classic SGD with momentum works well for many problems, but struggles with:
+- **Varying gradient scales**: Different parameters may have vastly different gradient magnitudes
+- **Sparse gradients**: In NLP/LLMs, embedding gradients are often sparse and infrequent
+- **Manual learning rate tuning**: Finding the right global learning rate is difficult
+
+Adam addresses these by combining:
+1. **Momentum** (first moment): Smooths gradient direction like SGD with momentum
+2. **Adaptive learning rates** (second moment): Like RMSprop, adapts per-parameter learning rates based on gradient history
+3. **Bias correction**: Corrects for initialization bias in early training steps
+
+#### The Adam Algorithm
+
+Adam maintains two moving averages for each parameter:
+- $m_t$: First moment estimate (momentum, exponential moving average of gradients)
+- $v_t$: Second moment estimate (exponential moving average of squared gradients)
+
+The update equations are:
+
+```math
+\begin{align}
+m_t &= \beta_1 m_{t-1} + (1 - \beta_1) g_t \\
+v_t &= \beta_2 v_{t-1} + (1 - \beta_2) g_t^2 \\
+\hat{m}_t &= \frac{m_t}{1 - \beta_1^t} \quad \text{(bias correction)} \\
+\hat{v}_t &= \frac{v_t}{1 - \beta_2^t} \quad \text{(bias correction)} \\
+\theta_t &= \theta_{t-1} - \eta \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon}
+\end{align}
+```
+
+where:
+- $g_t$ = gradient at step $t$
+- $\beta_1$ = decay rate for first moment (typically 0.9)
+- $\beta_2$ = decay rate for second moment (typically 0.999)
+- $\eta$ = learning rate
+- $\epsilon$ = small constant for numerical stability (typically 1e-8)
+
+**Key features:**
+
+1. **First moment ($m_t$)**: Provides momentum, smoothing out noisy gradients
+2. **Second moment ($v_t$)**: Enables adaptive learning rates - parameters with large gradients get smaller effective learning rates
+3. **Bias correction**: The $\hat{m}_t$ and $\hat{v}_t$ terms correct for the fact that $m_t$ and $v_t$ start at zero, which would otherwise bias early updates toward zero
+
+#### Why Adam Became the Default
+
+Adam quickly became the default optimizer for deep learning because:
+
+1. **Robust to hyperparameters**: Default values ($\beta_1=0.9$, $\beta_2=0.999$) work well across many problems
+2. **Handles sparse gradients**: Per-parameter learning rates help with embedding layers
+3. **Fast convergence**: Adaptive rates accelerate learning for slow-moving parameters
+4. **Less learning rate tuning**: Adaptive nature reduces sensitivity to global learning rate choice
+
+**The catch:** While Adam works great for many tasks, it has issues with generalization and weight decay interaction, which AdamW addresses.
+
+### AdamW: The Standard for LLMs
+
+AdamW (Adam with decoupled Weight decay) is the standard optimizer for LLM training. It fixes a critical flaw in Adam's weight decay implementation while maintaining all of Adam's benefits.
 
 **Key Paper:** [Decoupled Weight Decay Regularization](https://arxiv.org/abs/1711.05101) (Loshchilov & Hutter, 2017)
 
+#### The Problem with Adam's Weight Decay
+
+Standard Adam implements weight decay as L2 regularization by adding the penalty to the gradient:
+
+```math
+g_t \leftarrow g_t + \lambda \theta_{t-1}
+```
+
+This creates a problem: **the weight decay gets scaled by the adaptive learning rate** $\frac{1}{\sqrt{\hat{v}_t}}$. For parameters with large historical gradients (large $\hat{v}_t$), weight decay is effectively weakened, while for parameters with small gradients, it's strengthened. This makes regularization inconsistent and less effective.
+
+**Why this matters for LLMs:**
+- Transformer models have parameters with vastly different gradient scales (embeddings vs attention vs FFN)
+- Effective regularization is crucial for generalization on large models
+- Inconsistent weight decay can lead to some layers overfitting while others underfit
+
+#### AdamW: Decoupled Weight Decay
+
+AdamW fixes this by applying weight decay **directly to the parameters**, separate from the gradient-based update:
+
+```math
+\theta_t = \theta_{t-1} - \eta \left( \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon} \right) - \eta \lambda \theta_{t-1}
+```
+
+Now weight decay strength depends only on the learning rate $\eta$ and decay coefficient $\lambda$, not on gradient history. Every parameter gets consistent regularization.
+
 #### Algorithm
 
-AdamW maintains two moving averages for each parameter:
-- $m_t$: First moment (mean of gradients)
-- $v_t$: Second moment (uncentered variance of gradients)
+AdamW uses the same moment estimates as Adam:
+- $m_t$: First moment (exponential moving average of gradients)
+- $v_t$: Second moment (exponential moving average of squared gradients)
 
 ```math
 \begin{align}
@@ -387,42 +473,77 @@ def get_optimizer_config(model_size: str) -> dict:
 
 ### Alternative Optimizers
 
-While AdamW dominates, several alternatives show promise. See [Hardware, Quantization, and Training Optimization](32-hardware-quantization-optimization.md) for detailed coverage of Muon, Shampoo, and SOAP optimizers.
+While AdamW is the standard baseline for LLM training, several alternatives address specific limitations or offer improved efficiency. Understanding when and why to deviate from AdamW is important for advanced training scenarios.
+
+**When to consider alternatives to AdamW:**
+- Need better sample efficiency (fewer training steps to convergence)
+- Memory constraints (AdamW stores 2× model parameters in optimizer state)
+- Extreme scale where small improvements compound significantly
+- Research settings exploring optimization frontiers
+
+See [Hardware, Quantization, and Training Optimization](32-hardware-quantization-optimization.md) for detailed coverage of Muon, Shampoo, and SOAP optimizers.
 
 #### Muon Optimizer
 
-**Muon** is a recent optimizer (2024) that combines momentum for weight matrices with Adam for other parameters, achieving roughly 2× training efficiency.
+**Muon** is a recent optimizer (2024) that challenges AdamW's dominance by achieving roughly 2× training efficiency through a hybrid approach.
+
+**What problem does Muon solve?**
+
+AdamW maintains second-moment statistics for every parameter, which:
+- Consumes significant memory (roughly 2× model size for optimizer states)
+- Requires more computation per step
+- May be overkill for large, well-conditioned weight matrices in transformers
 
 **Key innovation:**
 - Uses **momentum-based updates** (not adaptive) for large weight matrices (linear layers, attention weights)
 - Falls back to **Adam** for biases, LayerNorm parameters, and embeddings
 - Applies **Nesterov momentum** with orthogonalization to prevent gradient explosion
 
+**Comparison to AdamW:**
+
+| Aspect | AdamW | Muon |
+|--------|-------|------|
+| Updates per step | Adaptive for all params | Momentum for weights, Adam for others |
+| Memory overhead | 2× model size | ~1.5× model size |
+| Learning rate | ~3e-4 | ~3e-3 (10× higher) |
+| Convergence speed | Baseline | ~2× faster |
+| Stability | Very stable | Requires orthogonalization |
+| Use case | Default, proven | Research, efficiency-critical |
+
 **Why it works:**
-- Weight matrices benefit from momentum's implicit regularization
+- Weight matrices in transformers are generally well-conditioned, benefiting from momentum's implicit regularization
 - Simpler updates reduce computation and memory bandwidth
-- Newton-Schulz orthogonalization (5 iterations) stabilizes momentum
+- Newton-Schulz orthogonalization (5 iterations) stabilizes momentum where adaptive rates aren't available
+- Still uses Adam where it matters most (small, sensitive parameters like biases and norms)
 
 **Typical settings:**
 - Momentum: μ = 0.95
 - Learning rate: 10× higher than AdamW (e.g., 3e-3 instead of 3e-4)
 - Still use warmup and decay schedules
 
-**Trade-offs:**
-- ~2× faster convergence per step
-- Slightly more complex implementation
-- Best for models where matmuls dominate (transformers)
+**Trade-offs vs AdamW:**
+- ✅ ~2× faster convergence per step
+- ✅ Lower memory overhead
+- ✅ Higher throughput (less computation)
+- ❌ More complex implementation
+- ❌ Less battle-tested
+- ❌ Requires careful orthogonalization tuning
 
 For full implementation details and empirical comparisons, see Chapter 31.
 
-**Quick comparison:**
+#### Other Alternatives
 
-| Optimizer | Pros | Cons | Use Case |
-|-----------|------|------|----------|
-| **AdamW** | Stable, well-tested | Memory overhead (2× params) | Default choice |
-| **Muon** | 2× efficiency for hidden layers | Only for weight matrices | Cutting-edge research |
-| **Shampoo** | Better conditioning | High memory, expensive | When quality > cost |
-| **SGD + Momentum** | Low memory | Requires careful tuning | Memory-constrained |
+**Quick comparison of optimizer landscape:**
+
+| Optimizer | Pros vs AdamW | Cons vs AdamW | When to Use |
+|-----------|---------------|---------------|-------------|
+| **AdamW** | Stable, proven, works everywhere | Memory overhead, baseline efficiency | **Default choice - use unless you have a specific reason not to** |
+| **Muon** | 2× efficiency, lower memory | Less tested, complex implementation | Cutting-edge research, efficiency critical |
+| **Shampoo** | Better conditioning, faster convergence | Very high memory cost, expensive | When quality > cost, small-scale experiments |
+| **SOAP** | Improved stability at large scale | Newer, less proven | Very large scale (>100B params) |
+| **SGD + Momentum** | Minimal memory overhead | Requires extensive tuning, slower convergence | Extreme memory constraints |
+
+**Key insight:** AdamW remains the default because it offers the best trade-off of stability, generalization, and ease of use. Consider alternatives only when you have clear evidence that AdamW is insufficient for your specific use case.
 
 ---
 
