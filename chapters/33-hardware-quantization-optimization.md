@@ -3513,13 +3513,9 @@ def full_training_loop():
    How does this change with gradient checkpointing enabled (every 4 layers)?
 
 2. **Quantization Comparison**: Implement a simple 4-bit quantization function and compare the output quality (cosine similarity) with the original FP16 weights for a small matrix.
-
-
-   ```python
-   # Implement symmetric 4-bit quantization
-   # Compare with block-wise quantization (block size = 32)
-   # Measure reconstruction error (MSE and cosine similarity)
-```
+   - Implement symmetric 4-bit quantization
+   - Compare with block-wise quantization (block size = 32)
+   - Measure reconstruction error (MSE and cosine similarity)
 
 3. **Flash Attention Complexity**: Explain why Flash Attention's memory complexity is O(N) instead of O(N²). What are the key data structures that enable this? Draw a diagram showing memory access patterns for standard attention vs Flash Attention.
 

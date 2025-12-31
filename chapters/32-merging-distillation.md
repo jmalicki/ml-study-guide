@@ -2711,15 +2711,15 @@ Sometimes, these techniques aren't the right choice:
 
 Implement knowledge distillation for a small text classification task.
 
+**Goal:**
+
+1. Train a large BERT model on text classification
+2. Distill to a smaller 6-layer model
+3. Compare accuracy and inference speed
+
 ```python
 def exercise_distillation():
-    """
-
-    1. Train a large BERT model on text classification
-    2. Distill to a smaller 6-layer model
-    3. Compare accuracy and inference speed
-
-    """
+    """TODO: Implement basic distillation."""
     # TODO: Implement
     pass
 ```
@@ -2736,16 +2736,16 @@ def exercise_distillation():
 
 Merge two fine-tuned models and compare methods.
 
+**Goal:**
+
+1. Fine-tune base model on two different tasks
+2. Merge using: linear, task arithmetic, TIES, DARE
+3. Evaluate each merge on both tasks
+4. Compare multi-task performance
+
 ```python
 def exercise_merging():
-    """
-
-    1. Fine-tune base model on two different tasks
-    2. Merge using: linear, task arithmetic, TIES, DARE
-    3. Evaluate each merge on both tasks
-    4. Compare multi-task performance
-
-    """
+    """TODO: Implement model merging comparison."""
     # TODO: Implement
     pass
 ```
@@ -2762,15 +2762,15 @@ def exercise_merging():
 
 Combine multiple LoRA adapters efficiently.
 
+**Goal:**
+
+1. Train LoRA adapters for 3 different tasks
+2. Merge LoRAs using different strategies
+3. Compare with full fine-tuning merge
+
 ```python
 def exercise_lora_merging():
-    """
-
-    1. Train LoRA adapters for 3 different tasks
-    2. Merge LoRAs using different strategies
-    3. Compare with full fine-tuning merge
-
-    """
+    """TODO: Implement LoRA merging."""
     # TODO: Implement
     pass
 ```
@@ -2787,16 +2787,16 @@ def exercise_lora_merging():
 
 Implement and compare pruning methods.
 
+**Goal:**
+
+1. Implement magnitude pruning
+2. Implement Wanda pruning
+3. Compare accuracy vs sparsity trade-off
+4. Measure actual speedup
+
 ```python
 def exercise_pruning():
-    """
-
-    1. Implement magnitude pruning
-    2. Implement Wanda pruning
-    3. Compare accuracy vs sparsity trade-off
-    4. Measure actual speedup
-
-    """
+    """TODO: Implement pruning methods comparison."""
     # TODO: Implement
     pass
 ```
@@ -2813,18 +2813,17 @@ def exercise_pruning():
 
 Build a complete specialized model creation pipeline.
 
+**Goal:** Create an efficient code assistant
+
+1. Distill large model to 7B
+2. Fine-tune on: Python, JavaScript, debugging
+3. Merge specialists with TIES-DARE
+4. Prune to 70% sparsity
+5. Evaluate on code benchmarks
+
 ```python
 def exercise_full_pipeline():
-    """
-    Create an efficient code assistant:
-
-    1. Distill large model to 7B
-    2. Fine-tune on: Python, JavaScript, debugging
-    3. Merge specialists with TIES-DARE
-    4. Prune to 70% sparsity
-    5. Evaluate on code benchmarks
-
-    """
+    """TODO: Implement complete specialized model creation pipeline."""
     # TODO: Implement
     pass
 ```
@@ -2842,15 +2841,15 @@ def exercise_full_pipeline():
 
 Implement feature-matching distillation.
 
+**Goal:**
+
+1. Map 12-layer student to 24-layer teacher
+2. Implement feature distillation loss
+3. Compare with output-only distillation
+
 ```python
 def exercise_layerwise_distillation():
-    """
-
-    1. Map 12-layer student to 24-layer teacher
-    2. Implement feature distillation loss
-    3. Compare with output-only distillation
-
-    """
+    """TODO: Implement feature-matching distillation."""
     # TODO: Implement
     pass
 ```
