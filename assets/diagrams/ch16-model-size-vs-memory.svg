@@ -90,7 +90,7 @@
   <text x="310" y="380" text-anchor="middle" class="region-label">ZeRO-2/3</text>
   <text x="310" y="400" text-anchor="middle" class="region-label">or FSDP</text>
   <text x="310" y="425" text-anchor="middle" class="annotation">Shard params</text>
-  <text x="310" y="440" text-anchor="middle" class="annotation">& optimizer</text>
+  <text x="310" y="440" text-anchor="middle" class="annotation">&amp; optimizer</text>
 
   <!-- Region 3: Tensor Parallelism (TP) - Large models, good interconnect -->
   <polygon points="390,520 590,520 590,170 390,270" class="region-tp"/>
