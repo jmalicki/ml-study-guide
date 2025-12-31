@@ -1517,7 +1517,7 @@ Multiple LoRA adapters can be combined before merging into the base model.
 **Theoretical Justification**: Two approaches exist:
 
 1. **Matrix averaging**: Average $A$ and $B$ matrices separately: $B_{\text{avg}} = \sum w_i B_i$, $A_{\text{avg}} = \sum w_i A_i$
-   - Fast but approximate: $(B_1 + B_2)(A_1 + A_2) \neq B_1A_1 + B_2A_2$ due to cross terms
+   - Fast but approximate: $(B_1 + B_2)(A_1 + A_2) \neq B_{1}A_{1} + B_{2}A_{2}$ due to cross terms
 
 2. **Product merging**: Compute products first: $\Delta W = \sum w_i (B_i A_i)$
    - Exact but requires full-rank intermediate result

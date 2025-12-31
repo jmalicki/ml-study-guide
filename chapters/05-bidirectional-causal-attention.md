@@ -1427,13 +1427,13 @@ where $x_{\backslash i}$ represents the sequence with position $i$ masked. Cruci
 The multi-head mechanism allows the model to attend to different representation subspaces simultaneously:
 
 ```math
-\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \ldots, \text{head}_h)W^O
+\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \ldots, \text{head}_h)W^{O}
 ```
 
 where each head computes:
 
 ```math
-\text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)
+\text{head}_i = \text{Attention}(QW_i^{Q}, KW_i^{K}, VW_i^{V})
 ```
 
 **Relation to Alternatives:**

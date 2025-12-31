@@ -70,16 +70,16 @@ Multi-head attention runs $h$ attention operations in parallel, each with its ow
 
 ```math
 \begin{align}
-\text{MultiHead}(Q, K, V) &= \text{Concat}(\text{head}_1, \ldots, \text{head}_h)W^O \\
-\text{where } \text{head}_i &= \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)
+\text{MultiHead}(Q, K, V) &= \text{Concat}(\text{head}_1, \ldots, \text{head}_h)W^{O} \\
+\text{where } \text{head}_i &= \text{Attention}(QW_i^{Q}, KW_i^{K}, VW_i^{V})
 \end{align}
 ```
 
 The projection matrices are:
-- $W_i^Q \in \mathbb{R}^{d_{\text{model}} \times d_k}$ projects queries for head $i$
-- $W_i^K \in \mathbb{R}^{d_{\text{model}} \times d_k}$ projects keys for head $i$
-- $W_i^V \in \mathbb{R}^{d_{\text{model}} \times d_v}$ projects values for head $i$
-- $W^O \in \mathbb{R}^{hd_v \times d_{\text{model}}}$ projects the concatenated output
+- $W_i^{Q} \in \mathbb{R}^{d_{\text{model}} \times d_k}$ projects queries for head $i$
+- $W_i^{K} \in \mathbb{R}^{d_{\text{model}} \times d_k}$ projects keys for head $i$
+- $W_i^{V} \in \mathbb{R}^{d_{\text{model}} \times d_v}$ projects values for head $i$
+- $W^{O} \in \mathbb{R}^{hd_v \times d_{\text{model}}}$ projects the concatenated output
 
 ### Dimension Constraints
 
@@ -343,7 +343,7 @@ concatenated = torch.cat([head_1, head_2, ..., head_h], dim=-1)
 
 ### Why Final Projection?
 
-The output projection $W^O$ serves several purposes:
+The output projection $W^{O}$ serves several purposes:
 
 1. **Mixing head information**: Allows heads to interact and share information
 2. **Dimensionality control**: Ensures output dimension matches input
@@ -436,12 +436,12 @@ Why does sharing K and V across heads work?
 
 ```math
 \begin{align}
-\text{MQA}(Q, K, V) &= \text{Concat}(\text{head}_1, \ldots, \text{head}_h)W^O \\
-\text{where } \text{head}_i &= \text{Attention}(QW_i^Q, KW^K, VW^V)
+\text{MQA}(Q, K, V) &= \text{Concat}(\text{head}_1, \ldots, \text{head}_h)W^{O} \\
+\text{where } \text{head}_i &= \text{Attention}(QW_i^{Q}, KW^{K}, VW^{V})
 \end{align}
 ```
 
-Key difference: All heads share the same $W^K$ and $W^V$ (no subscript $i$).
+Key difference: All heads share the same $W^{K}$ and $W^{V}$ (no subscript $i$).
 
 **Parameter Reduction**:
 - MHA K,V params: $2 \times d_{\text{model}} \times d_{\text{model}}$
@@ -623,8 +623,8 @@ With $h$ total heads divided into $g$ groups of size $h/g$:
 
 ```math
 \begin{align}
-\text{GQA}(Q, K, V) &= \text{Concat}(\text{head}_1, \ldots, \text{head}_h)W^O \\
-\text{where } \text{head}_i &= \text{Attention}(QW_i^Q, KW_{j(i)}^K, VW_{j(i)}^V)
+\text{GQA}(Q, K, V) &= \text{Concat}(\text{head}_1, \ldots, \text{head}_h)W^{O} \\
+\text{where } \text{head}_i &= \text{Attention}(QW_i^{Q}, KW_{j(i)}^{K}, VW_{j(i)}^{V})
 \end{align}
 ```
 
@@ -1032,7 +1032,7 @@ At each step, we recompute attention for ALL previous tokens, even though their 
 **Mathematical Justification**:
 For token position $i$, its key and value are:
 ```math
-K_i = W_K \cdot h_i, \quad V_i = W_V \cdot h_i
+K_i = W_{K} \cdot h_i, \quad V_i = W_{V} \cdot h_i
 ```
 
 where $h_i$ is the hidden state at position $i$. Once computed, $h_i$ doesn't change when we generate position $i+1, i+2, \ldots$
@@ -1498,7 +1498,7 @@ If attention output has large magnitude, it can overwhelm the residual path, cau
 
 **Solution**: Scale down the output projection initialization:
 ```math
-W^O \sim \mathcal{N}(0, \sigma^2 / \sqrt{2})
+W^{O} \sim \mathcal{N}(0, \sigma^2 / \sqrt{2})
 ```
 
 The $1/\sqrt{2}$ factor accounts for the fact that we're adding two paths (residual + attention).
@@ -1510,7 +1510,7 @@ The $1/\sqrt{2}$ factor accounts for the fact that we're adding two paths (resid
 - Not typically used for transformers (no ReLU in attention)
 
 **Small Constant Initialization**: Sometimes used for output projection
-- $W^O \sim \mathcal{N}(0, 0.01^2)$
+- $W^{O} \sim \mathcal{N}(0, 0.01^2)$
 - Very conservative; can slow early training
 
 **Layer-wise Scaling**: Some models (e.g., GPT-2) scale by $1/\sqrt{N_{\text{layers}}}$

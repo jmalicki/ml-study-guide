@@ -3518,7 +3518,7 @@ The Flash Attention paper proves:
 **Theorem (IO Complexity of Flash Attention):**
 For sequence length N, head dimension d, and SRAM size M:
 - Standard attention: $\Theta(N^2 + Nd)$ HBM accesses
-- Flash Attention: $\Theta(N^2d^2/M + Nd)$ HBM accesses
+- Flash Attention: $\Theta(N^{2}d^{2}/M + Nd)$ HBM accesses
 
 When M = Θ(d) (typical for attention workloads), this simplifies to $\Theta(N^2\sqrt{d})$, a $\Theta(\sqrt{d})$ improvement factor.
 
@@ -3529,7 +3529,7 @@ When M = Θ(d) (typical for attention workloads), this simplifies to $\Theta(N^2
 - **Approximation methods:** Different tradeoff (accuracy vs. complexity)
 
 **Key Insight:**
-This is a **lower bound proof**—Flash Attention achieves optimal IO complexity for exact attention. Any exact attention algorithm must perform at least $\Omega(N^2d^2/M)$ HBM accesses. Flash Attention matches this bound.
+This is a **lower bound proof**—Flash Attention achieves optimal IO complexity for exact attention. Any exact attention algorithm must perform at least $\Omega(N^{2}d^{2}/M)$ HBM accesses. Flash Attention matches this bound.
 
 ```python
 class IOComplexityAnalysis:

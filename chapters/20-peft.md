@@ -1054,10 +1054,10 @@ For standard attention:
 
 With prefix tuning, we augment K and V:
 ```math
-\text{Attention}(Q, [P_K; K], [P_V; V])
+\text{Attention}(Q, [P_{K}; K], [P_{V}; V])
 ```
 
-where $P_K \in \mathbb{R}^{L_p \times d_k}$ and $P_V \in \mathbb{R}^{L_p \times d_v}$ are learned prefix parameters of length $L_p$.
+where $P_{K} \in \mathbb{R}^{L_p \times d_k}$ and $P_{V} \in \mathbb{R}^{L_p \times d_v}$ are learned prefix parameters of length $L_p$.
 
 **Why This Works:**
 1. **Attention Mechanism**: Since attention computes weighted combinations of values based on query-key similarity, prefix keys/values act as task-specific "memory" that influences all tokens
@@ -2667,12 +2667,12 @@ This asymmetry means that $A$ and $B$ naturally learn at different effective rat
 
 Standard LoRA optimization:
 ```math
-A_{t+1} = A_t - \eta \nabla_A L, \quad B_{t+1} = B_t - \eta \nabla_B L
+A_{t+1} = A_t - \eta \nabla_{A} L, \quad B_{t+1} = B_t - \eta \nabla_{B} L
 ```
 
 LoRA+ uses different learning rates:
 ```math
-A_{t+1} = A_t - \eta \nabla_A L, \quad B_{t+1} = B_t - \lambda \eta \nabla_B L
+A_{t+1} = A_t - \eta \nabla_{A} L, \quad B_{t+1} = B_t - \lambda \eta \nabla_{B} L
 ```
 
 where $\lambda > 1$ (typically $\lambda = 16$) is the learning rate ratio.

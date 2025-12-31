@@ -448,7 +448,7 @@ Consider a network with $L$ layers. During backpropagation:
 
 Without residuals:
 ```math
-\frac{\partial \mathcal{L}}{\partial \mathbf{x}_1} = \frac{\partial \mathcal{L}}{\partial \mathbf{x}_L} \prod_{i=1}^{L-1} \frac{\partial \mathbf{x}_{i+1}}{\partial \mathbf{x}_i}
+\frac{\partial \mathcal{L}}{\partial \mathbf{x}_1} = \frac{\partial \mathcal{L}}{\partial \mathbf{x}_{L}} \prod_{i=1}^{L-1} \frac{\partial \mathbf{x}_{i+1}}{\partial \mathbf{x}_i}
 ```
 
 With residuals ($\mathbf{x}_{i+1} = \mathbf{x}_i + F_i(\mathbf{x}_i)$):
@@ -469,7 +469,7 @@ In deep neural networks, gradients must propagate backward through many layers d
 Consider backpropagation through $L$ layers. The gradient at layer $\ell$ is:
 
 ```math
-\frac{\partial \mathcal{L}}{\partial \mathbf{x}_\ell} = \frac{\partial \mathcal{L}}{\partial \mathbf{x}_L} \prod_{i=\ell}^{L-1} \frac{\partial \mathbf{x}_{i+1}}{\partial \mathbf{x}_i}
+\frac{\partial \mathcal{L}}{\partial \mathbf{x}_\ell} = \frac{\partial \mathcal{L}}{\partial \mathbf{x}_{L}} \prod_{i=\ell}^{L-1} \frac{\partial \mathbf{x}_{i+1}}{\partial \mathbf{x}_i}
 ```
 
 If any Jacobian $\frac{\partial \mathbf{x}_{i+1}}{\partial \mathbf{x}_i}$ has:
@@ -495,7 +495,7 @@ The identity matrix $\mathbf{I}$ ensures at least one eigenvalue equals 1, preve
 
 1. **Identity mapping provides gradient highway**: Gradients can flow directly backward through identity connections, bypassing problematic transformations
 2. **Learning refinements vs transformations**: With residuals, $F(\mathbf{x})$ only needs to learn the difference (refinement) from identity, which is easier than learning the full transformation
-3. **Ensemble interpretation**: A residual network with $L$ layers implicitly contains $2^L$ paths of different lengths, acting like an ensemble
+3. **Ensemble interpretation**: A residual network with $L$ layers implicitly contains $2^{L}$ paths of different lengths, acting like an ensemble
 4. **Dynamic depth**: During training, the network can effectively adjust its depth by learning to skip certain layers when beneficial
 
 ```python
@@ -2165,7 +2165,7 @@ Residual connections solve the vanishing gradient and degradation problems:
 
 Without residuals:
 ```math
-\frac{\partial L}{\partial x_0} = \frac{\partial L}{\partial x_L} \prod_{i=0}^{L-1} \frac{\partial x_{i+1}}{\partial x_i}
+\frac{\partial L}{\partial x_0} = \frac{\partial L}{\partial x_{L}} \prod_{i=0}^{L-1} \frac{\partial x_{i+1}}{\partial x_i}
 ```
 
 If any Jacobian $\frac{\partial x_{i+1}}{\partial x_i}$ has norm < 1, gradients vanish exponentially.

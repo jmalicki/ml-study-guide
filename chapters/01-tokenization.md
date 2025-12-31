@@ -40,7 +40,7 @@ Character-level tokenization splits text into individual characters. It has the 
 Given a text string $T$ of length $n$ over an alphabet $\Sigma$:
 
 ```math
-T = c_1c_2...c_n, \quad c_i \in \Sigma
+T = c_{1}c_{2}...c_n, \quad c_i \in \Sigma
 ```
 
 The tokenization function $\tau: T \rightarrow \mathbb{Z}^n$ maps each character to an integer ID:

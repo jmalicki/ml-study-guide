@@ -198,9 +198,9 @@ In multi-head attention (see [Multi-Head Attention](04-multi-head-attention.md))
 
 ```math
 \begin{align}
-\mathbf{q}_m' &= \mathbf{R}_{\Theta,m}^d \mathbf{q}_m \\
-\mathbf{k}_n' &= \mathbf{R}_{\Theta,n}^d \mathbf{k}_n \\
-\text{score}(m, n) &= \frac{(\mathbf{q}_m')^T \mathbf{k}_n'}{\sqrt{d_k}}
+\mathbf{q}_{m'} &= \mathbf{R}_{\Theta,m}^d \mathbf{q}_m \\
+\mathbf{k}_{n'} &= \mathbf{R}_{\Theta,n}^d \mathbf{k}_n \\
+\text{score}(m, n) &= \frac{(\mathbf{q}_{m'})^T \mathbf{k}_{n'}}{\sqrt{d_k}}
 \end{align}
 ```
 
@@ -1070,7 +1070,7 @@ class InterpolatedRoPE(nn.Module):
 **Neural Tangent Kernel (NTK)-aware scaling** adjusts base frequencies instead of positions:
 
 ```math
-\theta_i' = \text{base}'^{-2i/d}, \quad \text{base}' = \text{base} \times \alpha^{d/(d-2)}
+\theta_{i'} = \text{base}'^{-2i/d}, \quad \text{base}' = \text{base} \times \alpha^{d/(d-2)}
 ```
 
 where $\alpha$ is the extension ratio $L'/L$.

@@ -955,7 +955,7 @@ KTO is designed for scenarios where you have unpaired preference data - i.e., ex
 \mathcal{L}_{\text{KTO}}(\pi_\theta; \pi_{\text{ref}}) = \mathbb{E}_{x, y \sim \mathcal{D}} \left[w(y) \left(1 - \sigma\left(\beta \log \frac{\pi_\theta(y \mid x)}{\pi_{\text{ref}}(y \mid x)} - z_{\text{ref}}\right)\right)\right]
 ```
 
-where $w(y) = \lambda_D$ if $y$ is desirable, $\lambda_U$ otherwise, and $z_{\text{ref}}$ is a reference point.
+where $w(y) = \lambda_{D}$ if $y$ is desirable, $\lambda_{U}$ otherwise, and $z_{\text{ref}}$ is a reference point.
 
 **Paper**: [KTO: Model Alignment as Prospect Theoretic Optimization](https://arxiv.org/abs/2402.01306) (Ethayarajh et al., 2024)
 

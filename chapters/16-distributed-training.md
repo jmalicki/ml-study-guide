@@ -148,7 +148,7 @@ For a transformer with $L$ layers, hidden dimension $d_{\text{model}}$, batch si
 
 **Attention activations** (per layer):
 - Query, Key, Value projections: $3BSD_{\text{model}}$
-- Attention scores: $BS^2H$ (where $H$ is number of heads)
+- Attention scores: $BS^{2}H$ (where $H$ is number of heads)
 - Attention output: $BSD_{\text{model}}$
 
 **Feed-forward activations** (per layer):
@@ -461,7 +461,7 @@ For training large models efficiently, we need a truly distributed approach wher
 
 **Data parallelism theorem**: If each GPU processes a different mini-batch with identical model parameters, the average gradient across all GPUs equals the gradient of the combined large batch.
 
-Mathematically, for loss $\mathcal{L}$ and data shards $\mathcal{D}_1, \ldots, \mathcal{D}_N$:
+Mathematically, for loss $\mathcal{L}$ and data shards $\mathcal{D}_1, \ldots, \mathcal{D}_{N}$:
 
 ```math
 \frac{1}{N}\sum_{i=1}^{N} \nabla_\theta \mathcal{L}(\theta; \mathcal{D}_i) = \nabla_\theta \mathcal{L}\left(\theta; \bigcup_{i=1}^{N} \mathcal{D}_i\right)
@@ -707,13 +707,13 @@ Y = XA = X[A_1 | A_2] = [XA_1 | XA_2] = [Y_1 | Y_2]
 **Theoretical Justification**: Matrix multiplication exhibits algebraic properties that allow specific partitioning strategies. For column parallelism, we partition the weight matrix $W \in \mathbb{R}^{d_{in} \times d_{out}}$ along columns:
 
 ```math
-W = [W_1 | W_2 | \cdots | W_N]
+W = [W_1 | W_2 | \cdots | W_{N}]
 ```
 
 where $W_i \in \mathbb{R}^{d_{in} \times d_{out}/N}$. Then:
 
 ```math
-Y = XW = X[W_1 | W_2 | \cdots | W_N] = [XW_1 | XW_2 | \cdots | XW_N] = [Y_1 | Y_2 | \cdots | Y_N]
+Y = XW = X[W_1 | W_2 | \cdots | W_{N}] = [XW_1 | XW_2 | \cdots | XW_{N}] = [Y_1 | Y_2 | \cdots | Y_{N}]
 ```
 
 **Key insight**: Each GPU can compute its portion $Y_i = XW_i$ independently using the full input $X$. No communication needed during the computation, only when gathering outputs (if required).
@@ -818,12 +818,12 @@ class ColumnParallelLinear(nn.Module):
 
 **Row-Parallel Linear Layer**
 
-**Problem Being Solved**: After a column-parallel layer produces partitioned output $[Y_1 | Y_2 | \cdots | Y_N]$, the next linear layer needs to consume this partitioned input. We could all-gather and use a standard linear layer, but that wastes communication bandwidth. Instead, we use row parallelism to directly consume the partitioned input.
+**Problem Being Solved**: After a column-parallel layer produces partitioned output $[Y_1 | Y_2 | \cdots | Y_{N}]$, the next linear layer needs to consume this partitioned input. We could all-gather and use a standard linear layer, but that wastes communication bandwidth. Instead, we use row parallelism to directly consume the partitioned input.
 
 **Theoretical Justification**: For row parallelism, partition the weight matrix $W \in \mathbb{R}^{d_{in} \times d_{out}}$ along rows and the input $X \in \mathbb{R}^{B \times d_{in}}$ along the feature dimension:
 
 ```math
-W = \begin{bmatrix} W_1 \\ W_2 \\ \vdots \\ W_N \end{bmatrix}, \quad X = [X_1 | X_2 | \cdots | X_N]
+W = \begin{bmatrix} W_1 \\ W_2 \\ \vdots \\ W_{N} \end{bmatrix}, \quad X = [X_1 | X_2 | \cdots | X_{N}]
 ```
 
 Then each GPU computes a partial result:
@@ -841,7 +841,7 @@ Y = XW = \sum_{i=1}^{N} X_i W_i = \sum_{i=1}^{N} Y_i
 This requires an **all-reduce** to sum $Y_i$ across GPUs.
 
 **Key Insight**: Row parallelism pairs naturally with column parallelism:
-- Column-parallel layer produces $[Y_1 | Y_2 | \cdots | Y_N]$
+- Column-parallel layer produces $[Y_1 | Y_2 | \cdots | Y_{N}]$
 - Row-parallel layer consumes this directly (with `input_is_parallel=True`)
 - All-reduce combines results into full output
 
@@ -950,13 +950,13 @@ class RowParallelLinear(nn.Module):
 **Multi-Head Attention** (column parallel):
 
 ```math
-Q = XW_Q, \quad K = XW_K, \quad V = XW_V
+Q = XW_{Q}, \quad K = XW_{K}, \quad V = XW_{V}
 ```
 
 **Why Split Heads Across GPUs?** Multi-head attention naturally decomposes into independent head computations. Each head operates on its own subspace:
 
 ```math
-\text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)
+\text{head}_i = \text{Attention}(QW_i^{Q}, KW_i^{K}, VW_i^{V})
 ```
 
 **Key Insight**: Since heads are computed independently and only combined at the output projection, we can:

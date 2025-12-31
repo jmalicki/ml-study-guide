@@ -2139,8 +2139,8 @@ Gradient checkpointing is based on a fundamental insight: **activations can be r
 
 **Mathematical Formulation:**
 
-For a sequential model $f = f_L \circ f_{L-1} \circ \cdots \circ f_1$:
-- Standard backprop: Store all intermediate activations $a_1, a_2, \ldots, a_L$
+For a sequential model $f = f_{L} \circ f_{L-1} \circ \cdots \circ f_1$:
+- Standard backprop: Store all intermediate activations $a_1, a_2, \ldots, a_{L}$
 - Gradient checkpointing: Store only selected checkpoints (e.g., every $k$ layers)
 - During backward: Recompute missing activations by re-running forward pass from nearest checkpoint
 

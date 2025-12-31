@@ -82,7 +82,7 @@ L(D) = \left(\frac{D_c}{D}\right)^{\alpha_D}
 L(C) = \left(\frac{C_c}{C}\right)^{\alpha_C}
 ```
 
-where $N_c$, $D_c$, $C_c$ are constants and $\alpha_N \approx 0.076$, $\alpha_D \approx 0.095$, $\alpha_C \approx 0.050$.
+where $N_c$, $D_c$, $C_c$ are constants and $\alpha_{N} \approx 0.076$, $\alpha_{D} \approx 0.095$, $\alpha_{C} \approx 0.050$.
 
 #### Key Findings from Kaplan et al.
 

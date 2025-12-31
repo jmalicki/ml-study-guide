@@ -46,9 +46,9 @@ In self-attention (see [Multi-Head Attention](04-multi-head-attention.md)), all 
 ```
 
 where:
-- $Q = XW_Q$
-- $K = XW_K$
-- $V = XW_V$
+- $Q = XW_{Q}$
+- $K = XW_{K}$
+- $V = XW_{V}$
 - $X$ is the input sequence
 
 **Purpose**: Model relationships within a single sequence (e.g., how words relate to each other in a sentence).
@@ -62,9 +62,9 @@ In cross-attention, queries come from one sequence while keys and values come fr
 ```
 
 where:
-- $Q = XW_Q$ (queries from target sequence)
-- $K = YW_K$ (keys from source sequence)
-- $V = YW_V$ (values from source sequence)
+- $Q = XW_{Q}$ (queries from target sequence)
+- $K = YW_{K}$ (keys from source sequence)
+- $V = YW_{V}$ (values from source sequence)
 - $X$ is the target/decoder sequence
 - $Y$ is the source/encoder sequence
 
@@ -97,20 +97,20 @@ Given:
 The cross-attention operation is:
 
 ```math
-\text{CrossAttn}(X, Y) = \text{Attention}(XW_Q, YW_K, YW_V)
+\text{CrossAttn}(X, Y) = \text{Attention}(XW_{Q}, YW_{K}, YW_{V})
 ```
 
 Breaking this down:
 
 1. **Project to Q, K, V**:
    ```math
-Q = XW_Q \in \mathbb{R}^{n \times d_k}
+Q = XW_{Q} \in \mathbb{R}^{n \times d_k}
 ```
    ```math
-K = YW_K \in \mathbb{R}^{m \times d_k}
+K = YW_{K} \in \mathbb{R}^{m \times d_k}
 ```
    ```math
-V = YW_V \in \mathbb{R}^{m \times d_v}
+V = YW_{V} \in \mathbb{R}^{m \times d_v}
 ```
 
 2. **Compute attention scores**:
@@ -136,7 +136,7 @@ A = \text{softmax}(S) \in \mathbb{R}^{n \times m}
 
 5. **Final projection**:
    ```math
-\text{CrossAttn}(X, Y) = (AV)W_O \in \mathbb{R}^{n \times d_{\text{model}}}
+\text{CrossAttn}(X, Y) = (AV)W_{O} \in \mathbb{R}^{n \times d_{\text{model}}}
 ```
 
 ### Multi-Head Cross-Attention
@@ -144,13 +144,13 @@ A = \text{softmax}(S) \in \mathbb{R}^{n \times m}
 Just like self-attention, cross-attention benefits from multiple heads (see [Multi-Head Attention](04-multi-head-attention.md)):
 
 ```math
-\text{MultiHead}(X, Y) = \text{Concat}(\text{head}_1, \ldots, \text{head}_h)W_O
+\text{MultiHead}(X, Y) = \text{Concat}(\text{head}_1, \ldots, \text{head}_h)W_{O}
 ```
 
 where each head is:
 
 ```math
-\text{head}_i = \text{Attention}(XW_Q^i, YW_K^i, YW_V^i)
+\text{head}_i = \text{Attention}(XW_{Q}^i, YW_{K}^i, YW_{V}^i)
 ```
 
 **Key difference**: While self-attention has all projections from the same sequence, cross-attention projects queries from $X$ and keys/values from $Y$.
@@ -343,14 +343,14 @@ A single attention head cannot simultaneously capture all these patterns.
 **Theoretical Justification:**
 Multi-head attention addresses this through **representational diversity**:
 ```math
-\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \ldots, \text{head}_h)W_O
+\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \ldots, \text{head}_h)W_{O}
 ```
 
 Each head operates in a different learned subspace ($d_k = d_{model}/h$), allowing it to specialize:
 - Different heads learn different types of relationships
 - Subspace projections enable diverse matching criteria
 - Concatenation combines multiple perspectives
-- Final projection $W_O$ integrates information across heads
+- Final projection $W_{O}$ integrates information across heads
 
 **Relationship to Alternatives:**
 - **Single large head**: Cannot capture multiple relationship types simultaneously
@@ -1570,10 +1570,10 @@ For step $t$:
 ```
 
 We can precompute once:
-- $K_{\text{cached}} = W_K \cdot \text{EncoderOutput}$
-- $V_{\text{cached}} = W_V \cdot \text{EncoderOutput}$
+- $K_{\text{cached}} = W_{K} \cdot \text{EncoderOutput}$
+- $V_{\text{cached}} = W_{V} \cdot \text{EncoderOutput}$
 
-Then at each step, only compute new query: $Q_t = W_Q \cdot \text{DecoderState}_t$
+Then at each step, only compute new query: $Q_t = W_{Q} \cdot \text{DecoderState}_t$
 
 **Why This Works:**
 1. **Encoder is constant**: Encoder processes source once, outputs never change

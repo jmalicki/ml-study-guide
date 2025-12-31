@@ -2327,25 +2327,25 @@ We recover the Bradley-Terry model!
 Given preference data $\mathcal{D} = \{(x_i, y^w_i, y^l_i)\}$ where $y^w$ is preferred ("win") and $y^l$ is rejected ("loss"), we want to find parameters $\phi$ that maximize the likelihood:
 
 ```math
-\mathcal{L}(\phi) = \prod_{i=1}^N P(y^w_i \succ y^l_i | x_i; \phi)
+\mathcal{L}(\phi) = \prod_{i=1}^{N} P(y^w_i \succ y^l_i | x_{i}; \phi)
 ```
 
 Using the Bradley-Terry model:
 
 ```math
-\mathcal{L}(\phi) = \prod_{i=1}^N \sigma(R_\phi(x_i, y^w_i) - R_\phi(x_i, y^l_i))
+\mathcal{L}(\phi) = \prod_{i=1}^{N} \sigma(R_\phi(x_i, y^w_i) - R_\phi(x_i, y^l_i))
 ```
 
 Taking the log (for numerical stability):
 
 ```math
-\log \mathcal{L}(\phi) = \sum_{i=1}^N \log \sigma(R_\phi(x_i, y^w_i) - R_\phi(x_i, y^l_i))
+\log \mathcal{L}(\phi) = \sum_{i=1}^{N} \log \sigma(R_\phi(x_i, y^w_i) - R_\phi(x_i, y^l_i))
 ```
 
 For minimization (standard in deep learning), we negate:
 
 ```math
-\mathcal{L}_{\text{BT}}(\phi) = -\frac{1}{N} \sum_{i=1}^N \log \sigma(R_\phi(x_i, y^w_i) - R_\phi(x_i, y^l_i))
+\mathcal{L}_{\text{BT}}(\phi) = -\frac{1}{N} \sum_{i=1}^{N} \log \sigma(R_\phi(x_i, y^w_i) - R_\phi(x_i, y^l_i))
 ```
 
 This is the **Bradley-Terry loss** used in RLHF and RLAIF.
@@ -2403,7 +2403,7 @@ where $\tau$ is a threshold for considering responses equivalent.
 For ranking $K > 2$ responses:
 
 ```math
-P(y_i \text{ is best}) = \frac{e^{r_i}}{\sum_{j=1}^K e^{r_j}}
+P(y_i \text{ is best}) = \frac{e^{r_i}}{\sum_{j=1}^{K} e^{r_j}}
 ```
 
 This becomes a softmax over rewards.

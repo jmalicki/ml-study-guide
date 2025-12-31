@@ -112,7 +112,7 @@ Before diving into solutions, it's crucial to understand the practical impact of
 
 ## Linear Attention (Kernel Approximations)
 
-Linear attention approximates the softmax operation to achieve $O(nd^2)$ complexity instead of $O(n^2d)$.
+Linear attention approximates the softmax operation to achieve $O(nd^2)$ complexity instead of $O(n^{2}d)$.
 
 ### Key Insight: Kernel Trick
 

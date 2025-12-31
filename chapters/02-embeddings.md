@@ -115,7 +115,7 @@ Word2Vec (Mikolov et al., 2013) introduced two efficient methods for learning wo
 where the probability is modeled as:
 
 ```math
-p(w_O | w_I) = \frac{\exp(\mathbf{v}_{w_O}^\top \mathbf{v}_{w_I})}{\sum_{w=1}^{V} \exp(\mathbf{v}_w^\top \mathbf{v}_{w_I})}
+p(w_{O} | w_{I}) = \frac{\exp(\mathbf{v}_{w_{O}}^\top \mathbf{v}_{w_{I}})}{\sum_{w=1}^{V} \exp(\mathbf{v}_w^\top \mathbf{v}_{w_{I}})}
 ```
 
 **Key Insight**: Words that appear in similar contexts have similar embeddings.
@@ -137,7 +137,7 @@ p(w_O | w_I) = \frac{\exp(\mathbf{v}_{w_O}^\top \mathbf{v}_{w_I})}{\sum_{w=1}^{V
 Both Skip-Gram and CBOW face the same fundamental problem: the softmax normalization requires summing over the entire vocabulary. For a vocabulary of 50,000 words, computing:
 
 ```math
-p(w_O | w_I) = \frac{\exp(\mathbf{v}_{w_O}^\top \mathbf{v}_{w_I})}{\sum_{w=1}^{50000} \exp(\mathbf{v}_w^\top \mathbf{v}_{w_I})}
+p(w_{O} | w_{I}) = \frac{\exp(\mathbf{v}_{w_{O}}^\top \mathbf{v}_{w_{I}})}{\sum_{w=1}^{50000} \exp(\mathbf{v}_w^\top \mathbf{v}_{w_{I}})}
 ```
 
 is prohibitively expensive when repeated millions of times during training.
@@ -2616,7 +2616,7 @@ Skip-gram maximizes:
 \mathcal{L} = \sum_{t=1}^{T} \sum_{-k \leq j \leq k, j \neq 0} \log p(w_{t+j} | w_t)
 ```
 
-where $p(w_O | w_I) = \frac{\exp(\mathbf{v}_{w_O}^\top \mathbf{v}_{w_I})}{\sum_{w} \exp(\mathbf{v}_w^\top \mathbf{v}_{w_I})}$
+where $p(w_{O} | w_{I}) = \frac{\exp(\mathbf{v}_{w_{O}}^\top \mathbf{v}_{w_{I}})}{\sum_{w} \exp(\mathbf{v}_w^\top \mathbf{v}_{w_{I}})}$
 
 **Key insight**: The model can only predict context from embedding, so it's forced to encode contextual information in the embedding.
 

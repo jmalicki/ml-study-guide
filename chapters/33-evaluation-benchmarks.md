@@ -10,7 +10,7 @@ Evaluating large language models is a critical challenge in modern NLP. Unlike t
 
 Perplexity is the fundamental metric for language models, measuring how "surprised" a model is by a test sequence.
 
-**Definition**: For a sequence of tokens $x_1, x_2, \ldots, x_N$:
+**Definition**: For a sequence of tokens $x_1, x_2, \ldots, x_{N}$:
 
 ```math
 \text{PPL}(x) = \exp\left(-\frac{1}{N} \sum_{i=1}^{N} \log P(x_i | x_{<i})\right)
@@ -217,7 +217,7 @@ MMLU ([Hendrycks et al., 2021](https://arxiv.org/abs/2009.03300)) tests knowledg
 - Measuring the impact of training data curation and alignment
 
 **Theoretical Foundation**: MMLU evaluation is based on **log-probability ranking** rather than generation:
-- For each multiple choice question with options A, B, C, D, we compute $P(\text{token}_A | \text{prompt})$, $P(\text{token}_B | \text{prompt})$, etc.
+- For each multiple choice question with options A, B, C, D, we compute $P(\text{token}_{A} | \text{prompt})$, $P(\text{token}_{B} | \text{prompt})$, etc.
 - The model predicts the option with highest conditional probability: $\arg\max_{o \in \{A,B,C,D\}} P(o | \text{question})$
 - This is more robust than generation-based evaluation because it's deterministic and not affected by decoding strategies.
 - Few-shot prompting provides in-context learning examples that help the model understand the task format.
@@ -2378,9 +2378,9 @@ Chatbot Arena has become the **de facto standard** for model ranking because it 
 
 **Theoretical Foundation**: Elo ratings come from chess and are based on probabilistic modeling:
 - Each model has a rating $R$ (initially 1500)
-- Expected win probability: $E_A = \frac{1}{1 + 10^{(R_B - R_A)/400}}$
+- Expected win probability: $E_{A} = \frac{1}{1 + 10^{(R_B - R_A)/400}}$
 - After a match with outcome $S$ (1=win, 0.5=tie, 0=loss):
-  - New rating: $R_A' = R_A + K(S - E_A)$ where $K$ is the learning rate (typically 32)
+  - New rating: $R_{A}' = R_{A} + K(S - E_{A})$ where $K$ is the learning rate (typically 32)
 - The system converges to ratings that accurately predict win probabilities
 - Rating differences map to win probabilities: +400 points = 90% win rate
 

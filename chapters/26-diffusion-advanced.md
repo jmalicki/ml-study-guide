@@ -875,13 +875,13 @@ Noise schedulers determine how noise is added during training and removed during
 The noise schedule is controlled by the variance schedule $\beta_t$, which determines the forward diffusion process:
 
 ```math
-q(x_t|x_{t-1}) = \mathcal{N}(x_t; \sqrt{1-\beta_t}x_{t-1}, \beta_t I)
+q(x_t|x_{t-1}) = \mathcal{N}(x_{t}; \sqrt{1-\beta_t}x_{t-1}, \beta_t I)
 ```
 
 The cumulative effect is characterized by $\bar{\alpha}_t = \prod_{s=1}^t (1-\beta_s)$, which allows us to sample $x_t$ directly from $x_0$:
 
 ```math
-q(x_t|x_0) = \mathcal{N}(x_t; \sqrt{\bar{\alpha}_t}x_0, (1-\bar{\alpha}_t)I)
+q(x_t|x_0) = \mathcal{N}(x_{t}; \sqrt{\bar{\alpha}_t}x_0, (1-\bar{\alpha}_t)I)
 ```
 
 This enables efficient training by sampling any timestep directly without iterating through all previous steps.
@@ -2042,10 +2042,10 @@ CLIP Score measures how well generated images match text prompts using OpenAI's 
 For image $I$ and text $T$:
 
 ```math
-\text{CLIP-Score}(I, T) = \max(0, 100 \cdot \cos(\text{CLIP}_I(I), \text{CLIP}_T(T)))
+\text{CLIP-Score}(I, T) = \max(0, 100 \cdot \cos(\text{CLIP}_{I}(I), \text{CLIP}_{T}(T)))
 ```
 
-where $\text{CLIP}_I$ and $\text{CLIP}_T$ are image and text encoders, and $\cos$ is cosine similarity.
+where $\text{CLIP}_{I}$ and $\text{CLIP}_{T}$ are image and text encoders, and $\cos$ is cosine similarity.
 
 ```python
 class CLIPScore:
@@ -3398,7 +3398,7 @@ Diffusion models excel at continuous data (images, audio) but language is fundam
 For discrete diffusion, we replace Gaussian noise with a **transition matrix** $Q_t$ that defines corruption:
 
 ```math
-q(x_t|x_{t-1}) = \text{Cat}(x_t; p = x_{t-1}^T Q_t)
+q(x_t|x_{t-1}) = \text{Cat}(x_{t}; p = x_{t-1}^T Q_t)
 ```
 
 where $x_t$ is a one-hot encoded token and $Q_t[i,j]$ is the probability of token $i$ transitioning to token $j$.

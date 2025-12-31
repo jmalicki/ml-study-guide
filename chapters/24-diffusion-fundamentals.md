@@ -115,7 +115,7 @@ def visualize_diffusion_process(x0, num_steps=10):
 The forward diffusion process is a **fixed** Markov chain that gradually adds Gaussian noise to data $\mathbf{x}_0 \sim q(\mathbf{x}_0)$ over $T$ timesteps:
 
 ```math
-q(\mathbf{x}_t | \mathbf{x}_{t-1}) = \mathcal{N}(\mathbf{x}_t; \sqrt{1 - \beta_t} \mathbf{x}_{t-1}, \beta_t \mathbf{I})
+q(\mathbf{x}_t | \mathbf{x}_{t-1}) = \mathcal{N}(\mathbf{x}_{t}; \sqrt{1 - \beta_t} \mathbf{x}_{t-1}, \beta_t \mathbf{I})
 ```
 
 where:
@@ -135,7 +135,7 @@ A crucial property of this process is that we can sample $\mathbf{x}_t$ at any t
 Then:
 
 ```math
-q(\mathbf{x}_t | \mathbf{x}_0) = \mathcal{N}(\mathbf{x}_t; \sqrt{\bar{\alpha}_t} \mathbf{x}_0, (1 - \bar{\alpha}_t) \mathbf{I})
+q(\mathbf{x}_t | \mathbf{x}_0) = \mathcal{N}(\mathbf{x}_{t}; \sqrt{\bar{\alpha}_t} \mathbf{x}_0, (1 - \bar{\alpha}_t) \mathbf{I})
 ```
 
 This can be rewritten using the **reparameterization trick**:
@@ -1776,7 +1776,7 @@ These benchmarks reflect fundamental trade-offs:
 **Answer:**
 The forward process adds Gaussian noise over $T$ steps:
 ```math
-q(\mathbf{x}_t | \mathbf{x}_{t-1}) = \mathcal{N}(\mathbf{x}_t; \sqrt{1-\beta_t}\mathbf{x}_{t-1}, \beta_t\mathbf{I})
+q(\mathbf{x}_t | \mathbf{x}_{t-1}) = \mathcal{N}(\mathbf{x}_{t}; \sqrt{1-\beta_t}\mathbf{x}_{t-1}, \beta_t\mathbf{I})
 ```
 
 The key insight is we can sample any $\mathbf{x}_t$ directly from $\mathbf{x}_0$ using:

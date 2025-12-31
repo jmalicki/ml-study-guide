@@ -191,8 +191,8 @@ I verified the following and found them all correct:
 
 6. **Expand on "Why Final Projection?"** (lines 287-294):
    - Point 1 ("Mixing head information") could be expanded
-   - The heads compute attention independently; without $W^O$, there's no interaction
-   - $W^O$ is where heads can "vote" or "collaborate"
+   - The heads compute attention independently; without $W^{O}$, there's no interaction
+   - $W^{O}$ is where heads can "vote" or "collaborate"
 
 ### Cross-Reference Quality
 

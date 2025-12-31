@@ -689,7 +689,7 @@ Large language models face a critical memory bottleneck during inference: the KV
 GQA groups query heads to share KV heads, providing a tunable trade-off:
 
 ```math
-\text{GQA}(Q, K, V) = \text{Concat}(\text{head}_1, ..., \text{head}_h)W^O
+\text{GQA}(Q, K, V) = \text{Concat}(\text{head}_1, ..., \text{head}_h)W^{O}
 ```
 
 where each head is computed as:

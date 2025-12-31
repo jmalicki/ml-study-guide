@@ -2117,7 +2117,7 @@ The theoretical foundation is **pairwise preference modeling**:
 P(\text{prefer } A) = \frac{1}{1 + e^{-(q_A - q_B)}}
 ```
 
-where $q_A$ and $q_B$ are latent quality scores. A/B testing estimates these preferences empirically.
+where $q_{A}$ and $q_{B}$ are latent quality scores. A/B testing estimates these preferences empirically.
 
 #### Relationship to Other Evaluation Methods
 

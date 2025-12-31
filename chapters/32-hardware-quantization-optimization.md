@@ -1499,7 +1499,7 @@ During autoregressive generation, each new token attends to all previous tokens.
 **Theoretical Justification:**
 The key observation is that K and V projections are deterministic given the input tokens:
 ```math
-K_i = W_K x_i, \quad V_i = W_V x_i
+K_i = W_{K} x_i, \quad V_i = W_{V} x_i
 ```
 
 Once computed, they never change. We cache them and only compute K,V for the new token:
@@ -2659,7 +2659,7 @@ AdamW uses per-parameter adaptive learning rates, which is effective but computa
 Muon leverages the observation that optimal updates for weight matrices lie on the Stiefel manifold (matrices with orthonormal columns). Instead of adaptive per-parameter scaling, it finds the closest orthogonal matrix to the gradient:
 
 ```math
-G_{\text{orth}} = \arg\min_{Q: Q^T Q = I} \|G - Q\|_F
+G_{\text{orth}} = \arg\min_{Q: Q^{T} Q = I} \|G - Q\|_{F}
 ```
 
 This is computed efficiently via Newton-Schulz iteration:
@@ -2779,7 +2779,7 @@ First-order optimizers (SGD, Adam) use only gradient information, ignoring curva
 **Theoretical Justification:**
 Shampoo approximates the inverse Hessian using Kronecker factorization. For a weight matrix $W \in \mathbb{R}^{m \times n}$ with gradient $G$:
 
-1. Maintain statistics: $L = \mathbb{E}[GG^T]$ (left preconditioner), $R = \mathbb{E}[G^TG]$ (right preconditioner)
+1. Maintain statistics: $L = \mathbb{E}[GG^{T}]$ (left preconditioner), $R = \mathbb{E}[G^{T}G]$ (right preconditioner)
 2. Update: $W \leftarrow W - \eta \cdot L^{-1/4} G R^{-1/4}$
 
 This approximates Newton's method: $W \leftarrow W - \eta \cdot H^{-1} g$ where $H \approx L \otimes R$ (Kronecker product).

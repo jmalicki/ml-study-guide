@@ -109,7 +109,7 @@ $$X_{k+1} = X_k \cdot \frac{3I - X_k^T X_k}{2}$$
 
 **Line 1658-1662**: Matrix power computation could be clearer:
 ```latex
-$$M^p = Q \Lambda^p Q^T \text{ where } M = Q \Lambda Q^T$$
+$$M^p = Q \Lambda^p Q^{T} \text{ where } M = Q \Lambda Q^{T}$$
 ```
 
 #### 4. **PagedAttention Could Be More Detailed**

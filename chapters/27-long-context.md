@@ -69,7 +69,7 @@ where $\mathbf{R}_m$ is a rotation matrix dependent on position $m$ and base fre
 The simplest approach: scale positions linearly.
 
 ```math
-\mathbf{R}_m' = \mathbf{R}_{m/s}
+\mathbf{R}_{m'} = \mathbf{R}_{m/s}
 ```
 
 where $s$ is the scaling factor. If trained on 2K context and want 8K, use $s = 4$.
@@ -181,7 +181,7 @@ def apply_rotary_emb(
 **Key insight**: Instead of compressing positions, expand the wavelengths of the sinusoidal functions.
 
 ```math
-\theta_i' = \theta_i \cdot s^{d/(d-2)} = 10000^{-2i/d} \cdot s^{d/(d-2)}
+\theta_{i'} = \theta_i \cdot s^{d/(d-2)} = 10000^{-2i/d} \cdot s^{d/(d-2)}
 ```
 
 where $s$ is the target scaling factor.
@@ -255,7 +255,7 @@ class NTKScalingRoPE(nn.Module):
 \end{cases}
 ```
 
-Then use base frequency: $\theta_i' = \theta_i \cdot \alpha(L)$
+Then use base frequency: $\theta_{i'} = \theta_i \cdot \alpha(L)$
 
 ### Implementing Dynamic NTK Scaling
 
@@ -321,7 +321,7 @@ YaRN combines multiple techniques for optimal long-context performance:
 **Frequency-dependent scaling**:
 
 ```math
-\theta_i' = \begin{cases}
+\theta_{i'} = \begin{cases}
 \theta_i & \text{if } i < i_{\text{low}} \\
 \theta_i \cdot s^{(i - i_{\text{low}})/(i_{\text{high}} - i_{\text{low}})} & \text{if } i_{\text{low}} \leq i < i_{\text{high}} \\
 \theta_i \cdot s & \text{if } i \geq i_{\text{high}}
@@ -851,7 +851,7 @@ By shifting different heads, we maintain some cross-position communication while
 
 **The Problem**: Fine-tuning on long contexts (32K-100K tokens) with full attention requires:
 - $O(n^2)$ memory for attention scores
-- $O(n^2d)$ computation
+- $O(n^{2}d)$ computation
 - For 100K tokens: ~40GB just for attention matrix in FP32
 
 This makes long-context fine-tuning impossible on consumer hardware.
@@ -1609,7 +1609,7 @@ For $N$ devices, each holding sequence chunk of length $\frac{L}{N}$:
 
 **Why This Works**:
 - **Communication**: Only $O(nd)$ instead of $O(n^2)$—we pass KV tensors, not attention matrices
-- **Computation**: Same as full attention (still $O(n^2d)$), but distributed
+- **Computation**: Same as full attention (still $O(n^{2}d)$), but distributed
 - **Memory**: Each GPU stores $1/N$ of the sequence, enabling million-token contexts
 
 **Theoretical Justification**: Attention can be computed blockwise and accumulated using numerically stable online softmax (see Flash Attention). This allows us to process KV blocks incrementally without storing the full attention matrix.
