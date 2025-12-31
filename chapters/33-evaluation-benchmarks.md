@@ -12,9 +12,9 @@ Perplexity is the fundamental metric for language models, measuring how "surpris
 
 **Definition**: For a sequence of tokens $x_1, x_2, \ldots, x_N$:
 
-$$
+```math
 \text{PPL}(x) = \exp\left(-\frac{1}{N} \sum_{i=1}^{N} \log P(x_i | x_{<i})\right)
-$$
+```
 
 Lower perplexity indicates better performance. A perplexity of $k$ means the model is as uncertain as if it had to choose uniformly among $k$ possibilities at each step.
 
@@ -150,9 +150,9 @@ def example_perplexity():
 
 For multilingual or byte-level models, bits per byte (BPB) or bits per character (BPC) normalizes across different tokenizations:
 
-$$
+```math
 \text{BPB} = \frac{-\sum_{i=1}^{N} \log_2 P(x_i | x_{<i})}{\text{num\_bytes}}
-$$
+```
 
 **Why Bits Per Byte Matters**: When comparing models with different tokenization schemes (e.g., BPE with different vocabulary sizes, character-level, byte-level), perplexity becomes incomparable because it depends on token granularity. BPB provides a tokenization-agnostic metric by normalizing to the underlying byte representation, making it essential for multilingual model evaluation and cross-model comparisons.
 

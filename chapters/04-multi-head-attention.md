@@ -53,9 +53,9 @@ Research has shown that attention heads do specialize:
 
 From [Basic Attention](03-basic-attention.md), recall that scaled dot-product attention is:
 
-$$
+```math
 \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
-$$
+```
 
 where:
 - $Q \in \mathbb{R}^{n \times d_k}$ are queries
@@ -68,12 +68,12 @@ where:
 
 Multi-head attention runs $h$ attention operations in parallel, each with its own learned projection matrices:
 
-$$
+```math
 \begin{align}
 \text{MultiHead}(Q, K, V) &= \text{Concat}(\text{head}_1, \ldots, \text{head}_h)W^O \\
 \text{where } \text{head}_i &= \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)
 \end{align}
-$$
+```
 
 The projection matrices are:
 - $W_i^Q \in \mathbb{R}^{d_{\text{model}} \times d_k}$ projects queries for head $i$
@@ -118,9 +118,9 @@ The key insight is that all heads can share the same projection operations by us
 - Process all heads in parallel using batch matrix operations
 
 This works because matrix multiplication is associative:
-$$
+```math
 (XW)\text{.view}(h, d_k) \equiv X(W\text{.view}(h, d_k))
-$$
+```
 
 ### Why This Implementation Strategy
 
@@ -434,12 +434,12 @@ Why does sharing K and V across heads work?
 
 ### Mathematical Formulation
 
-$$
+```math
 \begin{align}
 \text{MQA}(Q, K, V) &= \text{Concat}(\text{head}_1, \ldots, \text{head}_h)W^O \\
 \text{where } \text{head}_i &= \text{Attention}(QW_i^Q, KW^K, VW^V)
 \end{align}
-$$
+```
 
 Key difference: All heads share the same $W^K$ and $W^V$ (no subscript $i$).
 
@@ -621,12 +621,12 @@ Why does grouping work better than full sharing (MQA)?
 
 With $h$ total heads divided into $g$ groups of size $h/g$:
 
-$$
+```math
 \begin{align}
 \text{GQA}(Q, K, V) &= \text{Concat}(\text{head}_1, \ldots, \text{head}_h)W^O \\
 \text{where } \text{head}_i &= \text{Attention}(QW_i^Q, KW_{j(i)}^K, VW_{j(i)}^V)
 \end{align}
-$$
+```
 
 Here $j(i) = \lfloor i / (h/g) \rfloor$ maps head $i$ to its group.
 
@@ -1031,9 +1031,9 @@ At each step, we recompute attention for ALL previous tokens, even though their 
 
 **Mathematical Justification**:
 For token position $i$, its key and value are:
-$$
+```math
 K_i = W_K \cdot h_i, \quad V_i = W_V \cdot h_i
-$$
+```
 
 where $h_i$ is the hidden state at position $i$. Once computed, $h_i$ doesn't change when we generate position $i+1, i+2, \ldots$
 
@@ -1047,14 +1047,14 @@ Step 3: Compute K[2], V[2] for "!" → Append to cache → Generate next
 #### Why This Works: Attention's Decomposability
 
 Attention is computed as:
-$$
+```math
 \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
-$$
+```
 
 For a new query $q_{\text{new}}$ attending to cached keys $K_{\text{cache}}$:
-$$
+```math
 \text{scores} = q_{\text{new}} \cdot [K_{\text{cache}}, k_{\text{new}}]^T
-$$
+```
 
 This is exactly equivalent to recomputing everything, but we only compute $k_{\text{new}}$ instead of all keys!
 
@@ -1409,14 +1409,14 @@ Research shows many heads can be removed without significant performance loss:
 **The Idea**: If a head is important, removing it should significantly impact the loss.
 
 **Method**: Measure importance as the sensitivity of loss to removing that head:
-$$
+```math
 \text{Importance}(h) = \left|\frac{\partial \mathcal{L}}{\partial h}\right|
-$$
+```
 
 **Practical Approximation**: Use the magnitude of gradients flowing through the head as a proxy:
-$$
+```math
 \text{Importance}(h) \approx \sum_{\text{params } \theta \in h} \|\nabla_\theta \mathcal{L}\|
-$$
+```
 
 #### Why This Matters
 
@@ -1478,9 +1478,9 @@ Proper initialization is crucial for multi-head attention:
 
 **Xavier/Glorot Initialization**:
 For a layer with $n_{\text{in}}$ inputs and $n_{\text{out}}$ outputs:
-$$
+```math
 W \sim \mathcal{N}(0, \sigma^2), \quad \sigma = \sqrt{\frac{2}{n_{\text{in}} + n_{\text{out}}}}
-$$
+```
 
 **Why This Works**:
 - Preserves variance of activations forward and gradients backward
@@ -1490,16 +1490,16 @@ $$
 #### Special Consideration: Output Projection
 
 **The Problem**: In transformers, attention output is added to a residual:
-$$
+```math
 \text{output} = \text{input} + \text{Attention}(\text{input})
-$$
+```
 
 If attention output has large magnitude, it can overwhelm the residual path, causing training instability.
 
 **Solution**: Scale down the output projection initialization:
-$$
+```math
 W^O \sim \mathcal{N}(0, \sigma^2 / \sqrt{2})
-$$
+```
 
 The $1/\sqrt{2}$ factor accounts for the fact that we're adding two paths (residual + attention).
 
@@ -1567,9 +1567,9 @@ The attention scores matrix $S = QK^T$ has shape `(seq_len, seq_len)`, and we ne
 
 **Mathematical Foundation**:
 Attention is computed row-wise (each query independently):
-$$
+```math
 \text{Output}_i = \sum_{j} \text{softmax}(q_i K^T)_j \cdot v_j
-$$
+```
 
 This means we can compute rows $i$ to $i+c$ (a chunk) separately, never storing the full matrix.
 

@@ -41,9 +41,9 @@ Understanding the difference between self-attention and cross-attention is cruci
 
 In self-attention (see [Multi-Head Attention](04-multi-head-attention.md)), all three components (Q, K, V) come from the same sequence:
 
-$$
+```math
 \text{SelfAttention}(X) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
-$$
+```
 
 where:
 - $Q = XW_Q$
@@ -57,9 +57,9 @@ where:
 
 In cross-attention, queries come from one sequence while keys and values come from another:
 
-$$
+```math
 \text{CrossAttention}(X, Y) = \text{softmax}\left(\frac{Q(K^T)}{\sqrt{d_k}}\right)V
-$$
+```
 
 where:
 - $Q = XW_Q$ (queries from target sequence)
@@ -96,62 +96,62 @@ Given:
 
 The cross-attention operation is:
 
-$$
+```math
 \text{CrossAttn}(X, Y) = \text{Attention}(XW_Q, YW_K, YW_V)
-$$
+```
 
 Breaking this down:
 
 1. **Project to Q, K, V**:
-   $$
-   Q = XW_Q \in \mathbb{R}^{n \times d_k}
-   $$
-   $$
-   K = YW_K \in \mathbb{R}^{m \times d_k}
-   $$
-   $$
-   V = YW_V \in \mathbb{R}^{m \times d_v}
-   $$
+   ```math
+Q = XW_Q \in \mathbb{R}^{n \times d_k}
+```
+   ```math
+K = YW_K \in \mathbb{R}^{m \times d_k}
+```
+   ```math
+V = YW_V \in \mathbb{R}^{m \times d_v}
+```
 
 2. **Compute attention scores**:
-   $$
-   S = \frac{QK^T}{\sqrt{d_k}} \in \mathbb{R}^{n \times m}
-   $$
+   ```math
+S = \frac{QK^T}{\sqrt{d_k}} \in \mathbb{R}^{n \times m}
+```
 
    Note: The score matrix is $n \times m$ (target length × source length), not $n \times n$ as in self-attention.
 
 3. **Apply softmax** (over source dimension):
-   $$
-   A = \text{softmax}(S) \in \mathbb{R}^{n \times m}
-   $$
+   ```math
+A = \text{softmax}(S) \in \mathbb{R}^{n \times m}
+```
 
    For each target position $i$: $A_{i,:} = \text{softmax}(S_{i,:})$
 
    This gives us a probability distribution over source positions for each target position.
 
 4. **Weighted sum of values**:
-   $$
-   \text{Output} = AV \in \mathbb{R}^{n \times d_v}
-   $$
+   ```math
+\text{Output} = AV \in \mathbb{R}^{n \times d_v}
+```
 
 5. **Final projection**:
-   $$
-   \text{CrossAttn}(X, Y) = (AV)W_O \in \mathbb{R}^{n \times d_{\text{model}}}
-   $$
+   ```math
+\text{CrossAttn}(X, Y) = (AV)W_O \in \mathbb{R}^{n \times d_{\text{model}}}
+```
 
 ### Multi-Head Cross-Attention
 
 Just like self-attention, cross-attention benefits from multiple heads (see [Multi-Head Attention](04-multi-head-attention.md)):
 
-$$
+```math
 \text{MultiHead}(X, Y) = \text{Concat}(\text{head}_1, \ldots, \text{head}_h)W_O
-$$
+```
 
 where each head is:
 
-$$
+```math
 \text{head}_i = \text{Attention}(XW_Q^i, YW_K^i, YW_V^i)
-$$
+```
 
 **Key difference**: While self-attention has all projections from the same sequence, cross-attention projects queries from $X$ and keys/values from $Y$.
 
@@ -342,7 +342,9 @@ A single attention head cannot simultaneously capture all these patterns.
 
 **Theoretical Justification:**
 Multi-head attention addresses this through **representational diversity**:
-$$\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \ldots, \text{head}_h)W_O$$
+```math
+\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \ldots, \text{head}_h)W_O
+```
 
 Each head operates in a different learned subspace ($d_k = d_{model}/h$), allowing it to specialize:
 - Different heads learn different types of relationships
@@ -1258,7 +1260,9 @@ Traditional approaches concatenated visual features as special tokens, but this:
 **Theoretical Justification for Cross-Modal Attention:**
 Cross-attention solves this by creating a **learned bridge** between modalities:
 
-$$\text{CrossAttn}(\text{Text}, \text{Vision}) = \text{softmax}\left(\frac{Q_{\text{text}}K_{\text{vision}}^T}{\sqrt{d_k}}\right)V_{\text{vision}}$$
+```math
+\text{CrossAttn}(\text{Text}, \text{Vision}) = \text{softmax}\left(\frac{Q_{\text{text}}K_{\text{vision}}^T}{\sqrt{d_k}}\right)V_{\text{vision}}
+```
 
 Key properties:
 1. **Queries from text**: Each text token asks "what visual information do I need?"
@@ -1418,7 +1422,9 @@ The Perceiver uses cross-attention to create an **information bottleneck**:
 4. **Information compression**: Latents extract task-relevant information from massive input
 
 Mathematical formulation:
-$$\text{Latents} = \text{CrossAttn}(\underbrace{Q_{\text{latent}}}_{\text{m queries}}, \underbrace{K_{\text{input}}, V_{\text{input}}}_{\text{n keys/values}})$$
+```math
+\text{Latents} = \text{CrossAttn}(\underbrace{Q_{\text{latent}}}_{\text{m queries}}, \underbrace{K_{\text{input}}, V_{\text{input}}}_{\text{n keys/values}})
+```
 
 **Why This Works:**
 1. **Task-relevant compression**: Learned latents adaptively compress input to what matters
@@ -1559,7 +1565,9 @@ During autoregressive decoding (e.g., translation, image captioning):
 The key observation: In cross-attention, K and V come from the **encoder output, which doesn't change** during decoding.
 
 For step $t$:
-$$\text{output}_t = \text{Attention}(\underbrace{Q_t}_{\text{new query}}, \underbrace{K_{\text{enc}}}_{\text{constant}}, \underbrace{V_{\text{enc}}}_{\text{constant}})$$
+```math
+\text{output}_t = \text{Attention}(\underbrace{Q_t}_{\text{new query}}, \underbrace{K_{\text{enc}}}_{\text{constant}}, \underbrace{V_{\text{enc}}}_{\text{constant}})
+```
 
 We can precompute once:
 - $K_{\text{cached}} = W_K \cdot \text{EncoderOutput}$
@@ -1771,7 +1779,9 @@ At inference batch sizes and long contexts, this is prohibitive.
 GQA makes a key observation: **Do we really need $h$ independent K,V heads?**
 
 Instead, use $n_{kv} < h$ key-value heads, each shared by $h / n_{kv}$ query heads:
-$$\text{GQA}: \quad \text{heads}_q = h, \quad \text{heads}_{k,v} = n_{kv}, \quad n_{kv} \ll h$$
+```math
+\text{GQA}: \quad \text{heads}_q = h, \quad \text{heads}_{k,v} = n_{kv}, \quad n_{kv} \ll h
+```
 
 Properties:
 - **Parameter reduction**: Fewer K,V projection matrices
@@ -2181,11 +2191,13 @@ For tasks like summarization or question answering, we want:
 
 **Theoretical Justification:**
 Prefix LMs create a **hybrid attention mask**:
-$$A_{ij} = \begin{cases}
+```math
+A_{ij} = \begin{cases}
 1 & \text{if } i, j < L_{\text{prefix}} \text{ (bidirectional on prefix)} \\
 1 & \text{if } i \geq L_{\text{prefix}} \text{ and } j \leq i \text{ (causal on generation)} \\
 0 & \text{otherwise}
-\end{cases}$$
+\end{cases}
+```
 
 Properties:
 1. **Prefix tokens** (input): Full bidirectional attention among themselves
@@ -2267,7 +2279,9 @@ In translation, for example, the relative offset between aligned words varies ba
 
 **Theoretical Justification:**
 Relative position bias (popularized by T5) adds a learned bias term to attention scores:
-$$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}} + B_{\text{rel}}\right)V$$
+```math
+\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}} + B_{\text{rel}}\right)V
+```
 
 where $B_{\text{rel}}[i,j]$ depends on the relative position $j - i$, not absolute positions.
 
@@ -2443,7 +2457,9 @@ This design separates concerns:
 3. **Gating mechanism**: Allows model to ignore vision when not needed (e.g., text-only queries)
 
 Mathematical formulation with gating (Flamingo-style):
-$$x \leftarrow x + \tanh(\alpha) \cdot \text{CrossAttn}(x, \text{vision\_features})$$
+```math
+x \leftarrow x + \tanh(\alpha) \cdot \text{CrossAttn}(x, \text{vision\_features})
+```
 
 where $\alpha$ is a learned gate, initialized to 0 (so initially vision has no effect).
 

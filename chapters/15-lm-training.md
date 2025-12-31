@@ -151,27 +151,27 @@ labels = torch.tensor([[3857, 3332, 319, 262, 2603]])     # "cat sat on the mat"
 
 Given a sequence of tokens $\mathbf{x} = (x_1, x_2, \ldots, x_T)$, the probability of the sequence is factorized as:
 
-$$
+```math
 P(\mathbf{x}) = \prod_{t=1}^{T} P(x_t \mid x_1, \ldots, x_{t-1})
-$$
+```
 
 The training objective is to maximize the log-likelihood:
 
-$$
+```math
 \mathcal{L} = \sum_{t=1}^{T} \log P(x_t \mid x_1, \ldots, x_{t-1})
-$$
+```
 
 In practice, we minimize the negative log-likelihood (NLL):
 
-$$
+```math
 \text{Loss} = -\frac{1}{T} \sum_{t=1}^{T} \log P(x_t \mid x_1, \ldots, x_{t-1})
-$$
+```
 
 The model outputs logits $\mathbf{z}_t \in \mathbb{R}^{V}$ at each position, which are converted to probabilities via softmax:
 
-$$
+```math
 P(x_t = i \mid x_{<t}) = \frac{\exp(z_{t,i})}{\sum_{j=1}^{V} \exp(z_{t,j})}
-$$
+```
 
 where $V$ is the vocabulary size.
 
@@ -187,15 +187,15 @@ Cross-entropy loss measures the difference between the predicted probability dis
 
 For a single position $t$ with true token $y_t$ and predicted logits $\mathbf{z}_t$:
 
-$$
+```math
 \mathcal{L}_{\text{CE}}(y_t, \mathbf{z}_t) = -\log \frac{\exp(z_{t, y_t})}{\sum_{j=1}^{V} \exp(z_{t,j})}
-$$
+```
 
 This simplifies to:
 
-$$
+```math
 \mathcal{L}_{\text{CE}}(y_t, \mathbf{z}_t) = -z_{t, y_t} + \log \sum_{j=1}^{V} \exp(z_{t,j})
-$$
+```
 
 The second term is the **log-sum-exp** (LSE), which acts as a normalizing constant.
 
@@ -315,12 +315,12 @@ Label smoothing softens the one-hot target distribution, preventing overconfiden
 **Standard target:** $[0, 0, 1, 0, 0]$ (one-hot)
 **Smoothed target:** $[0.02, 0.02, 0.92, 0.02, 0.02]$ (smoothing = 0.1)
 
-$$
+```math
 y'_i = \begin{cases}
 1 - \epsilon + \frac{\epsilon}{V} & \text{if } i = y \\
 \frac{\epsilon}{V} & \text{otherwise}
 \end{cases}
-$$
+```
 
 #### Problem: Model Overconfidence
 
@@ -1352,12 +1352,12 @@ When training starts, the model parameters are randomly initialized and far from
 
 Adam/AdamW maintain running estimates of gradient mean $m_t$ and variance $v_t$:
 
-$$
+```math
 m_t = \beta_1 m_{t-1} + (1-\beta_1) g_t
-$$
-$$
+```
+```math
 v_t = \beta_2 v_{t-1} + (1-\beta_2) g_t^2
-$$
+```
 
 Early in training, these estimates are unreliable (high bias toward initialization at 0). Warmup gives the optimizer time to build accurate statistics before taking large steps.
 
@@ -1540,9 +1540,9 @@ The cosine curve naturally implements this cooling schedule.
 
 After warmup, the learning rate follows:
 
-$$
+```math
 \text{lr}(t) = \text{lr}_{\min} + \frac{1}{2}(\text{lr}_{\max} - \text{lr}_{\min}) \left(1 + \cos\left(\frac{t - t_{\text{warmup}}}{T - t_{\text{warmup}}} \pi\right)\right)
-$$
+```
 
 where:
 - $t$ is the current step
@@ -1638,9 +1638,9 @@ def get_cosine_schedule_with_warmup_pytorch(
 
 Linear decay decreases the learning rate linearly after warmup. Simpler than cosine but still effective.
 
-$$
+```math
 \text{lr}(t) = \text{lr}_{\max} \times \left(1 - \frac{t - t_{\text{warmup}}}{T - t_{\text{warmup}}}\right)
-$$
+```
 
 ```python
 class LinearDecayWithWarmup:
@@ -1693,9 +1693,9 @@ class LinearDecayWithWarmup:
 
 The inverse square root schedule decays learning rate as $1/\sqrt{t}$. Popular in machine translation and early transformer models.
 
-$$
+```math
 \text{lr}(t) = \text{lr}_{\max} \times \min\left(1, \frac{1}{\sqrt{t}}, \frac{t}{t_{\text{warmup}}}\right)
-$$
+```
 
 ```python
 class InverseSqrtSchedule:

@@ -79,9 +79,13 @@ Zero-shot CoT addresses this by triggering the model's latent reasoning capabili
 The key insight is that large language models have implicitly learned to decompose problems during training (from seeing worked examples in their training data), but need an explicit trigger to activate this capability. The prompt "Let's think step by step" acts as a **reasoning mode switch**, shifting the model from direct answer prediction to step-by-step problem solving.
 
 Formally, we're changing the generation objective from:
-$$P(a|q) \quad \text{(direct answer)}$$
+```math
+P(a|q) \quad \text{(direct answer)}
+```
 to:
-$$P(r, a|q, \text{"Let's think step by step"}) \quad \text{(reasoning + answer)}$$
+```math
+P(r, a|q, \text{"Let's think step by step"}) \quad \text{(reasoning + answer)}
+```
 
 #### Comparison to Alternatives
 
@@ -246,7 +250,9 @@ print(f"Answer: {answer}")
 
 Chain-of-thought can be viewed as decomposing the probability distribution:
 
-$$P(a|q) = \sum_{r \in \mathcal{R}} P(a|r, q) P(r|q)$$
+```math
+P(a|q) = \sum_{r \in \mathcal{R}} P(a|r, q) P(r|q)
+```
 
 Where:
 - $q$ is the question
@@ -256,7 +262,9 @@ Where:
 
 In practice, we approximate by sampling or greedily generating a single reasoning trace $r^*$:
 
-$$a^* \approx \arg\max_a P(a|r^*, q) \text{ where } r^* = \arg\max_r P(r|q)$$
+```math
+a^* \approx \arg\max_a P(a|r^*, q) \text{ where } r^* = \arg\max_r P(r|q)
+```
 
 **References:**
 - [Chain-of-Thought Prompting Elicits Reasoning in Large Language Models (Wei et al., 2022)](https://arxiv.org/abs/2201.11903)
@@ -288,7 +296,9 @@ Self-consistency addresses this by treating reasoning as a **stochastic process*
 
 Self-consistency is based on the **wisdom of crowds** principle from ensemble learning:
 
-$$a^* = \text{argmax}_a \sum_{r \in \mathcal{R}} P(a|r, q) P(r|q) \approx \text{mode}\{a_1, a_2, ..., a_N\}$$
+```math
+a^* = \text{argmax}_a \sum_{r \in \mathcal{R}} P(a|r, q) P(r|q) \approx \text{mode}\{a_1, a_2, ..., a_N\}
+```
 
 where we approximate the marginalized distribution over reasoning paths by sampling $N$ paths and taking a majority vote.
 
@@ -477,7 +487,9 @@ Least-to-Most explicitly structures the problem-solving process to build solutio
 
 This approach is inspired by **curriculum learning** and **dynamic programming**. The key idea is that complex problems can be factored into:
 
-$$P(a|q) = P(a | s_n, s_{n-1}, ..., s_1, q) \prod_{i=1}^{n} P(s_i | s_{i-1}, ..., s_1, q)$$
+```math
+P(a|q) = P(a | s_n, s_{n-1}, ..., s_1, q) \prod_{i=1}^{n} P(s_i | s_{i-1}, ..., s_1, q)
+```
 
 where $s_i$ are subproblem solutions. By solving subproblems sequentially, we:
 1. Reduce cognitive load at each step
@@ -704,7 +716,9 @@ PAL is based on the **neuro-symbolic** paradigm, combining:
 2. **Symbolic** (code execution): Precise computation, logical operations
 
 The division of labor is:
-$$\text{LLM}: \text{Problem} \rightarrow \text{Code} \quad\quad \text{Interpreter}: \text{Code} \rightarrow \text{Answer}$$
+```math
+\text{LLM}: \text{Problem} \rightarrow \text{Code} \quad\quad \text{Interpreter}: \text{Code} \rightarrow \text{Answer}
+```
 
 This exploits the complementary strengths of each system:
 - **LLMs excel at**: Parsing natural language, identifying relevant operations, structuring logic
@@ -1070,7 +1084,9 @@ The key insight is the **synergy between reasoning and acting**:
 - **Acting helps reasoning**: Observations ground reasoning in reality, correct errors
 
 Formally, this creates a feedback loop:
-$$t_1 \rightarrow a_1 \rightarrow o_1 \rightarrow t_2 \rightarrow a_2 \rightarrow o_2 \rightarrow ... \rightarrow a_{\text{final}}$$
+```math
+t_1 \rightarrow a_1 \rightarrow o_1 \rightarrow t_2 \rightarrow a_2 \rightarrow o_2 \rightarrow ... \rightarrow a_{\text{final}}
+```
 
 This is a form of **interactive planning** where the agent updates its plan based on environmental feedback.
 
@@ -1448,7 +1464,9 @@ Linear CoT commits to a single path with no ability to backtrack. Self-consisten
 
 Tree-of-Thought extends the marginalization principle from self-consistency to a **hierarchical search space**:
 
-$$P(a|q) = \sum_{r \in \mathcal{R}} P(a|r) P(r|q) = \sum_{T \in \text{Trees}} \sum_{r \in T} P(a|r) P(r|q)$$
+```math
+P(a|q) = \sum_{r \in \mathcal{R}} P(a|r) P(r|q) = \sum_{T \in \text{Trees}} \sum_{r \in T} P(a|r) P(r|q)
+```
 
 where we search over tree structures $T$ rather than just linear paths.
 
@@ -1710,12 +1728,16 @@ Process Reward Models (PRMs), introduced by OpenAI for improving mathematical re
 ### Outcome vs Process Supervision
 
 **Outcome Reward Model (ORM):**
-$$r_{\text{outcome}}(q, r, a) = \mathbb{1}[a = a^*]$$
+```math
+r_{\text{outcome}}(q, r, a) = \mathbb{1}[a = a^*]
+```
 
 Only rewards correct final answers, regardless of reasoning quality.
 
 **Process Reward Model (PRM):**
-$$r_{\text{process}}(q, r, a) = \sum_{i=1}^{n} w_i \cdot \text{score}(r_i | r_{<i}, q)$$
+```math
+r_{\text{process}}(q, r, a) = \sum_{i=1}^{n} w_i \cdot \text{score}(r_i | r_{<i}, q)
+```
 
 Rewards correct reasoning at each step $r_i$.
 
@@ -1741,7 +1763,9 @@ This leads to models that learn shortcuts and fail to generalize. PRMs solve thi
 
 The key insight comes from **reinforcement learning theory**. The value of a reasoning path can be decomposed:
 
-$$V(r) = \sum_{i=1}^{n} V(r_i | r_{<i})$$
+```math
+V(r) = \sum_{i=1}^{n} V(r_i | r_{<i})
+```
 
 where $V(r_i | r_{<i})$ is the value of step $i$ given previous steps.
 
@@ -1751,7 +1775,9 @@ This is analogous to **temporal difference learning** in RL:
 - **PRMs**: Intermediate between these - step-level rewards for reasoning "trajectory"
 
 The advantage of step-level rewards is better **credit assignment**:
-$$\nabla_\theta \mathbb{E}[\text{reward}] = \sum_{i=1}^{n} \nabla_\theta \log P_\theta(r_i | r_{<i}) \cdot V(r_i)$$
+```math
+\nabla_\theta \mathbb{E}[\text{reward}] = \sum_{i=1}^{n} \nabla_\theta \log P_\theta(r_i | r_{<i}) \cdot V(r_i)
+```
 
 Each step gets its own gradient signal, enabling faster and more accurate learning.
 
@@ -2223,7 +2249,9 @@ Traditional scaling: Better models require more **training** compute.
 
 Test-time scaling: Better answers require more **inference** compute.
 
-$$\text{Quality}(a) \propto f(\text{compute}_{\text{test}})$$
+```math
+\text{Quality}(a) \propto f(\text{compute}_{\text{test}})
+```
 
 ### Methods for Test-Time Scaling
 
@@ -2247,7 +2275,9 @@ Test-time compute scaling enables **adaptive intelligence**: spend more compute 
 
 The fundamental insight is that **inference is optimization**:
 
-$$a^* = \arg\max_a P(a|q) = \arg\max_a \sum_{r} P(a|r, q) P(r|q)$$
+```math
+a^* = \arg\max_a P(a|q) = \arg\max_a \sum_{r} P(a|r, q) P(r|q)
+```
 
 We can improve this optimization by:
 1. **Sampling more paths**: Better approximation of the sum
@@ -2255,7 +2285,9 @@ We can improve this optimization by:
 3. **Iterating longer**: Refining until convergence
 
 This creates a **compute-quality tradeoff**:
-$$\text{Quality}(C) = f(C) \quad \text{where } f \text{ is monotonic increasing}$$
+```math
+\text{Quality}(C) = f(C) \quad \text{where } f \text{ is monotonic increasing}
+```
 
 The scaling law: doubling test-time compute can yield 5-15% accuracy improvements (up to a saturation point).
 
@@ -2486,7 +2518,9 @@ for entry in result_refine['history']:
 
 There's a tradeoff between compute and quality:
 
-$$\text{Quality} = f(\text{compute}) - \text{cost} \cdot \text{compute}$$
+```math
+\text{Quality} = f(\text{compute}) - \text{cost} \cdot \text{compute}
+```
 
 Find the optimal compute budget:
 

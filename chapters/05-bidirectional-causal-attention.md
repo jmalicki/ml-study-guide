@@ -66,15 +66,15 @@ With bidirectional attention:
 
 Recall from [Chapter 3: Basic Attention](03-basic-attention.md) that scaled dot-product attention is:
 
-$$
+```math
 \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
-$$
+```
 
 For bidirectional attention, we compute attention scores for **all** pairs of tokens:
 
-$$
+```math
 \text{Attention}_{\text{bi}}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
-$$
+```
 
 where the attention score matrix $A = QK^T / \sqrt{d_k}$ is a full $n \times n$ matrix (where $n$ is sequence length), with no masking applied.
 
@@ -82,9 +82,9 @@ where the attention score matrix $A = QK^T / \sqrt{d_k}$ is a full $n \times n$ 
 
 When applying masks to attention, we formally define masked attention as:
 
-$$
+```math
 \text{Attention}(Q, K, V, M) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}} \odot M + (1-M) \cdot (-\infty)\right)V
-$$
+```
 
 where:
 - $M$ is a binary mask matrix with shape $(n, n)$
@@ -96,17 +96,17 @@ where:
 
 Setting masked positions to $-\infty$ ensures they have zero probability after softmax:
 
-$$
+```math
 \text{softmax}(-\infty) = \frac{e^{-\infty}}{\sum_j e^{s_j}} = \frac{0}{\sum_j e^{s_j}} = 0
-$$
+```
 
 **Practical Implementation:**
 
 In code, we typically apply masks directly to the score matrix before softmax:
 
-$$
+```math
 S_{\text{masked}} = S \odot M + (1-M) \cdot (-\infty)
-$$
+```
 
 or equivalently using `masked_fill`:
 
@@ -140,9 +140,9 @@ Bidirectional attention implements the full self-attention mechanism from the or
 
 The attention mechanism computes a weighted sum of all value vectors, where weights are determined by the compatibility between queries and keys:
 
-$$
+```math
 \alpha_{ij} = \frac{\exp(q_i \cdot k_j / \sqrt{d_k})}{\sum_{j'} \exp(q_i \cdot k_{j'} / \sqrt{d_k})}
-$$
+```
 
 This allows position $i$ to "attend to" position $j$ with weight $\alpha_{ij}$ regardless of their relative positions.
 
@@ -339,18 +339,18 @@ During autoregressive generation (e.g., language modeling), we must prevent the 
 
 Causal attention ensures that the probability distribution we learn during training matches what we'll use during generation. Formally, in language modeling we want to model:
 
-$$
+```math
 P(x_1, x_2, \ldots, x_n) = \prod_{t=1}^{n} P(x_t \mid x_1, \ldots, x_{t-1})
-$$
+```
 
 By masking future positions, we enforce that the representation at position $t$ depends only on positions $1$ through $t$. This is implemented via a causal (lower triangular) mask:
 
-$$
+```math
 \text{Mask}_{ij} = \begin{cases}
 1 & \text{if } i \geq j \\
 0 & \text{if } i < j
 \end{cases}
-$$
+```
 
 When applied before softmax (by setting masked positions to $-\infty$), this ensures that attention weights for future positions are exactly zero.
 
@@ -589,9 +589,9 @@ Mathematically, combining masks is a logical conjunction operation. A position $
 
 We implement this using the logical AND operation:
 
-$$
+```math
 \text{CombinedMask}_{ij} = \text{CausalMask}_{ij} \land \text{PaddingMask}_{j}
-$$
+```
 
 Note that padding mask is position-specific (depends only on $j$), while causal mask is pair-specific (depends on both $i$ and $j$).
 
@@ -895,13 +895,13 @@ In many generation tasks, we have a prefix (like a prompt or instruction) that p
 
 Prefix language modeling creates a hybrid attention pattern:
 
-$$
+```math
 \text{Mask}_{ij} = \begin{cases}
 1 & \text{if } i, j < \text{prefix\_len} \text{ (bidirectional on prefix)} \\
 1 & \text{if } i \geq \text{prefix\_len} \text{ and } j \leq i \text{ (causal after prefix)} \\
 0 & \text{otherwise}
 \end{cases}
-$$
+```
 
 This allows the model to:
 1. Fully understand the prefix using bidirectional context
@@ -910,9 +910,9 @@ This allows the model to:
 
 The objective combines both:
 
-$$
+```math
 \mathcal{L} = -\sum_{t=\text{prefix\_len}}^{T} \log P(x_t \mid x_{\text{prefix}}, x_{\text{prefix\_len}}, \ldots, x_{t-1})
-$$
+```
 
 **Relation to Alternatives:**
 
@@ -976,12 +976,12 @@ This hybrid attention pattern shows:
 
 Both bidirectional and causal attention have the same asymptotic complexity:
 
-$$
+```math
 \text{Time Complexity: } O(n^2 d)
-$$
-$$
+```
+```math
 \text{Space Complexity: } O(n^2)
-$$
+```
 
 where $n$ is sequence length and $d$ is model dimension.
 
@@ -997,19 +997,19 @@ During autoregressive text generation, we generate one token at a time. At each 
 
 The key insight is that in causal attention, previously computed key and value vectors never change. When generating token $t$, we compute:
 
-$$
+```math
 \text{output}_t = \text{Attention}(q_t, [k_1, \ldots, k_t], [v_1, \ldots, v_t])
-$$
+```
 
 Since $k_1, \ldots, k_{t-1}$ and $v_1, \ldots, v_{t-1}$ were already computed in previous steps, we can cache them:
 
-$$
+```math
 \begin{align}
 \text{cached}_K^{(t)} &= [k_1, \ldots, k_{t-1}] \\
 \text{cached}_V^{(t)} &= [v_1, \ldots, v_{t-1}] \\
 \text{output}_t &= \text{Attention}(q_t, [\text{cached}_K^{(t)}, k_t], [\text{cached}_V^{(t)}, v_t])
 \end{align}
-$$
+```
 
 This reduces the computation per step from $O(t \cdot d)$ to $O(d)$ for computing new K,V pairs, though attention computation itself remains $O(t)$.
 
@@ -1125,10 +1125,12 @@ Understanding KV cache memory requirements is crucial for deploying large langua
 **Memory Calculation:**
 
 For each layer, we cache both K and V matrices. Each has shape:
-$$(batch\_size, num\_heads, seq\_len, head\_dim)$$
+```math
+(batch\_size, num\_heads, seq\_len, head\_dim)
+```
 
 Memory per layer (in bytes):
-$$
+```math
 \begin{align}
 \text{Memory}_{\text{layer}} &= 2 \times batch \times heads \times seq\_len \times head\_dim \times bytes \\
 &= 2 \times 8 \times 32 \times 4096 \times 128 \times 2 \\
@@ -1136,28 +1138,28 @@ $$
 &= 536{,}870{,}912 \text{ bytes} \\
 &= 512 \text{ MB per layer}
 \end{align}
-$$
+```
 
 Total KV cache memory across all layers:
-$$
+```math
 \begin{align}
 \text{Total KV Cache} &= \text{Memory}_{\text{layer}} \times num\_layers \\
 &= 512 \text{ MB} \times 32 \\
 &= 16{,}384 \text{ MB} \\
 &= 16 \text{ GB}
 \end{align}
-$$
+```
 
 **Compare to Model Weights:**
 
 Model weights in FP16:
-$$
+```math
 \begin{align}
 \text{Model Size} &= 7{,}000{,}000{,}000 \times 2 \text{ bytes} \\
 &= 14{,}000 \text{ MB} \\
 &= 14 \text{ GB}
 \end{align}
-$$
+```
 
 **Key Insight:** The KV cache (16 GB) is actually **larger** than the model weights (14 GB) for this configuration!
 
@@ -1176,9 +1178,9 @@ When deploying large language models in production, understanding memory require
 
 The KV cache memory requirement is determined by the storage needed for key and value matrices across all layers. For each layer, we store:
 
-$$
+```math
 \text{Memory}_{\text{layer}} = 2 \times B \times H \times L \times D \times P
-$$
+```
 
 where:
 - $B$ = batch size (number of concurrent sequences)
@@ -1190,9 +1192,9 @@ where:
 
 Total memory across $N$ layers:
 
-$$
+```math
 \text{Total Memory} = N \times \text{Memory}_{\text{layer}} = 2 \times N \times B \times H \times L \times D \times P
-$$
+```
 
 This scales linearly with each parameter, making it straightforward to predict but expensive for large models.
 
@@ -1416,23 +1418,23 @@ BERT-style models need to learn contextual representations that capture word mea
 
 BERT's masked language modeling objective is:
 
-$$
+```math
 \mathcal{L}_{\text{MLM}} = -\mathbb{E}_{x \sim D} \left[ \sum_{i \in \text{masked}} \log P(x_i \mid x_{\backslash i}) \right]
-$$
+```
 
 where $x_{\backslash i}$ represents the sequence with position $i$ masked. Crucially, the model can use both left and right context to predict the masked token. This is implemented using bidirectional self-attention where each position can attend to all other positions.
 
 The multi-head mechanism allows the model to attend to different representation subspaces simultaneously:
 
-$$
+```math
 \text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \ldots, \text{head}_h)W^O
-$$
+```
 
 where each head computes:
 
-$$
+```math
 \text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)
-$$
+```
 
 **Relation to Alternatives:**
 
@@ -1537,21 +1539,21 @@ GPT-style models need to generate coherent text by predicting one token at a tim
 
 GPT models are trained using the language modeling objective:
 
-$$
+```math
 \mathcal{L}_{\text{LM}} = -\sum_{t=1}^{T} \log P(x_t \mid x_{<t})
-$$
+```
 
 The causal constraint ensures that $P(x_t \mid x_{<t})$ depends only on $x_1, \ldots, x_{t-1}$. This is enforced via a causal mask:
 
-$$
+```math
 \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}} + M_{\text{causal}}\right)V
-$$
+```
 
 where $M_{\text{causal}}$ is a lower triangular mask with $-\infty$ in the upper triangle. This ensures:
 
-$$
+```math
 \alpha_{ij} = 0 \quad \text{for } i < j
-$$
+```
 
 preventing information flow from future to past.
 

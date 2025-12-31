@@ -56,9 +56,9 @@ Layer normalization normalizes activations across the feature dimension for each
 
 For input $\mathbf{x} \in \mathbb{R}^d$:
 
-$$
+```math
 \text{LayerNorm}(\mathbf{x}) = \gamma \odot \frac{\mathbf{x} - \mu}{\sqrt{\sigma^2 + \epsilon}} + \beta
-$$
+```
 
 where:
 - $\mu = \frac{1}{d}\sum_{i=1}^d x_i$ (mean)
@@ -75,15 +75,15 @@ where:
 
 **Root Mean Square Normalization** from [Zhang & Sennrich, 2019](https://arxiv.org/abs/1910.07467), used in modern LLMs (LLaMA, GPT-4, etc.):
 
-$$
+```math
 \text{RMSNorm}(\mathbf{x}) = \gamma \odot \frac{\mathbf{x}}{\text{RMS}(\mathbf{x})}
-$$
+```
 
 where:
 
-$$
+```math
 \text{RMS}(\mathbf{x}) = \sqrt{\frac{1}{d}\sum_{i=1}^d x_i^2 + \epsilon}
-$$
+```
 
 **Differences from LayerNorm:**
 - No mean centering (removes $\mu$)
@@ -293,9 +293,9 @@ The feed-forward network (FFN) processes each position independently with the sa
 
 Standard FFN consists of two linear transformations with a non-linear activation:
 
-$$
+```math
 \text{FFN}(\mathbf{x}) = \mathbf{W}_2 \cdot \sigma(\mathbf{W}_1 \mathbf{x} + \mathbf{b}_1) + \mathbf{b}_2
-$$
+```
 
 where:
 - $\mathbf{x} \in \mathbb{R}^{d_{\text{model}}}$ is the input
@@ -426,9 +426,9 @@ if __name__ == "__main__":
 
 Residual connections (skip connections) add the input of a sub-layer to its output:
 
-$$
+```math
 \mathbf{y} = \mathbf{x} + \text{SubLayer}(\mathbf{x})
-$$
+```
 
 ### Why Residuals Matter
 
@@ -447,14 +447,14 @@ Without residual connections, deep networks suffer from:
 Consider a network with $L$ layers. During backpropagation:
 
 Without residuals:
-$$
+```math
 \frac{\partial \mathcal{L}}{\partial \mathbf{x}_1} = \frac{\partial \mathcal{L}}{\partial \mathbf{x}_L} \prod_{i=1}^{L-1} \frac{\partial \mathbf{x}_{i+1}}{\partial \mathbf{x}_i}
-$$
+```
 
 With residuals ($\mathbf{x}_{i+1} = \mathbf{x}_i + F_i(\mathbf{x}_i)$):
-$$
+```math
 \frac{\partial \mathbf{x}_{i+1}}{\partial \mathbf{x}_i} = \mathbf{I} + \frac{\partial F_i(\mathbf{x}_i)}{\partial \mathbf{x}_i}
-$$
+```
 
 The identity term $\mathbf{I}$ ensures gradients can flow directly backward.
 
@@ -468,9 +468,9 @@ In deep neural networks, gradients must propagate backward through many layers d
 
 Consider backpropagation through $L$ layers. The gradient at layer $\ell$ is:
 
-$$
+```math
 \frac{\partial \mathcal{L}}{\partial \mathbf{x}_\ell} = \frac{\partial \mathcal{L}}{\partial \mathbf{x}_L} \prod_{i=\ell}^{L-1} \frac{\partial \mathbf{x}_{i+1}}{\partial \mathbf{x}_i}
-$$
+```
 
 If any Jacobian $\frac{\partial \mathbf{x}_{i+1}}{\partial \mathbf{x}_i}$ has:
 - Eigenvalues < 1: gradients shrink exponentially (vanishing gradients)
@@ -478,9 +478,9 @@ If any Jacobian $\frac{\partial \mathbf{x}_{i+1}}{\partial \mathbf{x}_i}$ has:
 
 With residual connections $\mathbf{x}_{i+1} = \mathbf{x}_i + F_i(\mathbf{x}_i)$:
 
-$$
+```math
 \frac{\partial \mathbf{x}_{i+1}}{\partial \mathbf{x}_i} = \mathbf{I} + \frac{\partial F_i(\mathbf{x}_i)}{\partial \mathbf{x}_i}
-$$
+```
 
 The identity matrix $\mathbf{I}$ ensures at least one eigenvalue equals 1, preventing complete gradient vanishing.
 
@@ -594,12 +594,12 @@ x → [Self-Attention] → [Add & Norm] → [FFN] → [Add & Norm] → output
 ```
 
 Mathematically:
-$$
+```math
 \begin{align}
 \mathbf{y}_1 &= \text{LayerNorm}(\mathbf{x} + \text{Attention}(\mathbf{x})) \\
 \mathbf{y}_2 &= \text{LayerNorm}(\mathbf{y}_1 + \text{FFN}(\mathbf{y}_1))
 \end{align}
-$$
+```
 
 **Issues:**
 - Gradients flow through normalization layers during backprop
@@ -616,12 +616,12 @@ x → [Norm] → [Self-Attention] → [Add] → [Norm] → [FFN] → [Add] → o
 ```
 
 Mathematically:
-$$
+```math
 \begin{align}
 \mathbf{y}_1 &= \mathbf{x} + \text{Attention}(\text{LayerNorm}(\mathbf{x})) \\
 \mathbf{y}_2 &= \mathbf{y}_1 + \text{FFN}(\text{LayerNorm}(\mathbf{y}_1))
 \end{align}
-$$
+```
 
 **Advantages:**
 - Gradients flow directly through residual connections
@@ -909,15 +909,15 @@ In many sequence modeling tasks, we need to control the information flow between
 Attention masks implement two critical constraints:
 
 1. **Causality (autoregressive property)**: For language modeling, the probability of token $i$ must depend only on tokens $1, ..., i-1$:
-   $$
-   P(x_i | x_1, ..., x_{i-1}, x_{i+1}, ..., x_n) = P(x_i | x_1, ..., x_{i-1})
-   $$
+   ```math
+P(x_i | x_1, ..., x_{i-1}, x_{i+1}, ..., x_n) = P(x_i | x_1, ..., x_{i-1})
+```
    Violating this makes training and inference inconsistent—the model trains with future information but can't access it during generation.
 
 2. **Padding invariance**: Padding tokens should not influence the representation of real tokens. Mathematically, for any padding position $p$:
-   $$
-   \text{Attention}(\mathbf{q}_i, \mathbf{k}_p, \mathbf{v}_p) = 0
-   $$
+   ```math
+\text{Attention}(\mathbf{q}_i, \mathbf{k}_p, \mathbf{v}_p) = 0
+```
 
 **Relationship to Alternatives:**
 
@@ -1142,21 +1142,21 @@ Poor weight initialization can make deep neural networks untrainable. If weights
 Good initialization maintains signal propagation through both forward and backward passes. For a layer with input dimension $d_{in}$ and output dimension $d_{out}$:
 
 **Xavier/Glorot initialization** assumes linear activations and derives the variance:
-$$
+```math
 \text{Var}(W_{ij}) = \frac{2}{d_{in} + d_{out}}
-$$
+```
 
 This ensures that variance of activations and gradients remains roughly constant across layers. The symmetric form considers both forward (depends on $d_{in}$) and backward (depends on $d_{out}$) passes.
 
 **Kaiming/He initialization** accounts for ReLU activations which zero out half the neurons:
-$$
+```math
 \text{Var}(W_{ij}) = \frac{2}{d_{in}}
-$$
+```
 
 For very deep transformers, **scaled initialization** prevents residual path signals from growing:
-$$
+```math
 W \gets W \cdot \frac{1}{\sqrt{2L}}
-$$
+```
 
 where $L$ is the number of layers. This is based on the analysis that with $L$ residual blocks, variance grows by a factor of $L$.
 
@@ -1360,11 +1360,17 @@ if __name__ == "__main__":
 
 2. **Linear layers**:
    - **Xavier/Glorot**: Standard for transformers
-     $$W \sim U\left[-\sqrt{\frac{6}{d_{\text{in}} + d_{\text{out}}}}, \sqrt{\frac{6}{d_{\text{in}} + d_{\text{out}}}}\right]$$
+     ```math
+W \sim U\left[-\sqrt{\frac{6}{d_{\text{in}} + d_{\text{out}}}}, \sqrt{\frac{6}{d_{\text{in}} + d_{\text{out}}}}\right]
+```
    - **Kaiming/He**: Better for ReLU activations
-     $$W \sim U\left[-\sqrt{\frac{6}{d_{\text{in}}}}, \sqrt{\frac{6}{d_{\text{in}}}}\right]$$
+     ```math
+W \sim U\left[-\sqrt{\frac{6}{d_{\text{in}}}}, \sqrt{\frac{6}{d_{\text{in}}}}\right]
+```
    - **Scaled initialization**: For very deep models (>24 layers)
-     $$W \gets W / \sqrt{2L}$$
+     ```math
+W \gets W / \sqrt{2L}
+```
      where $L$ is the number of layers
 
 3. **Bias terms**: Initialized to 0
@@ -1590,12 +1596,12 @@ The parallel architecture is based on several observations:
 
 1. **Independence of operations**: Attention captures token relationships; FFN processes individual positions. These operations are conceptually independent and both take the same input
 2. **Additive combination**: Since both paths connect via residual additions, we can mathematically regroup:
-   $$
-   \begin{align}
+   ```math
+\begin{align}
    \text{Sequential: } & \mathbf{y} = \mathbf{x} + \text{FFN}(\mathbf{x} + \text{Attn}(\mathbf{x})) \\
    \text{Parallel: } & \mathbf{y} = \mathbf{x} + \text{Attn}(\mathbf{x}) + \text{FFN}(\mathbf{x})
    \end{align}
-   $$
+```
 3. **Shared normalization**: Both paths can normalize the same input, reducing parameters and computation
 
 **Relationship to Alternatives:**
@@ -1794,23 +1800,23 @@ Standard multi-head attention uses $n$ independent KV heads, which is expensive.
 Grouped Query Attention balances between MHA and MQA:
 
 **Standard MHA**: Each query head $i$ attends using its own keys and values:
-$$
+```math
 \text{head}_i = \text{Attention}(Q_i, K_i, V_i)
-$$
+```
 - Maximum expressiveness: each head can learn different patterns
 - Maximum memory: $2 \times n_{\text{heads}} \times d_{\text{head}} \times L$ KV cache
 
 **Multi-Query Attention (MQA)**: All query heads share a single KV head:
-$$
+```math
 \text{head}_i = \text{Attention}(Q_i, K_{\text{shared}}, V_{\text{shared}})
-$$
+```
 - Minimum memory: $2 \times 1 \times d_{\text{head}} \times L$ KV cache
 - Reduced expressiveness: all queries must use same keys/values
 
 **GQA**: Groups of query heads share KV heads:
-$$
+```math
 \text{head}_i = \text{Attention}(Q_i, K_{\lfloor i / g \rfloor}, V_{\lfloor i / g \rfloor})
-$$
+```
 - Balanced memory: $2 \times g \times d_{\text{head}} \times L$ KV cache
 - Balanced expressiveness: multiple KV patterns, but shared within groups
 
@@ -2105,9 +2111,9 @@ Pre-norm provides better training stability for deep transformers:
 4. **Empirical performance**: Matches or exceeds post-norm on most tasks
 
 **Mathematical insight:**
-$$
+```math
 \frac{\partial L}{\partial x} = \frac{\partial L}{\partial \text{output}} \cdot \left(\mathbf{I} + \frac{\partial F(x)}{\partial x}\right)
-$$
+```
 
 The identity term $\mathbf{I}$ ensures gradients don't vanish, even if $\frac{\partial F(x)}{\partial x}$ is small.
 
@@ -2129,14 +2135,14 @@ RMSNorm offers similar performance with better efficiency:
 **Mathematical comparison:**
 
 LayerNorm:
-$$
+```math
 \text{LN}(x) = \gamma \odot \frac{x - \mu}{\sqrt{\sigma^2 + \epsilon}} + \beta
-$$
+```
 
 RMSNorm:
-$$
+```math
 \text{RMS}(x) = \gamma \odot \frac{x}{\sqrt{\frac{1}{d}\sum x_i^2 + \epsilon}}
-$$
+```
 
 **Key insight**: Re-centering (mean subtraction) contributes little to training stability; scale normalization is the critical factor.
 
@@ -2158,16 +2164,16 @@ Residual connections solve the vanishing gradient and degradation problems:
 **Mathematical proof**:
 
 Without residuals:
-$$
+```math
 \frac{\partial L}{\partial x_0} = \frac{\partial L}{\partial x_L} \prod_{i=0}^{L-1} \frac{\partial x_{i+1}}{\partial x_i}
-$$
+```
 
 If any Jacobian $\frac{\partial x_{i+1}}{\partial x_i}$ has norm < 1, gradients vanish exponentially.
 
 With residuals ($x_{i+1} = x_i + F_i(x_i)$):
-$$
+```math
 \frac{\partial x_{i+1}}{\partial x_i} = \mathbf{I} + \frac{\partial F_i(x_i)}{\partial x_i}
-$$
+```
 
 The identity ensures the derivative is always at least $\mathbf{I}$, preventing vanishing.
 

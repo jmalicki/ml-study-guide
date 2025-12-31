@@ -264,9 +264,9 @@ CLIP (Contrastive Language-Image Pre-training) learns aligned representations of
 - **Text Encoder**: Transformer
 - **Training**: Contrastive loss on image-text pairs
 
-$$
+```math
 \mathcal{L}_{\text{CLIP}} = -\frac{1}{N} \sum_{i=1}^{N} \left[ \log \frac{\exp(\text{sim}(I_i, T_i) / \tau)}{\sum_{j=1}^{N} \exp(\text{sim}(I_i, T_j) / \tau)} \right]
-$$
+```
 
 where $\text{sim}(I, T) = \frac{I \cdot T}{\|I\| \|T\|}$ is cosine similarity and $\tau$ is temperature.
 
@@ -427,9 +427,9 @@ SigLIP (Sigmoid Loss for Language Image Pre-training) improves upon CLIP by usin
 - **CLIP**: Uses softmax over all pairs in batch (requires large batches)
 - **SigLIP**: Uses sigmoid on individual pairs (more stable, smaller batches)
 
-$$
+```math
 \mathcal{L}_{\text{SigLIP}} = -\frac{1}{N^2} \sum_{i,j} \log \sigma(y_{ij} \cdot z_{ij})
-$$
+```
 
 where $y_{ij} = 1$ if image $i$ matches text $j$ else $-1$, and $z_{ij}$ is the similarity score.
 
@@ -3116,9 +3116,9 @@ def train_grounding_llm(
 
 Given image $I$ and referring expression $T = \{w_1, w_2, ..., w_n\}$, predict bounding box $B = (x, y, w, h)$:
 
-$$
+```math
 B = f_{\text{ground}}(\text{CrossAttn}(f_{\text{text}}(T), f_{\text{vision}}(I)))
-$$
+```
 
 Where:
 - $f_{\text{vision}}(I) \in \mathbb{R}^{N \times d}$ encodes image into $N$ patch features
@@ -3128,9 +3128,9 @@ Where:
 
 **Loss Function:**
 
-$$
+```math
 \mathcal{L}_{\text{grounding}} = \lambda_1 \mathcal{L}_{\text{L1}}(B, B^*) + \lambda_2 \mathcal{L}_{\text{GIoU}}(B, B^*)
-$$
+```
 
 Where:
 - $\mathcal{L}_{\text{L1}}$ is L1 distance between predicted and ground truth boxes

@@ -56,9 +56,9 @@ The field of instruction tuning was established by several seminal works:
 
 SFT uses standard causal language modeling, but only on **instruction-response pairs**:
 
-$$
+```math
 \mathcal{L}_{\text{SFT}} = -\sum_{(x, y) \in \mathcal{D}} \log p_\theta(y \mid x)
-$$
+```
 
 where:
 - $\mathcal{D}$ is the instruction dataset
@@ -542,7 +542,9 @@ The key question: how do we train on conversations while ensuring the model only
 #### Theoretical Motivation: Conditional Generation Across Turns
 
 For a conversation with $k$ turns, we want the model to learn:
-$$p(a_i \mid u_1, a_1, \ldots, u_i) \quad \text{for } i = 1, \ldots, k$$
+```math
+p(a_i \mid u_1, a_1, \ldots, u_i) \quad \text{for } i = 1, \ldots, k
+```
 
 where $u_i$ is the $i$-th user message and $a_i$ is the $i$-th assistant response. This requires:
 - Attending to all previous context (no masking in attention)
@@ -715,7 +717,9 @@ The core challenge in SFT is transforming human-readable instruction-response pa
 #### Theoretical Justification: Masked Language Modeling for Instructions
 
 Standard language model pre-training uses the objective:
-$$\mathcal{L}_{\text{LM}} = -\sum_{t=1}^{T} \log p_\theta(x_t \mid x_{<t})$$
+```math
+\mathcal{L}_{\text{LM}} = -\sum_{t=1}^{T} \log p_\theta(x_t \mid x_{<t})
+```
 
 For SFT, we modify this to only compute loss on assistant responses. This is justified by several principles:
 
@@ -725,7 +729,9 @@ For SFT, we modify this to only compute loss on assistant responses. This is jus
 4. **Sample Efficiency**: With limited instruction data, we can't afford to waste gradient updates on instruction tokens
 
 Mathematically, this becomes:
-$$\mathcal{L}_{\text{SFT}} = -\sum_{t \in \mathcal{A}} \log p_\theta(x_t \mid x_{<t})$$
+```math
+\mathcal{L}_{\text{SFT}} = -\sum_{t \in \mathcal{A}} \log p_\theta(x_t \mid x_{<t})
+```
 
 where $\mathcal{A}$ is the set of assistant token positions.
 
@@ -1118,14 +1124,14 @@ The second approach is better because:
 ### Mathematical Formulation
 
 Standard causal LM loss:
-$$
+```math
 \mathcal{L} = -\frac{1}{T} \sum_{t=1}^{T} \log p_\theta(y_t \mid y_{<t})
-$$
+```
 
 Masked SFT loss:
-$$
+```math
 \mathcal{L}_{\text{SFT}} = -\frac{1}{|A|} \sum_{t \in A} \log p_\theta(y_t \mid y_{<t})
-$$
+```
 
 where $A$ is the set of assistant token positions.
 
@@ -1362,7 +1368,9 @@ Even with the same per-token loss (0.5), the long response contributes 10x more 
 #### Theoretical Justification for Length Normalization
 
 Length normalization addresses this by computing the **average** loss per response rather than total loss:
-$$\mathcal{L}_{\text{normalized}} = \frac{1}{B} \sum_{b=1}^{B} \frac{1}{|A_b|} \sum_{t \in A_b} \log p(x_t \mid x_{<t})$$
+```math
+\mathcal{L}_{\text{normalized}} = \frac{1}{B} \sum_{b=1}^{B} \frac{1}{|A_b|} \sum_{t \in A_b} \log p(x_t \mid x_{<t})
+```
 
 where $|A_b|$ is the number of assistant tokens in example $b$.
 
@@ -1862,7 +1870,9 @@ Standard NLP metrics (BLEU, ROUGE) are insufficient for instruction-following be
 #### Theoretical Foundation: Perplexity as Confidence Measure
 
 Perplexity measures the model's uncertainty about the next token:
-$$\text{PPL} = \exp\left(-\frac{1}{N}\sum_{i=1}^{N} \log p(x_i \mid x_{<i})\right)$$
+```math
+\text{PPL} = \exp\left(-\frac{1}{N}\sum_{i=1}^{N} \log p(x_i \mid x_{<i})\right)
+```
 
 Lower perplexity indicates:
 - Higher confidence in token predictions
@@ -2103,7 +2113,9 @@ A/B testing is the gold standard for measuring user preferences because:
 4. **Captures real preferences**: Measures what users actually prefer, not what correlates with preference
 
 The theoretical foundation is **pairwise preference modeling**:
-$$P(\text{prefer } A) = \frac{1}{1 + e^{-(q_A - q_B)}}$$
+```math
+P(\text{prefer } A) = \frac{1}{1 + e^{-(q_A - q_B)}}
+```
 
 where $q_A$ and $q_B$ are latent quality scores. A/B testing estimates these preferences empirically.
 

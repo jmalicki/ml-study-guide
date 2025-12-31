@@ -31,9 +31,9 @@ Standard multi-head attention (see [Multi-Head Attention](04-multi-head-attentio
 
 For sequence length $n$ and hidden dimension $d$:
 
-$$
+```math
 \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
-$$
+```
 
 The $QK^T$ computation creates an $n \times n$ attention matrix, requiring $O(n^2 d)$ operations.
 
@@ -41,9 +41,9 @@ The $QK^T$ computation creates an $n \times n$ attention matrix, requiring $O(n^
 
 During autoregressive generation, we cache key and value tensors for all previous tokens:
 
-$$
+```math
 \text{Memory}_{\text{KV cache}} = 2 \times \text{layers} \times \text{heads} \times \text{seq\_len} \times \text{head\_dim} \times \text{bytes}
-$$
+```
 
 For a 70B model with 100K context:
 - 80 layers, 64 heads, 128 head dim, FP16
@@ -118,17 +118,17 @@ Linear attention approximates the softmax operation to achieve $O(nd^2)$ complex
 
 Standard attention can be viewed as:
 
-$$
+```math
 \text{Attention}(Q, K, V)_i = \frac{\sum_{j=1}^n \text{sim}(q_i, k_j) v_j}{\sum_{j=1}^n \text{sim}(q_i, k_j)}
-$$
+```
 
 where $\text{sim}(q, k) = \exp(q^T k / \sqrt{d})$.
 
 If we can approximate $\text{sim}(q, k) \approx \phi(q)^T \phi(k)$ for some feature map $\phi$, then:
 
-$$
+```math
 \text{Attention}(Q, K, V)_i = \frac{\phi(q_i)^T \sum_{j=1}^n \phi(k_j) v_j^T}{\phi(q_i)^T \sum_{j=1}^n \phi(k_j)}
-$$
+```
 
 The sums $\sum_j \phi(k_j) v_j^T$ and $\sum_j \phi(k_j)$ can be computed once in $O(nd^2)$ time!
 
@@ -274,7 +274,9 @@ def compare_linear_vs_standard():
 **Theoretical justification**: Random Fourier Features (RFF) provide a provably better approximation to the Gaussian/softmax kernel through Bochner's theorem:
 
 Any shift-invariant kernel $k(x-y)$ can be expressed as:
-$$k(x-y) = \mathbb{E}_{\omega}[\phi_{\omega}(x)^* \phi_{\omega}(y)]$$
+```math
+k(x-y) = \mathbb{E}_{\omega}[\phi_{\omega}(x)^* \phi_{\omega}(y)]
+```
 
 where $\phi_{\omega}(x) = e^{i\omega^T x}$ and $\omega$ is drawn from the Fourier transform of $k$.
 
@@ -967,7 +969,9 @@ PagedAttention borrows ideas from virtual memory in operating systems:
 **The key insight**: Just like virtual memory in OS, we can decouple the logical sequence of KV vectors from their physical storage location. Each sequence maintains a **block table** (like a page table) that maps logical positions to physical blocks.
 
 **Why this works for attention**: Attention computation is:
-$$\text{Attention}(Q, K, V) = \text{softmax}(QK^T)V$$
+```math
+\text{Attention}(Q, K, V) = \text{softmax}(QK^T)V
+```
 
 The key observation: we can gather K and V from non-contiguous blocks because matrix multiplication doesn't require contiguous memory - we're doing random access anyway!
 

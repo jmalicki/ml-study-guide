@@ -53,12 +53,12 @@ For an input sequence $X = (x_1, x_2, \ldots, x_n)$:
 
 1. **Embedding**: $E = \text{Embed}(X) + \text{PosEnc}(X)$
 2. **Encoder layers** (repeated $L$ times):
-   $$
-   \begin{align}
+   ```math
+\begin{align}
    H' &= \text{LayerNorm}(E + \text{MultiHeadAttn}(E, E, E, \text{mask}=\text{None})) \\
    H &= \text{LayerNorm}(H' + \text{FFN}(H'))
    \end{align}
-   $$
+```
 3. **Output**: Contextualized representations for each token
 
 Key difference from decoder: **no causal mask** - each token can attend to all other tokens.
@@ -288,23 +288,23 @@ For an input sequence $X = (x_1, x_2, \ldots, x_n)$:
 
 1. **Embedding**: $E = \text{Embed}(X) + \text{PosEnc}(X)$
 2. **Decoder layers** (repeated $L$ times):
-   $$
-   \begin{align}
+   ```math
+\begin{align}
    H' &= \text{LayerNorm}(E + \text{MaskedMultiHeadAttn}(E, E, E)) \\
    H &= \text{LayerNorm}(H' + \text{FFN}(H'))
    \end{align}
-   $$
+```
 3. **Language modeling head**: $\text{Logits} = H W_\text{vocab}^T$
 
 Key difference from encoder: **causal mask** ensures token $i$ can only attend to tokens $\leq i$.
 
 The causal mask is:
-$$
+```math
 M_{ij} = \begin{cases}
 0 & \text{if } i < j \\
 1 & \text{if } i \geq j
 \end{cases}
-$$
+```
 
 See [Bidirectional vs Causal Attention](05-bidirectional-causal-attention.md) for details.
 
@@ -585,18 +585,18 @@ Encoder-decoder models combine both architectures with **cross-attention** to co
 ### Mathematical Formulation
 
 **Encoder** (same as before):
-$$
+```math
 H_\text{enc} = \text{Encoder}(X_\text{src})
-$$
+```
 
 **Decoder** with cross-attention:
-$$
+```math
 \begin{align}
 H'_\text{self} &= \text{LayerNorm}(E + \text{MaskedSelfAttn}(E, E, E)) \\
 H'_\text{cross} &= \text{LayerNorm}(H'_\text{self} + \text{CrossAttn}(H'_\text{self}, H_\text{enc}, H_\text{enc})) \\
 H &= \text{LayerNorm}(H'_\text{cross} + \text{FFN}(H'_\text{cross}))
 \end{align}
-$$
+```
 
 Cross-attention uses:
 - **Query** from decoder
@@ -1645,9 +1645,9 @@ Language model training requires processing massive amounts of text data efficie
 **Theoretical Foundation:**
 
 The causal language modeling objective is:
-$$
+```math
 \mathcal{L} = -\frac{1}{T} \sum_{t=1}^{T} \log P(x_t \mid x_{<t}; \theta)
-$$
+```
 
 To compute this efficiently, we:
 1. **Chunk text into fixed-length blocks**: Allows batching sequences of equal length
@@ -1871,9 +1871,9 @@ Streaming datasets implement an **iterator pattern** rather than random access:
 - Streaming dataset: Implements `__iter__()` for sequential access
 
 This enables:
-$$
+```math
 \text{Sample} \sim \text{Stream}(\text{DataSource}) \rightarrow \text{Process} \rightarrow \text{Batch}
-$$
+```
 
 **Key Advantages:**
 1. **Constant memory**: O(buffer_size) regardless of dataset size
@@ -2057,26 +2057,26 @@ Modern LLMs use a carefully designed training recipe that has been refined over 
 **Theoretical Justification:**
 
 **1. AdamW Optimizer:**
-$$
+```math
 \begin{align}
 m_t &= \beta_1 m_{t-1} + (1-\beta_1) g_t \quad \text{(momentum)} \\
 v_t &= \beta_2 v_{t-1} + (1-\beta_2) g_t^2 \quad \text{(variance)} \\
 \hat{m}_t &= m_t / (1-\beta_1^t), \quad \hat{v}_t = v_t / (1-\beta_2^t) \quad \text{(bias correction)} \\
 \theta_t &= \theta_{t-1} - \alpha \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon} - \lambda \theta_{t-1} \quad \text{(update with weight decay)}
 \end{align}
-$$
+```
 
 Key insight: AdamW applies weight decay **directly to weights**, not to gradients (unlike Adam). This improves generalization.
 
 **2. Learning Rate Schedule:**
 
 Warmup + cosine decay:
-$$
+```math
 \alpha(t) = \begin{cases}
 \alpha_{\text{max}} \cdot \frac{t}{T_{\text{warmup}}} & \text{if } t < T_{\text{warmup}} \\
 \alpha_{\text{max}} \cdot \frac{1}{2}\left(1 + \cos\left(\pi \frac{t - T_{\text{warmup}}}{T_{\text{max}} - T_{\text{warmup}}}\right)\right) & \text{otherwise}
 \end{cases}
-$$
+```
 
 - **Warmup** (1-2% of steps): Prevents large updates when Adam statistics are poorly estimated
 - **Cosine decay**: Smooth reduction allows model to settle into better minima
@@ -2084,12 +2084,12 @@ $$
 **3. Gradient Clipping:**
 
 Scale gradients if their norm exceeds threshold:
-$$
+```math
 \tilde{g} = \begin{cases}
 g & \text{if } \|g\| \leq \tau \\
 \tau \frac{g}{\|g\|} & \text{otherwise}
 \end{cases}
-$$
+```
 
 This prevents rare catastrophic updates that can destabilize training.
 
@@ -2213,26 +2213,26 @@ Mixed precision uses different numerical formats for different operations:
 - **BF16** (16 bits): 1 sign + 8 exponent + 7 mantissa → same range as FP32, precision $\approx 2$ decimal digits
 
 **The Mixed Precision Strategy:**
-$$
+```math
 \begin{align}
 \text{Forward/Backward:} &\quad \text{FP16/BF16} \quad \text{(2x memory, 2-8x faster compute)} \\
 \text{Weights (master copy):} &\quad \text{FP32} \quad \text{(numerical stability)} \\
 \text{Optimizer states:} &\quad \text{FP32} \quad \text{(accumulation precision)} \\
 \text{Loss scaling:} &\quad \text{FP32} \quad \text{(prevent underflow)}
 \end{align}
-$$
+```
 
 **Key Technique: Loss Scaling**
 
 Problem: FP16 gradients can underflow (become 0) for small values.
 Solution: Scale loss by $S$ before backward pass:
-$$
+```math
 \begin{align}
 \mathcal{L}_{\text{scaled}} &= S \cdot \mathcal{L} \\
 g_{\text{scaled}} &= \nabla_\theta \mathcal{L}_{\text{scaled}} = S \cdot g \\
 g &= g_{\text{scaled}} / S \quad \text{(unscale before optimizer)}
 \end{align}
-$$
+```
 
 The GradScaler dynamically adjusts $S$:
 - Increase $S$ if no overflow occurs (capture smaller gradients)
@@ -2751,9 +2751,9 @@ Perplexity is the standard metric for evaluating generative language models. It 
 
 **Definition:**
 Perplexity is the exponential of the average negative log-likelihood:
-$$
+```math
 \text{PPL}(X) = \exp\left(-\frac{1}{T}\sum_{t=1}^{T} \log P(x_t \mid x_{<t}; \theta)\right)
-$$
+```
 
 where $T$ is the total number of tokens and $P(x_t \mid x_{<t}; \theta)$ is the model's predicted probability of token $x_t$.
 
@@ -2768,17 +2768,17 @@ Perplexity can be interpreted as the **effective vocabulary size** the model is 
 **Mathematical Derivation:**
 
 For a perfect uniform distribution over $k$ equally likely outcomes:
-$$
+```math
 H = -\sum_{i=1}^{k} \frac{1}{k} \log \frac{1}{k} = \log k
-$$
-$$
+```
+```math
 \text{PPL} = \exp(H) = \exp(\log k) = k
-$$
+```
 
 **Relationship to Cross-Entropy:**
-$$
+```math
 \text{PPL} = \exp(\text{CrossEntropy}) = \exp\left(\mathcal{L}_{\text{CE}}\right)
-$$
+```
 
 This means:
 - **Lower perplexity = better model**

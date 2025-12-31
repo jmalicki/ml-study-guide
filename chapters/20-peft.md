@@ -92,7 +92,9 @@ print(f"  Total: {memory['total_gb']:.1f} GB")
 
 PEFT methods freeze the base model weights and train only a small number of additional parameters:
 
-$$\text{Trainable parameters} = \frac{\text{PEFT params}}{\text{Total params}} \times 100\%$$
+```math
+\text{Trainable parameters} = \frac{\text{PEFT params}}{\text{Total params}} \times 100\%
+```
 
 Typical values: 0.01% - 1% of total parameters.
 
@@ -116,7 +118,9 @@ LoRA is the most popular PEFT method, introduced by Microsoft in 2021. The key i
 
 For a pretrained weight matrix $W_0 \in \mathbb{R}^{d \times k}$, LoRA represents the update as:
 
-$$W = W_0 + \Delta W = W_0 + BA$$
+```math
+W = W_0 + \Delta W = W_0 + BA
+```
 
 where:
 - $B \in \mathbb{R}^{d \times r}$ (down-projection)
@@ -125,11 +129,15 @@ where:
 
 The forward pass becomes:
 
-$$h = W_0 x + \Delta W x = W_0 x + BAx$$
+```math
+h = W_0 x + \Delta W x = W_0 x + BAx
+```
 
 **Scaling factor**: LoRA includes a scaling factor $\alpha$ to control the magnitude of updates:
 
-$$h = W_0 x + \frac{\alpha}{r} BAx$$
+```math
+h = W_0 x + \frac{\alpha}{r} BAx
+```
 
 The ratio $\frac{\alpha}{r}$ acts as a learning rate multiplier for the adapter.
 
@@ -413,6 +421,12 @@ def example_lora_layer():
 
 Choosing the right rank $r$ is critical for balancing performance and efficiency.
 
+**LoRA Rank Trade-off Visualization:**
+
+![LoRA Rank Trade-off](../assets/diagrams/ch20-lora-rank-tradeoff.svg)
+
+The visualization above shows the empirical relationship between LoRA rank and performance. Task performance improves logarithmically with rank, with r=8 achieving ~95% of full fine-tuning performance while training only 0.1% of parameters. Beyond r=16, improvements plateau while memory costs continue to grow linearly. The sweet spot for most tasks is r=8 to r=16, offering excellent performance-to-parameter ratios.
+
 ```python
 import torch
 import torch.nn as nn
@@ -610,10 +624,14 @@ QLoRA introduces:
 **Mathematical Formulation:**
 
 For a random variable $W \sim \mathcal{N}(0, 1)$, optimal k-bit quantization divides the distribution into $2^k$ bins such that:
-$$P(W \in \text{bin}_i) = \frac{1}{2^k} \quad \forall i$$
+```math
+P(W \in \text{bin}_i) = \frac{1}{2^k} \quad \forall i
+```
 
 For NF4 ($k=4$, 16 bins), the quantization levels are:
-$$q_i = \Phi^{-1}\left(\frac{i}{16}\right) \quad \text{for } i = 0, 1, \ldots, 15$$
+```math
+q_i = \Phi^{-1}\left(\frac{i}{16}\right) \quad \text{for } i = 0, 1, \ldots, 15
+```
 
 where $\Phi^{-1}$ is the inverse CDF (quantile function) of $\mathcal{N}(0,1)$.
 
@@ -1003,12 +1021,12 @@ def compare_qlora_memory():
 
 Double quantization applies quantization to the quantization constants (scales):
 
-$$
+```math
 \begin{align}
 \text{First level:} \quad W &= \text{scale}_1 \cdot W_{\text{4bit}} \\
 \text{Second level:} \quad \text{scale}_1 &= \text{scale}_2 \cdot \text{scale}_{1,\text{8bit}}
 \end{align}
-$$
+```
 
 This provides an additional ~3% memory reduction with negligible quality loss.
 
@@ -1030,10 +1048,14 @@ Prefix tuning prepends trainable vectors to the input sequence, while prompt tun
 **Mathematical Formulation:**
 
 For standard attention:
-$$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$$
+```math
+\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
+```
 
 With prefix tuning, we augment K and V:
-$$\text{Attention}(Q, [P_K; K], [P_V; V])$$
+```math
+\text{Attention}(Q, [P_K; K], [P_V; V])
+```
 
 where $P_K \in \mathbb{R}^{L_p \times d_k}$ and $P_V \in \mathbb{R}^{L_p \times d_v}$ are learned prefix parameters of length $L_p$.
 
@@ -1226,7 +1248,9 @@ Prompt tuning is simpler - only add trainable tokens to the input embedding:
 **Mathematical Formulation:**
 
 Given input token embeddings $E \in \mathbb{R}^{L \times d}$, we prepend learned soft prompts:
-$$E' = [P; E]$$
+```math
+E' = [P; E]
+```
 
 where $P \in \mathbb{R}^{L_p \times d}$ are trainable prompt embeddings. The rest of the model processes $E'$ normally, with prompts influencing computation through attention.
 
@@ -1349,10 +1373,14 @@ Adapters insert small bottleneck layers within transformer blocks.
 **Mathematical Formulation:**
 
 An adapter is a bottleneck module applied after a transformer sublayer:
-$$h' = h + \text{Adapter}(h)$$
+```math
+h' = h + \text{Adapter}(h)
+```
 
 where the adapter function is:
-$$\text{Adapter}(h) = W_{\text{up}} \cdot \sigma(W_{\text{down}} \cdot h + b_{\text{down}}) + b_{\text{up}}$$
+```math
+\text{Adapter}(h) = W_{\text{up}} \cdot \sigma(W_{\text{down}} \cdot h + b_{\text{down}}) + b_{\text{up}}
+```
 
 Here:
 - $W_{\text{down}} \in \mathbb{R}^{d \times r}$ projects from model dimension $d$ to bottleneck dimension $r$
@@ -1594,10 +1622,14 @@ IA³ (Infused Adapter by Inhibiting and Amplifying Inner Activations) uses learn
 **Mathematical Formulation:**
 
 For attention mechanism, IA³ applies learned scaling vectors:
-$$K' = K \odot \ell_k, \quad V' = V \odot \ell_v$$
+```math
+K' = K \odot \ell_k, \quad V' = V \odot \ell_v
+```
 
 For feedforward layers:
-$$\text{FFN}'(x) = \text{FFN}(x) \odot \ell_{ff}$$
+```math
+\text{FFN}'(x) = \text{FFN}(x) \odot \ell_{ff}
+```
 
 where $\ell_k, \ell_v, \ell_{ff} \in \mathbb{R}^d$ are learned scaling vectors (initialized to ones), and $\odot$ denotes element-wise multiplication.
 
@@ -2457,10 +2489,14 @@ By separating these, DoRA can better approximate the learning dynamics of full f
 **Mathematical Formulation:**
 
 Standard LoRA updates:
-$$W' = W_0 + \Delta W = W_0 + BA$$
+```math
+W' = W_0 + \Delta W = W_0 + BA
+```
 
 DoRA decomposes the updated weight into magnitude and direction:
-$$W' = m \frac{W_0 + BA}{\|W_0 + BA\|_{\text{col}}}$$
+```math
+W' = m \frac{W_0 + BA}{\|W_0 + BA\|_{\text{col}}}
+```
 
 where:
 - $m \in \mathbb{R}^{d_{\text{out}}}$ is a learned per-column magnitude vector
@@ -2630,10 +2666,14 @@ This asymmetry means that $A$ and $B$ naturally learn at different effective rat
 **Mathematical Formulation:**
 
 Standard LoRA optimization:
-$$A_{t+1} = A_t - \eta \nabla_A L, \quad B_{t+1} = B_t - \eta \nabla_B L$$
+```math
+A_{t+1} = A_t - \eta \nabla_A L, \quad B_{t+1} = B_t - \eta \nabla_B L
+```
 
 LoRA+ uses different learning rates:
-$$A_{t+1} = A_t - \eta \nabla_A L, \quad B_{t+1} = B_t - \lambda \eta \nabla_B L$$
+```math
+A_{t+1} = A_t - \eta \nabla_A L, \quad B_{t+1} = B_t - \lambda \eta \nabla_B L
+```
 
 where $\lambda > 1$ (typically $\lambda = 16$) is the learning rate ratio.
 
@@ -2799,7 +2839,9 @@ Serve multiple LoRA adapters efficiently by batching requests.
 **Mathematical Formulation:**
 
 For a batch with requests using different LoRA adapters, compute:
-$$y_i = W_0 x_i + B_i A_i x_i$$
+```math
+y_i = W_0 x_i + B_i A_i x_i
+```
 
 where adapter index $i$ varies per sample. The challenge is that standard batching requires all samples to use the same weights.
 
@@ -3364,7 +3406,9 @@ def qlora_with_bitsandbytes():
    - Typically $r=8$ or $r=16$ achieves 95%+ of full fine-tuning
 
 2. **Mathematical Foundation**
-   $$h = W_0 x + \frac{\alpha}{r} BAx$$
+   ```math
+h = W_0 x + \frac{\alpha}{r} BAx
+```
    - $W_0$: Frozen pre-trained weights
    - $B \in \mathbb{R}^{d \times r}$, $A \in \mathbb{R}^{r \times k}$: Trainable
    - $\alpha/r$: Scaling factor

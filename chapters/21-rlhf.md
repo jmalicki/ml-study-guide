@@ -74,9 +74,9 @@ Instead of rating responses on an absolute scale, we collect **pairwise preferen
 
 We model the probability that humans prefer response $y_w$ over $y_l$ using the **Bradley-Terry model**:
 
-$$
+```math
 P(y_w \succ y_l | x) = \sigma(r_\phi(x, y_w) - r_\phi(x, y_l))
-$$
+```
 
 where:
 - $r_\phi(x, y)$ is the scalar reward for prompt $x$ and response $y$
@@ -87,9 +87,9 @@ where:
 
 We train the reward model to maximize the log-likelihood of the observed preferences:
 
-$$
+```math
 \mathcal{L}_{\text{RM}}(\phi) = -\mathbb{E}_{(x, y_w, y_l) \sim D} \left[ \log \sigma(r_\phi(x, y_w) - r_\phi(x, y_l)) \right]
-$$
+```
 
 This is equivalent to binary cross-entropy loss.
 
@@ -392,9 +392,9 @@ We formulate language generation as an RL problem:
 
 The goal is to maximize expected reward while staying close to the reference model:
 
-$$
+```math
 \mathcal{J}(\theta) = \mathbb{E}_{x \sim D, y \sim \pi_\theta(\cdot|x)} \left[ r_\phi(x, y) - \beta \cdot D_{\text{KL}}(\pi_\theta(\cdot|x) || \pi_{\text{ref}}(\cdot|x)) \right]
-$$
+```
 
 where:
 - $r_\phi(x, y)$ is the reward from the reward model
@@ -406,9 +406,9 @@ where:
 
 PPO optimizes a clipped surrogate objective to prevent too large policy updates:
 
-$$
+```math
 L^{\text{CLIP}}(\theta) = \mathbb{E}_t \left[ \min(r_t(\theta) \hat{A}_t, \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon) \hat{A}_t) \right]
-$$
+```
 
 where:
 - $r_t(\theta) = \frac{\pi_\theta(a_t|s_t)}{\pi_{\text{old}}(a_t|s_t)}$ is the probability ratio
@@ -419,15 +419,15 @@ where:
 
 The advantage $A(s, a)$ measures how much better action $a$ is compared to the average:
 
-$$
+```math
 A(s, a) = Q(s, a) - V(s)
-$$
+```
 
 We use Generalized Advantage Estimation (GAE) for lower variance:
 
-$$
+```math
 \hat{A}_t = \sum_{l=0}^{\infty} (\gamma \lambda)^l \delta_{t+l}
-$$
+```
 
 where $\delta_t = r_t + \gamma V(s_{t+1}) - V(s_t)$ is the TD error.
 
@@ -624,7 +624,9 @@ This is especially important because:
    - Improves advantage estimation quality over time
 
 **Theoretical insight**: The key innovation of PPO is the clipped ratio objective:
-$$\min(r_t(\theta) \hat{A}_t, \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon) \hat{A}_t)$$
+```math
+\min(r_t(\theta) \hat{A}_t, \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon) \hat{A}_t)
+```
 
 This ensures:
 - If advantage is positive ($\hat{A}_t > 0$), we increase probability but only up to $(1+\epsilon)$ times
@@ -758,15 +760,15 @@ The KL divergence constraint is crucial for RLHF. Without it, the policy can exp
 
 For discrete distributions (language models), the KL divergence is:
 
-$$
+```math
 D_{\text{KL}}(\pi_\theta || \pi_{\text{ref}}) = \sum_{a} \pi_\theta(a|s) \log \frac{\pi_\theta(a|s)}{\pi_{\text{ref}}(a|s)}
-$$
+```
 
 For a generated sequence $y = (y_1, \ldots, y_T)$, we compute the average per-token KL:
 
-$$
+```math
 D_{\text{KL}}^{\text{avg}} = \frac{1}{T} \sum_{t=1}^{T} D_{\text{KL}}(\pi_\theta(\cdot|x, y_{<t}) || \pi_{\text{ref}}(\cdot|x, y_{<t}))
-$$
+```
 
 ### Implementation
 
@@ -845,13 +847,13 @@ def compute_rlhf_reward(
 
 Instead of a fixed $\beta$, some implementations use adaptive KL control:
 
-$$
+```math
 \beta_{t+1} = \begin{cases}
 \beta_t / \alpha & \text{if } D_{\text{KL}} < D_{\text{target}} - \epsilon \\
 \beta_t \times \alpha & \text{if } D_{\text{KL}} > D_{\text{target}} + \epsilon \\
 \beta_t & \text{otherwise}
 \end{cases}
-$$
+```
 
 This keeps the KL divergence close to a target value (typically 5-10 nats).
 

@@ -33,9 +33,9 @@ This chapter covers the fundamental problem Flash Attention solves, the algorith
 
 Standard attention has a fundamental memory problem that becomes critical for long sequences:
 
-$$
+```math
 \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
-$$
+```
 
 The attention matrix $S = QK^T$ has shape $(N, N)$ where $N$ is the sequence length. For modern LLMs with long contexts:
 
@@ -540,9 +540,9 @@ The key algorithmic innovation in Flash Attention is computing softmax increment
 
 Standard softmax requires two passes over the data:
 
-$$
+```math
 \text{softmax}(x_i) = \frac{e^{x_i}}{\sum_{j} e^{x_j}}
-$$
+```
 
 **Two-pass algorithm:**
 1. First pass: Find $m = \max_j x_j$ (for numerical stability)
@@ -743,12 +743,12 @@ class FlashAttentionSoftmax:
 
 When the max changes from $m_{old}$ to $m_{new}$, we need to rescale everything:
 
-$$
+```math
 \begin{align}
 l_{new} &= l_{old} \cdot e^{m_{old} - m_{new}} + \sum_{j \in \text{new block}} e^{S_{ij} - m_{new}} \\
 O_{new} &= O_{old} \cdot e^{m_{old} - m_{new}} + \sum_{j \in \text{new block}} e^{S_{ij} - m_{new}} V_j
 \end{align}
-$$
+```
 
 This allows us to maintain exact softmax while processing in blocks!
 
@@ -764,7 +764,9 @@ Standard attention computes the full N×N attention matrix and stores it in HBM 
 **Theoretical Justification:**
 Flash Attention's forward pass is based on the associativity of attention operations. Mathematically:
 
-$$\text{Attention}(Q, K, V) = \sum_{j=1}^{N} \frac{e^{q_i \cdot k_j}}{\sum_{l=1}^{N} e^{q_i \cdot k_l}} v_j$$
+```math
+\text{Attention}(Q, K, V) = \sum_{j=1}^{N} \frac{e^{q_i \cdot k_j}}{\sum_{l=1}^{N} e^{q_i \cdot k_l}} v_j
+```
 
 The key observation: we can compute this sum incrementally by processing K, V in blocks, as long as we maintain the correct normalization (via online softmax). This is **exact**, not approximate—we get the same result as if we computed the full attention matrix.
 
@@ -1086,7 +1088,9 @@ if __name__ == "__main__":
 
 The core innovation is how we compute softmax incrementally. Standard softmax requires:
 
-$$\text{softmax}(x_i) = \frac{e^{x_i}}{\sum_j e^{x_j}}$$
+```math
+\text{softmax}(x_i) = \frac{e^{x_i}}{\sum_j e^{x_j}}
+```
 
 This needs the full sequence to compute the sum in the denominator. Flash Attention solves this by maintaining:
 - $M$: running maximum (for numerical stability)
@@ -1103,7 +1107,9 @@ This is **mathematically exact**—we get the same result as if we computed the 
 
 Tracking M separately provides numerical stability. In standard softmax, we compute:
 
-$$\text{softmax}(x_i) = \frac{e^{x_i - \max(x)}}{\sum_j e^{x_j - \max(x)}}$$
+```math
+\text{softmax}(x_i) = \frac{e^{x_i - \max(x)}}{\sum_j e^{x_j - \max(x)}}
+```
 
 Subtracting the max prevents overflow. In online softmax, when we see a new max:
 - Old values need rescaling by $e^{m_{old} - m_{new}}$

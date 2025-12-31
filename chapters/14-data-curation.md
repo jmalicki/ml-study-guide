@@ -608,7 +608,9 @@ MinHash enables efficient detection of near-duplicates using Jaccard similarity.
 
 **Theory**: MinHash provides an approximation of Jaccard similarity between sets:
 
-$$J(A, B) = \frac{|A \cap B|}{|A \cup B|}$$
+```math
+J(A, B) = \frac{|A \cap B|}{|A \cup B|}
+```
 
 For sets of n-grams, MinHash signatures allow us to estimate similarity in $O(k)$ time instead of $O(|A| + |B|)$, where $k$ is the signature size.
 
@@ -922,7 +924,9 @@ Choosing the right LSH parameters (number of bands and rows per band) is crucial
 
 **Theory**: For a similarity threshold $s$ and LSH configuration with $b$ bands and $r$ rows per band, the probability that two documents with Jaccard similarity $s$ become candidates is:
 
-$$P(\text{candidate}|s) = 1 - (1 - s^r)^b$$
+```math
+P(\text{candidate}|s) = 1 - (1 - s^r)^b
+```
 
 This forms an **S-curve**: low similarity pairs have low probability of being candidates, and high similarity pairs have high probability.
 
@@ -1132,7 +1136,9 @@ Use a language model to score text quality. High-quality text has lower perplexi
 
 **Perplexity** is defined as:
 
-$$\text{PPL}(X) = \exp\left(-\frac{1}{N}\sum_{i=1}^{N} \log P(x_i | x_{<i})\right)$$
+```math
+\text{PPL}(X) = \exp\left(-\frac{1}{N}\sum_{i=1}^{N} \log P(x_i | x_{<i})\right)
+```
 
 where $N$ is the number of tokens and $P(x_i | x_{<i})$ is the model's predicted probability of token $x_i$ given context.
 
@@ -1722,7 +1728,9 @@ The most common contamination detection method is **n-gram overlap**: computing 
 
 For a test example $x_{test}$ and training corpus $D_{train}$, the n-gram overlap is:
 
-$$\text{Overlap}_n(x_{test}, D_{train}) = \frac{|\text{ngrams}_n(x_{test}) \cap \text{ngrams}_n(D_{train})|}{|\text{ngrams}_n(x_{test})|}$$
+```math
+\text{Overlap}_n(x_{test}, D_{train}) = \frac{|\text{ngrams}_n(x_{test}) \cap \text{ngrams}_n(D_{train})|}{|\text{ngrams}_n(x_{test})|}
+```
 
 **Common practices**:
 - Use 13-grams (balances specificity and coverage)
@@ -2246,7 +2254,9 @@ When training on multiple data sources, careful mixing is important for model qu
 
 Given source sizes $n_1, n_2, \ldots, n_k$, the sampling probability for source $i$ is:
 
-$$p_i = \frac{n_i^{1/T}}{\sum_j n_j^{1/T}}$$
+```math
+p_i = \frac{n_i^{1/T}}{\sum_j n_j^{1/T}}
+```
 
 where $T$ is temperature:
 - $T = 1$: Proportional sampling (matches source sizes)
