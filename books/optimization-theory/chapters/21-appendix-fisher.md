@@ -231,6 +231,7 @@ The score has zero expectation under the model:
 $$\mathbb{E}_{x \sim p_\theta}[s(x; \theta)] = 0$$
 
 **Proof**:
+
 $$\mathbb{E}[s(x; \theta)] = \int p(x; \theta) \frac{\nabla_\theta p(x; \theta)}{p(x; \theta)} dx = \nabla_\theta \int p(x; \theta) dx = \nabla_\theta 1 = 0$$
 
 This uses the fact that $\int p(x; \theta) dx = 1$ for all $\theta$.
@@ -277,6 +278,7 @@ Under [regularity conditions](https://en.wikipedia.org/wiki/Leibniz_integral_rul
 $$I(\theta) = -\mathbb{E}_{x \sim p_\theta}\left[\frac{\partial^2 \log p(x; \theta)}{\partial \theta^2}\right]$$
 
 **Proof**:
+
 $$\frac{\partial^2 \log p}{\partial \theta^2} = \frac{\partial}{\partial \theta}\left(\frac{1}{p}\frac{\partial p}{\partial \theta}\right) = \frac{1}{p}\frac{\partial^2 p}{\partial \theta^2} - \frac{1}{p^2}\left(\frac{\partial p}{\partial \theta}\right)^2$$
 
 Taking expectations:
@@ -664,6 +666,7 @@ For infinitesimal parameter changes:
 $$D_{KL}(p_\theta \| p_{\theta + d\theta}) \approx \frac{1}{2} d\theta^T F(\theta) d\theta$$
 
 **Proof**:
+
 $$D_{KL}(p_\theta \| p_{\theta + d\theta}) = \mathbb{E}_{p_\theta}\left[\log \frac{p_\theta(x)}{p_{\theta + d\theta}(x)}\right]$$
 
 Taylor expanding:
@@ -704,9 +707,11 @@ For GPT-3 (175B parameters): The full Fisher would require $10^{22}$ entries—i
 ### Empirical Fisher vs True Fisher
 
 **True Fisher**: Sample $y$ from the model's own distribution:
+
 $$F(\theta) = \mathbb{E}_{x \sim \text{data}} \mathbb{E}_{y \sim p(\cdot|x;\theta)}\left[\nabla \log p(y|x;\theta) \nabla \log p(y|x;\theta)^T\right]$$
 
 **Empirical Fisher**: Use the actual label:
+
 $$\hat{F}(\theta) = \mathbb{E}_{(x,y) \sim \text{data}}\left[\nabla \log p(y|x;\theta) \nabla \log p(y|x;\theta)^T\right]$$
 
 The empirical Fisher is easier to compute but loses theoretical properties:
