@@ -42,14 +42,14 @@
   <!-- Define grid parameters -->
   <g id="heatmap" transform="translate(200, 100)">
     <!-- Column headers (Image patches) -->
-    <text x="35" y="-10" class="label-text text-color" text-anchor="middle">P1</text>
-    <text x="85" y="-10" class="label-text text-color" text-anchor="middle">P2</text>
-    <text x="135" y="-10" class="label-text text-color" text-anchor="middle">P3</text>
-    <text x="185" y="-10" class="label-text text-color" text-anchor="middle">P4</text>
-    <text x="235" y="-10" class="label-text text-color" text-anchor="middle">P5</text>
-    <text x="285" y="-10" class="label-text text-color" text-anchor="middle">P6</text>
-    <text x="335" y="-10" class="label-text text-color" text-anchor="middle">P7</text>
-    <text x="385" y="-10" class="label-text text-color" text-anchor="middle">P8</text>
+    <text x="35" y="-10" class="label-text text-color" text-anchor="middle">P<tspan baseline-shift="sub" font-size="smaller">1</tspan></text>
+    <text x="85" y="-10" class="label-text text-color" text-anchor="middle">P<tspan baseline-shift="sub" font-size="smaller">2</tspan></text>
+    <text x="135" y="-10" class="label-text text-color" text-anchor="middle">P<tspan baseline-shift="sub" font-size="smaller">3</tspan></text>
+    <text x="185" y="-10" class="label-text text-color" text-anchor="middle">P<tspan baseline-shift="sub" font-size="smaller">4</tspan></text>
+    <text x="235" y="-10" class="label-text text-color" text-anchor="middle">P<tspan baseline-shift="sub" font-size="smaller">5</tspan></text>
+    <text x="285" y="-10" class="label-text text-color" text-anchor="middle">P<tspan baseline-shift="sub" font-size="smaller">6</tspan></text>
+    <text x="335" y="-10" class="label-text text-color" text-anchor="middle">P<tspan baseline-shift="sub" font-size="smaller">7</tspan></text>
+    <text x="385" y="-10" class="label-text text-color" text-anchor="middle">P<tspan baseline-shift="sub" font-size="smaller">8</tspan></text>
 
     <!-- Row headers (Text tokens) -->
     <text x="-15" y="35" class="label-text text-color" text-anchor="end">"A"</text>
@@ -191,9 +191,9 @@
   <!-- Patch descriptions -->
   <g transform="translate(200, 430)">
     <text x="0" y="0" class="small-text text-color" font-weight="600">Image Patch Contents:</text>
-    <text x="0" y="20" class="small-text text-color">P1: Sky/Background</text>
-    <text x="0" y="37" class="small-text text-color">P2-P4: Cat (head, body)</text>
-    <text x="200" y="20" class="small-text text-color">P5-P8: Mat (surface)</text>
+    <text x="0" y="20" class="small-text text-color">P<tspan baseline-shift="sub" font-size="smaller">1</tspan>: Sky/Background</text>
+    <text x="0" y="37" class="small-text text-color">P<tspan baseline-shift="sub" font-size="smaller">2</tspan>-P<tspan baseline-shift="sub" font-size="smaller">4</tspan>: Cat (head, body)</text>
+    <text x="200" y="20" class="small-text text-color">P<tspan baseline-shift="sub" font-size="smaller">5</tspan>-P<tspan baseline-shift="sub" font-size="smaller">8</tspan>: Mat (surface)</text>
   </g>
 
   <!-- Color scale legend -->

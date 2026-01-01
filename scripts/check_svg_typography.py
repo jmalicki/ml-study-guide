@@ -9,12 +9,24 @@ Checks:
 5. Delimiters (parens, brackets) around fractions should scale to fraction height
 6. Sum/product symbols should scale to match fraction height
 7. Content should not extend beyond the viewBox boundaries
+8. ASCII subscript notation (x_y) should use proper SVG subscripts
 
 Usage:
     python3 check_svg_typography.py [--strict] [files...]
 
 Options:
     --strict    Treat warnings as errors (exit code 1 if any warnings)
+
+Inline Disable Comments:
+    Add comments to SVG files to disable specific checks:
+    <!-- lint-disable subscript -->   - disable ASCII subscript check
+    <!-- lint-disable math-font -->   - disable math font check
+    <!-- lint-disable spacing -->     - disable vertical spacing check
+    <!-- lint-disable fraction -->    - disable fraction syntax check
+    <!-- lint-disable delimiter -->   - disable delimiter scaling check
+    <!-- lint-disable viewbox -->     - disable viewBox bounds check
+    <!-- lint-disable font-cdn -->    - disable font CDN check
+    <!-- lint-disable all -->         - disable all checks
 """
 import argparse
 import re
@@ -296,8 +308,25 @@ def check_ascii_subscripts(elements: List[TextElement]) -> List[str]:
     # Pattern for ASCII superscript: letter(s) followed by ^letter(s)/digit(s)
     ascii_superscript_pattern = re.compile(r'[a-zA-Z0-9]\^[a-zA-Z0-9]+')
 
+    # Common false positives - variable names, file names, code identifiers
+    # These use underscores intentionally, not as math subscripts
+    FALSE_POSITIVE_PATTERNS = {
+        # SVG/CSS attributes
+        'font_size', 'font_family', 'text_anchor', 'baseline_shift',
+        # Common variable names
+        'max_len', 'seq_len', 'batch_size', 'hidden_size', 'num_heads',
+        'grad_norm', 'max_grad', 'learning_rate', 'weight_decay', 'x_len',
+        # File name patterns
+        't_epoch', 'l_model', 'h_size', 'd_norm', 'x_grad', 't_len',
+        'q_len', 'n_dim', 'n_layers', 'n_heads',
+    }
+
     for elem in elements:
         text = elem.content
+
+        # Skip if text looks like a file path or code snippet
+        if '.pt' in text or '.py' in text or 'checkpoint' in text:
+            continue
 
         # Check for ASCII subscripts
         subscript_matches = ascii_subscript_pattern.findall(text)
@@ -306,7 +335,11 @@ def check_ascii_subscripts(elements: List[TextElement]) -> List[str]:
             real_issues = []
             for match in subscript_matches:
                 # Skip if it looks like a variable name in code context
-                if match in ('font_size', 'font_family', 'text_anchor'):
+                if match in FALSE_POSITIVE_PATTERNS:
+                    continue
+                # Skip if match is part of a longer underscore_separated name
+                # (e.g., "max_grad_norm" should not flag "d_norm")
+                if f'_{match}' in text or f'{match}_' in text:
                     continue
                 real_issues.append(match)
 
@@ -609,47 +642,78 @@ def check_viewbox_bounds(root: ET.Element) -> List[str]:
     return issues
 
 
+def extract_lint_disables(content: str) -> Set[str]:
+    """Extract lint-disable directives from SVG comments.
+
+    Supports:
+    - <!-- lint-disable subscript --> - disable subscript check
+    - <!-- lint-disable math-font --> - disable math font check
+    - <!-- lint-disable spacing --> - disable vertical spacing check
+    - <!-- lint-disable fraction --> - disable fraction syntax check
+    - <!-- lint-disable delimiter --> - disable delimiter scaling check
+    - <!-- lint-disable viewbox --> - disable viewBox bounds check
+    - <!-- lint-disable font-cdn --> - disable font CDN check
+    - <!-- lint-disable all --> - disable all checks
+    """
+    disables = set()
+    pattern = r'<!--\s*lint-disable\s+(\w+(?:-\w+)?)\s*-->'
+    for match in re.finditer(pattern, content):
+        disables.add(match.group(1).lower())
+    return disables
+
+
 def check_svg_file(svg_path: Path) -> List[str]:
     """Check a single SVG file for typography issues."""
     issues = []
     content = svg_path.read_text()
 
+    # Extract lint-disable directives
+    disables = extract_lint_disables(content)
+    disable_all = 'all' in disables
+
     # Check font CDN usage
-    font_issues = check_font_cdn(content)
-    issues.extend(font_issues)
+    if not disable_all and 'font-cdn' not in disables:
+        font_issues = check_font_cdn(content)
+        issues.extend(font_issues)
 
     try:
         tree = ET.parse(svg_path)
         root = tree.getroot()
 
         # Check viewBox bounds
-        bounds_issues = check_viewbox_bounds(root)
-        issues.extend(bounds_issues)
+        if not disable_all and 'viewbox' not in disables:
+            bounds_issues = check_viewbox_bounds(root)
+            issues.extend(bounds_issues)
 
         elements = get_text_elements(root)
 
         if elements:
             # Check vertical spacing
-            spacing_issues = check_vertical_spacing(elements)
-            issues.extend(spacing_issues)
+            if not disable_all and 'spacing' not in disables:
+                spacing_issues = check_vertical_spacing(elements)
+                issues.extend(spacing_issues)
 
             # Check math fonts
-            math_issues = check_math_fonts(elements)
-            issues.extend(math_issues)
+            if not disable_all and 'math-font' not in disables:
+                math_issues = check_math_fonts(elements)
+                issues.extend(math_issues)
 
             # Check ASCII subscript/superscript notation
-            subscript_issues = check_ascii_subscripts(elements)
-            issues.extend(subscript_issues)
+            if not disable_all and 'subscript' not in disables:
+                subscript_issues = check_ascii_subscripts(elements)
+                issues.extend(subscript_issues)
 
             # Check fraction syntax
-            fraction_issues = check_fraction_syntax(content)
-            issues.extend(fraction_issues)
+            if not disable_all and 'fraction' not in disables:
+                fraction_issues = check_fraction_syntax(content)
+                issues.extend(fraction_issues)
 
             # Find fractions and check delimiter scaling
-            fractions = find_fraction_regions(root)
-            if fractions:
-                delimiter_issues = check_delimiter_scaling(elements, fractions)
-                issues.extend(delimiter_issues)
+            if not disable_all and 'delimiter' not in disables:
+                fractions = find_fraction_regions(root)
+                if fractions:
+                    delimiter_issues = check_delimiter_scaling(elements, fractions)
+                    issues.extend(delimiter_issues)
 
     except ET.ParseError as e:
         issues.append(f"  ERROR: Failed to parse SVG: {e}")

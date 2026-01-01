@@ -58,7 +58,7 @@
 
   
   <text x="400" y="540" font-size="14" text-anchor="middle" fill="#333">
-    Log Probability Ratio: log(π_θ(y_w|x)/π_ref(y_w|x)) - log(π_θ(y_l|x)/π_ref(y_l|x))
+    Log Probability Ratio: log(π<tspan baseline-shift="sub" font-size="smaller">θ</tspan>(y<tspan baseline-shift="sub" font-size="smaller">w</tspan>|x)/π<tspan baseline-shift="sub" font-size="smaller">ref</tspan>(y<tspan baseline-shift="sub" font-size="smaller">w</tspan>|x)) - log(π<tspan baseline-shift="sub" font-size="smaller">θ</tspan>(y<tspan baseline-shift="sub" font-size="smaller">l</tspan>|x)/π<tspan baseline-shift="sub" font-size="smaller">ref</tspan>(y<tspan baseline-shift="sub" font-size="smaller">l</tspan>|x))
   </text>
   <text x="400" y="560" font-size="11" text-anchor="middle" fill="#666">
     (Higher = model prefers chosen over rejected more than reference does)

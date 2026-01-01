@@ -120,7 +120,7 @@
     <line x1="332" y1="320" x2="332" y2="345" stroke="#999" stroke-width="1.5" marker-end="url(#arrowhead)" />
 
     <rect x="220" y="350" width="225" height="45" class="bg-box" stroke="#4A90A4" stroke-width="2" rx="5" />
-    <text x="332" y="372" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" fill="#4A90A4">W_O (Output Projection)</text>
+    <text x="332" y="372" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" fill="#4A90A4">W<tspan baseline-shift="sub" font-size="9">O</tspan> (Output Projection)</text>
     <text x="332" y="388" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#333">[512, 512]</text>
   </g>
 
@@ -140,13 +140,13 @@
   <text x="650" y="150" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">different patterns</text>
   <text x="645" y="170" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">• Concatenation preserves</text>
   <text x="650" y="183" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">all head information</text>
-  <text x="645" y="203" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">• W_O mixes information</text>
+  <text x="645" y="203" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">• W<tspan baseline-shift="sub" font-size="7">O</tspan> mixes information</text>
   <text x="650" y="216" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">across heads</text>
 
   <!-- Formula box -->
   <rect x="630" y="240" width="200" height="75" fill="#f9f9f9" stroke="#ccc" stroke-width="1" rx="5" />
   <text x="645" y="260" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="bold" fill="#333">Multi-Head Formula:</text>
   <text x="650" y="280" font-family="monospace" font-size="9" fill="#333">MHA(Q,K,V) =</text>
-  <text x="660" y="295" font-family="monospace" font-size="9" fill="#333">Concat(head₁,...,head_h)W_O</text>
-  <text x="650" y="310" font-family="monospace" font-size="9" fill="#333">head_i = Attention(QW_Q^i,...)</text>
+  <text x="660" y="295" font-family="monospace" font-size="9" fill="#333">Concat(head₁,...,head<tspan baseline-shift="sub" font-size="6">h</tspan>)W<tspan baseline-shift="sub" font-size="6">O</tspan></text>
+  <text x="650" y="310" font-family="monospace" font-size="9" fill="#333">head<tspan baseline-shift="sub" font-size="6">i</tspan> = Attention(QW<tspan baseline-shift="sub" font-size="6">Q</tspan><tspan baseline-shift="super" font-size="6">i</tspan>,...)</text>
 </svg>

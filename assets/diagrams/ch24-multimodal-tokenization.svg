@@ -64,14 +64,14 @@
     <!-- Extracted patches -->
     <g transform="translate(240, 100)">
       <rect class="patch-highlight" x="0" y="0" width="50" height="50" rx="3"/>
-      <text x="25" y="27" class="tiny-text text-color" text-anchor="middle">P₁</text>
+      <text x="25" y="27" class="tiny-text text-color" text-anchor="middle">P<tspan baseline-shift="sub" font-size="smaller">1</tspan></text>
       <text x="25" y="38" class="tiny-text text-color" text-anchor="middle">16×16×3</text>
 
       <rect class="patch" x="55" y="0" width="50" height="50" rx="3"/>
-      <text x="80" y="27" class="tiny-text text-color" text-anchor="middle">P₂</text>
+      <text x="80" y="27" class="tiny-text text-color" text-anchor="middle">P<tspan baseline-shift="sub" font-size="smaller">2</tspan></text>
 
       <rect class="patch" x="110" y="0" width="50" height="50" rx="3"/>
-      <text x="135" y="27" class="tiny-text text-color" text-anchor="middle">P₃</text>
+      <text x="135" y="27" class="tiny-text text-color" text-anchor="middle">P<tspan baseline-shift="sub" font-size="smaller">3</tspan></text>
 
       <text x="80" y="70" class="small-text text-color" text-anchor="middle">... (196 patches total)</text>
     </g>
@@ -84,7 +84,7 @@
     <!-- Patch to embedding -->
     <g transform="translate(480, 100)">
       <rect class="patch-highlight" x="0" y="0" width="50" height="50" rx="3"/>
-      <text x="25" y="27" class="tiny-text text-color" text-anchor="middle">P₁</text>
+      <text x="25" y="27" class="tiny-text text-color" text-anchor="middle">P<tspan baseline-shift="sub" font-size="smaller">1</tspan></text>
       <text x="25" y="38" class="tiny-text text-color" text-anchor="middle">768 dims</text>
     </g>
 
@@ -204,13 +204,13 @@
       <g transform="translate(20, 15)">
         <rect class="embedding" width="70" height="40" rx="3"/>
         <text x="35" y="15" class="tiny-text text-color" text-anchor="middle">Vision</text>
-        <text x="35" y="28" class="tiny-text text-color" text-anchor="middle">P₁</text>
+        <text x="35" y="28" class="tiny-text text-color" text-anchor="middle">P<tspan baseline-shift="sub" font-size="smaller">1</tspan></text>
       </g>
 
       <g transform="translate(95, 15)">
         <rect class="embedding" width="70" height="40" rx="3"/>
         <text x="35" y="15" class="tiny-text text-color" text-anchor="middle">Vision</text>
-        <text x="35" y="28" class="tiny-text text-color" text-anchor="middle">P₂</text>
+        <text x="35" y="28" class="tiny-text text-color" text-anchor="middle">P<tspan baseline-shift="sub" font-size="smaller">2</tspan></text>
       </g>
 
       <text x="195" y="35" class="small-text text-color" text-anchor="middle">...</text>
@@ -218,7 +218,7 @@
       <g transform="translate(230, 15)">
         <rect class="embedding" width="70" height="40" rx="3"/>
         <text x="35" y="15" class="tiny-text text-color" text-anchor="middle">Vision</text>
-        <text x="35" y="28" class="tiny-text text-color" text-anchor="middle">P₁₉₆</text>
+        <text x="35" y="28" class="tiny-text text-color" text-anchor="middle">P<tspan baseline-shift="sub" font-size="smaller">196</tspan></text>
       </g>
 
       <g transform="translate(305, 15)">

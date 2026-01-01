@@ -50,7 +50,7 @@
   
   <rect x="130" y="20" width="140" height="60" class="bg-box" stroke="#4A90A4" stroke-width="2" rx="5" />
   <text x="200" y="45" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">Linear</text>
-  <text x="200" y="62" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666">(d_model → d_ff)</text>
+  <text x="200" y="62" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666">(d<tspan baseline-shift="sub" font-size="7.7">model</tspan> → d<tspan baseline-shift="sub" font-size="7.7">ff</tspan>)</text>
 
   
   <path d="M 270 50 L 300 50" stroke="#4A90A4" stroke-width="2" fill="none" marker-end="url(#arrowhead)" />
@@ -65,7 +65,7 @@
   
   <rect x="430" y="20" width="140" height="60" class="bg-box" stroke="#4A90A4" stroke-width="2" rx="5" />
   <text x="500" y="45" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#333">Linear</text>
-  <text x="500" y="62" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666">(d_ff → d_model)</text>
+  <text x="500" y="62" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666">(d<tspan baseline-shift="sub" font-size="7.7">ff</tspan> → d<tspan baseline-shift="sub" font-size="7.7">model</tspan>)</text>
 
   
   <defs>

@@ -195,14 +195,7 @@
     <!-- Formula -->
     <g transform="translate(20, 45)">
       <text y="0" class="small" font-weight="600">Attention Score Formula:</text>
-      <text y="20" class="small" font-style="italic">score(q</text>
-      <text y="20" x="55" class="small" font-style="italic" font-size="9" dy="3">i</text>
-      <text y="20" x="62" class="small" font-style="italic">, k</text>
-      <text y="20" x="77" class="small" font-style="italic" font-size="9" dy="3">j</text>
-      <text y="20" x="85" class="small" font-style="italic">) = q</text>
-      <text y="20" x="110" class="small" font-style="italic" font-size="9" dy="3">i</text>
-      <text y="20" x="115" class="small" font-style="italic">ᵀ k</text>
-      <text y="20" x="135" class="small" font-style="italic" font-size="9" dy="3">j</text>
+      <text y="20" class="small" font-style="italic">score(q<tspan baseline-shift="sub" font-size="8">i</tspan>, k<tspan baseline-shift="sub" font-size="8">j</tspan>) = q<tspan baseline-shift="sub" font-size="8">i</tspan>ᵀ k<tspan baseline-shift="sub" font-size="8">j</tspan></text>
       <text y="20" x="145" class="small" fill="#E57373" font-weight="600">- m · |i - j|</text>
 
       <text y="45" class="small">where:</text>

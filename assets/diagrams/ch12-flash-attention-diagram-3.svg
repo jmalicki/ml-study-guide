@@ -57,7 +57,7 @@
     <rect x="0" y="60" width="30" height="30" class="tile" stroke="#4A90A4" stroke-width="1.5" />
     <rect x="30" y="60" width="30" height="30" class="tile" stroke="#4A90A4" stroke-width="1.5" />
     <rect x="60" y="60" width="30" height="30" class="tile" stroke="#4A90A4" stroke-width="1.5" />
-    <text x="45" y="110" font-family="system-ui, -apple-system, sans-serif" font-size="11"  text-anchor="middle" fill="#000">Br×d blocks</text>
+    <text x="45" y="110" font-family="system-ui, -apple-system, sans-serif" font-size="11"  text-anchor="middle" fill="#000">B<tspan baseline-shift="sub" font-size="7.7">r</tspan>×d blocks</text>
   </g>
 
 
@@ -73,7 +73,7 @@
     <rect x="0" y="60" width="30" height="30" fill="#fff0f0" stroke="#4A90A4" stroke-width="1.5" />
     <rect x="30" y="60" width="30" height="30" fill="#fff0f0" stroke="#4A90A4" stroke-width="1.5" />
     <rect x="60" y="60" width="30" height="30" fill="#fff0f0" stroke="#4A90A4" stroke-width="1.5" />
-    <text x="45" y="110" font-family="system-ui, -apple-system, sans-serif" font-size="11"  text-anchor="middle" fill="#000">Bc×d blocks</text>
+    <text x="45" y="110" font-family="system-ui, -apple-system, sans-serif" font-size="11"  text-anchor="middle" fill="#000">B<tspan baseline-shift="sub" font-size="7.7">c</tspan>×d blocks</text>
   </g>
 
 
@@ -89,7 +89,7 @@
     <rect x="0" y="60" width="30" height="30" fill="#f0fff0" stroke="#4A90A4" stroke-width="1.5" />
     <rect x="30" y="60" width="30" height="30" fill="#f0fff0" stroke="#4A90A4" stroke-width="1.5" />
     <rect x="60" y="60" width="30" height="30" fill="#f0fff0" stroke="#4A90A4" stroke-width="1.5" />
-    <text x="45" y="110" font-family="system-ui, -apple-system, sans-serif" font-size="11"  text-anchor="middle" fill="#000">Bc×d blocks</text>
+    <text x="45" y="110" font-family="system-ui, -apple-system, sans-serif" font-size="11"  text-anchor="middle" fill="#000">B<tspan baseline-shift="sub" font-size="7.7">c</tspan>×d blocks</text>
   </g>
 
   
@@ -97,7 +97,7 @@
     <text x="0" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="bold" >Process:</text>
     <text x="0" y="20" font-family="system-ui, -apple-system, sans-serif" font-size="12" >1. Outer loop over K, V blocks (Tc = ⌈N/Bc⌉ iterations)</text>
     <text x="0" y="40" font-family="system-ui, -apple-system, sans-serif" font-size="12" >2. Inner loop over Q blocks (Tr = ⌈N/Br⌉ iterations)</text>
-    <text x="0" y="60" font-family="system-ui, -apple-system, sans-serif" font-size="12" >3. For each (Q_block, K_block, V_block):</text>
+    <text x="0" y="60" font-family="system-ui, -apple-system, sans-serif" font-size="12" >3. For each (Q<tspan baseline-shift="sub" font-size="8.4">block</tspan>, K<tspan baseline-shift="sub" font-size="8.4">block</tspan>, V<tspan baseline-shift="sub" font-size="8.4">block</tspan>):</text>
     <text x="20" y="77" font-family="system-ui, -apple-system, sans-serif" font-size="11" >• Compute attention for this block</text>
     <text x="20" y="92" font-family="system-ui, -apple-system, sans-serif" font-size="11" >• Accumulate to output</text>
   </g>

@@ -48,13 +48,13 @@
     <path d="M 150 110 L 180 110" class="diagram-arrow" stroke-width="2" marker-end="url(#arrowhead)"/>
 
     <rect x="180" y="90" width="120" height="40" class="diagram-compute" opacity="0.3" stroke-width="2" rx="5"/>
-    <text x="240" y="115" class="diagram-text" font-size="11" text-anchor="middle">Compute K₀, V₀</text>
+    <text x="240" y="115" class="diagram-text" font-size="11" text-anchor="middle">Compute K<tspan baseline-shift="sub" font-size="8">0</tspan>, V<tspan baseline-shift="sub" font-size="8">0</tspan></text>
 
     <path d="M 300 110 L 330 110" class="diagram-arrow" stroke-width="2" marker-end="url(#arrowhead)"/>
 
     <rect x="330" y="90" width="100" height="40" class="diagram-cache" opacity="0.3" stroke-width="2" rx="5"/>
     <text x="380" y="110" class="diagram-text" font-size="11" text-anchor="middle">Cache</text>
-    <text x="380" y="124" class="diagram-text mono" font-size="10" text-anchor="middle">[K₀, V₀]</text>
+    <text x="380" y="124" class="diagram-text mono" font-size="10" text-anchor="middle">[K<tspan baseline-shift="sub" font-size="7">0</tspan>, V<tspan baseline-shift="sub" font-size="7">0</tspan>]</text>
   </g>
 
   <!-- Step 2: Second token -->
@@ -67,13 +67,13 @@
     <path d="M 150 210 L 180 210" class="diagram-arrow" stroke-width="2" marker-end="url(#arrowhead)"/>
 
     <rect x="180" y="190" width="120" height="40" class="diagram-new" opacity="0.3" stroke-width="2" rx="5"/>
-    <text x="240" y="215" class="diagram-text" font-size="11" text-anchor="middle">Compute K₁, V₁</text>
+    <text x="240" y="215" class="diagram-text" font-size="11" text-anchor="middle">Compute K<tspan baseline-shift="sub" font-size="8">1</tspan>, V<tspan baseline-shift="sub" font-size="8">1</tspan></text>
 
     <path d="M 300 210 L 330 210" class="diagram-arrow" stroke-width="2" marker-end="url(#arrowhead)"/>
 
     <rect x="330" y="190" width="160" height="40" class="diagram-cache" opacity="0.3" stroke-width="2" rx="5"/>
     <text x="410" y="205" class="diagram-text" font-size="11" text-anchor="middle">Cache (append)</text>
-    <text x="410" y="224" class="diagram-text mono" font-size="10" text-anchor="middle">[K₀,V₀] + [K₁,V₁]</text>
+    <text x="410" y="224" class="diagram-text mono" font-size="10" text-anchor="middle">[K<tspan baseline-shift="sub" font-size="7">0</tspan>,V<tspan baseline-shift="sub" font-size="7">0</tspan>] + [K<tspan baseline-shift="sub" font-size="7">1</tspan>,V<tspan baseline-shift="sub" font-size="7">1</tspan>]</text>
 
     <text x="520" y="215" class="diagram-subtext" font-size="10">← No recompute!</text>
   </g>
@@ -88,13 +88,13 @@
     <path d="M 150 310 L 180 310" class="diagram-arrow" stroke-width="2" marker-end="url(#arrowhead)"/>
 
     <rect x="180" y="290" width="120" height="40" class="diagram-new" opacity="0.3" stroke-width="2" rx="5"/>
-    <text x="240" y="315" class="diagram-text" font-size="11" text-anchor="middle">Compute K₂, V₂</text>
+    <text x="240" y="315" class="diagram-text" font-size="11" text-anchor="middle">Compute K<tspan baseline-shift="sub" font-size="8">2</tspan>, V<tspan baseline-shift="sub" font-size="8">2</tspan></text>
 
     <path d="M 300 310 L 330 310" class="diagram-arrow" stroke-width="2" marker-end="url(#arrowhead)"/>
 
     <rect x="330" y="290" width="200" height="40" class="diagram-cache" opacity="0.3" stroke-width="2" rx="5"/>
     <text x="430" y="305" class="diagram-text" font-size="11" text-anchor="middle">Cache (append)</text>
-    <text x="430" y="324" class="diagram-text mono" font-size="9" text-anchor="middle">[K₀,V₀,K₁,V₁] + [K₂,V₂]</text>
+    <text x="430" y="324" class="diagram-text mono" font-size="9" text-anchor="middle">[K<tspan baseline-shift="sub" font-size="6">0</tspan>,V<tspan baseline-shift="sub" font-size="6">0</tspan>,K<tspan baseline-shift="sub" font-size="6">1</tspan>,V<tspan baseline-shift="sub" font-size="6">1</tspan>] + [K<tspan baseline-shift="sub" font-size="6">2</tspan>,V<tspan baseline-shift="sub" font-size="6">2</tspan>]</text>
   </g>
 
   <!-- Comparison box -->

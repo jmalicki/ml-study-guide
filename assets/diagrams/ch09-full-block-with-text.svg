@@ -83,7 +83,7 @@
     <rect x="190" y="245" width="220" height="70" fill="#E57373" opacity="0.15" stroke="#E57373" stroke-width="2" rx="5" />
     <text x="300" y="272" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" fill="#E57373">Multi-Head Attention</text>
     <text x="300" y="290" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#333">Q, K, V from same input (self-attention)</text>
-    <text x="300" y="305" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#666">h=8 heads, d_k=64</text>
+    <text x="300" y="305" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#666">h=8 heads, d<tspan baseline-shift="sub" font-size="6.3">k</tspan>=64</text>
   </g>
 
   <line x1="300" y1="315" x2="300" y2="340" stroke="#999" stroke-width="2" marker-end="url(#arrowhead)" />

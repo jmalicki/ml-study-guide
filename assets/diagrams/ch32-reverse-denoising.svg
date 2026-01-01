@@ -43,7 +43,7 @@
       rect[fill="#E57373"] { fill: #8b3d3d; }
     }
   </style><text x="400" y="25" font-size="18" font-weight="bold" fill="#333" text-anchor="middle">Reverse Denoising Process</text>
-  <text x="400" y="45" font-size="12" fill="#666" text-anchor="middle">p_θ(x_{t-1} | x_t) - Learned by neural network</text>
+  <text x="400" y="45" font-size="12" fill="#666" text-anchor="middle">p<tspan baseline-shift="sub" font-size="smaller">θ</tspan>(x<tspan baseline-shift="sub" font-size="smaller">t-1</tspan> | x<tspan baseline-shift="sub" font-size="smaller">t</tspan>) - Learned by neural network</text>
 
   
   <g id="timesteps">
@@ -61,7 +61,7 @@
       <circle cx="35" cy="75" r="2.5" fill="#666" opacity="0.7" />
       <circle cx="60" cy="40" r="2.5" fill="#666" opacity="0.7" />
       <text x="40" y="105" font-size="12" fill="#000" text-anchor="middle">t = T</text>
-      <text x="40" y="120" font-size="10" fill="#000" text-anchor="middle">x_T ~ N(0,I)</text>
+      <text x="40" y="120" font-size="10" fill="#000" text-anchor="middle">x<tspan baseline-shift="sub" font-size="smaller">T</tspan> ~ N(0,I)</text>
       <text x="40" y="135" font-size="9" fill="#00627A" text-anchor="middle">Start here</text>
     </g>
 
@@ -69,7 +69,7 @@
     <g transform="translate(145, 120)">
       <line x1="0" y1="0" x2="35" y2="0" stroke="#4A90A4" stroke-width="2" />
       <polygon points="35,0 28,-4 28,4" fill="#4A90A4" />
-      <text x="17" y="-8" font-size="9" fill="#4A90A4" text-anchor="middle">ε_θ(x_t,t)</text>
+      <text x="17" y="-8" font-size="9" fill="#4A90A4" text-anchor="middle">ε<tspan baseline-shift="sub" font-size="smaller">θ</tspan>(x<tspan baseline-shift="sub" font-size="smaller">t</tspan>,t)</text>
     </g>
 
     
@@ -84,14 +84,14 @@
       <circle cx="15" cy="70" r="3" fill="#666" opacity="0.6" />
       <circle cx="45" cy="35" r="3" fill="#666" opacity="0.6" />
       <text x="40" y="105" font-size="12" fill="#333" text-anchor="middle">t = 3T/4</text>
-      <text x="40" y="120" font-size="10" fill="#666" text-anchor="middle">x_{3T/4}</text>
+      <text x="40" y="120" font-size="10" fill="#666" text-anchor="middle">x<tspan baseline-shift="sub" font-size="smaller">3T/4</tspan></text>
     </g>
 
     
     <g transform="translate(290, 120)">
       <line x1="0" y1="0" x2="35" y2="0" stroke="#4A90A4" stroke-width="2" />
       <polygon points="35,0 28,-4 28,4" fill="#4A90A4" />
-      <text x="17" y="-8" font-size="9" fill="#4A90A4" text-anchor="middle">ε_θ(x_t,t)</text>
+      <text x="17" y="-8" font-size="9" fill="#4A90A4" text-anchor="middle">ε<tspan baseline-shift="sub" font-size="smaller">θ</tspan>(x<tspan baseline-shift="sub" font-size="smaller">t</tspan>,t)</text>
     </g>
 
     
@@ -104,14 +104,14 @@
       <circle cx="60" cy="20" r="3" fill="#666" opacity="0.5" />
       <circle cx="25" cy="70" r="3" fill="#666" opacity="0.5" />
       <text x="40" y="105" font-size="12" fill="#333" text-anchor="middle">t = T/2</text>
-      <text x="40" y="120" font-size="10" fill="#666" text-anchor="middle">x_{T/2}</text>
+      <text x="40" y="120" font-size="10" fill="#666" text-anchor="middle">x<tspan baseline-shift="sub" font-size="smaller">T/2</tspan></text>
     </g>
 
     
     <g transform="translate(435, 120)">
       <line x1="0" y1="0" x2="35" y2="0" stroke="#4A90A4" stroke-width="2" />
       <polygon points="35,0 28,-4 28,4" fill="#4A90A4" />
-      <text x="17" y="-8" font-size="9" fill="#4A90A4" text-anchor="middle">ε_θ(x_t,t)</text>
+      <text x="17" y="-8" font-size="9" fill="#4A90A4" text-anchor="middle">ε<tspan baseline-shift="sub" font-size="smaller">θ</tspan>(x<tspan baseline-shift="sub" font-size="smaller">t</tspan>,t)</text>
     </g>
 
     
@@ -122,14 +122,14 @@
       <circle cx="20" cy="50" r="3" fill="#666" opacity="0.3" />
       <circle cx="60" cy="25" r="3" fill="#666" opacity="0.3" />
       <text x="40" y="105" font-size="12" fill="#333" text-anchor="middle">t = T/4</text>
-      <text x="40" y="120" font-size="10" fill="#666" text-anchor="middle">x_{T/4}</text>
+      <text x="40" y="120" font-size="10" fill="#666" text-anchor="middle">x<tspan baseline-shift="sub" font-size="smaller">T/4</tspan></text>
     </g>
 
     
     <g transform="translate(580, 120)">
       <line x1="0" y1="0" x2="35" y2="0" stroke="#4A90A4" stroke-width="2" />
       <polygon points="35,0 28,-4 28,4" fill="#4A90A4" />
-      <text x="17" y="-8" font-size="9" fill="#4A90A4" text-anchor="middle">ε_θ(x_t,t)</text>
+      <text x="17" y="-8" font-size="9" fill="#4A90A4" text-anchor="middle">ε<tspan baseline-shift="sub" font-size="smaller">θ</tspan>(x<tspan baseline-shift="sub" font-size="smaller">t</tspan>,t)</text>
     </g>
 
     
@@ -138,19 +138,19 @@
       <rect x="10" y="10" width="20" height="20" fill="#81C784" rx="2" />
       <rect x="35" y="35" width="35" height="35" fill="#E57373" rx="2" />
       <text x="40" y="105" font-size="12" fill="#333" text-anchor="middle">t = 0</text>
-      <text x="40" y="120" font-size="10" fill="#666" text-anchor="middle">x₀ (sample)</text>
+      <text x="40" y="120" font-size="10" fill="#666" text-anchor="middle">x<tspan baseline-shift="sub" font-size="smaller">0</tspan> (sample)</text>
       <text x="40" y="135" font-size="9" fill="#81C784" text-anchor="middle">Generated!</text>
     </g>
   </g>
 
 
   <rect x="320" y="190" width="160" height="50" fill="#4A90A4" opacity="0.15" rx="6" stroke="#4A90A4" stroke-width="2" stroke-dasharray="4,4" />
-  <text x="400" y="178" font-size="11" font-weight="bold" fill="#000" text-anchor="middle">Neural Network ε_θ</text>
+  <text x="400" y="178" font-size="11" font-weight="bold" fill="#000" text-anchor="middle">Neural Network ε<tspan baseline-shift="sub" font-size="smaller">θ</tspan></text>
   <text x="400" y="254" font-size="9" fill="#000" text-anchor="middle">Predicts noise at each step</text>
   <text x="400" y="268" font-size="9" fill="#000" text-anchor="middle">Trained via MSE loss</text>
 
 
   <text x="50" y="250" font-size="11" font-weight="bold" fill="#000">Key Concept:</text>
   <text x="50" y="268" font-size="10" fill="#000">Model iteratively removes predicted noise to recover clean image from pure noise</text>
-  <text x="50" y="285" font-size="10" fill="#000">Each denoising step uses learned p_θ(x_{t-1} | x_t) = N(μ_θ(x_t,t), σ_t²I)</text>
+  <text x="50" y="285" font-size="10" fill="#000">Each denoising step uses learned p<tspan baseline-shift="sub" font-size="smaller">θ</tspan>(x<tspan baseline-shift="sub" font-size="smaller">t-1</tspan> | x<tspan baseline-shift="sub" font-size="smaller">t</tspan>) = N(μ<tspan baseline-shift="sub" font-size="smaller">θ</tspan>(x<tspan baseline-shift="sub" font-size="smaller">t</tspan>,t), σ<tspan baseline-shift="sub" font-size="smaller">t</tspan>²I)</text>
 </svg>
