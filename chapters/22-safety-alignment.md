@@ -4164,7 +4164,7 @@ For production safety systems like Claude's, see [Architecture Comparison: Moder
 ### Additional Resources
 
 - [Anthropic's Constitutional AI Blog Post](https://www.anthropic.com/index/constitutional-ai-harmlessness-from-ai-feedback)
-- [OpenAI's Alignment Research Overview](https://openai.com/research/alignment)
+- [OpenAI's Alignment Research Blog](https://alignment.openai.com/)
 - [DeepMind's Scalable AI Safety](https://www.deepmind.com/safety-and-ethics)
 
 ---
