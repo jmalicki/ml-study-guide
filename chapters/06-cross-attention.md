@@ -2908,7 +2908,7 @@ Different models use cross-attention differently:
 
 - [The Illustrated Transformer](https://jalammar.github.io/illustrated-transformer/) - Jay Alammar
 - [Attention? Attention!](https://lilianweng.github.io/posts/2018-06-24-attention/) - Lilian Weng
-- [Cross-Attention in Multimodal Models](https://huggingface.co/blog/vision-language-pretraining) - Hugging Face Blog
+- [A Dive into Vision-Language Models](https://huggingface.co/blog/vision_language_pretraining) - Hugging Face Blog
 
 ### Related Chapters
 
