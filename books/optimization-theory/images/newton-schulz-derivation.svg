@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 380">
+  <style>
+    /* Light mode (default) */
+    text { fill: #000000; }
+    .label-text { fill: #666666; }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .label-text { fill: #cccccc; }
+
+      text[fill="#000"], text[fill="#000000"], text[fill="#333"], text[fill="#666"] {
+        fill: #ffffff;
+      }
+      text[fill="#fff"], text[fill="#ffffff"], text[fill="white"] {
+        fill: #ffffff;
+      }
+      text[fill="#E57373"] { fill: #ef5350; }
+      text[fill="#81C784"] { fill: #66bb6a; }
+      text[fill="#FFB74D"] { fill: #ffa726; }
+      text[fill="#4A90A4"] { fill: #4fc3f7; }
+      text[fill="#9575CD"] { fill: #b39ddb; }
+
+      rect[fill="#E3F2FD"] { fill: #1a3a4a; }
+      rect[fill="#E8F5E9"] { fill: #1a3a2a; }
+      rect[fill="#FFEBEE"] { fill: #4a2a2a; }
+      rect[fill="#FFF8E1"] { fill: #4a4020; }
+      rect[fill="#EDE7F6"] { fill: #3a2a4a; }
+      rect[fill="#f5f5f5"] { fill: #2a2a2a; }
+    }
+  </style>
+
+  <!-- Title -->
+  <text x="350" y="28" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="bold" fill="#333">Newton-Schulz: Derivation from Inverse Square Root</text>
+
+  <!-- Goal box -->
+  <rect x="30" y="50" width="200" height="70" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2" rx="8"/>
+  <text x="130" y="72" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#4A90A4">Goal: Orthogonal Polar Factor</text>
+  <text x="130" y="95" text-anchor="middle" font-family="monospace" font-size="12" fill="#333">Q = G · (G^T G)^{-1/2}</text>
+  <text x="130" y="112" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">where Q^T Q = I</text>
+
+  <!-- Arrow -->
+  <line x1="240" y1="85" x2="280" y2="85" stroke="#333" stroke-width="2"/>
+  <polygon points="280,85 273,81 273,89" fill="#333"/>
+
+  <!-- Need to find box -->
+  <rect x="290" y="50" width="180" height="70" fill="#EDE7F6" stroke="#9575CD" stroke-width="2" rx="8"/>
+  <text x="380" y="72" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#9575CD">Need to Find</text>
+  <text x="380" y="95" text-anchor="middle" font-family="monospace" font-size="12" fill="#333">Y = (G^T G)^{-1/2}</text>
+  <text x="380" y="112" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">such that Y² = (G^T G)^{-1}</text>
+
+  <!-- Arrow -->
+  <line x1="480" y1="85" x2="520" y2="85" stroke="#333" stroke-width="2"/>
+  <polygon points="520,85 513,81 513,89" fill="#333"/>
+
+  <!-- Newton's method box -->
+  <rect x="530" y="50" width="140" height="70" fill="#FFF8E1" stroke="#FFB74D" stroke-width="2" rx="8"/>
+  <text x="600" y="72" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#FFB74D">Newton's Method</text>
+  <text x="600" y="95" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">for solving</text>
+  <text x="600" y="112" text-anchor="middle" font-family="monospace" font-size="11" fill="#333">Y² A = I</text>
+
+  <!-- Derivation steps -->
+  <text x="350" y="155" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" fill="#333">Newton's Method for Y² = A⁻¹</text>
+
+  <!-- Step 1 -->
+  <g transform="translate(50, 170)">
+    <rect x="0" y="0" width="280" height="85" fill="#f5f5f5" stroke="#ccc" stroke-width="1" rx="5"/>
+    <text x="140" y="20" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" fill="#333">Step 1: Define f(Y) = 0</text>
+    <text x="20" y="42" font-family="monospace" font-size="11" fill="#333">f(Y) = Y⁻¹ - AY = 0</text>
+    <text x="20" y="60" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">Rearranges to: Y² A = I</text>
+    <text x="20" y="76" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">Solution: Y = A^{-1/2}</text>
+  </g>
+
+  <!-- Arrow down -->
+  <line x1="190" y1="260" x2="190" y2="275" stroke="#333" stroke-width="1.5"/>
+  <polygon points="190,280 186,273 194,273" fill="#333"/>
+
+  <!-- Step 2 -->
+  <g transform="translate(50, 285)">
+    <rect x="0" y="0" width="280" height="75" fill="#f5f5f5" stroke="#ccc" stroke-width="1" rx="5"/>
+    <text x="140" y="20" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" fill="#333">Step 2: Newton Update</text>
+    <text x="20" y="42" font-family="monospace" font-size="11" fill="#333">Y_{k+1} = Y_k - [df/dY]⁻¹ f(Y_k)</text>
+    <text x="20" y="62" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">After matrix calculus...</text>
+  </g>
+
+  <!-- Result box -->
+  <g transform="translate(370, 170)">
+    <rect x="0" y="0" width="280" height="85" fill="#E8F5E9" stroke="#81C784" stroke-width="2" rx="8"/>
+    <text x="140" y="22" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#81C784">Newton Iteration for A^{-1/2}</text>
+    <text x="140" y="50" text-anchor="middle" font-family="monospace" font-size="13" fill="#333">Y_{k+1} = Y_k(3I - AY_k²)/2</text>
+    <text x="140" y="75" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">The 3 emerges from the Newton formula!</text>
+  </g>
+
+  <!-- Arrow down -->
+  <line x1="510" y1="260" x2="510" y2="275" stroke="#333" stroke-width="1.5"/>
+  <polygon points="510,280 506,273 514,273" fill="#333"/>
+
+  <!-- Final transformation -->
+  <g transform="translate(370, 285)">
+    <rect x="0" y="0" width="280" height="75" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2" rx="8"/>
+    <text x="140" y="20" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" fill="#4A90A4">Substituting X_k = G · Y_k</text>
+    <text x="140" y="45" text-anchor="middle" font-family="monospace" font-size="12" fill="#333">X_{k+1} = X_k(3I - X_k^T X_k)/2</text>
+    <text x="140" y="65" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">Newton-Schulz orthogonalization!</text>
+  </g>
+</svg>
