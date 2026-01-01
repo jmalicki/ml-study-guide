@@ -11,7 +11,14 @@ This script:
    - Balanced \begin and \end environments
    - Proper bracing for multi-character superscripts and subscripts (^{...} and _{...})
    - Common LaTeX command errors (\frac, \sqrt)
+   - Markdown/LaTeX conflicts (asterisks in inline math that may render as italic)
 4. Reports any syntax errors found
+
+Markdown/LaTeX Conflicts:
+    Inline math like $\theta^*$ can be misrendered in some markdown viewers
+    because the asterisk (*) is interpreted as italic/bold formatting.
+    The linter warns about these patterns and suggests alternatives like
+    $\theta^\ast$ or using display math ($$...$$).
 """
 
 import re
@@ -386,6 +393,51 @@ class LatexValidator:
             return "; ".join(errors)
         return None
 
+    def check_markdown_latex_conflicts(self, latex: str, is_inline: bool) -> Optional[str]:
+        r"""
+        Check for LaTeX patterns that conflict with markdown rendering.
+
+        Common issues:
+        - Asterisks (*) in inline math can be interpreted as italic/bold markers
+        - Underscores in inline math can trigger subscript rendering
+        - Pipe characters can be interpreted as table delimiters
+
+        Returns error message if issues found, None if valid.
+        """
+        if not is_inline:
+            # Block math ($$...$$) is generally safe from markdown interpretation
+            return None
+
+        errors = []
+
+        # Check for asterisks that might be interpreted as markdown italic/bold
+        # Pattern: $...*...$ where * could pair with another * outside the math
+        if '*' in latex:
+            # Count asterisks - odd numbers are especially problematic
+            asterisk_count = latex.count('*')
+            # Check for common problematic patterns like \theta^* or x^*
+            asterisk_patterns = re.findall(r'(\^?\*|\*\^?)', latex)
+            if asterisk_patterns:
+                errors.append(
+                    f"Asterisk(s) in inline math may render incorrectly in some markdown viewers. "
+                    f"Consider using $\\ast$ or $\\star$ instead of $*$, or use display math ($$...$$). "
+                    f"Found: {latex[:50]}"
+                )
+
+        # Check for underscores that aren't part of subscripts
+        # This is trickier - underscores for subscripts are fine, but bare _ can cause issues
+        # Pattern: _ not followed by { or alphanumeric (which would make it a subscript)
+        bare_underscore = re.search(r'_(?![{a-zA-Z0-9\\])', latex)
+        if bare_underscore:
+            errors.append(
+                f"Bare underscore in inline math may cause rendering issues. "
+                f"Use subscript notation like $x_{{i}}$ instead of bare $x_$"
+            )
+
+        if errors:
+            return "; ".join(errors)
+        return None
+
     def check_common_latex_errors(self, latex: str) -> Optional[str]:
         r"""
         Check for common LaTeX syntax errors.
@@ -679,6 +731,20 @@ class LatexValidator:
 
     def validate_latex(self, latex: str, file_path: Path, line_num: int, math_type: str) -> None:
         """Validate a single LaTeX expression and record any errors."""
+        is_inline = (math_type == 'inline')
+
+        # Check for markdown/LaTeX conflicts (inline math only)
+        error = self.check_markdown_latex_conflicts(latex, is_inline)
+        if error:
+            self.warnings.append(LatexError(
+                file_path=file_path,
+                line_num=line_num,
+                error_type="Markdown/LaTeX conflict",
+                message=error,
+                latex_snippet=latex[:100],
+                is_warning=True
+            ))
+
         # Check balanced braces
         error = self.check_balanced_braces(latex)
         if error:
@@ -800,6 +866,13 @@ class LatexValidator:
             for md_file in sorted(review_dir.glob("*.md")):
                 self.validate_file(md_file)
 
+        # Check books directory (e.g., books/optimization-theory/chapters/)
+        books_dir = self.root_dir / "books"
+        if books_dir.exists():
+            for book_chapters in books_dir.glob("*/chapters"):
+                for md_file in sorted(book_chapters.glob("*.md")):
+                    self.validate_file(md_file)
+
         # Check root level markdown files (but skip test files in production)
         for md_file in sorted(self.root_dir.glob("*.md")):
             # Skip test files unless explicitly testing
@@ -821,6 +894,26 @@ class LatexValidator:
         print("Validation Results")
         print("=" * 70)
         print()
+
+        if self.warnings:
+            print(f"WARNINGS ({len(self.warnings)}):")
+            print()
+
+            # Group warnings by file
+            warnings_by_file = {}
+            for warning in self.warnings:
+                rel_path = warning.file_path.relative_to(self.root_dir)
+                if rel_path not in warnings_by_file:
+                    warnings_by_file[rel_path] = []
+                warnings_by_file[rel_path].append(warning)
+
+            for file_path in sorted(warnings_by_file.keys()):
+                print(f"  {file_path}:")
+                for warning in warnings_by_file[file_path]:
+                    print(f"    Line {warning.line_num}: {warning.error_type}")
+                    print(f"      {warning.message}")
+                    print()
+            print()
 
         if self.errors:
             print(f"ERRORS ({len(self.errors)}):")
@@ -847,6 +940,9 @@ class LatexValidator:
 
             print("Validation FAILED")
             return 1
+        elif self.warnings:
+            print(f"Validation PASSED with {len(self.warnings)} warning(s)")
+            return 0
         else:
             print("All LaTeX syntax checks PASSED")
             return 0
