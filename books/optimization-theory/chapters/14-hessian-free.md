@@ -161,7 +161,7 @@ class HessianFreeOptimizer:
 
 ### Key Components
 
-1. **HVP via autodiff**: Compute $Hv$ in $O(n)$ time using two backward passes
+1. **HVP via automatic differentiation**: Compute $Hv$ in $O(n)$ time using two backward passes
 
 2. **Truncated CG**: Only run 10-50 iterations, not full convergence
 
@@ -195,7 +195,7 @@ def gauss_newton_vector_product(
     1. Jv (Jacobian-vector product): How outputs change when params move in direction v
     2. J^T(Jv) (vector-Jacobian product): Backprop the output change to get param change
 
-    We use finite differences for Jv because PyTorch's autodiff is reverse-mode,
+    We use finite differences for Jv because PyTorch's automatic differentiation is reverse-mode,
     which gives us J^T u (VJP) efficiently but not Jv (JVP) directly.
     See Appendix C for finite difference background.
     """
@@ -223,7 +223,7 @@ def gauss_newton_vector_product(
 
     Jv = (outputs_plus - outputs) / eps  # Shape: same as outputs
 
-    # Step 2: Compute J^T(Jv) using autodiff (reverse mode)
+    # Step 2: Compute J^T(Jv) using automatic differentiation (reverse mode)
     # This is a standard VJP: backprop Jv through the model
     loss = (outputs * Jv.detach()).sum()
     JTJv = torch.autograd.grad(loss, params)
@@ -231,7 +231,7 @@ def gauss_newton_vector_product(
     return list(JTJv)
 ```
 
-> **Note**: PyTorch 2.0+ provides `torch.func.jvp` for forward-mode autodiff, which can replace the finite difference approximation with an exact JVP. See the [PyTorch documentation](https://pytorch.org/docs/stable/func.api.html#torch.func.jvp).
+> **Note**: PyTorch 2.0+ provides `torch.func.jvp` for forward-mode automatic differentiation, which can replace the finite difference approximation with an exact JVP. See the [PyTorch documentation](https://pytorch.org/docs/stable/func.api.html#torch.func.jvp).
 
 ## Practical Considerations
 
@@ -352,7 +352,7 @@ This influenced:
 
 1. **Hessian-free uses CG** to compute Newton steps without forming H
 
-2. **HVPs cost $O(n)$** via autodiff—same as gradient
+2. **HVPs cost $O(n)$** via automatic differentiation—same as gradient
 
 3. **Truncated CG** gives approximate Newton directions cheaply
 

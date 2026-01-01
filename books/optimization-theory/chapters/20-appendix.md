@@ -225,19 +225,19 @@ def hvp_finite_diff(f, x, v, eps=1e-4):
     return (grad_plus - grad_x) / eps
 ```
 
-In practice, autodiff (using `torch.autograd.grad` with `create_graph=True`) is preferred over finite differences because:
+In practice, automatic differentiation (using `torch.autograd.grad` with `create_graph=True`) is preferred over finite differences because:
 1. It's exact (no truncation error)
 2. It's numerically stable
 3. It can be more efficient for high-dimensional problems
 
 However, finite differences remain useful for:
 - Gradient checking / debugging
-- When autodiff isn't available
-- Understanding what autodiff is computing
+- When automatic differentiation isn't available
+- Understanding what automatic differentiation is computing
 
 ### Forward vs Reverse Mode Automatic Differentiation
 
-Automatic differentiation (autodiff) computes exact derivatives by applying the chain rule systematically. There are two modes, corresponding to the two ways of parenthesizing a chain of matrix multiplications.
+**Automatic differentiation** computes exact derivatives by applying the chain rule systematically. There are two modes, corresponding to the two ways of parenthesizing a chain of matrix multiplications.
 
 **Setup**: Consider a composition $f = f_n \circ f_{n-1} \circ \cdots \circ f_1$ where input $x \in \mathbb{R}^m$ and output $y \in \mathbb{R}^k$. The Jacobian is:
 
