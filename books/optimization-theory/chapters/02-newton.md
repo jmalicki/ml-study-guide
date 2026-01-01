@@ -442,9 +442,9 @@ def newton_decrement(
     return decrement.item()
 ```
 
-## Summary: The Newton Ideal
+## Summary: Newton as a Benchmark
 
-Newton's method is the **theoretically optimal** optimizer:
+Newton's method provides a useful benchmark for optimization—not because it's theoretically optimal (higher-order methods using derivative tensors could converge faster), but because second-order is the practical frontier:
 
 | Property | Gradient Descent | Newton |
 |----------|-----------------|--------|
@@ -454,11 +454,19 @@ Newton's method is the **theoretically optimal** optimizer:
 | Memory | $O(n)$ | $O(n^2)$ |
 | Saddle points | Escapes slowly | Can converge to them |
 
-**The entire field of optimization is about approximating Newton efficiently.**
+Newton sets a theoretical benchmark, but the $O(n^3)$ per-step cost and $O(n^2)$ memory make it impractical for deep learning where $n$ can exceed $10^9$.
 
-Every optimizer we'll study can be understood as:
-1. Approximating the Hessian (or its inverse)
-2. Trading off accuracy vs. computational cost
+**Many optimizers approximate Newton's curvature awareness:**
+- Quasi-Newton (BFGS, L-BFGS): Low-rank Hessian inverse approximations
+- K-FAC, Shampoo: Block-diagonal Fisher approximations
+- Natural gradient: Fisher information instead of Hessian
+
+**But successful first-order methods take different approaches entirely:**
+- Momentum: Accelerates through gradient history, not curvature
+- Adam: Adaptive per-parameter learning rates from gradient statistics
+- Muon: Orthogonalization via operator geometry (Chapter 17)
+
+The lesson isn't that we must approximate Newton—it's that vanilla gradient descent leaves performance on the table, and there are multiple paths to improvement.
 
 ## What's Next
 
