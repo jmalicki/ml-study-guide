@@ -4055,7 +4055,7 @@ For evaluating reasoning capabilities, see [Chapter 30: Evaluation and Benchmark
 **Test-Time Compute Scaling:**
 
 - [Scaling LLM Test-Time Compute Optimally](https://arxiv.org/abs/2408.03314) - Snell et al., 2024
-- [Learning to Reason with LLMs](https://openai.com/index/learning-to-reason-with-llms/) - OpenAI o1 announcement, 2024
+- [OpenAI o1 System Card](https://arxiv.org/abs/2412.16720) - OpenAI o1, 2024
 
 ### Datasets
 
