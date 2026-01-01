@@ -85,7 +85,7 @@ The relative variance **shrinks** as dimension increases.
 
 For a random point $x \sim \mathcal{N}(0, I_n)$:
 
-$$P\left(\left| \|x\| - \sqrt{n} \right| > t\right) \leq 2e^{-t^2/2}$$
+$$P\left(\left| \|x\| - \sqrt{n} \right| \gt t\right) \leq 2e^{-t^2/2}$$
 
 Almost all mass is in a thin shell at radius $\sqrt{n}$.
 

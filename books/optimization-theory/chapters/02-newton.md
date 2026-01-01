@@ -261,7 +261,7 @@ for name, params in [("MLP", 1_000_000), ("BERT", 110_000_000), ("GPT-2", 1_500_
 For non-convex functions (like neural network losses), the Hessian can have negative eigenvalues.
 
 If $H$ has a negative eigenvalue with eigenvector $v$:
-- $v^T H v < 0$: This direction curves downward
+- $v^T H v \lt 0$: This direction curves downward
 - Newton step: $-H^{-1}g$ might move **uphill** in this direction
 
 Newton's method can converge to **saddle points** rather than minima.
@@ -415,7 +415,7 @@ This measures how far we are from the optimum in the local Hessian metric.
 
 Properties:
 - $\lambda(\theta^*) = 0$ at the optimum
-- For $\lambda(\theta) < 1$, Newton converges quadratically
+- For $\lambda(\theta) \lt 1$, Newton converges quadratically
 - The decrease in $f$ per Newton step is approximately $\lambda^2/2$
 
 ```python

@@ -18,7 +18,7 @@ where:
 **Properties**:
 - All eigenvalues are real for symmetric matrices
 - Eigenvectors are orthogonal
-- $A$ is positive definite iff all $\lambda_i > 0$
+- $A$ is positive definite iff all $\lambda_i \gt 0$
 
 ### Singular Value Decomposition (SVD)
 

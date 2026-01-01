@@ -117,7 +117,7 @@ def bfgs(
 
 1. **Secant condition**: $B_{k+1} s_k = y_k$ ensures the approximation matches observed curvature
 
-2. **Positive definiteness**: If $y_k^T s_k > 0$ and $B_k$ is positive definite, so is $B_{k+1}$
+2. **Positive definiteness**: If $y_k^T s_k \gt 0$ and $B_k$ is positive definite, so is $B_{k+1}$
 
 3. **Minimal change**: BFGS makes the smallest possible update to $B_k$ that satisfies the secant condition
 
@@ -450,9 +450,9 @@ The secant condition says: "match the curvature we observed."
 
 ### The Curvature Condition
 
-For BFGS to work, we need $y^T s > 0$:
+For BFGS to work, we need $y^T s \gt 0$:
 
-$$y^T s = (g_{k+1} - g_k)^T (x_{k+1} - x_k) > 0$$
+$$y^T s = (g_{k+1} - g_k)^T (x_{k+1} - x_k) \gt 0$$
 
 This means: the gradient component along our step should increase.
 

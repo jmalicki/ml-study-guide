@@ -40,12 +40,12 @@ class LatexError:
 
 
 class LatexValidator:
-    def __init__(self, root_dir: Path, require_large: bool = True, check_angles: bool = False):
+    def __init__(self, root_dir: Path, require_large: bool = True, check_angles: bool = True):
         self.root_dir = root_dir
         self.errors: List[LatexError] = []
         self.warnings: List[LatexError] = []
         self.require_large = require_large  # Require \large in math blocks for readability
-        self.check_angles = check_angles  # Check for raw < and > (can have false positives)
+        self.check_angles = check_angles  # Check for raw < and > (should use \lt and \gt)
 
     def extract_math_blocks(self, content: str, file_path: Path) -> List[Tuple[int, str, str]]:
         """
@@ -245,7 +245,10 @@ class LatexValidator:
     def check_angle_brackets(self, latex: str) -> Optional[str]:
         r"""
         Check for raw < and > in LaTeX that should use \lt and \gt.
-        GitHub's markdown renderer can misinterpret < as HTML tags.
+
+        Using \lt and \gt ensures consistent rendering across all markdown
+        viewers and avoids any potential HTML interpretation issues.
+
         Returns error message if issues found, None if valid.
         """
         if not self.check_angles:
@@ -253,49 +256,39 @@ class LatexValidator:
 
         errors = []
 
-        # Find < and > that are not part of \lt, \gt, \le, \ge, \leq, \geq, \langle, \rangle
-        # Also allow <= and >= as comparison operators, and -> arrows
         i = 0
         while i < len(latex):
             if latex[i] == '\\':
-                # Skip LaTeX commands
+                # Skip LaTeX commands (including \lt, \gt, \le, \ge, \leq, \geq, \langle, \rangle)
                 i += 1
                 while i < len(latex) and latex[i].isalpha():
                     i += 1
                 continue
 
             if latex[i] == '<':
-                # Check if it's part of <= or <-
-                if i + 1 < len(latex) and latex[i + 1] in ('=', '-'):
+                # Check if it's part of <= or <- or <> or |->
+                if i + 1 < len(latex) and latex[i + 1] in ('=', '-', '>'):
                     i += 2
-                    continue
-                # Check if preceded by backslash (already handled above, but double-check)
-                if i > 0 and latex[i - 1] == '\\':
-                    i += 1
                     continue
                 # This is a raw < that should be \lt
                 context_start = max(0, i - 10)
                 context_end = min(len(latex), i + 15)
                 context = latex[context_start:context_end]
-                errors.append(f"Raw '<' at position {i} should be '\\lt' for GitHub compatibility: '...{context}...'")
+                errors.append(f"Raw '<' at position {i} should be '\\lt': '...{context}...'")
 
             elif latex[i] == '>':
-                # Check if it's part of >= or -> or -->
-                if i > 0 and latex[i - 1] in ('-', '='):
+                # Check if it's part of >= or -> or --> or |->
+                if i > 0 and latex[i - 1] in ('-', '=', '|'):
                     i += 1
                     continue
-                if i + 1 < len(latex) and latex[i + 1] == '=':
+                if i + 1 < len(latex) and latex[i + 1] in ('=', '>'):
                     i += 2
-                    continue
-                # Check if preceded by backslash
-                if i > 0 and latex[i - 1] == '\\':
-                    i += 1
                     continue
                 # This is a raw > that should be \gt
                 context_start = max(0, i - 10)
                 context_end = min(len(latex), i + 15)
                 context = latex[context_start:context_end]
-                errors.append(f"Raw '>' at position {i} should be '\\gt' for GitHub compatibility: '...{context}...'")
+                errors.append(f"Raw '>' at position {i} should be '\\gt': '...{context}...'")
 
             i += 1
 
@@ -866,8 +859,8 @@ def main():
     parser = argparse.ArgumentParser(description='Validate LaTeX syntax in markdown files')
     parser.add_argument('--no-require-large', action='store_true',
                         help='Disable check for \\large in math blocks')
-    parser.add_argument('--check-angles', action='store_true',
-                        help='Check for raw < and > that should be \\lt and \\gt (can have false positives)')
+    parser.add_argument('--no-check-angles', action='store_true',
+                        help='Disable check for raw < and > (should use \\lt and \\gt)')
     args = parser.parse_args()
 
     # Find the root directory
@@ -878,7 +871,8 @@ def main():
         root_dir = current_dir
 
     require_large = not args.no_require_large
-    validator = LatexValidator(root_dir, require_large=require_large, check_angles=args.check_angles)
+    check_angles = not args.no_check_angles
+    validator = LatexValidator(root_dir, require_large=require_large, check_angles=check_angles)
     exit_code = validator.run()
     sys.exit(exit_code)
 

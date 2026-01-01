@@ -308,8 +308,8 @@ class HFWithAdaptiveDamping:
 
 When to stop CG:
 1. **Fixed iterations**: Simple, common (10-50)
-2. **Residual threshold**: Stop when $\|r\| < \epsilon$
-3. **Negative curvature**: Stop if $p^T H p < 0$ (for non-GN)
+2. **Residual threshold**: Stop when $\|r\| \lt \epsilon$
+3. **Negative curvature**: Stop if $p^T H p \lt 0$ (for non-GN)
 
 ### Cost Analysis
 

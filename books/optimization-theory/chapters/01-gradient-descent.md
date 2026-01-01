@@ -8,7 +8,7 @@ Given an objective function $f: \mathbb{R}^n \to \mathbb{R}$, gradient descent i
 
 $$\theta_{t+1} = \theta_t - \eta \nabla f(\theta_t)$$
 
-where $\eta > 0$ is the learning rate (step size).
+where $\eta \gt 0$ is the learning rate (step size).
 
 **Why negative gradient?** The gradient $\nabla f(\theta)$ points in the direction of steepest *increase*. We want to minimize, so we go opposite.
 
@@ -235,11 +235,11 @@ def visualize_gd_trajectory():
 
 For gradient descent to converge, we need:
 
-$$\eta < \frac{2}{L}$$
+$$\eta \lt \frac{2}{L}$$
 
 where $L$ is the Lipschitz constant of the gradient (largest Hessian eigenvalue).
 
-If $\eta > 2/L$, gradient descent diverges—steps overshoot and amplify.
+If $\eta \gt 2/L$, gradient descent diverges—steps overshoot and amplify.
 
 ```python
 def demonstrate_learning_rate_stability():
