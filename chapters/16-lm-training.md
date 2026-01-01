@@ -3426,7 +3426,7 @@ if __name__ == '__main__':
 9. [PyTorch Mixed Precision Documentation](https://pytorch.org/docs/stable/amp.html)
 10. [Hugging Face Trainer](https://huggingface.co/docs/transformers/main_classes/trainer) - Production-grade training implementation
 11. [DeepSpeed](https://www.deepspeed.ai/) - Optimization library for large-scale training
-12. [Weights & Biases Guides](https://wandb.ai/site/articles/intro-to-language-model-training) - Training best practices
+12. [Weights & Biases: Training LLMs from Scratch](https://wandb.ai/site/articles/training-llms/) - Training best practices
 
 ---
 
