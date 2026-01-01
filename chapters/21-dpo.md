@@ -1017,16 +1017,16 @@ def compute_kto_loss(
 ORPO combines SFT and preference optimization in a single stage, eliminating the need for a separate reference model. It adds a penalty term that increases the odds ratio between chosen and rejected responses.
 
 ```math
-\mathcal{L}_{\text{ORPO}} = \mathcal{L}_{\text{SFT}} + \lambda \cdot \mathcal{L}_{\text{OR}}
+\large \mathcal{L}_{\text{ORPO}} = \mathcal{L}_{\text{SFT}} + \lambda \cdot \mathcal{L}_{\text{OR}}
 ```
 
 where:
 
 ```math
-\mathcal{L}_{\text{OR}} = -\mathbb{E}_{(x, y_w, y_l)} \left[\log \sigma\left(\log \frac{\text{odds}_\theta(y_w \mid x)}{\text{odds}_\theta(y_l \mid x)}\right)\right]
+\large \mathcal{L}_{\text{OR}} = -\mathbb{E}_{(x, y_w, y_l)} \left[\log \sigma\left(\log \frac{\text{odds}_\theta(y_w \mid x)}{\text{odds}_\theta(y_l \mid x)}\right)\right]
 ```
 
-and $\text{odds}_\theta(y \mid x) = \frac{\pi_\theta(y \mid x)}{1 - \pi_\theta(y \mid x)}$
+and $\large \text{odds}_\theta(y \mid x) = \frac{\pi_\theta(y \mid x)}{1 - \pi_\theta(y \mid x)}$
 
 **Paper**: [ORPO: Monolithic Preference Optimization without Reference Model](https://arxiv.org/abs/2403.07691) (Hong et al., 2024)
 
