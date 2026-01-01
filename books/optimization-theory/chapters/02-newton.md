@@ -343,7 +343,7 @@ def damped_newton(
 
 We rarely need the full Hessian. Often we only need to compute $Hv$ for specific vectors $v$.
 
-**Hessian-vector products can be computed in O(n) time**, same as a gradient computation!
+**Hessian-vector products can be computed in $O(n)$ time**, same as a gradient computation!
 
 The trick: Use automatic differentiation twice.
 
@@ -446,8 +446,8 @@ Newton's method is the **theoretically optimal** optimizer:
 |----------|-----------------|--------|
 | Convergence | Linear: $O(\kappa \log 1/\epsilon)$ | Quadratic: $O(\log \log 1/\epsilon)$ |
 | Condition dependence | Crippled by high $\kappa$ | Invariant to $\kappa$ |
-| Per-step cost | O(n) | O(n³) |
-| Memory | O(n) | O(n²) |
+| Per-step cost | $O(n)$ | $O(n^3)$ |
+| Memory | $O(n)$ | $O(n^2)$ |
 | Saddle points | Escapes slowly | Can converge to them |
 
 **The entire field of optimization is about approximating Newton efficiently.**

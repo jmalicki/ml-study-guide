@@ -71,7 +71,7 @@ For an L-smooth function, gradient descent with $\eta = 1/L$ satisfies:
 
 $$f(\theta_T) - f(\theta^*) \leq \frac{L \|\theta_0 - \theta^*\|^2}{2T}$$
 
-This is **O(1/T)** convergence—sublinear. To halve the error, you need twice as many iterations.
+This is **$O(1/T)$** convergence—sublinear. To halve the error, you need twice as many iterations.
 
 ```python
 def demonstrate_convergence_rate():
@@ -366,7 +366,7 @@ The preconditioned version converges in 1-2 steps because the perfect preconditi
 
 ## Key Insights
 
-1. **Gradient descent is simple but limited**: O(1/T) convergence, crippled by ill-conditioning
+1. **Gradient descent is simple but limited**: $O(1/T)$ convergence, crippled by ill-conditioning
 
 2. **Condition number is the enemy**: High $\kappa$ means slow convergence and narrow stability regions
 

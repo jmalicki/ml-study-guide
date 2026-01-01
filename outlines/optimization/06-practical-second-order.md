@@ -10,11 +10,11 @@ This chapter covers practical approximations to second-order and natural gradien
 
 | Method | Approximation | Memory | Captures |
 |--------|--------------|--------|----------|
-| SGD | None (identity) | O(n) | Nothing |
-| Adam | Diagonal | O(n) | Per-param variance |
-| K-FAC | Block Kronecker | O(Σ(m² + n²)) | Layer correlations |
-| Shampoo | Full Kronecker | O(Σ(m² + n²)) | Row/col correlations |
-| Full Newton | Exact | O(n²) | Everything |
+| SGD | None (identity) | $O(n)$ | Nothing |
+| Adam | Diagonal | $O(n)$ | Per-param variance |
+| K-FAC | Block Kronecker | $O(\Sigma(m^2 + n^2))$ | Layer correlations |
+| Shampoo | Full Kronecker | $O(\Sigma(m^2 + n^2))$ | Row/col correlations |
+| Full Newton | Exact | $O(n^2)$ | Everything |
 
 ### 2. K-FAC: Kronecker-Factored Approximate Curvature
 

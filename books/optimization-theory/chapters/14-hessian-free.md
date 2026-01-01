@@ -159,7 +159,7 @@ class HessianFreeOptimizer:
 
 ### Key Components
 
-1. **HVP via autodiff**: Compute $Hv$ in O(n) time using two backward passes
+1. **HVP via autodiff**: Compute $Hv$ in $O(n)$ time using two backward passes
 
 2. **Truncated CG**: Only run 10-50 iterations, not full convergence
 
@@ -345,7 +345,7 @@ This influenced:
 
 1. **Hessian-free uses CG** to compute Newton steps without forming H
 
-2. **HVPs cost O(n)** via autodiff—same as gradient
+2. **HVPs cost $O(n)$** via autodiff—same as gradient
 
 3. **Truncated CG** gives approximate Newton directions cheaply
 

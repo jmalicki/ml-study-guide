@@ -327,11 +327,11 @@ class SOAPOptimizer:
 
 | Method | Per-Step Cost | Memory |
 |--------|--------------|--------|
-| SGD | O(n) | O(n) |
-| Adam | O(n) | O(2n) |
-| K-FAC | O(n + Σ(d_i²)) | O(n + Σ(d_i²)) |
-| Shampoo | O(n + Σ(d_i³)) | O(n + Σ(d_i²)) |
-| SOAP | O(n + Σ(d_i³)/k) | O(n + Σ(d_i²)) |
+| SGD | $O(n)$ | $O(n)$ |
+| Adam | $O(n)$ | $O(2n)$ |
+| K-FAC | $O(n + \Sigma d_i^2)$ | $O(n + \Sigma d_i^2)$ |
+| Shampoo | $O(n + \Sigma d_i^3)$ | $O(n + \Sigma d_i^2)$ |
+| SOAP | $O(n + \Sigma d_i^3/k)$ | $O(n + \Sigma d_i^2)$ |
 
 Where d_i are layer dimensions and k is precondition frequency.
 

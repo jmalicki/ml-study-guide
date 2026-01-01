@@ -157,7 +157,7 @@ Convergence is **cubically fast**!
 
 ### Why Newton-Schulz?
 
-1. **No SVD required**: SVD is O(n³); Newton-Schulz is O(kn²) for k iterations
+1. **No SVD required**: SVD is $O(n^3)$; Newton-Schulz is $O(kn^2)$ for $k$ iterations
 2. **Differentiable**: Can backprop through it if needed
 3. **GPU-friendly**: Just matrix multiplications
 4. **Converges quickly**: 5 iterations usually enough
@@ -320,7 +320,7 @@ Some practitioners combine:
 |-------------|---------------|
 | K-FAC, Shampoo, SOAP | Muon |
 | Use output statistics | Use weight geometry |
-| O(n² + layer³) memory | O(n) memory |
+| $O(n^2 + \text{layer}^3)$ memory | $O(n)$ memory |
 | Complex implementation | Simple implementation |
 | Strong theory (natural gradient) | Emerging theory |
 

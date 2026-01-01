@@ -342,10 +342,10 @@ def compare_fisher_estimates():
 
 | Method | Approximation | Cost |
 |--------|--------------|------|
-| Full Natural Gradient | $F^{-1}$ | O(n³) |
-| K-FAC | Block Kronecker | O(n) |
-| Diagonal Fisher | diag(F)^{-1} | O(n) |
-| Adam | EMA of diag(F) | O(n) |
+| Full Natural Gradient | $F^{-1}$ | $O(n^3)$ |
+| K-FAC | Block Kronecker | $O(n)$ |
+| Diagonal Fisher | $\text{diag}(F)^{-1}$ | $O(n)$ |
+| Adam | EMA of $\text{diag}(F)$ | $O(n)$ |
 
 ## Key Takeaways
 

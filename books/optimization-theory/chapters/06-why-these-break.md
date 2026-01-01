@@ -52,7 +52,7 @@ def scaling_analysis():
                 print(f"  {name}: {mem_gb/1e6:.1f} PB")
 ```
 
-### Why O(n²) Is Impossible
+### Why $O(n^2)$ Is Impossible
 
 Even storing the Hessian is infeasible:
 
@@ -336,13 +336,13 @@ Successful optimizers for deep learning:
 1. **Approximate the curvature, don't compute it exactly**
 2. **Exploit the structure** (layers, batches, output dimensions)
 3. **Be robust to noise** (momentum, averaging)
-4. **Scale with the problem** (O(n) or O(n·layers))
+4. **Scale with the problem** ($O(n)$ or $O(n \cdot \text{layers})$)
 
 ## Summary: The Scaling Wall
 
 | Barrier | What Breaks | Solution |
 |---------|-------------|----------|
-| O(n²) memory | Newton, BFGS | Diagonal/block approximations |
+| $O(n^2)$ memory | Newton, BFGS | Diagonal/block approximations |
 | Stochastic gradients | Quasi-Newton curvature | Exponential averaging |
 | Non-convexity | Newton at saddles | SGD noise helps! |
 | Heterogeneity | Global learning rate | Per-parameter/layer rates |

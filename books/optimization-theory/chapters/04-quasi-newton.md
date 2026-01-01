@@ -1,6 +1,6 @@
 # Chapter 4: Quasi-Newton Methods
 
-Quasi-Newton methods approximate the Hessian (or its inverse) from gradient information alone. They achieve superlinear convergence—faster than gradient descent but without the O(n²) cost of Newton's method.
+Quasi-Newton methods approximate the Hessian (or its inverse) from gradient information alone. They achieve superlinear convergence—faster than gradient descent but without the $O(n^2)$ cost of Newton's method.
 
 ## The Core Idea
 
@@ -151,7 +151,7 @@ BFGS stores the full n×n matrix $B^{-1}$. For neural networks with millions of 
 
 **L-BFGS** stores only the last m pairs $(s_i, y_i)$ and computes $B^{-1}g$ on-the-fly.
 
-Memory: O(mn) instead of O(n²).
+Memory: $O(mn)$ instead of $O(n^2)$.
 
 ```python
 def lbfgs(
@@ -399,10 +399,10 @@ def lbfgs_stochastic_failure():
 
 | Method | Memory | Per-Iter Cost | Best For |
 |--------|--------|---------------|----------|
-| Gradient Descent | O(n) | O(n) | Simple, convex |
-| BFGS | O(n²) | O(n²) | Small problems, exact Hessian not available |
-| L-BFGS | O(mn) | O(mn) | Medium problems, deterministic gradients |
-| Newton/CG | O(n) | O(kn) | When HVPs are cheap |
+| Gradient Descent | $O(n)$ | $O(n)$ | Simple, convex |
+| BFGS | $O(n^2)$ | $O(n^2)$ | Small problems, exact Hessian not available |
+| L-BFGS | $O(mn)$ | $O(mn)$ | Medium problems, deterministic gradients |
+| Newton/CG | $O(n)$ | $O(kn)$ | When HVPs are cheap |
 
 ### Practical Guidelines
 
@@ -485,9 +485,9 @@ def check_curvature_condition():
 
 1. **Quasi-Newton builds curvature approximations from gradients** without computing Hessians
 
-2. **BFGS achieves superlinear convergence** with O(n²) memory
+2. **BFGS achieves superlinear convergence** with $O(n^2)$ memory
 
-3. **L-BFGS reduces memory to O(mn)** using the two-loop recursion
+3. **L-BFGS reduces memory to $O(mn)$** using the two-loop recursion
 
 4. **The secant condition** is the key constraint: match observed curvature
 

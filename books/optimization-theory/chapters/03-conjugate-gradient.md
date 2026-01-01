@@ -11,10 +11,10 @@ $$H \delta = -g$$
 where $H = \nabla^2 f$ is the Hessian and $g = \nabla f$ is the gradient.
 
 Direct solution via $\delta = -H^{-1}g$ requires:
-- **O(n²)** memory to store H
-- **O(n³)** time to solve the system
+- **$O(n^2)$** memory to store H
+- **$O(n^3)$** time to solve the system
 
-CG solves this using only **O(n)** memory and **O(kn)** time, where k is typically small.
+CG solves this using only **$O(n)$** memory and **$O(kn)$** time, where $k$ is typically small.
 
 ## Conjugate Directions
 
@@ -241,7 +241,7 @@ def matrix_free_cg(
 
 ### CG for the Hessian
 
-Since we can compute Hessian-vector products in O(n) time (Chapter 2), we can use CG to solve Newton systems:
+Since we can compute Hessian-vector products in $O(n)$ time (Chapter 2), we can use CG to solve Newton systems:
 
 ```python
 def cg_newton_step(
@@ -373,7 +373,7 @@ def demonstrate_preconditioning():
 
 | Preconditioner | M | Cost | When to Use |
 |---------------|---|------|-------------|
-| Jacobi | diag(A) | O(n) | Diagonally dominant A |
+| Jacobi | diag(A) | $O(n)$ | Diagonally dominant A |
 | Block Jacobi | Block-diag(A) | O(blocks) | Block structure |
 | Incomplete Cholesky | Sparse L L^T ≈ A | O(nnz) | Sparse A |
 | SSOR | Symmetric overrelaxation | O(nnz) | Sparse A |
@@ -519,7 +519,7 @@ Practical guidelines:
 
 ## Key Takeaways
 
-1. **CG solves linear systems in O(n) memory** using only matrix-vector products
+1. **CG solves linear systems in $O(n)$ memory** using only matrix-vector products
 
 2. **Convergence depends on $\sqrt{\kappa}$**, much better than gradient descent's $\kappa$
 
