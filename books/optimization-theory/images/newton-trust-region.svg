@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 320">
+  <defs>
+    <marker id="arr" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333"/>
+    </marker>
+    <marker id="arrGreen" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#4CAF50"/>
+    </marker>
+    <!-- Elliptical gradient for Newton trust region -->
+    <radialGradient id="ellipseGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#E8F5E9;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#E8F5E9;stop-opacity:0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="500" height="320" fill="#fafafa"/>
+
+  <!-- Title -->
+  <text x="250" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333">Newton's Elliptical Trust Region</text>
+
+  <!-- Current point and elliptical trust region -->
+  <g transform="translate(250, 170)">
+    <!-- Loss contours (elliptical - ill-conditioned) -->
+    <ellipse cx="60" cy="25" rx="150" ry="40" fill="none" stroke="#ccc" stroke-width="1" transform="rotate(-20)"/>
+    <ellipse cx="60" cy="25" rx="120" ry="32" fill="none" stroke="#bbb" stroke-width="1" transform="rotate(-20)"/>
+    <ellipse cx="60" cy="25" rx="90" ry="24" fill="none" stroke="#aaa" stroke-width="1" transform="rotate(-20)"/>
+    <ellipse cx="60" cy="25" rx="60" ry="16" fill="none" stroke="#999" stroke-width="1" transform="rotate(-20)"/>
+
+    <!-- Newton's elliptical trust region - aligned with curvature -->
+    <ellipse cx="0" cy="0" rx="100" ry="30" fill="url(#ellipseGrad)" stroke="#4CAF50" stroke-width="2" stroke-dasharray="5,3" transform="rotate(-20)"/>
+
+    <!-- Minimum point -->
+    <circle cx="60" cy="25" r="4" fill="#333"/>
+    <text x="70" y="45" font-family="Arial, sans-serif" font-size="11" fill="#333">θ*</text>
+
+    <!-- Current point -->
+    <circle cx="0" cy="0" r="6" fill="#f44336"/>
+    <text x="10" y="-10" font-family="Arial, sans-serif" font-size="12" fill="#333">θₜ</text>
+
+    <!-- Newton step (directly toward minimum) -->
+    <line x1="0" y1="0" x2="50" y2="22" stroke="#4CAF50" stroke-width="2.5" marker-end="url(#arrGreen)"/>
+    <text x="30" y="45" font-family="Arial, sans-serif" font-size="11" fill="#4CAF50">Newton step</text>
+
+    <!-- Annotations for axes -->
+    <line x1="-90" y1="35" x2="90" y2="-35" stroke="#4CAF50" stroke-width="1" stroke-dasharray="2,2" opacity="0.5" transform="rotate(0)"/>
+    <text x="-100" y="55" font-family="Arial, sans-serif" font-size="10" fill="#4CAF50">flat direction</text>
+    <text x="-100" y="67" font-family="Arial, sans-serif" font-size="10" fill="#4CAF50">(larger steps)</text>
+
+    <line x1="-25" y1="-70" x2="25" y2="70" stroke="#4CAF50" stroke-width="1" stroke-dasharray="2,2" opacity="0.5" transform="rotate(-20)"/>
+    <text x="45" y="-55" font-family="Arial, sans-serif" font-size="10" fill="#4CAF50">steep direction</text>
+    <text x="45" y="-43" font-family="Arial, sans-serif" font-size="10" fill="#4CAF50">(smaller steps)</text>
+  </g>
+
+  <!-- Explanation -->
+  <text x="250" y="280" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#333">Newton uses elliptical trust region matching the Hessian</text>
+  <text x="250" y="298" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#666">Elongated along flat directions, compressed along steep directions</text>
+</svg>

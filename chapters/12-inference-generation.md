@@ -2265,9 +2265,9 @@ The only difference: beam search requires k separate KV caches (one per beam).
 
 ### Production Documentation
 
-10. **OpenAI API Documentation**
+10. **OpenAI Cookbook: Text Generation**
     - Temperature, top_p, frequency_penalty, presence_penalty parameters
-    - https://platform.openai.com/docs/api-reference/chat/create
+    - https://github.com/openai/openai-cookbook
 
 11. **Hugging Face Generation Guide**
     - Comprehensive guide to generation parameters
@@ -2278,7 +2278,8 @@ The only difference: beam search requires k separate KV caches (one per beam).
 12. [How to Generate Text: Different Decoding Methods](https://huggingface.co/blog/how-to-generate) - Hugging Face
     - Excellent visual guide to different sampling strategies
 
-13. [Controlling Text Generation](https://blog.fastforwardlabs.com/2019/05/22/automated-text-generation-using-gpt-2.html) - Fast Forward Labs
+13. [The Curious Case of Neural Text Degeneration](https://arxiv.org/abs/1904.09751) - Holtzman et al.
+    - Seminal paper on nucleus sampling and text generation quality
 
 ---
 
