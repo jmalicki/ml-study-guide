@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 350">
+  <defs>
+    <marker id="vel-arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#dc2626"/>
+    </marker>
+    <marker id="grad-arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/>
+    </marker>
+    <radialGradient id="ball-gradient" cx="30%" cy="30%">
+      <stop offset="0%" stop-color="#fca5a5"/>
+      <stop offset="100%" stop-color="#dc2626"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="700" height="350" fill="#fafafa"/>
+
+  <!-- Title -->
+  <text x="350" y="30" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="bold" fill="#1f2937">Momentum: Heavy Ball Rolling Down Loss Surface</text>
+
+  <!-- Loss surface (curved path) -->
+  <path d="M 50 280 Q 150 100 250 250 Q 350 350 450 200 Q 550 100 650 150"
+        fill="none" stroke="#9ca3af" stroke-width="3"/>
+
+  <!-- Valley/minimum indication -->
+  <circle cx="450" cy="200" r="3" fill="#16a34a"/>
+  <text x="450" y="220" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#16a34a">minimum</text>
+
+  <!-- Ball positions showing trajectory -->
+  <g>
+    <!-- Position 1 -->
+    <circle cx="100" cy="175" r="18" fill="url(#ball-gradient)" stroke="#b91c1c" stroke-width="2"/>
+    <text x="100" y="145" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#6b7280">t=0</text>
+
+    <!-- Velocity at position 1 -->
+    <line x1="118" y1="175" x2="155" y2="195" stroke="#dc2626" stroke-width="2" marker-end="url(#vel-arrow)"/>
+
+    <!-- Position 2 -->
+    <circle cx="200" cy="220" r="18" fill="url(#ball-gradient)" stroke="#b91c1c" stroke-width="2" opacity="0.8"/>
+
+    <!-- Velocity at position 2 (larger - accumulated) -->
+    <line x1="218" y1="220" x2="270" y2="245" stroke="#dc2626" stroke-width="2" marker-end="url(#vel-arrow)"/>
+
+    <!-- Position 3 -->
+    <circle cx="320" cy="280" r="18" fill="url(#ball-gradient)" stroke="#b91c1c" stroke-width="2" opacity="0.6"/>
+
+    <!-- Velocity at position 3 (even larger) -->
+    <line x1="338" y1="275" x2="400" y2="260" stroke="#dc2626" stroke-width="2" marker-end="url(#vel-arrow)"/>
+
+    <!-- Position 4 (going up the other side) -->
+    <circle cx="430" cy="220" r="18" fill="url(#ball-gradient)" stroke="#b91c1c" stroke-width="2" opacity="0.4"/>
+
+    <!-- Velocity decreasing -->
+    <line x1="448" y1="215" x2="475" y2="205" stroke="#dc2626" stroke-width="2" marker-end="url(#vel-arrow)"/>
+  </g>
+
+  <!-- Trajectory path -->
+  <path d="M 100 175 Q 150 200 200 220 Q 260 260 320 280 Q 380 260 430 220"
+        fill="none" stroke="#dc2626" stroke-width="2" stroke-dasharray="5,3" opacity="0.5"/>
+
+  <!-- Legend -->
+  <g transform="translate(50, 310)">
+    <circle cx="10" cy="0" r="8" fill="url(#ball-gradient)"/>
+    <text x="25" y="4" font-family="sans-serif" font-size="11" fill="#374151">Heavy ball (parameters)</text>
+
+    <line x1="150" y1="0" x2="190" y2="0" stroke="#dc2626" stroke-width="2" marker-end="url(#vel-arrow)"/>
+    <text x="200" y="4" font-family="sans-serif" font-size="11" fill="#374151">Velocity (momentum buffer)</text>
+
+    <line x1="380" y1="0" x2="420" y2="0" stroke="#9ca3af" stroke-width="3"/>
+    <text x="430" y="4" font-family="sans-serif" font-size="11" fill="#374151">Loss surface</text>
+  </g>
+
+  <!-- Physics annotation -->
+  <text x="550" y="80" font-family="sans-serif" font-size="11" fill="#6b7280">v_t = β·v_{t-1} + ∇L</text>
+  <text x="550" y="95" font-family="sans-serif" font-size="11" fill="#6b7280">θ_t = θ_{t-1} - η·v_t</text>
+</svg>

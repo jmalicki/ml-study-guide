@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 320">
+  <defs>
+    <marker id="arr" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333"/>
+    </marker>
+    <radialGradient id="trustGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#E3F2FD;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#E3F2FD;stop-opacity:0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="500" height="320" fill="#fafafa"/>
+
+  <!-- Title -->
+  <text x="250" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333">Gradient Descent Trust Region</text>
+
+  <!-- Current point and spherical trust region -->
+  <g transform="translate(250, 170)">
+    <!-- Spherical trust region -->
+    <circle cx="0" cy="0" r="80" fill="url(#trustGrad)" stroke="#2196F3" stroke-width="2" stroke-dasharray="5,3"/>
+
+    <!-- Loss contours (elliptical - ill-conditioned) -->
+    <ellipse cx="40" cy="30" rx="150" ry="40" fill="none" stroke="#ccc" stroke-width="1" transform="rotate(-20)"/>
+    <ellipse cx="40" cy="30" rx="120" ry="32" fill="none" stroke="#bbb" stroke-width="1" transform="rotate(-20)"/>
+    <ellipse cx="40" cy="30" rx="90" ry="24" fill="none" stroke="#aaa" stroke-width="1" transform="rotate(-20)"/>
+
+    <!-- Current point -->
+    <circle cx="0" cy="0" r="6" fill="#f44336"/>
+    <text x="10" y="-10" font-family="Arial, sans-serif" font-size="12" fill="#333">θₜ</text>
+
+    <!-- Gradient direction -->
+    <line x1="0" y1="0" x2="-50" y2="30" stroke="#333" stroke-width="2" marker-end="url(#arr)"/>
+    <text x="-65" y="50" font-family="Arial, sans-serif" font-size="11" fill="#333">-∇f</text>
+
+    <!-- Optimal direction (toward minimum) -->
+    <line x1="0" y1="0" x2="50" y2="35" stroke="#4CAF50" stroke-width="2" stroke-dasharray="4,2" marker-end="url(#arr)"/>
+    <text x="60" y="50" font-family="Arial, sans-serif" font-size="11" fill="#4CAF50">optimal</text>
+
+    <!-- Trust region radius -->
+    <line x1="0" y1="0" x2="0" y2="-80" stroke="#2196F3" stroke-width="1"/>
+    <text x="10" y="-60" font-family="Arial, sans-serif" font-size="11" fill="#2196F3">η</text>
+  </g>
+
+  <!-- Explanation -->
+  <text x="250" y="280" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#333">GD assumes spherical trust region (all directions equal)</text>
+  <text x="250" y="298" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#666">But loss landscape is elongated → suboptimal steps</text>
+</svg>

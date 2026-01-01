@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 650 400">
+  <defs>
+    <marker id="arr-v" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-g" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/>
+    </marker>
+    <marker id="arr-n" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#16a34a"/>
+    </marker>
+    <marker id="arr-gray" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#6b7280"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="650" height="400" fill="#fafafa"/>
+
+  <!-- Title -->
+  <text x="325" y="30" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="bold" fill="#1f2937">Nesterov Momentum: Look Ahead Before Computing Gradient</text>
+
+  <!-- Classical Momentum (left) -->
+  <g transform="translate(170, 200)">
+    <text x="0" y="-130" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="bold" fill="#374151">Classical Momentum</text>
+
+    <!-- Contours -->
+    <ellipse cx="0" cy="0" rx="120" ry="50" fill="none" stroke="#d1d5db" stroke-width="1"/>
+    <ellipse cx="0" cy="0" rx="90" ry="38" fill="none" stroke="#9ca3af" stroke-width="1"/>
+    <ellipse cx="0" cy="0" rx="60" ry="25" fill="none" stroke="#6b7280" stroke-width="1"/>
+
+    <!-- Current position -->
+    <circle cx="-80" cy="35" r="7" fill="#1f2937"/>
+    <text x="-95" y="55" font-family="sans-serif" font-size="11" fill="#1f2937">θ_t</text>
+
+    <!-- Velocity (momentum) -->
+    <line x1="-80" y1="35" x2="-30" y2="15" stroke="#dc2626" stroke-width="2.5" marker-end="url(#arr-v)"/>
+    <text x="-25" y="5" font-family="sans-serif" font-size="10" fill="#dc2626">βv_{t-1}</text>
+
+    <!-- Gradient at current position -->
+    <line x1="-80" y1="35" x2="-55" y2="-10" stroke="#2563eb" stroke-width="2" marker-end="url(#arr-g)"/>
+    <text x="-40" y="-10" font-family="sans-serif" font-size="10" fill="#2563eb">∇L(θ_t)</text>
+
+    <!-- Combined update -->
+    <line x1="-80" y1="35" x2="-15" y2="-5" stroke="#16a34a" stroke-width="2" stroke-dasharray="4,2" marker-end="url(#arr-n)"/>
+
+    <!-- Next position -->
+    <circle cx="-15" cy="-5" r="5" fill="#16a34a" opacity="0.7"/>
+    <text x="-5" y="-15" font-family="sans-serif" font-size="10" fill="#16a34a">θ_{t+1}</text>
+
+    <!-- Explanation -->
+    <text x="0" y="100" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#6b7280">Compute gradient at current position</text>
+    <text x="0" y="115" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#6b7280">then add momentum</text>
+  </g>
+
+  <!-- Nesterov Momentum (right) -->
+  <g transform="translate(480, 200)">
+    <text x="0" y="-130" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="bold" fill="#374151">Nesterov Momentum</text>
+
+    <!-- Contours -->
+    <ellipse cx="0" cy="0" rx="120" ry="50" fill="none" stroke="#d1d5db" stroke-width="1"/>
+    <ellipse cx="0" cy="0" rx="90" ry="38" fill="none" stroke="#9ca3af" stroke-width="1"/>
+    <ellipse cx="0" cy="0" rx="60" ry="25" fill="none" stroke="#6b7280" stroke-width="1"/>
+
+    <!-- Current position -->
+    <circle cx="-80" cy="35" r="7" fill="#1f2937"/>
+    <text x="-95" y="55" font-family="sans-serif" font-size="11" fill="#1f2937">θ_t</text>
+
+    <!-- Lookahead step (momentum) -->
+    <line x1="-80" y1="35" x2="-30" y2="15" stroke="#6b7280" stroke-width="2" stroke-dasharray="4,2" marker-end="url(#arr-gray)"/>
+
+    <!-- Lookahead position -->
+    <circle cx="-30" cy="15" r="5" fill="#6b7280" opacity="0.5"/>
+    <text x="-15" y="25" font-family="sans-serif" font-size="10" fill="#6b7280">lookahead</text>
+
+    <!-- Gradient at LOOKAHEAD position -->
+    <line x1="-30" y1="15" x2="-10" y2="-25" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arr-g)"/>
+    <text x="5" y="-25" font-family="sans-serif" font-size="10" fill="#2563eb">∇L(lookahead)</text>
+
+    <!-- Final update from original position -->
+    <line x1="-80" y1="35" x2="0" y2="-15" stroke="#16a34a" stroke-width="2" marker-end="url(#arr-n)"/>
+
+    <!-- Next position -->
+    <circle cx="0" cy="-15" r="5" fill="#16a34a"/>
+    <text x="10" y="-25" font-family="sans-serif" font-size="10" fill="#16a34a">θ_{t+1}</text>
+
+    <!-- Explanation -->
+    <text x="0" y="100" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#6b7280">First look ahead with momentum</text>
+    <text x="0" y="115" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#16a34a" font-weight="bold">then compute gradient there</text>
+  </g>
+
+  <!-- Bottom comparison -->
+  <g transform="translate(325, 360)">
+    <text x="0" y="0" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#374151">
+      Nesterov: "Correct" the momentum direction before overshooting
+    </text>
+    <text x="0" y="18" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#6b7280">
+      Convergence: O(1/t²) vs O(1/t) for classical momentum on convex problems
+    </text>
+  </g>
+</svg>

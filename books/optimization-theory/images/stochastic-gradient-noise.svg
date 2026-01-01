@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 280">
+  <defs>
+    <marker id="arN" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#2196F3"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="500" height="280" fill="#fafafa"/>
+
+  <!-- Title -->
+  <text x="250" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333">Stochastic Gradient = True Gradient + Noise</text>
+
+  <!-- Central illustration -->
+  <g transform="translate(250, 150)">
+    <!-- True gradient (thick, solid) -->
+    <line x1="0" y1="0" x2="-80" y2="50" stroke="#4CAF50" stroke-width="3" marker-end="url(#arN)"/>
+    <text x="-100" y="60" font-family="Arial, sans-serif" font-size="12" fill="#4CAF50">∇L (true)</text>
+
+    <!-- Stochastic gradients (thin, varying) -->
+    <line x1="0" y1="0" x2="-60" y2="70" stroke="#2196F3" stroke-width="1.5" opacity="0.6"/>
+    <line x1="0" y1="0" x2="-90" y2="35" stroke="#2196F3" stroke-width="1.5" opacity="0.6"/>
+    <line x1="0" y1="0" x2="-70" y2="60" stroke="#2196F3" stroke-width="1.5" opacity="0.6"/>
+    <line x1="0" y1="0" x2="-85" y2="55" stroke="#2196F3" stroke-width="1.5" opacity="0.6"/>
+    <line x1="0" y1="0" x2="-55" y2="45" stroke="#2196F3" stroke-width="1.5" opacity="0.6"/>
+    <line x1="0" y1="0" x2="-95" y2="40" stroke="#2196F3" stroke-width="1.5" opacity="0.6"/>
+    <line x1="0" y1="0" x2="-65" y2="55" stroke="#2196F3" stroke-width="1.5" opacity="0.6"/>
+    <line x1="0" y1="0" x2="-75" y2="30" stroke="#2196F3" stroke-width="1.5" opacity="0.6"/>
+
+    <!-- Current point -->
+    <circle cx="0" cy="0" r="6" fill="#f44336"/>
+    <text x="15" y="5" font-family="Arial, sans-serif" font-size="12" fill="#333">θ</text>
+
+    <!-- Noise cloud -->
+    <ellipse cx="-75" cy="50" rx="35" ry="25" fill="#E3F2FD" stroke="#2196F3" stroke-width="1" stroke-dasharray="3,2" opacity="0.5"/>
+  </g>
+
+  <!-- Legend -->
+  <g transform="translate(50, 230)">
+    <line x1="0" y1="0" x2="30" y2="0" stroke="#4CAF50" stroke-width="3"/>
+    <text x="40" y="4" font-family="Arial, sans-serif" font-size="11" fill="#333">True gradient (full batch)</text>
+
+    <line x1="200" y1="0" x2="230" y2="0" stroke="#2196F3" stroke-width="1.5" opacity="0.6"/>
+    <text x="240" y="4" font-family="Arial, sans-serif" font-size="11" fill="#333">Minibatch gradients</text>
+  </g>
+
+  <!-- Formula -->
+  <text x="250" y="260" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#333">g_batch = ∇L + ε,  where E[ε] = 0, Var[ε] = σ²/batch_size</text>
+</svg>

@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 280">
+  <!-- Background -->
+  <rect width="500" height="280" fill="#fafafa"/>
+
+  <!-- Title -->
+  <text x="250" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333">Linear Interpolation Has a Loss Barrier</text>
+
+  <!-- Axes -->
+  <line x1="60" y1="220" x2="440" y2="220" stroke="#333" stroke-width="1.5"/>
+  <line x1="60" y1="220" x2="60" y2="60" stroke="#333" stroke-width="1.5"/>
+
+  <!-- Y-axis label -->
+  <text x="30" y="140" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#333" transform="rotate(-90, 30, 140)">Loss</text>
+
+  <!-- X-axis label -->
+  <text x="250" y="250" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#333">Interpolation parameter t (0 → 1)</text>
+
+  <!-- Linear interpolation curve (with barrier) -->
+  <path d="M 80 180 Q 150 100, 250 90 Q 350 100, 420 180"
+        fill="none" stroke="#f44336" stroke-width="2.5"/>
+
+  <!-- Bezier curve (no barrier) -->
+  <path d="M 80 180 Q 250 175, 420 180"
+        fill="none" stroke="#4CAF50" stroke-width="2.5" stroke-dasharray="5,3"/>
+
+  <!-- Endpoints -->
+  <circle cx="80" cy="180" r="6" fill="#2196F3"/>
+  <circle cx="420" cy="180" r="6" fill="#2196F3"/>
+
+  <text x="80" y="200" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#2196F3">θ₁ (t=0)</text>
+  <text x="420" y="200" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#2196F3">θ₂ (t=1)</text>
+
+  <!-- Barrier annotation -->
+  <line x1="250" y1="90" x2="250" y2="130" stroke="#f44336" stroke-width="1" stroke-dasharray="2,2"/>
+  <text x="250" y="80" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#f44336">barrier</text>
+
+  <!-- Legend -->
+  <g transform="translate(300, 55)">
+    <line x1="0" y1="0" x2="25" y2="0" stroke="#f44336" stroke-width="2.5"/>
+    <text x="35" y="4" font-family="Arial, sans-serif" font-size="11" fill="#333">Linear path</text>
+
+    <line x1="0" y1="20" x2="25" y2="20" stroke="#4CAF50" stroke-width="2.5" stroke-dasharray="5,3"/>
+    <text x="35" y="24" font-family="Arial, sans-serif" font-size="11" fill="#333">Curved (Bezier) path</text>
+  </g>
+
+  <!-- Bottom note -->
+  <text x="250" y="270" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#333">Straight line has high loss in middle, but curved paths can avoid the barrier</text>
+</svg>

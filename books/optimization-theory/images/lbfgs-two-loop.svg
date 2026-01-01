@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 350">
+  <defs>
+    <marker id="ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#2196F3"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="500" height="350" fill="#fafafa"/>
+
+  <!-- Title -->
+  <text x="250" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333">L-BFGS Two-Loop Recursion</text>
+
+  <!-- History pairs -->
+  <g transform="translate(80, 70)">
+    <text x="0" y="0" font-family="Arial, sans-serif" font-size="12" fill="#333">History: (s₁,y₁), (s₂,y₂), ..., (sₘ,yₘ)</text>
+  </g>
+
+  <!-- First Loop (Right to Left) -->
+  <g transform="translate(50, 120)">
+    <rect x="0" y="0" width="180" height="100" fill="#E3F2FD" stroke="#2196F3" stroke-width="2" rx="5"/>
+    <text x="90" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#1565C0">First Loop (← backward)</text>
+
+    <text x="15" y="50" font-family="monospace" font-size="11" fill="#333">q = g</text>
+    <text x="15" y="68" font-family="monospace" font-size="11" fill="#333">for i = m,...,1:</text>
+    <text x="25" y="86" font-family="monospace" font-size="11" fill="#333">αᵢ = ρᵢ(sᵢᵀq); q = q - αᵢyᵢ</text>
+  </g>
+
+  <!-- Arrow between loops -->
+  <line x1="240" y1="170" x2="270" y2="170" stroke="#2196F3" stroke-width="2" marker-end="url(#ar)"/>
+
+  <!-- Initial Hessian -->
+  <g transform="translate(280, 140)">
+    <rect x="0" y="0" width="120" height="60" fill="#FFF3E0" stroke="#FF9800" stroke-width="2" rx="5"/>
+    <text x="60" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#E65100">Scale</text>
+    <text x="60" y="45" text-anchor="middle" font-family="monospace" font-size="11" fill="#333">r = γq</text>
+  </g>
+
+  <!-- Arrow to second loop -->
+  <line x1="340" y1="210" x2="340" y2="240" stroke="#2196F3" stroke-width="2" marker-end="url(#ar)"/>
+
+  <!-- Second Loop (Left to Right) -->
+  <g transform="translate(250, 250)">
+    <rect x="0" y="0" width="200" height="80" fill="#E8F5E9" stroke="#4CAF50" stroke-width="2" rx="5"/>
+    <text x="100" y="22" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#2E7D32">Second Loop (→ forward)</text>
+
+    <text x="15" y="45" font-family="monospace" font-size="11" fill="#333">for i = 1,...,m:</text>
+    <text x="25" y="63" font-family="monospace" font-size="11" fill="#333">β = ρᵢ(yᵢᵀr); r = r + sᵢ(αᵢ-β)</text>
+  </g>
+
+  <!-- Output -->
+  <g transform="translate(50, 270)">
+    <text x="90" y="0" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#333">Input: gradient g</text>
+    <line x1="90" y1="10" x2="90" y2="30" stroke="#333" stroke-width="1"/>
+    <text x="90" y="45" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#333">Output: H⁻¹g = r</text>
+  </g>
+
+  <!-- Complexity note -->
+  <text x="250" y="340" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#666">Cost: O(mn) time, O(mn) memory (m = history size, n = parameters)</text>
+</svg>

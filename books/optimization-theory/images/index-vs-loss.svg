@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 300">
+  <!-- Background -->
+  <rect width="500" height="300" fill="#fafafa"/>
+
+  <!-- Title -->
+  <text x="250" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333">Critical Point Index vs Loss Value</text>
+
+  <!-- Axes -->
+  <line x1="80" y1="240" x2="450" y2="240" stroke="#333" stroke-width="1.5"/>
+  <line x1="80" y1="240" x2="80" y2="60" stroke="#333" stroke-width="1.5"/>
+
+  <!-- Axis labels -->
+  <text x="265" y="270" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#333">Loss value</text>
+  <text x="40" y="150" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#333" transform="rotate(-90, 40, 150)">Index (# negative eigenvalues)</text>
+
+  <!-- Scatter showing correlation -->
+  <!-- High loss, high index points -->
+  <circle cx="400" cy="80" r="5" fill="#f44336" opacity="0.7"/>
+  <circle cx="380" cy="95" r="5" fill="#f44336" opacity="0.7"/>
+  <circle cx="420" cy="85" r="5" fill="#f44336" opacity="0.7"/>
+  <circle cx="390" cy="75" r="5" fill="#f44336" opacity="0.7"/>
+  <circle cx="370" cy="100" r="5" fill="#f44336" opacity="0.7"/>
+
+  <!-- Medium loss, medium index -->
+  <circle cx="280" cy="130" r="5" fill="#FF9800" opacity="0.7"/>
+  <circle cx="300" cy="140" r="5" fill="#FF9800" opacity="0.7"/>
+  <circle cx="260" cy="145" r="5" fill="#FF9800" opacity="0.7"/>
+  <circle cx="290" cy="125" r="5" fill="#FF9800" opacity="0.7"/>
+  <circle cx="310" cy="150" r="5" fill="#FF9800" opacity="0.7"/>
+
+  <!-- Low loss, low index -->
+  <circle cx="150" cy="200" r="5" fill="#4CAF50" opacity="0.7"/>
+  <circle cx="130" cy="210" r="5" fill="#4CAF50" opacity="0.7"/>
+  <circle cx="170" cy="190" r="5" fill="#4CAF50" opacity="0.7"/>
+  <circle cx="140" cy="220" r="5" fill="#4CAF50" opacity="0.7"/>
+  <circle cx="100" cy="230" r="5" fill="#4CAF50" opacity="0.7"/>
+
+  <!-- Trend line -->
+  <line x1="100" y1="225" x2="420" y2="80" stroke="#2196F3" stroke-width="2" stroke-dasharray="5,3"/>
+
+  <!-- Annotations -->
+  <g transform="translate(420, 100)">
+    <rect x="-5" y="-15" width="70" height="35" fill="white" stroke="#f44336" rx="3"/>
+    <text x="30" y="0" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#f44336">High index</text>
+    <text x="30" y="12" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#f44336">(many escapes)</text>
+  </g>
+
+  <g transform="translate(100, 200)">
+    <rect x="-5" y="-15" width="70" height="35" fill="white" stroke="#4CAF50" rx="3"/>
+    <text x="30" y="0" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#4CAF50">Low index</text>
+    <text x="30" y="12" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#4CAF50">(near minima)</text>
+  </g>
+
+  <!-- Bottom note -->
+  <text x="250" y="290" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#333">As loss decreases, critical points have fewer negative eigenvalues (easier to be true minima)</text>
+</svg>
