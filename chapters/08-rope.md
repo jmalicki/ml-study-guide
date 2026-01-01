@@ -2029,9 +2029,9 @@ test_yarn()
 
 3. **NTK-Aware Scaled RoPE**
 
-   Reddit: /u/bloc97 (2023)
-   https://www.reddit.com/r/LocalLLaMA/comments/14lz7j5/ntkaware_scaled_rope_allows_llama_models_to_have/
-   *Community-driven discovery of NTK scaling.*
+   bloc97 (2023), discussed in EleutherAI blog
+   https://blog.eleuther.ai/yarn/
+   *Community-driven discovery of NTK scaling, later formalized in YaRN.*
 
 4. **YaRN: Efficient Context Window Extension of Large Language Models**
 

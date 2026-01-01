@@ -219,7 +219,7 @@ class NTKScalingRoPE(nn.Module):
     Instead of scaling positions, we scale the base frequency.
     This changes the wavelengths of the rotation functions.
 
-    Paper: https://www.reddit.com/r/LocalLLaMA/comments/14lz7j5/ntkaware_scaled_rope_allows_llama_models_to_have/
+    Reference: https://blog.eleuther.ai/yarn/
     """
     def __init__(
         self,
@@ -3351,7 +3351,7 @@ class RMSNorm(nn.Module):
 
 ### Additional Resources
 
-- [NTK-Aware RoPE Scaling (Reddit Discussion)](https://www.reddit.com/r/LocalLLaMA/comments/14lz7j5/ntkaware_scaled_rope_allows_llama_models_to_have/)
+- [YaRN and NTK-Aware RoPE Scaling (EleutherAI Blog)](https://blog.eleuther.ai/yarn/)
 - [LongBench: A Bilingual, Multitask Benchmark for Long Context Understanding](https://github.com/THUDM/LongBench)
 - [Long Context Models Catalog](https://github.com/Mooler0410/LLMsPracticalGuide#long-context)
 
