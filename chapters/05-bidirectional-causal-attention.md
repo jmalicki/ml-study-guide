@@ -359,7 +359,7 @@ By masking future positions, we enforce that the representation at position $t$ 
 ```math
 \text{Mask}_{ij} = \begin{cases}
 1 & \text{if } i \geq j \\
-0 & \text{if } i < j
+0 & \text{if } i \lt j
 \end{cases}
 ```
 
@@ -914,7 +914,7 @@ Prefix language modeling creates a hybrid attention pattern:
 
 ```math
 \text{Mask}_{ij} = \begin{cases}
-1 & \text{if } i, j < \text{prefix\_len} \text{ (bidirectional on prefix)} \\
+1 & \text{if } i, j \lt \text{prefix\_len} \text{ (bidirectional on prefix)} \\
 1 & \text{if } i \geq \text{prefix\_len} \text{ and } j \leq i \text{ (causal after prefix)} \\
 0 & \text{otherwise}
 \end{cases}
@@ -1568,10 +1568,10 @@ GPT-style models need to generate coherent text by predicting one token at a tim
 GPT models are trained using the language modeling objective:
 
 ```math
-\mathcal{L}_{\text{LM}} = -\sum_{t=1}^{T} \log P(x_t \mid x_{<t})
+\mathcal{L}_{\text{LM}} = -\sum_{t=1}^{T} \log P(x_t \mid x_{\lt t})
 ```
 
-The causal constraint ensures that $P(x_t \mid x_{<t})$ depends only on $x_1, \ldots, x_{t-1}$. This is enforced via a causal mask:
+The causal constraint ensures that $P(x_t \mid x_{\lt t})$ depends only on $x_1, \ldots, x_{t-1}$. This is enforced via a causal mask:
 
 ```math
 \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}} + M_{\text{causal}}\right)V
@@ -1580,7 +1580,7 @@ The causal constraint ensures that $P(x_t \mid x_{<t})$ depends only on $x_1, \l
 where $M_{\text{causal}}$ is a lower triangular mask with $-\infty$ in the upper triangle. This ensures:
 
 ```math
-\alpha_{ij} = 0 \quad \text{for } i < j
+\alpha_{ij} = 0 \quad \text{for } i \lt j
 ```
 
 preventing information flow from future to past.

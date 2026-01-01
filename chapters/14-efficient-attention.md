@@ -104,7 +104,7 @@ Before diving into solutions, it's crucial to understand the practical impact of
 
 **Problem**: At 128K tokens, standard attention requires ~140 teraFLOPs per forward pass - multiple GPU-seconds even on A100s. This makes training on long contexts prohibitively expensive.
 
-**Theoretical justification**: The $O(n^2)$ term dominates all other operations in transformers once $n > d$. For typical models where $d \approx 4096$, any sequence longer than 4K tokens means attention is the primary bottleneck.
+**Theoretical justification**: The $O(n^2)$ term dominates all other operations in transformers once $n \gt d$. For typical models where $d \approx 4096$, any sequence longer than 4K tokens means attention is the primary bottleneck.
 
 **Key insight**: Doubling context length quadruples compute. This superlinear scaling means we must either:
 
@@ -505,7 +505,7 @@ class BigBirdAttention(nn.Module):
         for i in range(self.num_global, seq_len):
             # Sample random positions (excluding already attended positions)
             available = torch.where(~mask[i])[0]
-            if len(available) > 0:
+            if len(available) \gt 0:
                 num_random = min(self.num_random, len(available))
                 random_indices = available[torch.randperm(len(available))[:num_random]]
                 mask[i, random_indices] = True
@@ -635,7 +635,7 @@ class LongformerAttention(nn.Module):
                 # within the window
                 for offset in range(-self.window_size, self.window_size + 1, dilation):
                     j = i + offset
-                    if 0 <= j < seq_len:
+                    if 0 <= j \lt seq_len:
                         mask[i, j] = True
 
         # Global attention
@@ -793,7 +793,7 @@ class SlidingWindowAttention(nn.Module):
             v = torch.cat([v_cache, v], dim=2)
 
             # Rolling buffer: keep only last window_size tokens
-            if k.shape[2] > self.window_size:
+            if k.shape[2] \gt self.window_size:
                 k = k[:, :, -self.window_size:]
                 v = v[:, :, -self.window_size:]
 
@@ -1074,7 +1074,7 @@ class GroupedQueryAttention(nn.Module):
 
     - MHA: n_kv_heads = n_heads (each Q head has own K,V)
     - MQA: n_kv_heads = 1 (all Q heads share K,V)
-    - GQA: 1 < n_kv_heads < n_heads (groups share K,V)
+    - GQA: 1 \lt n_kv_heads \lt n_heads (groups share K,V)
 
     Example: 32 query heads, 8 KV heads -> 4 query heads per KV head
 
@@ -1537,13 +1537,13 @@ class AttentionVariantSelector:
             return "Standard MHA (cache not bottleneck)"
 
         elif model_size == 'medium':
-            if context_length > 32768:
+            if context_length \gt 32768:
                 return "GQA (4-8 groups) for cache efficiency"
             else:
                 return "GQA or MQA"
 
         else:  # large
-            if context_length > 100000:
+            if context_length \gt 100000:
                 return "MLA (DeepSeek-style) for extreme cache reduction"
             else:
                 return "GQA (8 groups) with possible sliding window"

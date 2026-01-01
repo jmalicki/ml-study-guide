@@ -301,7 +301,7 @@ The GPT-2 architecture establishes several key principles:
 
 
    ```math
-\text{mask}[i,j] = \begin{cases} 0 & \text{if } j > i \\ 1 & \text{if } j \leq i \end{cases}
+\text{mask}[i,j] = \begin{cases} 0 & \text{if } j \gt i \\ 1 & \text{if } j \leq i \end{cases}
    ```
 
 3. **GELU Activation**: The Gaussian Error Linear Unit provides smoother gradients than ReLU:
@@ -783,7 +783,7 @@ class GroupedQueryAttention(nn.Module):
 
     - MHA: Each query head has its own K,V heads (n_kv_heads = n_heads)
     - MQA: All query heads share one K,V head (n_kv_heads = 1)
-    - GQA: Groups of query heads share K,V heads (1 < n_kv_heads < n_heads)
+    - GQA: Groups of query heads share K,V heads (1 \lt n_kv_heads \lt n_heads)
 
     Mathematical definition:
     Let $G = n_{\text{heads}} / n_{\text{kv\_heads}}$ be the group size.
@@ -1059,7 +1059,7 @@ Sliding window attention restricts each token to attend only to the previous $w$
 
 ```math
 \text{Attention}(Q, K, V)_{ij} = \begin{cases}
-\text{softmax}(QK^T / \sqrt{d_k})_{ij} V & \text{if } i - w < j \leq i \\
+\text{softmax}(QK^T / \sqrt{d_k})_{ij} V & \text{if } i - w \lt j \leq i \\
 0 & \text{otherwise}
 \end{cases}
 ```
@@ -1529,7 +1529,7 @@ Interleaving local and global attention layers combines their strengths:
 - **Local layers** (odd): Sliding window of 4K tokens
 
   ```math
-\text{Attention}_{\text{local}}(Q, K, V) \text{ with mask } M_{ij} = \begin{cases} 1 & \text{if } i - 4096 < j \leq i \\ 0 & \text{otherwise} \end{cases}
+\text{Attention}_{\text{local}}(Q, K, V) \text{ with mask } M_{ij} = \begin{cases} 1 & \text{if } i - 4096 \lt j \leq i \\ 0 & \text{otherwise} \end{cases}
   ```
 
 - **Global layers** (even): Full causal attention over 8K tokens
@@ -1616,7 +1616,7 @@ Soft-capping uses a smooth, bounded function to limit logit magnitude:
 
 This has several key properties:
 
-1. **Boundedness**: Output is strictly bounded: $-c < \text{soft-cap}(x, c) < c$
+1. **Boundedness**: Output is strictly bounded: $-c \lt \text{soft-cap}(x, c) \lt c$
 
 2. **Smoothness**: Infinitely differentiable everywhere (unlike hard clipping)
 
@@ -1665,7 +1665,7 @@ def soft_cap(logits: torch.Tensor, cap: float = 50.0) -> torch.Tensor:
 
     - $x$ is the input logit
     - $c$ is the cap value (typically 50.0)
-    - tanh ensures output is bounded: $-c < \text{output} < c$
+    - tanh ensures output is bounded: $-c \lt \text{output} \lt c$
 
     Properties:
 
@@ -1732,7 +1732,7 @@ p_\theta(x_{t-1} | x_t) = \text{Model}(x_t, t)
 Instead of bidirectional attention which allows $x_i$ to attend to all positions, WeDLM uses causal masking:
 
 ```math
-\text{Attention}(Q, K, V)_{ij} = 0 \text{ for } j > i
+\text{Attention}(Q, K, V)_{ij} = 0 \text{ for } j \gt i
 ```
 
 This means:
@@ -1850,7 +1850,7 @@ class DiffusionLanguageModel(nn.Module):
             gen_logits = logits[:, prompt.shape[1]:] / temperature
 
             # Sample or take argmax
-            if temperature > 0:
+            if temperature \gt 0:
                 probs = torch.softmax(gen_logits, dim=-1)
                 predictions = torch.multinomial(
                     probs.view(-1, probs.size(-1)),

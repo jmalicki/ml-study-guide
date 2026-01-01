@@ -626,9 +626,9 @@ if __name__ == "__main__":
     # Head 0: Strong diagonal alignment (word-to-word)
     for i in range(min(n_target, n_source)):
         attention_weights[0, 0, i, i] = 0.8
-        if i > 0:
+        if i \gt 0:
             attention_weights[0, 0, i, i-1] = 0.1
-        if i < n_source - 1:
+        if i \lt n_source - 1:
             attention_weights[0, 0, i, i+1] = 0.1
 
     # Normalize
@@ -1263,7 +1263,7 @@ def prepare_teacher_forcing_data(target_sequence):
            return 0.99 ** step
 
    # During training:
-   use_teacher_forcing = random.random() < scheduled_sampling(step, total_steps)
+   use_teacher_forcing = random.random() \lt scheduled_sampling(step, total_steps)
    if use_teacher_forcing:
        decoder_input = ground_truth_tokens
    else:
@@ -1841,7 +1841,7 @@ At inference batch sizes and long contexts, this is prohibitive.
 **Theoretical Justification:**
 GQA makes a key observation: **Do we really need $h$ independent K,V heads?**
 
-Instead, use $n_{kv} < h$ key-value heads, each shared by $h / n_{kv}$ query heads:
+Instead, use $n_{kv} \lt h$ key-value heads, each shared by $h / n_{kv}$ query heads:
 
 ```math
 \text{GQA}: \quad \text{heads}_q = h, \quad \text{heads}_{k,v} = n_{kv}, \quad n_{kv} \ll h
@@ -1886,7 +1886,7 @@ class GroupedQueryCrossAttention(nn.Module):
     """
     Grouped-Query Cross-Attention for reduced KV cache.
 
-    Instead of n_heads separate K,V heads, use n_kv_heads < n_heads.
+    Instead of n_heads separate K,V heads, use n_kv_heads \lt n_heads.
     Each KV head is shared by n_heads // n_kv_heads query heads.
 
     This reduces KV cache size, which is especially important for
@@ -2267,7 +2267,7 @@ Prefix LMs create a **hybrid attention mask**:
 
 ```math
 A_{ij} = \begin{cases}
-1 & \text{if } i, j < L_{\text{prefix}} \text{ (bidirectional on prefix)} \\
+1 & \text{if } i, j \lt L_{\text{prefix}} \text{ (bidirectional on prefix)} \\
 1 & \text{if } i \geq L_{\text{prefix}} \text{ and } j \leq i \text{ (causal on generation)} \\
 0 & \text{otherwise}
 \end{cases}
@@ -2443,11 +2443,11 @@ class CrossAttentionWithRelativeBias(nn.Module):
 
         # Half buckets for exact positions, half for logarithmically larger bins
         num_buckets //= 2
-        buckets = (relative_position > 0).long() * num_buckets
+        buckets = (relative_position \gt 0).long() * num_buckets
 
         relative_position = torch.abs(relative_position)
         max_exact = num_buckets // 2
-        is_small = relative_position < max_exact
+        is_small = relative_position \lt max_exact
 
         # Logarithmic bucketing for larger distances
         relative_position_if_large = max_exact + (

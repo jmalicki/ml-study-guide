@@ -403,11 +403,11 @@ While $\sqrt{d_k}$ is the standard scaling factor, attention can be controlled m
 
 The temperature controls the "sharpness" of the attention distribution:
 
-- **$T < 1$**: "Sharper" attention (more peaked distribution)
+- **$T \lt 1$**: "Sharper" attention (more peaked distribution)
   - Model focuses more strongly on highest-scoring positions
   - Useful for controllable generation (greedy behavior)
 
-- **$T > 1$**: "Softer" attention (more uniform distribution)
+- **$T \gt 1$**: "Softer" attention (more uniform distribution)
   - Model distributes attention more evenly
   - Useful for exploration or sampling diverse outputs
 
@@ -488,7 +488,7 @@ def demonstrate_temperature():
 **Key Implementation Insights**:
 
 1. **Dropout on weights, not output**: Applying dropout to attention weights (not the final output) is more effective because it forces the model to not rely on single attention connections
-2. **Training mode matters**: We only apply dropout during training (`if dropout_p > 0.0`), not inference
+2. **Training mode matters**: We only apply dropout during training (`if dropout_p \gt 0.0`), not inference
 3. **Modularity**: Returning both output and weights separates computation from visualization/analysis
 
 ```python
@@ -533,7 +533,7 @@ def scaled_dot_product_attention(
     attention_weights = F.softmax(scores, dim=-1)
 
     # Apply dropout (for regularization during training)
-    if dropout_p > 0.0:
+    if dropout_p \gt 0.0:
         attention_weights = F.dropout(attention_weights, p=dropout_p)
 
     # Weighted sum of values
@@ -583,7 +583,7 @@ class ScaledDotProductAttention(torch.nn.Module):
         # Attention weights
         attn = F.softmax(scores, dim=-1)
 
-        if self.training and self.dropout > 0:
+        if self.training and self.dropout \gt 0:
             attn = F.dropout(attn, p=self.dropout)
 
         # Output
@@ -826,7 +826,7 @@ def create_padding_mask(seq_len: torch.Tensor, max_len: int) -> torch.Tensor:
     batch_size = seq_len.size(0)
 
     # Create mask: [batch, max_len]
-    mask = torch.arange(max_len, device=seq_len.device)[None, :] < seq_len[:, None]
+    mask = torch.arange(max_len, device=seq_len.device)[None, :] \lt seq_len[:, None]
 
     # Expand for attention: [batch, max_len, max_len]
     # Each query position can attend to all valid key positions

@@ -13,7 +13,7 @@ Perplexity is the fundamental metric for language models, measuring how "surpris
 **Definition**: For a sequence of tokens $x_1, x_2, \ldots, x_{N}$:
 
 ```math
-\text{PPL}(x) = \exp\left(-\frac{1}{N} \sum_{i=1}^{N} \log P(x_i | x_{<i})\right)
+\text{PPL}(x) = \exp\left(-\frac{1}{N} \sum_{i=1}^{N} \log P(x_i | x_{\lt i})\right)
 ```
 
 Lower perplexity indicates better performance. A perplexity of $k$ means the model is as uncertain as if it had to choose uniformly among $k$ possibilities at each step.
@@ -23,7 +23,7 @@ Lower perplexity indicates better performance. A perplexity of $k$ means the mod
 **Theoretical Foundation**: Perplexity is the exponential of cross-entropy, which measures the expected number of bits needed to encode data using the model's predicted distribution. It's rooted in information theory:
 
 - Cross-entropy: $H(p, q) = -\sum_x p(x) \log q(x)$
-- For language modeling: $H = -\frac{1}{N} \sum_{i=1}^{N} \log P(x_i | x_{<i})$
+- For language modeling: $H = -\frac{1}{N} \sum_{i=1}^{N} \log P(x_i | x_{\lt i})$
 - Perplexity: $\text{PPL} = 2^H = \exp(H)$
 
 **Relationship to Alternatives**:
@@ -154,7 +154,7 @@ def example_perplexity():
 For multilingual or byte-level models, bits per byte (BPB) or bits per character (BPC) normalizes across different tokenizations:
 
 ```math
-\text{BPB} = \frac{-\sum_{i=1}^{N} \log_2 P(x_i | x_{<i})}{\text{num\_bytes}}
+\text{BPB} = \frac{-\sum_{i=1}^{N} \log_2 P(x_i | x_{\lt i})}{\text{num\_bytes}}
 ```
 
 **Why Bits Per Byte Matters**: When comparing models with different tokenization schemes (e.g., BPE with different vocabulary sizes, character-level, byte-level), perplexity becomes incomparable because it depends on token granularity. BPB provides a tokenization-agnostic metric by normalizing to the underlying byte representation, making it essential for multilingual model evaluation and cross-model comparisons.
@@ -361,7 +361,7 @@ class MMLUEvaluator:
     ) -> Dict:
         """Evaluate all questions in a subject."""
         # Use first few questions as few-shot examples if not provided
-        if few_shot_examples is None and num_shots > 0:
+        if few_shot_examples is None and num_shots \gt 0:
             few_shot_examples = questions[:num_shots]
             test_questions = questions[num_shots:]
         else:
@@ -451,8 +451,8 @@ HellaSwag ([Zellers et al., 2019](https://arxiv.org/abs/1905.07830)) tests commo
 
 **Theoretical Foundation**: HellaSwag evaluation is based on **conditional likelihood scoring**:
 
-- For each ending $e_i$, we compute the conditional probability: $P(e_i | \text{context}) = \prod_{t=1}^{|e_i|} P(w_t | \text{context}, e_{i,<t})$
-- We take the log to avoid numerical underflow: $\log P(e_i | \text{context}) = \sum_{t=1}^{|e_i|} \log P(w_t | \text{context}, e_{i,<t})$
+- For each ending $e_i$, we compute the conditional probability: $P(e_i | \text{context}) = \prod_{t=1}^{|e_i|} P(w_t | \text{context}, e_{i,\lt t})$
+- We take the log to avoid numerical underflow: $\log P(e_i | \text{context}) = \sum_{t=1}^{|e_i|} \log P(w_t | \text{context}, e_{i,\lt t})$
 - The model selects: $\arg\max_{i} \log P(e_i | \text{context})$
 - Critically, we must **length-normalize** because language models naturally assign higher probability to shorter sequences (fewer opportunities for low-probability tokens).
 
@@ -589,7 +589,7 @@ It's particularly valuable because it's **verifiable** (answers are numerical) a
 1. **Chain-of-Thought Prompting**: The `use_cot` flag enables intermediate reasoning steps. This is not just a nice-to-have—it's essential for good performance (20% → 60%+ accuracy for many models).
 2. **Greedy Decoding**: We use `temperature=0.0` for deterministic, reproducible results. Since answers are verifiable, we don't need sampling diversity.
 3. **Answer Extraction**: The critical challenge is extracting the final numerical answer from free-form text. We use multiple regex patterns (GSM8K format `#### 42`, natural language "the answer is 42", fallback to last number).
-4. **Numerical Tolerance**: We use `abs(predicted - correct_answer) < 1e-4` instead of exact equality to handle floating-point precision issues while still being strict.
+4. **Numerical Tolerance**: We use `abs(predicted - correct_answer) \lt 1e-4` instead of exact equality to handle floating-point precision issues while still being strict.
 
 ```python
 import re
@@ -693,7 +693,7 @@ class GSM8KEvaluator:
         is_correct = False
         if predicted is not None:
             # Allow small numerical tolerance
-            is_correct = abs(predicted - correct_answer) < 1e-4
+            is_correct = abs(predicted - correct_answer) \lt 1e-4
 
         return {
             'question': question,
@@ -785,7 +785,7 @@ class HumanEvalEvaluator:
                     input_ids,
                     max_new_tokens=max_new_tokens,
                     temperature=temperature,
-                    do_sample=temperature > 0,
+                    do_sample=temperature \gt 0,
                     pad_token_id=self.tokenizer.eos_token_id,
                     eos_token_id=self.tokenizer.eos_token_id
                 )
@@ -964,7 +964,7 @@ This benchmark is crucial for evaluating the most advanced models (GPT-4, Claude
 1. **Domain Prompting**: The `_format_gpqa_question` includes domain context ("This is a graduate-level physics question"). This primes the model's expert knowledge and improves accuracy.
 2. **Expert Validation**: Unlike other benchmarks, GPQA questions go through multiple rounds of expert review to ensure correctness and difficulty.
 3. **Resistance to Contamination**: By being "Google-proof," GPQA minimizes the risk that models have seen answers during training, making it more reliable for benchmarking over time.
-4. **Per-Domain Analysis**: Performance varies dramatically by domain (e.g., physics > biology > chemistry for many models), revealing specific knowledge gaps.
+4. **Per-Domain Analysis**: Performance varies dramatically by domain (e.g., physics \gt biology \gt chemistry for many models), revealing specific knowledge gaps.
 
 ```python
 class GPQAEvaluator:
@@ -1858,7 +1858,7 @@ class MATHEvaluator:
         try:
             pred_val = float(pred_norm)
             corr_val = float(corr_norm)
-            return abs(pred_val - corr_val) < 1e-4
+            return abs(pred_val - corr_val) \lt 1e-4
         except (ValueError, TypeError):
             pass
 
@@ -2110,7 +2110,7 @@ class ToxicityEvaluator:
                 'toxicity_scores': toxicity_scores,
                 'max_toxicity': max(toxicity_scores),
                 'mean_toxicity': sum(toxicity_scores) / len(toxicity_scores),
-                'toxic_fraction': sum(s > 0.5 for s in toxicity_scores) / len(toxicity_scores)
+                'toxic_fraction': sum(s \gt 0.5 for s in toxicity_scores) / len(toxicity_scores)
             })
 
         return {
@@ -2730,7 +2730,7 @@ The GPT-3 paper was one of the first to systematically analyze contamination, fi
 
 - Extract all n-grams (sequences of n tokens) from both training and test data
 - For each test example, calculate: $\text{overlap}(t, T) = \frac{|\text{ngrams}(t) \cap \text{ngrams}(T)|}{|\text{ngrams}(t)|}$
-- Threshold-based classification: contaminated if overlap > threshold (typically 10-20%)
+- Threshold-based classification: contaminated if overlap \gt threshold (typically 10-20%)
 - Common n-gram size: n=13 (following GPT-3), balancing specificity vs. recall
 
 The choice of n=13 is based on empirical analysis: smaller n values have too many false positives (common phrases), larger n values miss paraphrases.
@@ -2810,7 +2810,7 @@ class ContaminationDetector:
             overlap_stats.append(overlap_ratio)
 
             # Consider contaminated if substantial overlap
-            if overlap_ratio > 0.1:  # 10% threshold
+            if overlap_ratio \gt 0.1:  # 10% threshold
                 contaminated.append({
                     'index': i,
                     'text': test_text,
@@ -2935,7 +2935,7 @@ class ContaminationMitigation:
         training_dt = datetime.fromisoformat(model_training_date)
         benchmark_dt = datetime.fromisoformat(benchmark_date)
 
-        return benchmark_dt > training_dt
+        return benchmark_dt \gt training_dt
 
     @staticmethod
     def dynamic_benchmarking():
@@ -3121,8 +3121,8 @@ class StatisticalTester:
             'p_value': p_value,
             'ci_lower': ci_lower,
             'ci_upper': ci_upper,
-            'significant_at_0.05': p_value < 0.05,
-            'model_a_better': observed_diff > 0 and p_value < 0.05
+            'significant_at_0.05': p_value \lt 0.05,
+            'model_a_better': observed_diff \gt 0 and p_value \lt 0.05
         }
 
     @staticmethod
@@ -3171,7 +3171,7 @@ class StatisticalTester:
             'p_value': p_value,
             'n_only_a_correct': n10,
             'n_only_b_correct': n01,
-            'significant_at_0.05': p_value < 0.05
+            'significant_at_0.05': p_value \lt 0.05
         }
 
     @staticmethod
@@ -3246,10 +3246,10 @@ def example_statistical_testing():
     np.random.seed(42)
 
     # Model A: 75% accuracy
-    results_a = np.random.random(100) < 0.75
+    results_a = np.random.random(100) \lt 0.75
 
     # Model B: 70% accuracy
-    results_b = np.random.random(100) < 0.70
+    results_b = np.random.random(100) \lt 0.70
 
     tester = StatisticalTester()
 
@@ -3340,7 +3340,7 @@ class EffectSizeCalculator:
     ) -> float:
         """Calculate relative improvement percentage."""
         if baseline_score == 0:
-            return float('inf') if improved_score > 0 else 0.0
+            return float('inf') if improved_score \gt 0 else 0.0
 
         return (improved_score - baseline_score) / baseline_score
 

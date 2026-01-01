@@ -725,7 +725,7 @@ def truncate_conversation(
 
     for msg in reversed(messages):
         msg_tokens = len(tokenizer.encode(msg["content"]))
-        if total_tokens + msg_tokens > max_tokens:
+        if total_tokens + msg_tokens \gt max_tokens:
             break
         truncated.insert(0, msg)
         total_tokens += msg_tokens
@@ -753,7 +753,7 @@ The core challenge in SFT is transforming human-readable instruction-response pa
 Standard language model pre-training uses the objective:
 
 ```math
-\mathcal{L}_{\text{LM}} = -\sum_{t=1}^{T} \log p_\theta(x_t \mid x_{<t})
+\mathcal{L}_{\text{LM}} = -\sum_{t=1}^{T} \log p_\theta(x_t \mid x_{\lt t})
 ```
 
 For SFT, we modify this to only compute loss on assistant responses. This is justified by several principles:
@@ -766,7 +766,7 @@ For SFT, we modify this to only compute loss on assistant responses. This is jus
 Mathematically, this becomes:
 
 ```math
-\mathcal{L}_{\text{SFT}} = -\sum_{t \in \mathcal{A}} \log p_\theta(x_t \mid x_{<t})
+\mathcal{L}_{\text{SFT}} = -\sum_{t \in \mathcal{A}} \log p_\theta(x_t \mid x_{\lt t})
 ```
 
 where $\mathcal{A}$ is the set of assistant token positions.
@@ -919,7 +919,7 @@ class InstructionDataset(Dataset):
                 if eot_marker in search_after:
                     end_idx = start_idx + len(assistant_marker) + search_after.find(eot_marker)
                     # Check if current position is in this range
-                    if start_idx <= len(text_so_far) - len(token_text) < end_idx:
+                    if start_idx <= len(text_so_far) - len(token_text) \lt end_idx:
                         in_assistant_response = True
                         break
                     search_text = search_text[end_idx + len(eot_marker):]
@@ -1168,13 +1168,13 @@ The second approach is better because:
 Standard causal LM loss:
 
 ```math
-\mathcal{L} = -\frac{1}{T} \sum_{t=1}^{T} \log p_\theta(y_t \mid y_{<t})
+\mathcal{L} = -\frac{1}{T} \sum_{t=1}^{T} \log p_\theta(y_t \mid y_{\lt t})
 ```
 
 Masked SFT loss:
 
 ```math
-\mathcal{L}_{\text{SFT}} = -\frac{1}{|A|} \sum_{t \in A} \log p_\theta(y_t \mid y_{<t})
+\mathcal{L}_{\text{SFT}} = -\frac{1}{|A|} \sum_{t \in A} \log p_\theta(y_t \mid y_{\lt t})
 ```
 
 where $A$ is the set of assistant token positions.
@@ -1256,8 +1256,8 @@ def create_labels_mask(
         # Unmask assistant responses
         for asst_pos in assistant_positions:
             # Find the next EOT token
-            eot_after = eot_positions[eot_positions > asst_pos]
-            if len(eot_after) > 0:
+            eot_after = eot_positions[eot_positions \gt asst_pos]
+            if len(eot_after) \gt 0:
                 end_pos = eot_after[0]
                 # Unmask from assistant marker to EOT (inclusive)
                 # Skip the assistant marker itself
@@ -1304,7 +1304,7 @@ def prepare_labels_with_padding(
 
 **1. Data Quality Over Quantity**
 
-- 10K high-quality examples > 100K low-quality examples
+- 10K high-quality examples \gt 100K low-quality examples
 - Manually review samples from your dataset
 - Remove duplicates and near-duplicates
 
@@ -1429,7 +1429,7 @@ Even with the same per-token loss (0.5), the long response contributes 10x more 
 Length normalization addresses this by computing the **average** loss per response rather than total loss:
 
 ```math
-\mathcal{L}_{\text{normalized}} = \frac{1}{B} \sum_{b=1}^{B} \frac{1}{|A_b|} \sum_{t \in A_b} \log p(x_t \mid x_{<t})
+\mathcal{L}_{\text{normalized}} = \frac{1}{B} \sum_{b=1}^{B} \frac{1}{|A_b|} \sum_{t \in A_b} \log p(x_t \mid x_{\lt t})
 ```
 
 where $|A_b|$ is the number of assistant tokens in example $b$.
@@ -1522,8 +1522,8 @@ per_device_batch_size = 2  # Instead of 4
 def __getitem__(self, idx):
     item = self.data[idx]
     # Validate
-    assert len(item['response']) > 0, f"Empty response at index {idx}"
-    assert len(item['instruction']) > 0, f"Empty instruction at index {idx}"
+    assert len(item['response']) \gt 0, f"Empty response at index {idx}"
+    assert len(item['instruction']) \gt 0, f"Empty instruction at index {idx}"
     # ... rest of processing
 ```
 
@@ -1606,8 +1606,8 @@ def verify_labels(batch):
     unmasked = (labels != -100).sum()
     print(f"Masked: {masked}, Unmasked: {unmasked}")
     # Should see significant masking (typically 40-70%)
-    assert unmasked > 0, "All tokens are masked!"
-    assert masked > 0, "No tokens are masked!"
+    assert unmasked \gt 0, "All tokens are masked!"
+    assert masked \gt 0, "No tokens are masked!"
 
 # 3. Verify data quality
 # Print a few examples from the training set
@@ -1676,7 +1676,7 @@ def check_eos_positions(dataset, tokenizer):
     for ex in dataset:
         input_ids = ex['input_ids']
         eos_pos = (input_ids == eos_id).nonzero()
-        if len(eos_pos) > 0:
+        if len(eos_pos) \gt 0:
             positions.append(eos_pos[0].item())
     print(f"Average EOS position: {sum(positions)/len(positions)}")
 ```
@@ -1798,7 +1798,7 @@ def filter_toxic_data(dataset, threshold=0.5):
     filtered = []
     for ex in dataset:
         scores = detoxify_model.predict(ex['response'])
-        if max(scores.values()) < threshold:
+        if max(scores.values()) \lt threshold:
             filtered.append(ex)
     return filtered
 
@@ -1855,7 +1855,7 @@ def remove_duplicates(dataset, similarity_threshold=0.85):
             similarity = SequenceMatcher(
                 None, ex['response'], existing['response']
             ).ratio()
-            if similarity > similarity_threshold:
+            if similarity \gt similarity_threshold:
                 is_unique = False
                 break
         if is_unique:
@@ -1961,7 +1961,7 @@ Standard NLP metrics (BLEU, ROUGE) are insufficient for instruction-following be
 Perplexity measures the model's uncertainty about the next token:
 
 ```math
-\text{PPL} = \exp\left(-\frac{1}{N}\sum_{i=1}^{N} \log p(x_i \mid x_{<i})\right)
+\text{PPL} = \exp\left(-\frac{1}{N}\sum_{i=1}^{N} \log p(x_i \mid x_{\lt i})\right)
 ```
 
 Lower perplexity indicates:
@@ -2271,7 +2271,7 @@ def ab_test(model_a, model_b, test_prompts, evaluators):
         response_b = generate_response(model_b, prompt)
 
         # Randomize order to avoid bias
-        if random.random() < 0.5:
+        if random.random() \lt 0.5:
             shown_order = [("A", response_a), ("B", response_b)]
         else:
             shown_order = [("B", response_b), ("A", response_a)]

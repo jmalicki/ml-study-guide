@@ -287,7 +287,7 @@ class DPOTrainer:
             reward_margin = chosen_rewards - rejected_rewards
 
             # Accuracy: how often does the model prefer the chosen response?
-            accuracy = (reward_margin > 0).float().mean()
+            accuracy = (reward_margin \gt 0).float().mean()
 
             metrics = {
                 'loss': loss.item(),
@@ -690,7 +690,7 @@ def train_dpo_with_checkpointing():
         )
 
         # Save best model
-        if avg_accuracy > best_accuracy:
+        if avg_accuracy \gt best_accuracy:
             best_accuracy = avg_accuracy
             trainer.save_checkpoint(
                 path=f"{checkpoint_dir}/best_model.pt",
@@ -943,7 +943,7 @@ def compute_ipo_loss(
         chosen_rewards = beta * (policy_chosen_log_probs - reference_chosen_log_probs)
         rejected_rewards = beta * (policy_rejected_log_probs - reference_rejected_log_probs)
         reward_margin = chosen_rewards - rejected_rewards
-        accuracy = (reward_margin > 0).float().mean()
+        accuracy = (reward_margin \gt 0).float().mean()
 
         metrics = {
             'loss': loss.item(),
@@ -1129,7 +1129,7 @@ def compute_simpo_loss(
 
     # Metrics
     with torch.no_grad():
-        accuracy = (logits > 0).float().mean()
+        accuracy = (logits \gt 0).float().mean()
         reward_margin = chosen_avg_log_prob - rejected_avg_log_prob
 
         metrics = {
@@ -1368,7 +1368,7 @@ In DPO, this appears as the temperature in the Bradley-Terry model. Higher $\bet
 **Key Insights:**
 
 1. **Start with 0.1**: Works well for most cases as a default
-2. **Monitor KL divergence**: Should gradually increase but stay < 1.0
+2. **Monitor KL divergence**: Should gradually increase but stay \lt 1.0
 3. **Task-dependent**: Simpler tasks can use lower beta (faster alignment)
 4. **Model-dependent**: Larger models may need higher beta (more conservative)
 
@@ -1470,7 +1470,7 @@ def analyze_beta_sensitivity(
 
 **Theoretical Justification:** The DPO loss assumes preferences follow the Bradley-Terry model: $P(y_w \succ y_l) = \sigma(\beta(r(y_w) - r(y_l)))$. This assumes:
 
-1. Preferences are transitive (if A > B and B > C, then A > C)
+1. Preferences are transitive (if A \gt B and B \gt C, then A \gt C)
 2. There exists an underlying reward function $r$
 3. Annotator noise is bounded
 
@@ -1550,7 +1550,7 @@ def analyze_preference_data_quality(
             # Compute statistics
             log_prob_diff = (chosen_log_prob - rejected_log_prob).item()
             stats['log_prob_differences'].append(log_prob_diff)
-            stats['win_rates'].append(1.0 if log_prob_diff > 0 else 0.0)
+            stats['win_rates'].append(1.0 if log_prob_diff \gt 0 else 0.0)
 
             chosen_len = (item['chosen_attention_mask'] == 1).sum().item()
             rejected_len = (item['rejected_attention_mask'] == 1).sum().item()
@@ -1579,7 +1579,7 @@ Misinterpreting these metrics leads to wasted compute on failing runs or stoppin
 
 **Theoretical Justification:** Each metric corresponds to a different aspect of the DPO objective:
 
-- **Accuracy = $P(\beta(\log \pi/\pi_{\text{ref}})_w > \beta(\log \pi/\pi_{\text{ref}})_l)$**: Measures if implicit rewards are ordered correctly
+- **Accuracy = $P(\beta(\log \pi/\pi_{\text{ref}})_w \gt \beta(\log \pi/\pi_{\text{ref}})_l)$**: Measures if implicit rewards are ordered correctly
 - **Reward margin = $\mathbb{E}[\beta \log \pi_w/\pi_{\text{ref}} - \beta \log \pi_l/\pi_{\text{ref}}]$**: Magnitude of preference signal
 - **KL divergence = $\mathbb{E}[\log \pi/\pi_{\text{ref}}]$**: How much policy has moved from reference
 
@@ -1587,7 +1587,7 @@ When these metrics don't align with expectations, it indicates specific failure 
 
 **Key Insights:**
 
-1. **Accuracy < 55% → data quality issue**: Model can't learn anything beyond random guessing
+1. **Accuracy \lt 55% → data quality issue**: Model can't learn anything beyond random guessing
 2. **High accuracy, low margin → beta too high**: Model barely updates from reference
 3. **High margin, mode collapse → beta too low**: Model overfits to preference data
 4. **NaN loss → numerical instability**: Usually in log computations or gradient explosion
@@ -1604,7 +1604,7 @@ When training with DPO, several common issues can arise. Here's how to diagnose 
 
 | Symptom | Likely Cause | Diagnostic Check | Solution |
 |---------|--------------|------------------|----------|
-| **Accuracy < 55%** | Poor data quality or random labels | Check label agreement | Review/filter preference data |
+| **Accuracy \lt 55%** | Poor data quality or random labels | Check label agreement | Review/filter preference data |
 | **Accuracy plateaus at 60-70%** | Ambiguous preferences in data | Analyze margin distribution | Remove low-confidence pairs |
 | **Reward margin → 0** | Beta too low, model not learning | Plot margin over training | Increase beta (e.g., 0.1 → 0.3) |
 | **Model = reference** | Beta too high, over-regularized | Check KL divergence | Decrease beta (e.g., 0.5 → 0.2) |
@@ -1711,9 +1711,9 @@ def diagnose_dpo_training(
 
     print(f"Accuracy: {np.mean(diagnostics['accuracies']):.2%} "
           f"(±{np.std(diagnostics['accuracies']):.2%})")
-    if np.mean(diagnostics['accuracies']) < 0.55:
+    if np.mean(diagnostics['accuracies']) \lt 0.55:
         print("  ⚠️  WARNING: Accuracy very low - check data quality!")
-    elif np.mean(diagnostics['accuracies']) > 0.95:
+    elif np.mean(diagnostics['accuracies']) \gt 0.95:
         print("  ⚠️  WARNING: Accuracy very high - possible overfitting!")
 
     print(f"\nLoss: {np.mean(diagnostics['losses']):.4f} "
@@ -1721,21 +1721,21 @@ def diagnose_dpo_training(
 
     print(f"\nReward Margin: {np.mean(diagnostics['reward_margins']):.4f} "
           f"(±{np.std(diagnostics['reward_margins']):.4f})")
-    if np.mean(diagnostics['reward_margins']) < 0.01:
+    if np.mean(diagnostics['reward_margins']) \lt 0.01:
         print("  ⚠️  WARNING: Very small margin - increase beta!")
 
     print(f"\nKL Divergence: {np.mean(diagnostics['kl_divergences']):.4f} "
           f"(±{np.std(diagnostics['kl_divergences']):.4f})")
-    if np.mean(diagnostics['kl_divergences']) < 0.001:
+    if np.mean(diagnostics['kl_divergences']) \lt 0.001:
         print("  ⚠️  WARNING: Model not diverging from reference - decrease beta!")
-    elif np.mean(diagnostics['kl_divergences']) > 1.0:
+    elif np.mean(diagnostics['kl_divergences']) \gt 1.0:
         print("  ⚠️  WARNING: Large KL divergence - increase beta!")
 
     print(f"\nGradient Norm: {np.mean(diagnostics['gradient_norms']):.4f} "
           f"(±{np.std(diagnostics['gradient_norms']):.4f})")
-    if np.mean(diagnostics['gradient_norms']) < 0.01:
+    if np.mean(diagnostics['gradient_norms']) \lt 0.01:
         print("  ⚠️  WARNING: Very small gradients - increase learning rate!")
-    elif np.mean(diagnostics['gradient_norms']) > 10.0:
+    elif np.mean(diagnostics['gradient_norms']) \gt 10.0:
         print("  ⚠️  WARNING: Large gradients - decrease learning rate!")
 
     print(f"\nChosen Log Prob: {np.mean(diagnostics['chosen_log_probs']):.4f}")
@@ -1799,10 +1799,10 @@ def detect_mode_collapse(
     print(f"Unique generations: {unique_gens}")
     print(f"Diversity ratio: {diversity_ratio:.2%}")
 
-    if diversity_ratio < 0.5:
+    if diversity_ratio \lt 0.5:
         print("  ⚠️  WARNING: Low diversity - possible mode collapse!")
         print("     Solutions: Decrease beta, add diversity penalties")
-    elif diversity_ratio > 0.95:
+    elif diversity_ratio \gt 0.95:
         print("  ✓  Good diversity - model is exploring well")
 
     return {
@@ -1873,7 +1873,7 @@ def check_length_exploitation(
     print(f"Average chosen length: {np.mean(chosen_lengths):.1f}")
     print(f"Average rejected length: {np.mean(rejected_lengths):.1f}")
 
-    if chosen_corr > 0.7:
+    if chosen_corr \gt 0.7:
         print("  ⚠️  WARNING: Strong positive correlation - length exploitation detected!")
         print("     Solutions: Use length-normalized rewards (SimPO), add length penalty")
 
@@ -1894,7 +1894,7 @@ def check_length_exploitation(
    - [ ] Confirm models load correctly and reference is frozen
 
 2. **During training:**
-   - [ ] Monitor accuracy (should be > 60% and improving)
+   - [ ] Monitor accuracy (should be \gt 60% and improving)
    - [ ] Track reward margin (should be positive and stable)
    - [ ] Check KL divergence (should increase slowly)
    - [ ] Watch for NaN or inf in losses
@@ -1970,14 +1970,14 @@ def compute_dpo_loss_with_regularization(
 
     # KL regularization: penalize deviation from reference
     kl_loss = 0.0
-    if kl_penalty > 0:
+    if kl_penalty \gt 0:
         kl_chosen = policy_chosen_log_probs - reference_chosen_log_probs
         kl_rejected = policy_rejected_log_probs - reference_rejected_log_probs
         kl_loss = kl_penalty * (kl_chosen.mean() + kl_rejected.mean())
 
     # Length regularization: penalize very long generations
     length_loss = 0.0
-    if length_penalty > 0 and chosen_lengths is not None:
+    if length_penalty \gt 0 and chosen_lengths is not None:
         length_loss = length_penalty * chosen_lengths.float().mean()
 
     # Total loss

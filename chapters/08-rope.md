@@ -328,7 +328,7 @@ class RotaryPositionalEmbedding(nn.Module):
         seq_len = q.shape[1]
 
         # Extend cache if needed
-        if start_pos + seq_len > self.max_seq_len:
+        if start_pos + seq_len \gt self.max_seq_len:
             self._build_cache(start_pos + seq_len)
 
         # Get cos and sin for current positions
@@ -619,7 +619,7 @@ class RoPEWithKVCache(nn.Module):
         scores = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(self.head_dim)
 
         # Causal mask (only for prefill; during decode seq_len=1 so no mask needed)
-        if seq_len > 1:
+        if seq_len \gt 1:
             mask = torch.triu(torch.ones(seq_len, k.shape[2]), diagonal=start_pos+1)
             scores = scores.masked_fill(mask.bool().to(scores.device), float('-inf'))
 
@@ -1000,9 +1000,9 @@ See [Long Context Techniques](23-long-context.md) for comprehensive coverage of 
 
 ### The Extrapolation Problem
 
-When trained on sequences of length $L$ and tested on length $L' > L$:
+When trained on sequences of length $L$ and tested on length $L' \gt L$:
 
-- Position embeddings for positions $> L$ were never seen during training
+- Position embeddings for positions $\gt L$ were never seen during training
 - The model hasn't learned how to handle those rotation angles
 - Attention patterns become unpredictable
 
@@ -1230,10 +1230,10 @@ class YaRNRoPE(nn.Module):
         freq_scales = torch.ones_like(inv_freq_base)
 
         for i, wavelength in enumerate(wavelengths):
-            if wavelength < beta_fast:
+            if wavelength \lt beta_fast:
                 # High frequency: full interpolation
                 freq_scales[i] = self.scale
-            elif wavelength > beta_slow * self.scale:
+            elif wavelength \gt beta_slow * self.scale:
                 # Low frequency: no scaling (extrapolate)
                 freq_scales[i] = 1.0
             else:
@@ -1692,7 +1692,7 @@ for m in range(seq_len):
     for n in range(seq_len):
         score_mn = (q_rot[0, m] @ k_rot[0, n]).item()
         # Find another pair with same distance
-        if m + 1 < seq_len and n + 1 < seq_len:
+        if m + 1 \lt seq_len and n + 1 \lt seq_len:
             score_m1_n1 = (q_rot[0, m+1] @ k_rot[0, n+1]).item()
             print(f"score({m}, {n}) = {score_mn:.4f}, score({m+1}, {n+1}) = {score_m1_n1:.4f}")
 ```

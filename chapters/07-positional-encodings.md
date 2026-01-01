@@ -436,7 +436,7 @@ class LearnedPositionalEmbedding(nn.Module):
             Embeddings with positional encoding added
 
         Raises:
-            RuntimeError: If seq_len > max_len
+            RuntimeError: If seq_len \gt max_len
         """
         batch_size, seq_len, d_model = x.shape
 
@@ -908,7 +908,7 @@ Beyond ALiBi, another influential approach is the relative position bias used in
 
 **Key Insight**: By making the bias depend only on $|i - j|$ (the distance), the model learns a **distance function** rather than position embeddings. This means "5 positions apart" always has the same bias, whether that's positions (0,5), (10,15), or (100,105).
 
-**Practical Note**: T5 uses bucketing to limit the number of parameters—distances beyond a threshold are grouped into buckets (e.g., all distances > 128 use the same bias). This simplifies the model while retaining the relative position benefits.
+**Practical Note**: T5 uses bucketing to limit the number of parameters—distances beyond a threshold are grouped into buckets (e.g., all distances \gt 128 use the same bias). This simplifies the model while retaining the relative position benefits.
 
 ```python
 class SimpleRelativePositionalBias(nn.Module):
@@ -1274,7 +1274,7 @@ Different frequencies allow the model to attend to both fine-grained (adjacent p
 3. For sequences longer than 50, try:
    - Interpolating the learned embeddings
    - Using only the first 50 position embeddings repeatedly
-   - Using a sinusoidal encoding for positions > 50
+   - Using a sinusoidal encoding for positions \gt 50
 4. Compare the approaches
 
 ### Exercise 3: Relative Position Bias

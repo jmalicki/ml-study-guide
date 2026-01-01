@@ -552,7 +552,7 @@ print(f"\nAttention from final position to example positions:")
 print(f"Final token attends to:")
 for i, token in enumerate(tokens):
     attn_weight = attn_matrix[-1, i]
-    if attn_weight > 0.05:  # Significant attention
+    if attn_weight \gt 0.05:  # Significant attention
         print(f"  {token}: {attn_weight:.4f}")
 ```
 
@@ -1170,50 +1170,50 @@ def should_use_icl_or_finetune(
     score_ft = 0
 
     # Data availability
-    if num_examples < 50:
+    if num_examples \lt 50:
         score_icl += 3
-    elif num_examples < 500:
+    elif num_examples \lt 500:
         score_icl += 1
         score_ft += 1
     else:
         score_ft += 3
 
     # Query volume (cost considerations)
-    if query_volume < 100:
+    if query_volume \lt 100:
         score_icl += 2  # Low volume, cost matters less
-    elif query_volume < 10000:
+    elif query_volume \lt 10000:
         score_icl += 1
         score_ft += 1
     else:
         score_ft += 3  # High volume, inference cost matters
 
     # Task diversity
-    if task_diversity > 10:
+    if task_diversity \gt 10:
         score_icl += 3  # Easy to switch tasks
-    elif task_diversity > 3:
+    elif task_diversity \gt 3:
         score_icl += 2
         score_ft += 1  # Can use LoRA for multiple tasks
     else:
         score_ft += 2
 
     # Latency requirements
-    if latency_requirements < 100:  # < 100ms
+    if latency_requirements \lt 100:  # \lt 100ms
         score_ft += 3
-    elif latency_requirements < 500:
+    elif latency_requirements \lt 500:
         score_ft += 1
     else:
         score_icl += 1
 
     # Base model capability
-    if base_model_capability > 0.8:
+    if base_model_capability \gt 0.8:
         score_icl += 2  # Good base model works well with ICL
     else:
         score_ft += 2  # Weak base needs fine-tuning
 
     # Make recommendation
-    if score_icl > score_ft + 2:
+    if score_icl \gt score_ft + 2:
         return "ICL"
-    elif score_ft > score_icl + 2:
+    elif score_ft \gt score_icl + 2:
         return "fine-tuning"
     else:
         return "hybrid"  # Use both!
@@ -1440,7 +1440,7 @@ def calibrated_icl(model, tokenizer, examples, query, label_space):
     # Step 3: Calibrate (divide by baseline to remove bias)
     calibrated_probs = {}
     for label in label_space:
-        if baseline_probs[label] > 1e-10:
+        if baseline_probs[label] \gt 1e-10:
             calibrated_probs[label] = actual_probs[label] / baseline_probs[label]
         else:
             calibrated_probs[label] = actual_probs[label]
@@ -1671,7 +1671,7 @@ class ICLSystem:
                 ))
 
             # If we didn't get enough, add random ones
-            while len(selected) < k and len(selected) < len(train_pool):
+            while len(selected) \lt k and len(selected) \lt len(train_pool):
                 remaining = [ex for ex in train_pool if ex not in selected]
                 if remaining:
                     selected.append(random.choice(remaining))
@@ -1810,7 +1810,7 @@ class ICLSystem:
         for i in range(num_samples):
             # Optionally shuffle examples for diversity
             shuffled_examples = examples.copy()
-            if i > 0:  # Keep first sample with original order
+            if i \gt 0:  # Keep first sample with original order
                 random.shuffle(shuffled_examples)
 
             prompt = self.format_prompt(shuffled_examples, query, **kwargs)
@@ -1885,7 +1885,7 @@ class ICLSystem:
             print(f"Correct: {prediction.strip().lower() == test_output.strip().lower()}")
             print("-" * 50)
 
-        accuracy = correct / total if total > 0 else 0.0
+        accuracy = correct / total if total \gt 0 else 0.0
 
         return {
             "accuracy": accuracy,

@@ -408,7 +408,7 @@ class BlockwiseQuantizer:
         # Flatten and pad if necessary
         flat = tensor.flatten()
         pad_size = (block_size - len(flat) % block_size) % block_size
-        if pad_size > 0:
+        if pad_size \gt 0:
             flat = torch.cat([flat, torch.zeros(pad_size)])
 
         blocks = flat.view(-1, block_size)
@@ -591,7 +591,7 @@ class GPTQQuantizer:
 
             # Update unprocessed columns (simplified)
             remaining_cols = order[block_end:]
-            if len(remaining_cols) > 0:
+            if len(remaining_cols) \gt 0:
                 # W[:, remaining] -= error @ H[block, remaining] / H[block, block]
                 # Simplified: just propagate error directly
                 pass
@@ -663,7 +663,7 @@ class AWQQuantizer:
         combined_importance = weight_importance * activation_scales
 
         threshold = torch.quantile(combined_importance, threshold_percentile / 100)
-        salient_mask = combined_importance > threshold
+        salient_mask = combined_importance \gt threshold
 
         return salient_mask
 
@@ -1651,7 +1651,7 @@ The algorithm:
 
 1. Draft model generates k tokens autoregressively: $x_1, \ldots, x_k$ (fast)
 2. Target model verifies all k in one forward pass (parallel)
-3. Accept tokens where $p_{\text{target}}(x_i|x_{<i}) \geq p_{\text{draft}}(x_i|x_{<i})$
+3. Accept tokens where $p_{\text{target}}(x_i|x_{\lt i}) \geq p_{\text{draft}}(x_i|x_{\lt i})$
 
 Expected speedup: $\mathbb{E}[\text{tokens}] = 1 + \alpha + \alpha^2 + \ldots + \alpha^k$ where $\alpha$ is acceptance rate.
 
@@ -1740,7 +1740,7 @@ class SpeculativeDecoder:
             # Acceptance probability: min(1, target_p / draft_p)
             acceptance_ratio = target_prob[0, token_id] / (draft_prob[0, token_id] + 1e-10)
 
-            if torch.rand(1) < acceptance_ratio:
+            if torch.rand(1) \lt acceptance_ratio:
                 accepted_tokens.append(draft_token)
             else:
                 # Sample from residual distribution
@@ -1855,7 +1855,7 @@ class ContinuousBatching:
             del self.active_sequences[seq_id]
 
         # 3. Add waiting sequences
-        while (len(self.active_sequences) < self.max_batch_size
+        while (len(self.active_sequences) \lt self.max_batch_size
                and self.waiting_queue):
             new_seq = self.waiting_queue.pop(0)
             self.active_sequences[new_seq['id']] = new_seq
@@ -2761,7 +2761,7 @@ class Muon:
 
             # Update with optional weight decay
             update = self.m[i]
-            if self.weight_decay > 0:
+            if self.weight_decay \gt 0:
                 update = update + self.weight_decay * p.data
 
             p.data = p.data - self.lr * update
@@ -2958,7 +2958,7 @@ class CosineSchedule:
 
     def get_lr(self, step: int) -> float:
         """Get learning rate at given step."""
-        if step < self.warmup_steps:
+        if step \lt self.warmup_steps:
             # Linear warmup
             return self.max_lr * step / self.warmup_steps
 
@@ -3080,11 +3080,11 @@ class WSDSchedule:
 
     def get_lr(self, step: int) -> float:
         """Get learning rate at given step."""
-        if step < self.warmup_steps:
+        if step \lt self.warmup_steps:
             # Warmup
             return self.max_lr * step / self.warmup_steps
 
-        if step < self.stable_end:
+        if step \lt self.stable_end:
             # Stable
             return self.max_lr
 
@@ -3106,7 +3106,7 @@ class WSDSchedule:
     def can_continue_from(self, checkpoint_step: int) -> bool:
         """Check if training can continue from checkpoint without loss penalty."""
         # Can continue from any point in stable phase
-        return self.warmup_steps <= checkpoint_step < self.stable_end
+        return self.warmup_steps <= checkpoint_step \lt self.stable_end
 
 
 class WSMSchedule:

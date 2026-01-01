@@ -240,11 +240,11 @@ class AdamW(Optimizer):
             weight_decay: Weight decay coefficient (λ)
             amsgrad: Whether to use AMSGrad variant
         """
-        if lr < 0.0:
+        if lr \lt 0.0:
             raise ValueError(f"Invalid learning rate: {lr}")
-        if not 0.0 <= betas[0] < 1.0:
+        if not 0.0 <= betas[0] \lt 1.0:
             raise ValueError(f"Invalid beta1: {betas[0]}")
-        if not 0.0 <= betas[1] < 1.0:
+        if not 0.0 <= betas[1] \lt 1.0:
             raise ValueError(f"Invalid beta2: {betas[1]}")
         if not 0.0 <= eps:
             raise ValueError(f"Invalid epsilon: {eps}")
@@ -393,7 +393,7 @@ Choosing the right hyperparameters for AdamW is crucial for LLM training.
 
 ![Weight Decay Bias-Variance Trade-off](../assets/diagrams/ch17-weight-decay-tradeoff.svg)
 
-Weight decay controls the bias-variance trade-off in LLM training. Too little (λ ≈ 0) allows overfitting with high variance; too much (λ > 0.5) causes underfitting with high bias. The optimal value (typically λ ≈ 0.1 for LLMs) balances regularization strength to minimize total error.
+Weight decay controls the bias-variance trade-off in LLM training. Too little (λ ≈ 0) allows overfitting with high variance; too much (λ \gt 0.5) causes underfitting with high bias. The optimal value (typically λ ≈ 0.1 for LLMs) balances regularization strength to minimize total error.
 
 #### Learning Rate Scaling with Model Size
 
@@ -561,7 +561,7 @@ For full implementation details and empirical comparisons, see Chapter 27.
 |-----------|---------------|---------------|-------------|
 | **AdamW** | Stable, proven, works everywhere | Memory overhead, baseline efficiency | **Default choice - use unless you have a specific reason not to** |
 | **Muon** | 2× efficiency, lower memory | Less tested, complex implementation | Cutting-edge research, efficiency critical |
-| **Shampoo** | Better conditioning, faster convergence | Very high memory cost, expensive | When quality > cost, small-scale experiments |
+| **Shampoo** | Better conditioning, faster convergence | Very high memory cost, expensive | When quality \gt cost, small-scale experiments |
 | **SOAP** | Improved stability at large scale | Newer, less proven | Very large scale (>100B params) |
 | **SGD + Momentum** | Minimal memory overhead | Requires extensive tuning, slower convergence | Extreme memory constraints |
 
@@ -659,7 +659,7 @@ class WarmupSchedule:
 
     def get_lr(self, step: int) -> float:
         """Get learning rate at given step."""
-        if step < self.warmup_steps:
+        if step \lt self.warmup_steps:
             # Linear warmup
             return self.max_lr * step / self.warmup_steps
         return self.max_lr
@@ -777,11 +777,11 @@ class CosineDecaySchedule:
         self.total_steps = total_steps
 
         if warmup_steps >= total_steps:
-            raise ValueError("warmup_steps must be < total_steps")
+            raise ValueError("warmup_steps must be \lt total_steps")
 
     def get_lr(self, step: int) -> float:
         """Get learning rate at given step."""
-        if step < self.warmup_steps:
+        if step \lt self.warmup_steps:
             # Linear warmup
             return self.max_lr * step / self.warmup_steps
 
@@ -843,7 +843,7 @@ def get_cosine_schedule_with_warmup(
     from torch.optim.lr_scheduler import LambdaLR
 
     def lr_lambda(current_step: int):
-        if current_step < num_warmup_steps:
+        if current_step \lt num_warmup_steps:
             # Warmup
             return float(current_step) / float(max(1, num_warmup_steps))
 
@@ -965,11 +965,11 @@ class WSDSchedule:
 
     def get_lr(self, step: int) -> float:
         """Get learning rate at given step."""
-        if step < self.warmup_steps:
+        if step \lt self.warmup_steps:
             # Warmup phase
             return self.max_lr * step / self.warmup_steps
 
-        if step < self.stable_end:
+        if step \lt self.stable_end:
             # Stable phase
             return self.max_lr
 
@@ -991,7 +991,7 @@ class WSDSchedule:
     def can_extend_training(self, current_step: int) -> bool:
         """Check if training can be extended without penalty."""
         # Can extend anytime during stable phase
-        return self.warmup_steps <= current_step < self.stable_end
+        return self.warmup_steps <= current_step \lt self.stable_end
 
 
 def plot_wsd_schedule():
@@ -1095,7 +1095,7 @@ The most common approach: scale gradients if total norm exceeds threshold.
 **Algorithm:**
 
 ```math
-\text{if } \|\mathbf{g}\| > \tau: \quad \mathbf{g} \leftarrow \frac{\tau \mathbf{g}}{\|\mathbf{g}\|}
+\text{if } \|\mathbf{g}\| \gt \tau: \quad \mathbf{g} \leftarrow \frac{\tau \mathbf{g}}{\|\mathbf{g}\|}
 ```
 
 where:
@@ -1189,7 +1189,7 @@ def clip_grad_norm(
 
     # Clip
     clip_coef = max_norm / (total_norm + 1e-6)
-    if clip_coef < 1:
+    if clip_coef \lt 1:
         for p in parameters:
             p.grad.data.mul_(clip_coef)
 
@@ -1231,11 +1231,11 @@ class GradientMonitor:
     def update(self, grad_norm: float, max_norm: float):
         """Update statistics."""
         self.norms.append(grad_norm)
-        if len(self.norms) > self.window_size:
+        if len(self.norms) \gt self.window_size:
             self.norms.pop(0)
 
         self.total_count += 1
-        if grad_norm > max_norm:
+        if grad_norm \gt max_norm:
             self.clipped_count += 1
 
     def get_stats(self) -> dict:
@@ -1359,9 +1359,9 @@ B_{\text{crit}} \approx \frac{\eta^2 \text{Var}[\mathbf{g}]}{\|\mathbb{E}[\mathb
 
 **What happens at different batch sizes?**
 
-- **$B < B_{\text{crit}}$**: Gradient noise dominates, can't increase LR safely, leaving performance on table
+- **$B \lt B_{\text{crit}}$**: Gradient noise dominates, can't increase LR safely, leaving performance on table
 - **$B = B_{\text{crit}}$**: Optimal trade-off between noise reduction and parallelism
-- **$B > B_{\text{crit}}$**: Noise is already small enough; larger batches don't help convergence (just waste compute)
+- **$B \gt B_{\text{crit}}$**: Noise is already small enough; larger batches don't help convergence (just waste compute)
 
 **How This Relates to Alternatives:**
 
@@ -1574,9 +1574,9 @@ def print_batch_configurations():
         calc = BatchSizeCalculator(gpu_mem, params, seq_len)
 
         # Estimate micro batch size (simplified)
-        if params < 1e9:
+        if params \lt 1e9:
             micro_batch = 8
-        elif params < 10e9:
+        elif params \lt 10e9:
             micro_batch = 4
         else:
             micro_batch = 1
@@ -1838,14 +1838,14 @@ grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm)
 
 stats = {
     'grad_norm': grad_norm.item(),
-    'clip_rate': 1.0 if grad_norm > max_norm else 0.0,
+    'clip_rate': 1.0 if grad_norm \gt max_norm else 0.0,
     'param_norm': sum(p.norm().item() ** 2 for p in model.parameters()) ** 0.5
 }
 
 # Red flags:
-# - grad_norm > 100: LR too high or data issue
-# - grad_norm < 0.01: LR too low or vanishing gradients
-# - clip_rate > 0.8: Too much clipping, increase max_norm or reduce LR
+# - grad_norm \gt 100: LR too high or data issue
+# - grad_norm \lt 0.01: LR too low or vanishing gradients
+# - clip_rate \gt 0.8: Too much clipping, increase max_norm or reduce LR
 # - param_norm growing exponentially: Instability, reduce LR
 ```
 
@@ -1861,12 +1861,12 @@ def check_batch_health(batch):
 
     # Check for duplicates (can cause spikes)
     unique_ratio = len(torch.unique(batch)) / batch.numel()
-    if unique_ratio < 0.01:
+    if unique_ratio \lt 0.01:
         return "Highly repetitive data"
 
     # Check token distribution
     token_counts = torch.bincount(batch.flatten())
-    if (token_counts.max() / token_counts.sum()) > 0.5:
+    if (token_counts.max() / token_counts.sum()) \gt 0.5:
         return "Single token dominates batch"
 
     return "OK"
@@ -1897,9 +1897,9 @@ new_lr = current_lr * 1.5
 
 ```python
 # Adjust clipping
-if clip_rate > 0.8:
+if clip_rate \gt 0.8:
     max_grad_norm *= 1.5  # Less aggressive clipping
-elif clip_rate < 0.1:
+elif clip_rate \lt 0.1:
     max_grad_norm *= 0.7  # More aggressive clipping
 ```
 
@@ -1983,7 +1983,7 @@ def lr_sweep(model, data_loader, lr_range=(1e-6, 1e-3), num_steps=1000):
             param_group['lr'] = current_lr
 
         # Stop if diverged
-        if loss.item() > losses[0] * 4:
+        if loss.item() \gt losses[0] * 4:
             print(f"Diverged at LR={current_lr:.2e}")
             break
 
@@ -2055,7 +2055,7 @@ def should_restart(current_step, total_steps, loss_history, spike_severity):
     progress = current_step / total_steps
 
     # Early training (<10%): restart on any major issue
-    if progress < 0.1 and spike_severity > 2.0:
+    if progress \lt 0.1 and spike_severity \gt 2.0:
         return True
 
     # NaN/Inf: always restart
@@ -2063,7 +2063,7 @@ def should_restart(current_step, total_steps, loss_history, spike_severity):
         return True
 
     # Severe spike (>5× normal) mid-training: restart from checkpoint
-    if spike_severity > 5.0:
+    if spike_severity \gt 5.0:
         return True
 
     # Otherwise: try to recover
@@ -2100,9 +2100,9 @@ metrics = {
 
 # Alert if:
 # - loss_ma increasing over 1K steps
-# - grad_norm > 100 for >10 consecutive steps
-# - clip_rate > 0.9 for >100 steps
-# - param_update_ratio > 0.1 (too aggressive) or < 1e-5 (too conservative)
+# - grad_norm \gt 100 for >10 consecutive steps
+# - clip_rate \gt 0.9 for >100 steps
+# - param_update_ratio \gt 0.1 (too aggressive) or \lt 1e-5 (too conservative)
 ```
 
 ---

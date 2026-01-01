@@ -1184,7 +1184,7 @@ class Llama32Vision(nn.Module):
                 ]
 
                 # Pad if necessary
-                if tile.shape[2] < tile_size or tile.shape[3] < tile_size:
+                if tile.shape[2] \lt tile_size or tile.shape[3] \lt tile_size:
                     tile = nn.functional.pad(
                         tile,
                         (0, tile_size - tile.shape[3], 0, tile_size - tile.shape[2])
@@ -1906,7 +1906,7 @@ class ProductionMultimodalModel:
                 prompts=prompt_tokens,
                 max_length=max_length,
                 temperature=temperature,
-                do_sample=temperature > 0
+                do_sample=temperature \gt 0
             )
 
             # Decode outputs
@@ -2002,7 +2002,7 @@ def batch_process_dataset(
 
     for i in tqdm(range(0, len(image_paths), batch_size)):
         batch_images = image_paths[i:i+batch_size]
-        batch_prompts = prompts[i:i+batch_size] if len(prompts) > 1 else [prompts[0]] * len(batch_images)
+        batch_prompts = prompts[i:i+batch_size] if len(prompts) \gt 1 else [prompts[0]] * len(batch_images)
 
         try:
             outputs = model.inference(batch_images, batch_prompts)
@@ -2070,7 +2070,7 @@ class MonitoredMultimodalModel:
         """Get performance metrics."""
         avg_latency = (
             self.stats['total_latency'] / self.stats['total_requests']
-            if self.stats['total_requests'] > 0
+            if self.stats['total_requests'] \gt 0
             else 0
         )
 

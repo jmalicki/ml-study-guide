@@ -350,7 +350,7 @@ class RewardNormalizer:
         m_a = self.var * self.count
         m_b = batch_var * batch_count
         M2 = m_a + m_b + delta**2 * self.count * batch_count / total_count
-        self.var = M2 / total_count if total_count > 1 else 1.0
+        self.var = M2 / total_count if total_count \gt 1 else 1.0
 
         self.count = total_count
 
@@ -621,7 +621,7 @@ def apply_response_mask(
     masked_values = values * mask
     num_valid = mask.sum()
 
-    if num_valid > 0:
+    if num_valid \gt 0:
         return masked_values.sum() / num_valid
     else:
         return torch.tensor(0.0, device=values.device)
@@ -686,8 +686,8 @@ This is especially important because:
 
 This ensures:
 
-- If advantage is positive ($\hat{A}_t > 0$), we increase probability but only up to $(1+\epsilon)$ times
-- If advantage is negative ($\hat{A}_t < 0$), we decrease probability but only down to $(1-\epsilon)$ times
+- If advantage is positive ($\hat{A}_t \gt 0$), we increase probability but only up to $(1+\epsilon)$ times
+- If advantage is negative ($\hat{A}_t \lt 0$), we decrease probability but only down to $(1-\epsilon)$ times
 - Beyond the clip range, gradient becomes zero, preventing excessive updates
 
 **Why this works better than alternatives**:
@@ -833,7 +833,7 @@ D_{\text{KL}}(\pi_\theta || \pi_{\text{ref}}) = \sum_{a} \pi_\theta(a|s) \log \f
 For a generated sequence $y = (y_1, \ldots, y_T)$, we compute the average per-token KL:
 
 ```math
-D_{\text{KL}}^{\text{avg}} = \frac{1}{T} \sum_{t=1}^{T} D_{\text{KL}}(\pi_\theta(\cdot|x, y_{<t}) || \pi_{\text{ref}}(\cdot|x, y_{<t}))
+D_{\text{KL}}^{\text{avg}} = \frac{1}{T} \sum_{t=1}^{T} D_{\text{KL}}(\pi_\theta(\cdot|x, y_{\lt t}) || \pi_{\text{ref}}(\cdot|x, y_{\lt t}))
 ```
 
 ### Implementation
@@ -922,8 +922,8 @@ Instead of a fixed $\beta$, some implementations use adaptive KL control:
 
 ```math
 \beta_{t+1} = \begin{cases}
-\beta_t / \alpha & \text{if } D_{\text{KL}} < D_{\text{target}} - \epsilon \\
-\beta_t \times \alpha & \text{if } D_{\text{KL}} > D_{\text{target}} + \epsilon \\
+\beta_t / \alpha & \text{if } D_{\text{KL}} \lt D_{\text{target}} - \epsilon \\
+\beta_t \times \alpha & \text{if } D_{\text{KL}} \gt D_{\text{target}} + \epsilon \\
 \beta_t & \text{otherwise}
 \end{cases}
 ```
@@ -1539,9 +1539,9 @@ def evaluate_reward_model(
             r_chosen = reward_model(chosen_input_ids, chosen_attention_mask)
             r_rejected = reward_model(rejected_input_ids, rejected_attention_mask)
 
-            # Check if chosen > rejected
+            # Check if chosen \gt rejected
 
-            correct += (r_chosen > r_rejected).sum().item()
+            correct += (r_chosen \gt r_rejected).sum().item()
             total += len(r_chosen)
 
             # Track reward differences
@@ -1653,7 +1653,7 @@ def compute_kl_statistics(
 
 - **Good**: KL = 2-10 nats (policy is similar to reference)
 - **Warning**: KL = 10-50 nats (significant deviation)
-- **Bad**: KL > 50 nats (policy may have collapsed or reward hacked)
+- **Bad**: KL \gt 50 nats (policy may have collapsed or reward hacked)
 
 ### 3. Generation Quality Metrics
 
@@ -2047,17 +2047,17 @@ def detect_failure_modes(
         # Check for reward hacking: very high reward, nonsensical output
 
         reward = reward_model(outputs, torch.ones_like(outputs)).item()
-        if reward > 10.0 and len(set(tokens)) < len(tokens) * 0.3:
+        if reward \gt 10.0 and len(set(tokens)) \lt len(tokens) * 0.3:
             failures["reward_hacking"].append(response)
 
         # Check for policy collapse: very short or very repetitive
 
-        if len(tokens) < 5:
+        if len(tokens) \lt 5:
             failures["policy_collapse"].append(response)
 
         # Check for length exploitation
 
-        if len(tokens) > 400:  # Suspiciously long
+        if len(tokens) \gt 400:  # Suspiciously long
             failures["length_exploitation"].append(response)
 
         # Check for repetition loops
@@ -2090,7 +2090,7 @@ def detect_failure_modes(
 
 **Interpreting results - what success looks like**:
 
-1. **Reward improvement**: RLHF > SFT by 1-5 points (substantial but not astronomical)
+1. **Reward improvement**: RLHF \gt SFT by 1-5 points (substantial but not astronomical)
 2. **Controlled KL**: Stays in 2-10 nat range (learning but not drifting)
 3. **Quality maintained**: Diversity doesn't decrease, coherence maintained
 4. **No failures**: Minimal reward hacking, collapse, or repetition

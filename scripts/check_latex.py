@@ -327,6 +327,64 @@ class LatexValidator:
             return "; ".join(issues)
         return None
 
+    def check_angle_brackets(self, latex: str) -> Optional[str]:
+        r"""
+        Check for raw < and > in LaTeX that should use \lt and \gt.
+        GitHub's markdown renderer can misinterpret < as HTML tags.
+        Returns error message if issues found, None if valid.
+        """
+        errors = []
+
+        # Find < and > that are not part of \lt, \gt, \le, \ge, \leq, \geq, \langle, \rangle
+        # Also allow <= and >= as comparison operators, and -> arrows
+        i = 0
+        while i < len(latex):
+            if latex[i] == '\\':
+                # Skip LaTeX commands
+                i += 1
+                while i < len(latex) and latex[i].isalpha():
+                    i += 1
+                continue
+
+            if latex[i] == '<':
+                # Check if it's part of <= or <-
+                if i + 1 < len(latex) and latex[i + 1] in ('=', '-'):
+                    i += 2
+                    continue
+                # Check if preceded by backslash (already handled above, but double-check)
+                if i > 0 and latex[i - 1] == '\\':
+                    i += 1
+                    continue
+                # This is a raw < that should be \lt
+                context_start = max(0, i - 10)
+                context_end = min(len(latex), i + 15)
+                context = latex[context_start:context_end]
+                errors.append(f"Raw '<' at position {i} should be '\\lt' for GitHub compatibility: '...{context}...'")
+
+            elif latex[i] == '>':
+                # Check if it's part of >= or -> or -->
+                if i > 0 and latex[i - 1] in ('-', '='):
+                    i += 1
+                    continue
+                if i + 1 < len(latex) and latex[i + 1] == '=':
+                    i += 2
+                    continue
+                # Check if preceded by backslash
+                if i > 0 and latex[i - 1] == '\\':
+                    i += 1
+                    continue
+                # This is a raw > that should be \gt
+                context_start = max(0, i - 10)
+                context_end = min(len(latex), i + 15)
+                context = latex[context_start:context_end]
+                errors.append(f"Raw '>' at position {i} should be '\\gt' for GitHub compatibility: '...{context}...'")
+
+            i += 1
+
+        if errors:
+            return "; ".join(errors)
+        return None
+
     def check_common_latex_errors(self, latex: str) -> Optional[str]:
         r"""
         Check for common LaTeX syntax errors.
@@ -673,6 +731,17 @@ class LatexValidator:
                 file_path=file_path,
                 line_num=line_num,
                 error_type="Common LaTeX errors",
+                message=error,
+                latex_snippet=latex[:100]
+            ))
+
+        # Check for raw < and > that should be \lt and \gt
+        error = self.check_angle_brackets(latex)
+        if error:
+            self.errors.append(LatexError(
+                file_path=file_path,
+                line_num=line_num,
+                error_type="Raw angle brackets",
                 message=error,
                 latex_snippet=latex[:100]
             ))

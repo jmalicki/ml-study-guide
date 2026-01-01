@@ -180,7 +180,7 @@ class TransformerEncoder(nn.Module):
     def _init_parameters(self):
         """Initialize parameters with Xavier/Glorot initialization."""
         for p in self.parameters():
-            if p.dim() > 1:
+            if p.dim() \gt 1:
                 nn.init.xavier_uniform_(p)
 
     def forward(
@@ -306,7 +306,7 @@ The causal mask is:
 
 ```math
 M_{ij} = \begin{cases}
-0 & \text{if } i < j \\
+0 & \text{if } i \lt j \\
 1 & \text{if } i \geq j
 \end{cases}
 ```
@@ -423,7 +423,7 @@ class TransformerDecoder(nn.Module):
     def _init_parameters(self):
         """Initialize parameters."""
         for p in self.parameters():
-            if p.dim() > 1:
+            if p.dim() \gt 1:
                 nn.init.xavier_uniform_(p)
 
     def _create_causal_mask(self, seq_len: int, device: torch.device) -> torch.Tensor:
@@ -523,7 +523,7 @@ class TransformerDecoder(nn.Module):
             # Optional: top-k filtering
             if top_k is not None:
                 v, _ = torch.topk(logits, min(top_k, logits.size(-1)))
-                logits[logits < v[:, [-1]]] = -float('inf')
+                logits[logits \lt v[:, [-1]]] = -float('inf')
 
             # Optional: top-p (nucleus) filtering
             if top_p is not None:
@@ -533,7 +533,7 @@ class TransformerDecoder(nn.Module):
                 )
 
                 # Remove tokens with cumulative probability above threshold
-                sorted_indices_to_remove = cumulative_probs > top_p
+                sorted_indices_to_remove = cumulative_probs \gt top_p
                 # Keep at least one token
                 sorted_indices_to_remove[:, 1:] = sorted_indices_to_remove[:, :-1].clone()
                 sorted_indices_to_remove[:, 0] = 0
@@ -744,7 +744,7 @@ class TransformerEncoderDecoder(nn.Module):
 
     def _init_parameters(self):
         for p in self.parameters():
-            if p.dim() > 1:
+            if p.dim() \gt 1:
                 nn.init.xavier_uniform_(p)
 
     def _create_causal_mask(self, seq_len: int, device: torch.device) -> torch.Tensor:
@@ -1112,7 +1112,7 @@ class GroupedQueryAttention(nn.Module):
 
         # Softmax and dropout
         attn_weights = torch.softmax(scores, dim=-1)
-        if self.dropout > 0:
+        if self.dropout \gt 0:
             attn_weights = nn.functional.dropout(
                 attn_weights, p=self.dropout, training=self.training
             )
@@ -1337,7 +1337,7 @@ class ModernTransformer(nn.Module):
             # Top-k filtering
             if top_k is not None:
                 v, _ = torch.topk(logits, min(top_k, logits.size(-1)))
-                logits[logits < v[:, [-1]]] = -float('inf')
+                logits[logits \lt v[:, [-1]]] = -float('inf')
 
             # Top-p (nucleus) filtering
             if top_p is not None:
@@ -1348,7 +1348,7 @@ class ModernTransformer(nn.Module):
                     torch.softmax(sorted_logits, dim=-1), dim=-1
                 )
 
-                sorted_indices_to_remove = cumulative_probs > top_p
+                sorted_indices_to_remove = cumulative_probs \gt top_p
                 sorted_indices_to_remove[:, 1:] = sorted_indices_to_remove[:, :-1].clone()
                 sorted_indices_to_remove[:, 0] = 0
 
@@ -1421,13 +1421,13 @@ class ModernTransformer(nn.Module):
         logits = logits[:, -1, :] / temperature
         if top_k is not None:
             v, _ = torch.topk(logits, min(top_k, logits.size(-1)))
-            logits[logits < v[:, [-1]]] = -float('inf')
+            logits[logits \lt v[:, [-1]]] = -float('inf')
         if top_p is not None:
             sorted_logits, sorted_indices = torch.sort(logits, descending=True)
             cumulative_probs = torch.cumsum(
                 torch.softmax(sorted_logits, dim=-1), dim=-1
             )
-            sorted_indices_to_remove = cumulative_probs > top_p
+            sorted_indices_to_remove = cumulative_probs \gt top_p
             sorted_indices_to_remove[:, 1:] = sorted_indices_to_remove[:, :-1].clone()
             sorted_indices_to_remove[:, 0] = 0
             indices_to_remove = sorted_indices_to_remove.scatter(
@@ -1461,13 +1461,13 @@ class ModernTransformer(nn.Module):
             logits = logits[:, -1, :] / temperature
             if top_k is not None:
                 v, _ = torch.topk(logits, min(top_k, logits.size(-1)))
-                logits[logits < v[:, [-1]]] = -float('inf')
+                logits[logits \lt v[:, [-1]]] = -float('inf')
             if top_p is not None:
                 sorted_logits, sorted_indices = torch.sort(logits, descending=True)
                 cumulative_probs = torch.cumsum(
                     torch.softmax(sorted_logits, dim=-1), dim=-1
                 )
-                sorted_indices_to_remove = cumulative_probs > top_p
+                sorted_indices_to_remove = cumulative_probs \gt top_p
                 sorted_indices_to_remove[:, 1:] = sorted_indices_to_remove[:, :-1].clone()
                 sorted_indices_to_remove[:, 0] = 0
                 indices_to_remove = sorted_indices_to_remove.scatter(
@@ -1576,7 +1576,7 @@ class GroupedQueryAttentionWithCache(nn.Module):
             scores = scores + mask
 
         attn_weights = torch.softmax(scores, dim=-1)
-        if self.dropout > 0:
+        if self.dropout \gt 0:
             attn_weights = nn.functional.dropout(
                 attn_weights, p=self.dropout, training=self.training
             )
@@ -1664,7 +1664,7 @@ Language model training requires processing massive amounts of text data efficie
 The causal language modeling objective is:
 
 ```math
-\mathcal{L} = -\frac{1}{T} \sum_{t=1}^{T} \log P(x_t \mid x_{<t}; \theta)
+\mathcal{L} = -\frac{1}{T} \sum_{t=1}^{T} \log P(x_t \mid x_{\lt t}; \theta)
 ```
 
 To compute this efficiently, we:
@@ -1922,7 +1922,7 @@ This enables:
 The shuffle buffer uses **reservoir sampling** to maintain randomness:
 
 1. Fill buffer with first $k$ samples
-2. For each new sample $x_i$ (where $i > k$):
+2. For each new sample $x_i$ (where $i \gt k$):
    - With probability $k/i$, replace random buffer element with $x_i$
 3. Ensures each sample has equal probability of being in buffer
 
@@ -2065,9 +2065,9 @@ def create_hf_dataset(dataset_name: str, tokenizer, block_size: int = 512):
 
 #### Best Practices
 
-1. **For datasets < 1GB**: Use in-memory dataset
+1. **For datasets \lt 1GB**: Use in-memory dataset
 2. **For datasets 1GB-100GB**: Use memory-mapped dataset
-3. **For datasets > 100GB**: Use streaming or HuggingFace datasets
+3. **For datasets \gt 100GB**: Use streaming or HuggingFace datasets
 4. **For distributed training**: Always use HuggingFace datasets or custom streaming
 
 ---
@@ -2112,7 +2112,7 @@ Warmup + cosine decay:
 
 ```math
 \alpha(t) = \begin{cases}
-\alpha_{\text{max}} \cdot \frac{t}{T_{\text{warmup}}} & \text{if } t < T_{\text{warmup}} \\
+\alpha_{\text{max}} \cdot \frac{t}{T_{\text{warmup}}} & \text{if } t \lt T_{\text{warmup}} \\
 \alpha_{\text{max}} \cdot \frac{1}{2}\left(1 + \cos\left(\pi \frac{t - T_{\text{warmup}}}{T_{\text{max}} - T_{\text{warmup}}}\right)\right) & \text{otherwise}
 \end{cases}
 ```
@@ -2180,7 +2180,7 @@ def train_language_model(
 
     # Learning rate schedule: warmup + cosine decay
     def get_lr(step, warmup_steps=100, max_steps=num_epochs * len(dataloader)):
-        if step < warmup_steps:
+        if step \lt warmup_steps:
             return learning_rate * (step / warmup_steps)
         progress = (step - warmup_steps) / (max_steps - warmup_steps)
         return learning_rate * 0.5 * (1 + math.cos(math.pi * progress))
@@ -2214,7 +2214,7 @@ def train_language_model(
             loss.backward()
 
             # Gradient clipping
-            if grad_clip > 0:
+            if grad_clip \gt 0:
                 torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
 
             optimizer.step()
@@ -2352,7 +2352,7 @@ def train_with_mixed_precision(
 
     # Learning rate schedule
     def get_lr(step, warmup_steps=100, max_steps=num_epochs * len(dataloader)):
-        if step < warmup_steps:
+        if step \lt warmup_steps:
             return learning_rate * (step / warmup_steps)
         progress = (step - warmup_steps) / (max_steps - warmup_steps)
         return learning_rate * 0.5 * (1 + math.cos(math.pi * progress))
@@ -2391,7 +2391,7 @@ def train_with_mixed_precision(
             if (batch_idx + 1) % gradient_accumulation_steps == 0:
                 # Unscale gradients and clip
                 scaler.unscale_(optimizer)
-                if grad_clip > 0:
+                if grad_clip \gt 0:
                     torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
 
                 # Optimizer step with scaling
@@ -2804,10 +2804,10 @@ Perplexity is the standard metric for evaluating generative language models. It 
 Perplexity is the exponential of the average negative log-likelihood:
 
 ```math
-\text{PPL}(X) = \exp\left(-\frac{1}{T}\sum_{t=1}^{T} \log P(x_t \mid x_{<t}; \theta)\right)
+\text{PPL}(X) = \exp\left(-\frac{1}{T}\sum_{t=1}^{T} \log P(x_t \mid x_{\lt t}; \theta)\right)
 ```
 
-where $T$ is the total number of tokens and $P(x_t \mid x_{<t}; \theta)$ is the model's predicted probability of token $x_t$.
+where $T$ is the total number of tokens and $P(x_t \mid x_{\lt t}; \theta)$ is the model's predicted probability of token $x_t$.
 
 **Intuitive Interpretation:**
 

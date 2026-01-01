@@ -170,7 +170,7 @@ In practice, we minimize the negative log-likelihood (NLL):
 The model outputs logits $\mathbf{z}_t \in \mathbb{R}^{V}$ at each position, which are converted to probabilities via softmax:
 
 ```math
-P(x_t = i \mid x_{<t}) = \frac{\exp(z_{t,i})}{\sum_{j=1}^{V} \exp(z_{t,j})}
+P(x_t = i \mid x_{\lt t}) = \frac{\exp(z_{t,i})}{\sum_{j=1}^{V} \exp(z_{t,j})}
 ```
 
 where $V$ is the vocabulary size.
@@ -734,7 +734,7 @@ class CheckpointManager:
             self.best_checkpoints.sort(key=lambda x: x[0])  # Sort by loss
 
             # Remove excess checkpoints
-            if len(self.best_checkpoints) > self.keep_best_n:
+            if len(self.best_checkpoints) \gt self.keep_best_n:
                 _, old_path = self.best_checkpoints.pop()
                 if old_path.exists():
                     old_path.unlink()
@@ -797,7 +797,7 @@ def train_with_checkpointing():
         val_loss = evaluate(model, val_dataloader)
 
         # Save checkpoint
-        is_best = val_loss < best_val_loss
+        is_best = val_loss \lt best_val_loss
         if is_best:
             best_val_loss = val_loss
 
@@ -1306,7 +1306,7 @@ def gradient_clipping_methods():
 
     1. Clip by norm (most common for LLMs):
        - Compute global gradient norm: ||g|| = sqrt(sum(g_i^2))
-       - If ||g|| > max_norm: g = g × (max_norm / ||g||)
+       - If ||g|| \gt max_norm: g = g × (max_norm / ||g||)
        - Preserves gradient direction
 
     2. Clip by value:
@@ -1661,7 +1661,7 @@ def get_cosine_schedule_with_warmup_pytorch(
     from torch.optim.lr_scheduler import LambdaLR
 
     def lr_lambda(step):
-        if step < warmup_steps:
+        if step \lt warmup_steps:
             # Warmup
             return step / warmup_steps
         else:
@@ -2544,9 +2544,9 @@ def debug_loss_not_decreasing():
     def check_learning_rate(optimizer):
         lr = optimizer.param_groups[0]['lr']
         print(f"Current learning rate: {lr:.2e}")
-        if lr < 1e-5:
+        if lr \lt 1e-5:
             print("WARNING: Learning rate very low!")
-        elif lr > 1e-3:
+        elif lr \gt 1e-3:
             print("WARNING: Learning rate very high!")
 
     # Debug: Check gradient norms
@@ -2559,9 +2559,9 @@ def debug_loss_not_decreasing():
         total_norm = total_norm ** 0.5
         print(f"Gradient norm: {total_norm:.4f}")
 
-        if total_norm < 1e-6:
+        if total_norm \lt 1e-6:
             print("WARNING: Vanishing gradients detected!")
-        elif total_norm > 100:
+        elif total_norm \gt 100:
             print("WARNING: Exploding gradients detected!")
 
     # Debug: Verify data
@@ -2896,7 +2896,7 @@ def example_memory_estimation():
         use_mixed_precision=True,
         use_checkpointing=True
     )
-    print(f"\nCan fit on 80GB A100: {memory < 80}")
+    print(f"\nCan fit on 80GB A100: {memory \lt 80}")
 ```
 
 ### Slow Training
@@ -3067,7 +3067,7 @@ def debug_convergence_issues():
 
         gap = recent_val - recent_train
 
-        if gap > threshold:
+        if gap \gt threshold:
             print(f"WARNING: Possible overfitting detected!")
             print(f"Train loss: {recent_train:.4f}, Val loss: {recent_val:.4f}")
             print(f"Gap: {gap:.4f}")
@@ -3088,7 +3088,7 @@ def debug_convergence_issues():
         def __call__(self, val_loss):
             if self.best_loss is None:
                 self.best_loss = val_loss
-            elif val_loss > self.best_loss - self.min_delta:
+            elif val_loss \gt self.best_loss - self.min_delta:
                 self.counter += 1
                 if self.counter >= self.patience:
                     print(f"Early stopping triggered after {self.counter} epochs")
@@ -3227,7 +3227,7 @@ class CompleteTrainer:
 
     def _update_learning_rate(self):
         """Update learning rate with warmup."""
-        if self.global_step < self.warmup_steps:
+        if self.global_step \lt self.warmup_steps:
             lr = self.max_lr * self.global_step / self.warmup_steps
         else:
             lr = self.max_lr
@@ -3288,7 +3288,7 @@ class CompleteTrainer:
             print(f"Epoch {epoch}: Val Loss = {val_loss:.4f}")
 
             # Save checkpoint
-            is_best = val_loss < best_val_loss
+            is_best = val_loss \lt best_val_loss
             if is_best:
                 best_val_loss = val_loss
 
@@ -3366,7 +3366,7 @@ if __name__ == '__main__':
 
 1. **Causal Language Modeling**
    - Next token prediction is the core objective
-   - Autoregressive factorization: $P(x_{1:T}) = \prod_t P(x_t | x_{<t})$
+   - Autoregressive factorization: $P(x_{1:T}) = \prod_t P(x_t | x_{\lt t})$
    - Training minimizes negative log-likelihood
 
 2. **Cross-Entropy Loss**

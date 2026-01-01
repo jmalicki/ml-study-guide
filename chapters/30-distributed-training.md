@@ -435,7 +435,7 @@ class SimpleTransformer(nn.Module):
 
 # Basic DataParallel (single-machine, multi-GPU)
 model = SimpleTransformer()
-if torch.cuda.device_count() > 1:
+if torch.cuda.device_count() \gt 1:
     print(f"Using {torch.cuda.device_count()} GPUs")
     model = nn.DataParallel(model)
 model = model.cuda()
@@ -1449,7 +1449,7 @@ For a transformer with sequence length $S$, batch size $B$, hidden dimension $d$
 
 **Use when**:
 
-- Very long sequences ($S > 32K$)
+- Very long sequences ($S \gt 32K$)
 - Activation memory exceeds model parameter memory
 - Already using tensor parallelism (they work together)
 - High-bandwidth interconnect available (for all-gather operations)
@@ -1668,7 +1668,7 @@ With $M$ micro-batches and $P$ pipeline stages:
 
 Bubble ratio: $\frac{P - 1}{M + P - 1} \approx \frac{P}{M}$ for large $M$
 
-**Rule of thumb**: Use $M \geq 4P$ to keep bubble overhead < 20%
+**Rule of thumb**: Use $M \geq 4P$ to keep bubble overhead \lt 20%
 
 ### Bubble Reduction Strategies
 
@@ -2112,7 +2112,7 @@ def train_with_fsdp(rank, world_size):
     model = SimpleTransformer()
 
     # Define auto wrap policy (which modules to wrap)
-    # Wrap layers with > 100M parameters
+    # Wrap layers with \gt 100M parameters
     auto_wrap_policy = functools.partial(
         size_based_auto_wrap_policy,
         min_num_params=100_000
@@ -2704,13 +2704,13 @@ def recommend_parallelism_strategy(
     recommendations = []
 
     # Can model fit on single GPU with DDP?
-    if model_size_gb * 1.5 < gpu_memory_gb:  # 1.5x for activations
+    if model_size_gb * 1.5 \lt gpu_memory_gb:  # 1.5x for activations
         recommendations.append("DDP - simplest, fastest")
 
     # Need memory reduction?
     memory_ratio = model_size_gb / gpu_memory_gb
 
-    if memory_ratio > 1:
+    if memory_ratio \gt 1:
         if num_gpus >= 8 and interconnect == "nvlink":
             recommendations.append(f"Tensor Parallel (TP) - {min(8, num_gpus)} way split")
 
@@ -3131,7 +3131,7 @@ def monitor_memory_across_ranks(rank, model):
         # Check for imbalance
         allocated_list = [t.item() for t in all_allocated]
         max_diff = max(allocated_list) - min(allocated_list)
-        if max_diff > 1.0:  # >1GB difference
+        if max_diff \gt 1.0:  # >1GB difference
             print(f"  WARNING: Memory imbalance of {max_diff:.2f} GB detected!")
 
 def debug_oom_training():

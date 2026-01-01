@@ -76,7 +76,7 @@ where:
 - $s$ is the guidance scale (typically 7.5 for Stable Diffusion)
 - $s = 0$: unconditional generation
 - $s = 1$: standard conditional generation
-- $s > 1$: stronger adherence to condition (at cost of diversity)
+- $s \gt 1$: stronger adherence to condition (at cost of diversity)
 
 **Mathematical Intuition:**
 
@@ -150,7 +150,7 @@ class ClassifierFreeGuidanceMixin:
 
         # Create mask for unconditional samples
         batch_size = condition.shape[0]
-        mask = torch.rand(batch_size, device=condition.device) < self.p_uncond
+        mask = torch.rand(batch_size, device=condition.device) \lt self.p_uncond
 
         # Replace masked conditions with zeros (null condition)
         # In practice, you might use a learned null embedding
@@ -284,7 +284,7 @@ class ConditionalUNet(nn.Module):
     def _apply_cfg_training(self, condition: torch.Tensor) -> torch.Tensor:
         """Apply unconditional training dropout."""
         batch_size = condition.shape[0]
-        mask = torch.rand(batch_size, device=condition.device) < self.p_uncond
+        mask = torch.rand(batch_size, device=condition.device) \lt self.p_uncond
         masked_condition = condition.clone()
         masked_condition[mask] = 0
         return masked_condition
@@ -600,7 +600,7 @@ class VAEEncoder(nn.Module):
             )
 
             # Downsample (except last layer)
-            if i < len(channel_multipliers) - 1:
+            if i \lt len(channel_multipliers) - 1:
                 self.down_blocks.append(Downsample(out_channels))
 
             channels = out_channels
@@ -682,7 +682,7 @@ class VAEDecoder(nn.Module):
             )
 
             # Upsample (except last layer)
-            if i < len(channel_multipliers) - 1:
+            if i \lt len(channel_multipliers) - 1:
                 self.up_blocks.append(Upsample(out_channels))
 
             channels = out_channels
@@ -1038,7 +1038,7 @@ class DDPMScheduler:
         sqrt_one_minus_alpha_prod = self.sqrt_one_minus_alphas_cumprod[timesteps]
 
         # Reshape for broadcasting
-        while len(sqrt_alpha_prod.shape) < len(original_samples.shape):
+        while len(sqrt_alpha_prod.shape) \lt len(original_samples.shape):
             sqrt_alpha_prod = sqrt_alpha_prod.unsqueeze(-1)
             sqrt_one_minus_alpha_prod = sqrt_one_minus_alpha_prod.unsqueeze(-1)
 
@@ -1092,7 +1092,7 @@ class DDPMScheduler:
         )
 
         # Add noise (except at t=0)
-        if t > 0:
+        if t \gt 0:
             noise = torch.randn(
                 sample.shape,
                 generator=generator,
@@ -1197,8 +1197,8 @@ class DDIMScheduler(DDPMScheduler):
             pred_sample_direction
         )
 
-        # Add noise if eta > 0
-        if eta > 0 and timestep > 0:
+        # Add noise if eta \gt 0
+        if eta \gt 0 and timestep \gt 0:
             noise = torch.randn(
                 model_output.shape,
                 generator=generator,
@@ -2438,7 +2438,7 @@ class FlowMatching(nn.Module):
         x_t = t * x1 + (1 - t) * x0
 
         # Add optional Gaussian conditioning
-        if self.sigma > 0:
+        if self.sigma \gt 0:
             noise = torch.randn_like(x0)
             x_t = x_t + self.sigma * noise
 
@@ -3182,7 +3182,7 @@ class EDMSampler:
             sigma_next = sigmas[i + 1]
 
             # Optional: add noise for stochasticity
-            if s_churn > 0:
+            if s_churn \gt 0:
                 gamma = min(s_churn / num_steps, 2 ** 0.5 - 1)
                 sigma_hat = sigma_cur * (1 + gamma)
                 x = x + (sigma_hat ** 2 - sigma_cur ** 2) ** 0.5 * torch.randn_like(x)
@@ -3780,7 +3780,7 @@ class ContinuousEmbeddingDiffusion(nn.Module):
                 torch.sqrt(alpha_t)
 
             # Add noise (except at t=0)
-            if t > 0:
+            if t \gt 0:
                 noise = torch.randn_like(x)
                 sigma_t = torch.sqrt(self.betas[t])
                 x = x + sigma_t * noise
@@ -4021,8 +4021,8 @@ class StableDiffusionTrainer:
             text_embeddings = self.text_encoder(text_tokens)
 
         # 3. Apply CFG dropout
-        if cfg_prob > 0:
-            mask = torch.rand(batch_size) < cfg_prob
+        if cfg_prob \gt 0:
+            mask = torch.rand(batch_size) \lt cfg_prob
             text_embeddings[mask] = 0  # Replace with null embedding
 
         # 4. Sample noise and timesteps

@@ -97,7 +97,7 @@
    **Line 632: PRM formula could be clearer**
 
    ```latex
-   $$r_{\text{process}}(q, r, a) = \sum_{i=1}^{n} w_i \cdot \text{score}(r_i | r_{<i}, q)$$
+   $$r_{\text{process}}(q, r, a) = \sum_{i=1}^{n} w_i \cdot \text{score}(r_i | r_{\lt i}, q)$$
    ```
 
    The weights $w_i$ are not explained. Are they learned? Fixed? Should clarify.

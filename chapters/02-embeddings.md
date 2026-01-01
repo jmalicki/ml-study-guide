@@ -287,7 +287,7 @@ where $f(x)$ is a weighting function that prevents rare and very frequent co-occ
 
 ```math
 f(x) = \begin{cases}
-(x/x_{\max})^{0.75} & \text{if } x < x_{\max} \\
+(x/x_{\max})^{0.75} & \text{if } x \lt x_{\max} \\
 1 & \text{otherwise}
 \end{cases}
 ```
@@ -626,7 +626,7 @@ loss.backward()
 
 # Check which embeddings got gradients
 print(f"Gradient shape: {embedding.weight.grad.shape}")  # (vocab_size, embedding_dim)
-print(f"Non-zero gradient rows: {(embedding.weight.grad.abs().sum(dim=1) > 0).sum()}")
+print(f"Non-zero gradient rows: {(embedding.weight.grad.abs().sum(dim=1) \gt 0).sum()}")
 # Only embeddings for tokens in token_ids have non-zero gradients
 unique_tokens = token_ids.unique()
 print(f"Unique tokens in batch: {len(unique_tokens)}")
@@ -1615,9 +1615,9 @@ def estimate_embedding_memory(
     total_bytes = total_params * bytes_per_param
 
     # Convert to appropriate unit
-    if total_bytes < 1024**2:
+    if total_bytes \lt 1024**2:
         size_str = f"{total_bytes / 1024:.2f} KB"
-    elif total_bytes < 1024**3:
+    elif total_bytes \lt 1024**3:
         size_str = f"{total_bytes / 1024**2:.2f} MB"
     else:
         size_str = f"{total_bytes / 1024**3:.2f} GB"
@@ -1728,7 +1728,7 @@ class FactorizedEmbedding(nn.Module):
         """
         super().__init__()
 
-        assert rank < min(vocab_size, embedding_dim), \
+        assert rank \lt min(vocab_size, embedding_dim), \
             "Rank should be smaller than vocab_size and embedding_dim"
 
         self.vocab_size = vocab_size
@@ -2108,7 +2108,7 @@ class HashEmbedding(nn.Module):
     """
     Hash embedding using the hashing trick.
 
-    Instead of storing V embeddings, store K < V embeddings.
+    Instead of storing V embeddings, store K \lt V embeddings.
     Multiple tokens hash to same embedding (collision).
 
     Useful for very large vocabularies where rare tokens can share embeddings.
@@ -2125,7 +2125,7 @@ class HashEmbedding(nn.Module):
         Args:
             vocab_size: Original vocabulary size
             embedding_dim: Embedding dimension
-            num_buckets: Number of hash buckets (K < V)
+            num_buckets: Number of hash buckets (K \lt V)
             num_hashes: Number of hash functions (ensemble)
         """
         super().__init__()

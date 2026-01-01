@@ -487,7 +487,7 @@ class ModularMLP(nn.Module):
             layers.extend([
                 nn.Linear(d_model, d_model),
                 nn.ReLU(),
-                nn.Dropout(dropout) if dropout > 0 else nn.Identity()
+                nn.Dropout(dropout) if dropout \gt 0 else nn.Identity()
             ])
         self.layers = nn.Sequential(*layers)
         
@@ -619,7 +619,7 @@ def train_grokking_demo(
         val_losses.append(val_loss)
         
         # Log progress
-        if epoch % 100 == 0 or epoch < 10:
+        if epoch % 100 == 0 or epoch \lt 10:
             print(f"Epoch {epoch:5d} | Train: {train_acc:.3f} ({train_loss:.4f}) | "
                   f"Val: {val_acc:.3f} ({val_loss:.4f})")
     
@@ -780,9 +780,9 @@ When $N \gg n$, the model has many degrees of freedom. SGD's implicit bias towar
 
 **Connection to linear algebra:**
 
-- $N < n$: Underdetermined system, can't fit all data
+- $N \lt n$: Underdetermined system, can't fit all data
 - $N = n$: Exactly determined, unique solution (often high-norm, poor generalization)
-- $N > n$: Overdetermined, infinitely many interpolating solutions (SGD finds good ones)
+- $N \gt n$: Overdetermined, infinitely many interpolating solutions (SGD finds good ones)
 
 ### Implementation
 
@@ -1370,7 +1370,7 @@ For practical training techniques (optimizers, learning rates, etc.), see [Chapt
    - Is there a sweet spot?
 
 10. **Interpolation Threshold Analysis**
-    - For a given dataset size n, create models with N < n, N ≈ n, and N > n parameters
+    - For a given dataset size n, create models with N \lt n, N ≈ n, and N \gt n parameters
     - Train all models to convergence
     - Measure train and test error for each
     - Verify the double descent peak at N ≈ n

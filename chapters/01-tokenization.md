@@ -83,7 +83,7 @@ where $|\Sigma|$ is the alphabet size (typically 256-150K for Unicode).
 
 **Advantages:**
 
-- Very small vocabulary size (typically < 256 for ASCII, < 150K for Unicode)
+- Very small vocabulary size (typically \lt 256 for ASCII, \lt 150K for Unicode)
 - No OOV words - can handle any character
 - Useful for tasks like spelling correction or morphological analysis
 
@@ -471,7 +471,7 @@ class WordTokenizer:
 
         print(f"Built vocabulary with {len(self.word_to_id)} words")
         print(f"Corpus vocabulary: {len(self.word_freq)} unique words")
-        if len(self.word_freq) > self.vocab_size:
+        if len(self.word_freq) \gt self.vocab_size:
             print(f"Truncated to top {self.vocab_size} most frequent words")
 
     def encode(self, text: str, add_special_tokens: bool = True) -> List[int]:
@@ -824,7 +824,7 @@ class BPETokenizer:
         # Apply each merge operation in order
         for pair in self.merges:
             i = 0
-            while i < len(tokens) - 1:
+            while i \lt len(tokens) - 1:
                 if (tokens[i], tokens[i+1]) == pair:
                     # Merge the pair
                     tokens = tokens[:i] + [''.join(pair)] + tokens[i+2:]
@@ -1095,7 +1095,7 @@ class WordPieceTokenizer:
             tokens = word.split()
             for i in range(len(tokens)):
                 token_counts[tokens[i]] += freq
-                if i < len(tokens) - 1:
+                if i \lt len(tokens) - 1:
                     pair_counts[(tokens[i], tokens[i+1])] += freq
 
         # Calculate mutual information score
@@ -1141,7 +1141,7 @@ class WordPieceTokenizer:
         # First character has no prefix, subsequent chars have prefix
         words = {}
         for word, freq in word_freqs.items():
-            if len(word) > 0:
+            if len(word) \gt 0:
                 # First char without prefix, rest with prefix
                 tokens = [word[0]] + [self.prefix + c for c in word[1:]]
                 words[' '.join(tokens)] = freq
@@ -1189,15 +1189,15 @@ class WordPieceTokenizer:
         tokens = []
         start = 0
 
-        while start < len(word):
+        while start \lt len(word):
             end = len(word)
             found = False
 
             # Try to find longest matching subword
-            while start < end:
+            while start \lt end:
                 substr = word[start:end]
                 # Add prefix if not at word start
-                if start > 0:
+                if start \gt 0:
                     substr = self.prefix + substr
 
                 if substr in self.token_to_id:
@@ -2338,7 +2338,7 @@ class ProductionTokenizer:
             token_ids = self._encode_single(txt, add_special_tokens)
 
             # Truncation
-            if truncation and max_length and len(token_ids) > max_length:
+            if truncation and max_length and len(token_ids) \gt max_length:
                 token_ids = token_ids[:max_length]
 
             all_token_ids.append(token_ids)

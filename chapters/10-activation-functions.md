@@ -50,7 +50,7 @@ This visualization shows how different activation functions transform inputs. No
 The smooth, non-monotonic nature of GELU and SiLU is why they perform better than ReLU in modern transformers. Key observations:
 
 - **Non-monotonic behavior**: Both GELU and SiLU have a characteristic "dip" - they become slightly negative for moderately negative inputs (around $x = -1$ to $-2$) before approaching zero. This is visible as a shallow minimum in their curves.
-- **Better gradient flow**: Unlike ReLU's zero gradient for all $x < 0$, GELU and SiLU maintain non-zero gradients everywhere, preventing "dying neurons"
+- **Better gradient flow**: Unlike ReLU's zero gradient for all $x \lt 0$, GELU and SiLU maintain non-zero gradients everywhere, preventing "dying neurons"
 - **Smooth transitions**: The absence of sharp corners (like ReLU's kink at $x=0$) provides more stable optimization
 - **Self-gating property**: These functions naturally weight inputs by their magnitude, creating adaptive, context-dependent transformations
 
@@ -64,7 +64,7 @@ The Rectified Linear Unit (ReLU) is one of the simplest activation functions:
 
 ```math
 \text{ReLU}(x) = \max(0, x) = \begin{cases}
-x & \text{if } x > 0 \\
+x & \text{if } x \gt 0 \\
 0 & \text{if } x \leq 0
 \end{cases}
 ```
@@ -73,7 +73,7 @@ x & \text{if } x > 0 \\
 
 ```math
 \frac{d}{dx}\text{ReLU}(x) = \begin{cases}
-1 & \text{if } x > 0 \\
+1 & \text{if } x \gt 0 \\
 0 & \text{if } x \leq 0
 \end{cases}
 ```
@@ -368,7 +368,7 @@ Like GELU, SiLU exhibits a characteristic **non-monotonic** behavior where it di
 
 2. **Why this is beneficial**:
    - **Self-gating mechanism**: The input directly controls how much of itself passes through via the sigmoid. Large positive inputs pass through nearly unchanged ($\sigma(x) \approx 1$), while negative inputs are suppressed but not killed entirely
-   - **Gradient flow**: Unlike ReLU's hard zero gradient for $x < 0$, SiLU maintains non-zero gradients everywhere, preventing the "dying neuron" problem
+   - **Gradient flow**: Unlike ReLU's hard zero gradient for $x \lt 0$, SiLU maintains non-zero gradients everywhere, preventing the "dying neuron" problem
    - **Smoothness**: The continuous, differentiable nature everywhere (no kink at $x=0$) provides more stable optimization landscapes
    - **Implicit regularization**: The shallow negative region creates a soft penalty for moderately negative activations, similar to a learned form of regularization
 
@@ -1577,8 +1577,8 @@ def test_activation_implementation():
     print(f"GELU max error: {gelu_error:.6f}")
     print(f"SiLU max error: {silu_error:.6f}")
 
-    assert gelu_error < 1e-5, "GELU implementation is incorrect"
-    assert silu_error < 1e-5, "SiLU implementation is incorrect"
+    assert gelu_error \lt 1e-5, "GELU implementation is incorrect"
+    assert silu_error \lt 1e-5, "SiLU implementation is incorrect"
 
     print("All tests passed!")
 

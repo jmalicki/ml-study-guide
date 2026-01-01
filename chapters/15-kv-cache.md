@@ -274,8 +274,8 @@ class AttentionWithKVCache(nn.Module):
         # Compute attention
         scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.head_dim)
 
-        # Causal mask (only needed during prefill when seq_len > 1)
-        if seq_len > 1:
+        # Causal mask (only needed during prefill when seq_len \gt 1)
+        if seq_len \gt 1:
             # Create causal mask for new tokens
             total_len = K.shape[2]
             mask = torch.triu(
@@ -548,7 +548,7 @@ class RoPEAttentionWithCache(nn.Module):
         scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.head_dim)
 
         # Causal mask for prefill
-        if seq_len > 1:
+        if seq_len \gt 1:
             total_len = K.shape[2]
             mask = torch.triu(
                 torch.ones(seq_len, total_len, device=x.device),
@@ -1206,7 +1206,7 @@ class BlockAllocator:
         Returns:
             List of block IDs
         """
-        if len(self.free_blocks) < num_blocks_needed:
+        if len(self.free_blocks) \lt num_blocks_needed:
             raise MemoryError(f"Out of KV cache blocks")
 
         allocated = self.free_blocks[:num_blocks_needed]
@@ -1458,7 +1458,7 @@ class RollingKVCache:
         self.current_size = 0
 
     def update(self, k_new, v_new):
-        if self.current_size + k_new.shape[2] > self.max_size:
+        if self.current_size + k_new.shape[2] \gt self.max_size:
             # Evict oldest tokens (keep attention sinks)
             # ... implementation ...
             pass

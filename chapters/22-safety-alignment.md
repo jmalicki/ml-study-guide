@@ -319,7 +319,7 @@ Revised Response:"""
                 critique = self.critique_response(prompt, response, principle)
 
                 # If critique identifies issues, revise
-                if len(critique) > 10:  # Simple heuristic
+                if len(critique) \gt 10:  # Simple heuristic
                     response = self.revise_response(prompt, response, critique)
                     history.append(f"Revision {i+1} ({principle[:30]}...): {response}")
 
@@ -397,7 +397,7 @@ Answer:"""
                         votes_a += 1
 
                 # Determine chosen and rejected
-                if votes_a > len(self.constitution) / 2:
+                if votes_a \gt len(self.constitution) / 2:
                     chosen, rejected = response_a, response_b
                 else:
                     chosen, rejected = response_b, response_a
@@ -679,8 +679,8 @@ class RedTeamingSystem:
                 category_results['responses'].append(response)
                 category_results['toxicity_scores'].append(toxicity)
 
-                # Count as failure if toxicity > threshold
-                if toxicity > 0.5:
+                # Count as failure if toxicity \gt threshold
+                if toxicity \gt 0.5:
                     category_results['failures'] += 1
 
             # Compute statistics
@@ -884,7 +884,7 @@ class HarmfulContentFilter:
         for i, text in enumerate(texts):
             # Check toxicity score if provided
             if toxicity_scores is not None:
-                if toxicity_scores[i] > self.min_toxicity_threshold:
+                if toxicity_scores[i] \gt self.min_toxicity_threshold:
                     continue
 
             # Check keyword filter
@@ -985,15 +985,15 @@ where:
 
 **vs. Single Reward Model**: A single reward model may conflate helpfulness and safety, making it unclear why certain responses are preferred.
 
-**vs. Constraint-based Methods**: Instead of $R = \alpha R_h - \beta R_{\text{harm}}$, we could use constraints like "maximize $R_h$ subject to $R_{\text{harm}} < \tau$". The weighted approach is simpler to optimize but constraint methods provide hard safety guarantees.
+**vs. Constraint-based Methods**: Instead of $R = \alpha R_h - \beta R_{\text{harm}}$, we could use constraints like "maximize $R_h$ subject to $R_{\text{harm}} \lt \tau$". The weighted approach is simpler to optimize but constraint methods provide hard safety guarantees.
 
 **vs. Sequential Training**: We could first train for helpfulness, then for safety. Multi-objective training jointly optimizes both, avoiding destructive updates.
 
 **Pareto Optimality**: The weights $\alpha, \beta$ trace out different points on the Pareto frontier between helpfulness and safety. In practice:
 
-- $\beta > \alpha$: Prioritize safety (typical for consumer applications)
+- $\beta \gt \alpha$: Prioritize safety (typical for consumer applications)
 - $\beta = \alpha$: Balanced (typical for research assistants)
-- $\beta < \alpha$: Prioritize capability (rare; only for specialized applications with guardrails)
+- $\beta \lt \alpha$: Prioritize capability (rare; only for specialized applications with guardrails)
 
 ```python
 class HarmlessnessRewardModel(nn.Module):
@@ -1126,7 +1126,7 @@ class RefusalDataset:
         """
         pairs = []
 
-        # Refusal examples: proper refusal > harmful response
+        # Refusal examples: proper refusal \gt harmful response
         for example in self.refusal_examples:
             pairs.append((
                 example["prompt"],
@@ -1134,7 +1134,7 @@ class RefusalDataset:
                 "Here's how to do that..."  # Rejected: harmful compliance
             ))
 
-        # Helpful examples: helpful > over-refusal
+        # Helpful examples: helpful \gt over-refusal
         for example in self.helpful_examples:
             pairs.append((
                 example["prompt"],
@@ -1168,8 +1168,8 @@ Mathematically, a jailbreak $p_{\text{jail}}$ satisfies:
 
 ```math
 \begin{align}
-P(M(p_{\text{jail}}) = \text{harmful}) &> \tau \\
-\text{Safety-Classifier}(p_{\text{jail}}) &< \epsilon
+P(M(p_{\text{jail}}) = \text{harmful}) &\gt \tau \\
+\text{Safety-Classifier}(p_{\text{jail}}) &\lt \epsilon
 \end{align}
 ```
 
@@ -1250,7 +1250,7 @@ class JailbreakDetector:
             if re.search(pattern, prompt):
                 matches.append(pattern)
 
-        is_jailbreak = len(matches) > 0
+        is_jailbreak = len(matches) \gt 0
         return is_jailbreak, matches
 
     def get_safe_response(self, prompt: str) -> str:
@@ -1515,7 +1515,7 @@ class AlignmentTaxEvaluator:
             aligned_score = self.evaluate_benchmark(dataset, "aligned")
 
             # Alignment tax is the relative degradation
-            tax = (base_score - aligned_score) / base_score if base_score > 0 else 0
+            tax = (base_score - aligned_score) / base_score if base_score \gt 0 else 0
 
             results[name] = {
                 "base_accuracy": base_score,
@@ -1858,7 +1858,7 @@ class RewardHackingDetector:
         words = len(response.split())
         agreement_rate = agreement_count / max(words / 50, 1)  # Per 50 words
 
-        is_sycophantic = agreement_rate > 0.3
+        is_sycophantic = agreement_rate \gt 0.3
         confidence = min(agreement_rate / 0.5, 1.0)
 
         return is_sycophantic, confidence
@@ -1905,8 +1905,8 @@ class RewardHackingDetector:
         # 2. Low unique sentence ratio (< 0.7)
         # 3. Low compression (< 4 bytes/word suggests fluff)
         is_verbose_hack = (
-            length_ratio > 2.0 and
-            unique_sentence_ratio < 0.7
+            length_ratio \gt 2.0 and
+            unique_sentence_ratio \lt 0.7
         )
 
         return is_verbose_hack, metrics
@@ -1953,7 +1953,7 @@ class RewardHackingDetector:
         # Divergence: proxy says good, gold says bad
         divergence = proxy_reward - gold_reward
 
-        is_divergent = divergence > threshold
+        is_divergent = divergence \gt threshold
 
         return is_divergent, divergence
 
@@ -2455,7 +2455,7 @@ where $\tau$ is a threshold for considering responses equivalent.
 
 **2. Multi-Alternative Bradley-Terry**
 
-For ranking $K > 2$ responses:
+For ranking $K \gt 2$ responses:
 
 ```math
 P(y_i \text{ is best}) = \frac{e^{r_i}}{\sum_{j=1}^{K} e^{r_j}}
@@ -2588,8 +2588,8 @@ class BradleyTerryRewardModel(nn.Module):
         Returns:
             Loss scalar
         """
-        # P(chosen > rejected) = sigmoid(r_chosen - r_rejected)
-        # Loss = -log P(chosen > rejected)
+        # P(chosen \gt rejected) = sigmoid(r_chosen - r_rejected)
+        # Loss = -log P(chosen \gt rejected)
         loss = -F.logsigmoid(r_chosen - r_rejected).mean()
         return loss
 
@@ -2598,7 +2598,7 @@ class BradleyTerryRewardModel(nn.Module):
         r1: torch.Tensor,
         r2: torch.Tensor
     ) -> torch.Tensor:
-        """Compute P(response1 > response2).
+        """Compute P(response1 \gt response2).
 
         Args:
             r1: Reward for first response
@@ -2652,8 +2652,8 @@ class BradleyTerryRewardModel(nn.Module):
 
         calibration_errors = []
         for i in range(n_bins):
-            mask = (predicted_probs >= bins[i]) & (predicted_probs < bins[i+1])
-            if mask.sum() > 0:
+            mask = (predicted_probs >= bins[i]) & (predicted_probs \lt bins[i+1])
+            if mask.sum() \gt 0:
                 avg_pred = predicted_probs[mask].mean()
                 avg_actual = actual_preferences[mask].float().mean()
                 calibration_errors.append(abs(avg_pred - avg_actual).item())
@@ -2661,7 +2661,7 @@ class BradleyTerryRewardModel(nn.Module):
         return {
             'mean_calibration_error': sum(calibration_errors) / len(calibration_errors) if calibration_errors else 0,
             'brier_score': F.mse_loss(predicted_probs, actual_preferences.float()).item(),
-            'accuracy': ((predicted_probs > 0.5) == actual_preferences).float().mean().item()
+            'accuracy': ((predicted_probs \gt 0.5) == actual_preferences).float().mean().item()
         }
 
 
@@ -2700,7 +2700,7 @@ def demo_bradley_terry():
 
     # Compute preference probabilities
     probs = model.preference_probability(r_chosen, r_rejected)
-    print(f"\nPreference Probabilities (chosen > rejected):")
+    print(f"\nPreference Probabilities (chosen \gt rejected):")
     for i, (p, c, r) in enumerate(preferences):
         print(f"  {i+1}. P(chosen>rejected) = {probs[i].item():.3f}")
 
@@ -2951,7 +2951,7 @@ Answer:"""
                 for _ in range(responses_per_prompt)
             ]
 
-            if len(responses) < 2:
+            if len(responses) \lt 2:
                 continue
 
             response_a, response_b = responses[0], responses[1]
@@ -2966,7 +2966,7 @@ Answer:"""
                     votes_a += 1
 
             # Determine chosen and rejected
-            if votes_a > len(self.constitution) / 2:
+            if votes_a \gt len(self.constitution) / 2:
                 chosen, rejected = response_a, response_b
             else:
                 chosen, rejected = response_b, response_a
@@ -3211,7 +3211,7 @@ For example, with 3 layers each with 10% miss rate: $0.1 \times 0.1 \times 0.1 =
 However, layers are often **not independent** - they may fail on the same adversarial examples. The practical miss rate is higher than the theoretical minimum:
 
 ```math
-P(\text{all fail}) > \prod_i \epsilon_i
+P(\text{all fail}) \gt \prod_i \epsilon_i
 ```
 
 Best practice: Use diverse detection methods (pattern matching, ML classifiers, LLM evaluation) to increase independence.
@@ -3323,7 +3323,7 @@ class SafetyPipeline:
         toxicity = self._compute_toxicity(response)
         result["metadata"]["toxicity"] = toxicity
 
-        if toxicity > self.toxicity_threshold:
+        if toxicity \gt self.toxicity_threshold:
             result["is_safe"] = False
             result["safety_issues"].append("toxic_output")
             result["response"] = self._get_refusal_message()
@@ -3572,10 +3572,10 @@ class DetoxifyToxicityClassifier:
 
         if check_all_dimensions:
             # Toxic if ANY dimension exceeds threshold
-            is_toxic = any(score > threshold for score in scores.values())
+            is_toxic = any(score \gt threshold for score in scores.values())
         else:
             # Only check overall toxicity
-            is_toxic = scores['toxicity'] > threshold
+            is_toxic = scores['toxicity'] \gt threshold
 
         return is_toxic, scores
 
@@ -3614,7 +3614,7 @@ def demo_detoxify():
         print(f"Is Toxic: {is_toxic}")
         print(f"Scores:")
         for dimension, score in scores.items():
-            indicator = "⚠️" if score > 0.5 else "✓"
+            indicator = "⚠️" if score \gt 0.5 else "✓"
             print(f"  {indicator} {dimension}: {score:.3f}")
 
         # Get maximum toxicity dimension
@@ -3753,7 +3753,7 @@ class PerspectiveAPIToxicityClassifier:
         scores = self.predict(text, attributes)
 
         # Toxic if any attribute exceeds threshold
-        is_toxic = any(score > threshold for score in scores.values())
+        is_toxic = any(score \gt threshold for score in scores.values())
 
         return is_toxic, scores
 
@@ -3768,7 +3768,7 @@ class PerspectiveAPIToxicityClassifier:
         report = {
             'text': text,
             'overall_toxicity': scores.get('TOXICITY', 0),
-            'is_toxic': scores.get('TOXICITY', 0) > 0.7,
+            'is_toxic': scores.get('TOXICITY', 0) \gt 0.7,
             'dimensions': scores,
             'max_toxicity': max(scores.items(), key=lambda x: x[1]) if scores else ('NONE', 0)
         }
@@ -3909,7 +3909,7 @@ class HuggingFaceToxicityClassifier:
         # Check for toxic labels
         toxic_labels = ['toxic', 'LABEL_1', 'toxicity']  # Different models use different labels
         is_toxic = any(
-            scores.get(label, 0) > threshold
+            scores.get(label, 0) \gt threshold
             for label in toxic_labels
         )
 
@@ -4035,7 +4035,7 @@ def demo_production_safety_pipeline():
                 detailed = pipeline._get_detailed_toxicity(prompt)
                 print(f"Detailed Scores:")
                 for dim, score in detailed.items():
-                    if score > 0.3:  # Only show elevated scores
+                    if score \gt 0.3:  # Only show elevated scores
                         print(f"  {dim}: {score:.3f}")
 
     # Print safety report
@@ -4065,11 +4065,11 @@ if __name__ == "__main__":
 
 
    ```python
-   if toxicity > 0.9:
+   if toxicity \gt 0.9:
        action = "block"
-   elif toxicity > 0.7:
+   elif toxicity \gt 0.7:
        action = "flag_for_review"
-   elif toxicity > 0.5:
+   elif toxicity \gt 0.5:
        action = "log_and_monitor"
    ```
 

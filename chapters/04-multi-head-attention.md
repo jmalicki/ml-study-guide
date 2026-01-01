@@ -614,7 +614,7 @@ GQA aims to balance the quality of MHA with the efficiency of MQA:
 
 - **MHA**: $h$ separate K, V projections (highest quality, most memory)
 - **MQA**: 1 shared K, V projection (lowest memory, slight quality loss)
-- **GQA**: $g$ groups of K, V projections where $1 < g < h$ (balanced trade-off)
+- **GQA**: $g$ groups of K, V projections where $1 \lt g \lt h$ (balanced trade-off)
 
 **The Problem**: MQA gives us great memory savings but sometimes loses too much quality. Can we get most of the memory benefits with minimal quality loss?
 
@@ -1618,7 +1618,7 @@ For sequence length $n$ and model dimension $d$:
 | Output projection | $O(n \cdot d^2)$ |
 | **Total** | $O(n^2 \cdot d + n \cdot d^2)$ |
 
-For long sequences ($n > d$), the $O(n^2 \cdot d)$ term dominates, which motivates efficient attention variants (see [Flash Attention](13-flash-attention.md) and [Other Efficient Attention Variants](14-efficient-attention.md)).
+For long sequences ($n \gt d$), the $O(n^2 \cdot d)$ term dominates, which motivates efficient attention variants (see [Flash Attention](13-flash-attention.md) and [Other Efficient Attention Variants](14-efficient-attention.md)).
 
 ### 5. Memory Optimization
 

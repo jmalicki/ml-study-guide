@@ -865,7 +865,7 @@ def linear_merge(
         weights = [1.0 / len(models)] * len(models)
 
     assert len(models) == len(weights), "Must have one weight per model"
-    assert abs(sum(weights) - 1.0) < 1e-6, "Weights must sum to 1"
+    assert abs(sum(weights) - 1.0) \lt 1e-6, "Weights must sum to 1"
 
     # Get state dict from first model as template
     merged_state_dict = {}
@@ -936,7 +936,7 @@ The effectiveness relies on the smoothness of the loss landscape and the fact th
 - **vs. Multi-task learning**: No need for joint training; can combine tasks post-hoc
 - **vs. Continual learning**: Simpler and doesn't suffer from catastrophic forgetting (all tasks available simultaneously)
 
-**Key Insight**: The lambda ($\lambda$) scaling factors provide fine-grained control. Use $\lambda > 1$ to amplify a task, $0 < \lambda < 1$ to include it conservatively, and $\lambda < 0$ to subtract capabilities (e.g., removing biases or harmful behaviors).
+**Key Insight**: The lambda ($\lambda$) scaling factors provide fine-grained control. Use $\lambda \gt 1$ to amplify a task, $0 \lt \lambda \lt 1$ to include it conservatively, and $\lambda \lt 0$ to subtract capabilities (e.g., removing biases or harmful behaviors).
 
 **Task Vector:**
 
@@ -1051,7 +1051,7 @@ For task vector $\tau_i$ and parameter $p$:
 
 ```math
 \text{trim}(\tau_{i,p}) = \begin{cases}
-\tau_{i,p} & \text{if } |\tau_{i,p}| > \delta \cdot \max_i |\tau_{i,p}| \\
+\tau_{i,p} & \text{if } |\tau_{i,p}| \gt \delta \cdot \max_i |\tau_{i,p}| \\
 0 & \text{otherwise}
 \end{cases}
 ```
@@ -1113,9 +1113,9 @@ def ties_merge(
             # Compute threshold for this task vector
             abs_tv = torch.abs(tv)
             k = int(trim_threshold * abs_tv.numel())
-            if k > 0:
+            if k \gt 0:
                 threshold = torch.topk(abs_tv.flatten(), k, largest=False)[0][-1]
-                trimmed = torch.where(abs_tv > threshold, tv, torch.zeros_like(tv))
+                trimmed = torch.where(abs_tv \gt threshold, tv, torch.zeros_like(tv))
             else:
                 trimmed = tv
             trimmed_vectors.append(trimmed)
@@ -1135,7 +1135,7 @@ def ties_merge(
             count += mask.float()
 
         # Average (avoid division by zero)
-        count = torch.where(count > 0, count, torch.ones_like(count))
+        count = torch.where(count \gt 0, count, torch.ones_like(count))
         merged_vector = merged_vector / count
 
         # Add to base
@@ -1278,9 +1278,9 @@ def ties_dare_merge(
         for tv in dare_vectors:
             abs_tv = torch.abs(tv)
             k = int(trim_threshold * abs_tv.numel())
-            if k > 0:
+            if k \gt 0:
                 threshold = torch.topk(abs_tv.flatten(), k, largest=False)[0][-1]
-                trimmed = torch.where(abs_tv > threshold, tv, torch.zeros_like(tv))
+                trimmed = torch.where(abs_tv \gt threshold, tv, torch.zeros_like(tv))
             else:
                 trimmed = tv
             trimmed_vectors.append(trimmed)
@@ -1297,7 +1297,7 @@ def ties_dare_merge(
             merged_vector += lambda_i * tv * mask.float()
             count += mask.float()
 
-        count = torch.where(count > 0, count, torch.ones_like(count))
+        count = torch.where(count \gt 0, count, torch.ones_like(count))
         merged_vector = merged_vector / count
 
         merged_state_dict[key] = base_param + merged_vector
@@ -1383,7 +1383,7 @@ def slerp(
     omega = torch.acos(dot)
 
     # Check if vectors are nearly parallel
-    if omega < eps:
+    if omega \lt eps:
         # Fall back to linear interpolation
         result = (1 - t) * v0_flat + t * v1_flat
     else:
@@ -1757,7 +1757,7 @@ def global_magnitude_prune(
     # Apply threshold to all parameters
     for name, param in model.named_parameters():
         if 'weight' in name and param.requires_grad:
-            mask = param.data.abs() > threshold
+            mask = param.data.abs() \gt threshold
             param.data *= mask.float()
 
     return model
@@ -1955,7 +1955,7 @@ class SparseGPTPruner:
         # Select weights to prune
         k = int(self.sparsity * weight.numel())
         threshold = torch.topk(importance.flatten(), k, largest=False)[0][-1]
-        mask = importance > threshold
+        mask = importance \gt threshold
 
         # Prune and compensate
         pruned_weight = weight * mask
@@ -2119,7 +2119,7 @@ def wanda_prune(
             # Prune lowest-scoring weights
             k = int(sparsity * weight.numel())
             threshold = torch.topk(scores.flatten(), k, largest=False)[0][-1]
-            mask = scores > threshold
+            mask = scores \gt threshold
 
             # Apply mask
             module.weight.data *= mask.float()
@@ -2676,7 +2676,7 @@ def evaluate_accuracy(model, loader, device):
             correct += (predictions == labels).sum().item()
             total += labels.numel()
 
-    return correct / total if total > 0 else 0
+    return correct / total if total \gt 0 else 0
 ```
 
 ### When NOT to Use These Techniques

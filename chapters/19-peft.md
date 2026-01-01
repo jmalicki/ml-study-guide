@@ -187,7 +187,7 @@ class LoRALayer(nn.Module):
         # LoRA matrices
         self.lora_A = nn.Parameter(torch.zeros(rank, in_features))
         self.lora_B = nn.Parameter(torch.zeros(out_features, rank))
-        self.dropout = nn.Dropout(dropout) if dropout > 0 else nn.Identity()
+        self.dropout = nn.Dropout(dropout) if dropout \gt 0 else nn.Identity()
 
         # Initialize A with Kaiming uniform, B with zeros
         # This ensures ∆W = BA = 0 at initialization
@@ -381,7 +381,7 @@ def count_parameters(model: nn.Module) -> dict[str, int]:
     return {
         'trainable': trainable,
         'total': total,
-        'percentage': 100 * trainable / total if total > 0 else 0
+        'percentage': 100 * trainable / total if total \gt 0 else 0
     }
 
 
@@ -717,7 +717,7 @@ class NF4Quantizer:
         # Pad to multiple of block_size
         n_blocks = (len(tensor_flat) + block_size - 1) // block_size
         padded_size = n_blocks * block_size
-        if len(tensor_flat) < padded_size:
+        if len(tensor_flat) \lt padded_size:
             tensor_flat = torch.cat([
                 tensor_flat,
                 torch.zeros(padded_size - len(tensor_flat), device=tensor.device)
@@ -813,7 +813,7 @@ class DoubleQuantization:
 
         # Pad scales
         padded_size = n_blocks * second_block_size
-        if len(scales) < padded_size:
+        if len(scales) \lt padded_size:
             scales = torch.cat([
                 scales,
                 torch.zeros(padded_size - len(scales), device=scales.device)
@@ -1842,7 +1842,7 @@ class FineTuningStrategy:
         reasons = []
 
         # Memory constraints
-        if available_memory_gb < full_ft_memory:
+        if available_memory_gb \lt full_ft_memory:
             if available_memory_gb >= lora_memory:
                 method = "LoRA"
                 reasons.append(f"Insufficient memory for full FT ({full_ft_memory:.0f}GB needed)")
@@ -1856,12 +1856,12 @@ class FineTuningStrategy:
             # Have enough memory - choose based on other factors
 
             # Small dataset -> PEFT (avoid overfitting)
-            if dataset_size < 10000:
+            if dataset_size \lt 10000:
                 method = "LoRA"
                 reasons.append("Small dataset: PEFT reduces overfitting")
 
             # Complex task + large dataset -> Full FT
-            elif task_complexity == "complex" and dataset_size > 100000:
+            elif task_complexity == "complex" and dataset_size \gt 100000:
                 method = "Full Fine-tuning"
                 reasons.append("Complex task with large dataset benefits from full capacity")
 
@@ -2745,7 +2745,7 @@ LoRA+ uses different learning rates:
 A_{t+1} = A_t - \eta \nabla_{A} L, \quad B_{t+1} = B_t - \lambda \eta \nabla_{B} L
 ```
 
-where $\lambda > 1$ (typically $\lambda = 16$) is the learning rate ratio.
+where $\lambda \gt 1$ (typically $\lambda = 16$) is the learning rate ratio.
 
 **Why This Works:**
 

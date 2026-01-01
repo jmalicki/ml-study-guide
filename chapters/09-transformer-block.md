@@ -582,7 +582,7 @@ def compare_architectures():
     print(f"Depth: {depth} layers")
     print(f"Post-norm input gradient norm: {x_post.grad.norm():.6f}")
     print(f"Pre-norm input gradient norm: {x_pre.grad.norm():.6f}")
-    print(f"Pre-norm is more stable: {x_pre.grad.norm() > x_post.grad.norm()}")
+    print(f"Pre-norm is more stable: {x_pre.grad.norm() \gt x_post.grad.norm()}")
 
 if __name__ == "__main__":
     compare_architectures()
@@ -1131,7 +1131,7 @@ class TransformerBlockWithInit(nn.Module):
 
                 # Optional: Scale by depth for very deep models
                 # This is used in some modern architectures
-                if self.depth > 12:
+                if self.depth \gt 12:
                     with torch.no_grad():
                         param.data *= (1.0 / np.sqrt(2.0 * self.depth))
             elif 'bias' in name:
@@ -2106,7 +2106,7 @@ Without residuals:
 \frac{\partial L}{\partial x_0} = \frac{\partial L}{\partial x_{L}} \prod_{i=0}^{L-1} \frac{\partial x_{i+1}}{\partial x_i}
 ```
 
-If any Jacobian $\frac{\partial x_{i+1}}{\partial x_i}$ has norm < 1, gradients vanish exponentially.
+If any Jacobian $\frac{\partial x_{i+1}}{\partial x_i}$ has norm \lt 1, gradients vanish exponentially.
 
 With residuals ($x_{i+1} = x_i + F_i(x_i)$):
 
@@ -2178,7 +2178,7 @@ Approximately **60-70%** of transformer block parameters are in the feed-forward
 
 **Answer:**
 
-A causal mask prevents position $i$ from attending to positions $j > i$ (future positions):
+A causal mask prevents position $i$ from attending to positions $j \gt i$ (future positions):
 
 ```python
 def create_causal_mask(seq_len):
@@ -2255,7 +2255,7 @@ Position 2 can attend to positions 0, 1, 2 but not 3, 4.
 
 **Grouped Query Attention (GQA)**:
 
-- $n$ query heads, but only $g$ key/value heads (where $g < n$)
+- $n$ query heads, but only $g$ key/value heads (where $g \lt n$)
 - Multiple query heads share each K, V head
 - KV cache size: $2 \times g \times d_{head} \times seq\_len$
 

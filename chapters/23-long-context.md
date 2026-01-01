@@ -303,7 +303,7 @@ class DynamicNTKScalingRoPE(nn.Module):
 
     def forward(self, x: torch.Tensor, seq_len: int) -> tuple[torch.Tensor, torch.Tensor]:
         # Compute dynamic scaling factor
-        if seq_len > self.max_position_embeddings:
+        if seq_len \gt self.max_position_embeddings:
             scale = (seq_len / self.max_position_embeddings) ** (self.dim / (self.dim - 2))
             inv_freq = self.inv_freq_base / scale
         else:
@@ -329,8 +329,8 @@ YaRN combines multiple techniques for optimal long-context performance:
 
 ```math
 \theta_{i'} = \begin{cases}
-\theta_i & \text{if } i < i_{\text{low}} \\
-\theta_i \cdot s^{(i - i_{\text{low}})/(i_{\text{high}} - i_{\text{low}})} & \text{if } i_{\text{low}} \leq i < i_{\text{high}} \\
+\theta_i & \text{if } i \lt i_{\text{low}} \\
+\theta_i \cdot s^{(i - i_{\text{low}})/(i_{\text{high}} - i_{\text{low}})} & \text{if } i_{\text{low}} \leq i \lt i_{\text{high}} \\
 \theta_i \cdot s & \text{if } i \geq i_{\text{high}}
 \end{cases}
 ```
@@ -408,10 +408,10 @@ class YaRNScalingRoPE(nn.Module):
         # Determine scaling per frequency
         freq_scales = torch.ones_like(inv_freq)
         for i, wavelength in enumerate(wavelengths):
-            if wavelength < beta_fast:
+            if wavelength \lt beta_fast:
                 # High frequency (short wavelength): no scaling
                 freq_scales[i] = 1.0
-            elif wavelength > beta_slow * scaling_factor:
+            elif wavelength \gt beta_slow * scaling_factor:
                 # Low frequency (long wavelength): full scaling
                 freq_scales[i] = scaling_factor
             else:
@@ -777,7 +777,7 @@ class StreamingLLMCache:
         for i in range(seq_len):
             pos = self.n_seen + i
 
-            if pos < self.n_sink_tokens:
+            if pos \lt self.n_sink_tokens:
                 # Store in sink cache
                 self.sink_k[layer_idx][:, pos] = k[:, i]
                 self.sink_v[layer_idx][:, pos] = v[:, i]
@@ -959,7 +959,7 @@ class ShiftedSparseAttention(nn.Module):
 
         # Pad and shift
         padding = torch.zeros(batch, abs(shift), n_heads, head_dim, device=x.device, dtype=x.dtype)
-        if shift > 0:
+        if shift \gt 0:
             x = torch.cat([padding, x[:, :-shift]], dim=1)
         else:
             x = torch.cat([x[:, -shift:], padding], dim=1)
@@ -1416,7 +1416,7 @@ class MemorizingAttention(nn.Module):
         local_out = local_out.transpose(1, 2).contiguous().view(batch, seq_len, self.dim)
 
         # Memory retrieval (kNN)
-        if use_memory and self.memory_position > 0:
+        if use_memory and self.memory_position \gt 0:
             memory_out = self.knn_lookup(q)
 
             # Gate: balance local vs memory
@@ -1757,7 +1757,7 @@ class RingAttention(nn.Module):
             # For causal attention, mask future positions
             # Position offset: which absolute positions is this block?
             block_start_pos = ((self.rank + step) % self.world_size) * local_seq_len
-            if block_start_pos > self.rank * local_seq_len:
+            if block_start_pos \gt self.rank * local_seq_len:
                 # This block is in the future, mask entirely
                 scores.fill_(float('-inf'))
 
@@ -2046,7 +2046,7 @@ class QuantizedKVCache:
         scale = x_max / 127.0
 
         # Avoid division by zero
-        scale = torch.where(scale > 0, scale, torch.ones_like(scale))
+        scale = torch.where(scale \gt 0, scale, torch.ones_like(scale))
 
         # Quantize
         x_quantized = (x / scale).round().clamp(-128, 127).to(torch.int8)
@@ -2383,7 +2383,7 @@ class PagedKVCache:
         """
         n_blocks_needed = (estimated_length + self.block_size - 1) // self.block_size
 
-        if len(self.free_blocks) < n_blocks_needed:
+        if len(self.free_blocks) \lt n_blocks_needed:
             raise RuntimeError("Out of KV cache memory! Consider eviction or larger pool.")
 
         # Allocate blocks
@@ -2460,7 +2460,7 @@ class PagedKVCache:
             physical_block = page_table[block_num]
 
             # How many tokens to read from this block?
-            if block_num < n_blocks - 1:
+            if block_num \lt n_blocks - 1:
                 tokens_in_block = self.block_size
             else:
                 tokens_in_block = length - block_num * self.block_size
@@ -2734,7 +2734,7 @@ def evaluate_perplexity_vs_context(
             tokens = tokenizer.encode(doc)
 
             # Skip documents shorter than context length
-            if len(tokens) < ctx_len + 256:
+            if len(tokens) \lt ctx_len + 256:
                 continue
 
             # Use ctx_len tokens as context, predict next 256

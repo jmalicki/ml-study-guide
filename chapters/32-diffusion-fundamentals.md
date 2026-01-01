@@ -1074,7 +1074,7 @@ class DDPM:
             coef2 = torch.sqrt(self.diffusion.alphas[t]) * (1 - alpha_t_prev) / (1 - alpha_t)
             mean = coef1 * x_0_pred + coef2 * x_t
 
-            if t > 0:
+            if t \gt 0:
                 # Add noise (except at t=0)
                 variance = self.diffusion.posterior_variance[t]
                 noise = torch.randn_like(x_t)
@@ -1114,7 +1114,7 @@ class DDPM:
             coef2 = torch.sqrt(self.diffusion.alphas[t]) * (1 - alpha_t_prev) / (1 - alpha_t)
             mean = coef1 * x_0_pred + coef2 * x_t
 
-            if t > 0:
+            if t \gt 0:
                 variance = self.diffusion.posterior_variance[t]
                 noise = torch.randn_like(x_t)
                 x_t = mean + torch.sqrt(variance) * noise
@@ -1450,7 +1450,7 @@ class DDPMWithLearnedVariance:
             coef2 = torch.sqrt(self.diffusion.alphas[t]) * (1 - alpha_t_prev) / (1 - alpha_t)
             mean = coef1 * x_0_pred + coef2 * x_t
 
-            if t > 0:
+            if t \gt 0:
                 noise = torch.randn_like(x_t)
                 x_t = mean + torch.sqrt(variance) * noise
             else:
@@ -1571,9 +1571,9 @@ All these models solve the same core problem—learning $p(\mathbf{x})$—but wi
 
 **Key Insights:**
 
-1. **Sampling speed hierarchy:** Flow/VAE (1 step) > GAN (1 step) > Diffusion (1000 steps) > Autoregressive (N steps)
-2. **Training stability hierarchy:** Diffusion > VAE/Flow > GAN > Autoregressive
-3. **Sample quality hierarchy:** Diffusion ≈ GAN > Flow > VAE (though this gap is narrowing)
+1. **Sampling speed hierarchy:** Flow/VAE (1 step) \gt GAN (1 step) \gt Diffusion (1000 steps) \gt Autoregressive (N steps)
+2. **Training stability hierarchy:** Diffusion \gt VAE/Flow \gt GAN \gt Autoregressive
+3. **Sample quality hierarchy:** Diffusion ≈ GAN \gt Flow \gt VAE (though this gap is narrowing)
 
 ```python
 # Pseudocode comparison
@@ -1685,10 +1685,10 @@ These are typical FID scores (lower is better) you should expect after training:
 
 **Debugging tips using FID:**
 
-- FID > 50: Model is broken, check implementation
+- FID \gt 50: Model is broken, check implementation
 - FID 20-50: Training issues, check hyperparameters
 - FID 10-20: Reasonable but not great, may need more training
-- FID < 10: Good to excellent quality
+- FID \lt 10: Good to excellent quality
 
 #### Learning Curves: What to Expect
 
@@ -1832,7 +1832,7 @@ These benchmarks reflect fundamental trade-offs:
 - **Loss doesn't directly predict quality:** MSE loss of 0.05 vs 0.03 can look similar visually
 - **Hardware matters significantly:** Batch size affects convergence; larger batches can train faster but need careful LR tuning
 
-**Key Takeaway:** Use these numbers as calibration points. If you're way off (e.g., FID > 50 on CIFAR-10), check your implementation. If you're close (within 20%), hyperparameter tuning will help.
+**Key Takeaway:** Use these numbers as calibration points. If you're way off (e.g., FID \gt 50 on CIFAR-10), check your implementation. If you're close (within 20%), hyperparameter tuning will help.
 
 ## Interview Questions and Answers
 

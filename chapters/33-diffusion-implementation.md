@@ -1131,7 +1131,7 @@ def sample_ddpm(
         )
 
         # Add noise (except at final step t=0)
-        if t > 0:
+        if t \gt 0:
             noise = torch.randn_like(x)
             # sigma_t = sqrt(beta_t)
             sigma = torch.sqrt(beta)
@@ -1199,7 +1199,7 @@ def sample_ddpm_with_variance(
         mean = posterior_mean_coef1 * pred_x_0 + posterior_mean_coef2 * x
 
         # Add noise
-        if t > 0:
+        if t \gt 0:
             noise = torch.randn_like(x)
             x = mean + torch.sqrt(posterior_variance) * noise
         else:
@@ -1280,7 +1280,7 @@ def sample_ddim(
         alpha_bar_t = model.noise_schedule.alphas_cumprod[t]
 
         # Get alpha for previous timestep
-        if i < len(timesteps) - 1:
+        if i \lt len(timesteps) - 1:
             t_prev = timesteps[i + 1]
             alpha_bar_t_prev = model.noise_schedule.alphas_cumprod[t_prev]
         else:
@@ -1302,7 +1302,7 @@ def sample_ddim(
         x = torch.sqrt(alpha_bar_t_prev) * pred_x_0 + dir_xt
 
         # Add noise
-        if sigma_t > 0 and i < len(timesteps) - 1:
+        if sigma_t \gt 0 and i \lt len(timesteps) - 1:
             noise = torch.randn_like(x)
             x += sigma_t * noise
 
@@ -1948,7 +1948,7 @@ def sample_conditional(
             x - ((beta) / torch.sqrt(1 - alpha_bar)) * predicted_noise
         )
 
-        if t > 0:
+        if t \gt 0:
             noise = torch.randn_like(x)
             sigma = torch.sqrt(beta)
             x += sigma * noise
@@ -2007,7 +2007,7 @@ The guidance amplifies the conditional prediction while suppressing the uncondit
 p(\mathbf{x}_t|y) \propto p(\mathbf{x}_t)^{1-s} \cdot p(\mathbf{x}_t|y)^s
 ```
 
-For $s > 1$, this overemphasizes the conditional distribution, leading to samples that more strongly exhibit class-specific features.
+For $s \gt 1$, this overemphasizes the conditional distribution, leading to samples that more strongly exhibit class-specific features.
 
 #### Comparison to Alternatives
 
@@ -2059,9 +2059,9 @@ class ClassifierFreeGuidanceUNet(ConditionalUNet):
             Predicted noise
         """
         # During training, randomly drop conditioning
-        if self.training and self.dropout_prob > 0:
+        if self.training and self.dropout_prob \gt 0:
             # Create mask for which samples to make unconditional
-            mask = torch.rand(y.shape[0], device=y.device) < self.dropout_prob
+            mask = torch.rand(y.shape[0], device=y.device) \lt self.dropout_prob
             y = torch.where(mask, self.uncond_token, y)
 
         # Rest is same as ConditionalUNet
@@ -2135,7 +2135,7 @@ def sample_with_cfg(
             x - ((beta) / torch.sqrt(1 - alpha_bar)) * predicted_noise
         )
 
-        if t > 0:
+        if t \gt 0:
             noise = torch.randn_like(x)
             sigma = torch.sqrt(beta)
             x += sigma * noise
@@ -2210,7 +2210,7 @@ The guidance scale controls the trade-off between sample quality and diversity:
 - **guidance_scale = 1.0**: No guidance, purely conditional generation
 - **guidance_scale = 3-5**: Moderate guidance, good balance
 - **guidance_scale = 7-15**: Strong guidance, high fidelity to condition but less diversity
-- **guidance_scale > 15**: Very strong guidance, may lead to artifacts
+- **guidance_scale \gt 15**: Very strong guidance, may lead to artifacts
 
 In practice, guidance scales around 7.5 work well for most applications (this is the default in Stable Diffusion).
 
