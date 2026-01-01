@@ -174,7 +174,7 @@
    [Include examples: sycophancy, verbosity, loopholes]
    [Mathematical formulation of Goodhart's Law]
    [Mitigation strategies]
-```
+   ```
 
 2. **Improve Toxicity Scoring** (replace lines 1849-1854)
    - Add example using `detoxify` library
@@ -212,7 +212,7 @@
 
        # ...
 
-```
+   ```
 
 8. **Improve Cross-References**
    - Add link to Flash Attention when discussing computational efficiency

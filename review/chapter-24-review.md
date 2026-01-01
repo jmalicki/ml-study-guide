@@ -108,7 +108,7 @@
 
    ```python
    alphas_cumprod = torch.cos(((x / num_timesteps) + s) / (1 + s) * torch.pi * 0.5) ** 2
-```
+   ```
 
    - This is correct, but could benefit from a comment explaining why we square after cos
    - The original paper formula uses $\cos^2$ which is clearer in intent
@@ -131,7 +131,7 @@
 
    ```python
    out = a.gather(-1, t)
-```
+   ```
 
    - This assumes `t` is a 1D tensor, but `t.shape[0]` is used
    - Should validate or document the expected shape of `t`
@@ -141,7 +141,7 @@
 
    ```python
    sigma = torch.exp(torch.rand(x.shape[0], 1) * ...)
-```
+   ```
 
    - This creates a different sigma for each batch element
    - Should clarify this is intentional (it is correct for DSM)
@@ -163,7 +163,7 @@
    | Sampling time | O(1) | O(1) | O(T) |
    | Memory during training | O(n) | O(n) | O(n) |
    | Memory during sampling | O(n) | O(n) | O(n) |
-```
+   ```
 
 2. **Enhance the Time Embedding Explanation**
    - Lines 640-662 introduce time embeddings but could explain WHY sinusoidal
@@ -181,7 +181,7 @@
            t: Timestep tensor [batch_size]  # Already good
            noise: Optional pre-sampled noise [batch_size, C, H, W]  # Add shape
        """
-```
+   ```
 
 4. **Improve Exercise 3 (DDIM)**
    - Provide actual implementation template, not just hint

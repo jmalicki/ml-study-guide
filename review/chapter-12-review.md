@@ -221,14 +221,14 @@ For example, Exercise 1 asks to calculate memory but doesn't specify whether to 
    ```python
    for _ in range(10):
        _ = torch.matmul(Q, K.transpose(-2, -1))
-```
+   ```
 
    This works but using `_` as loop variable and result is unconventional. Better:
 
    ```python
    for _ in range(10):
        scores = torch.matmul(Q, K.transpose(-2, -1))
-```
+   ```
 
 2. **Line 900**: `torch.manual_seed(42)` sets global random seed
    - Should use context manager or reset after test
@@ -239,7 +239,7 @@ For example, Exercise 1 asks to calculate memory but doesn't specify whether to 
    ```python
    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d)
    P = torch.exp(scores - m) / l
-```
+   ```
 
    - This defeats the O(N) memory goal
    - Should note: "This simplified implementation doesn't achieve O(N) memory"

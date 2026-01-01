@@ -84,7 +84,7 @@ We can rearrange the above to express the reward in terms of the optimal policy:
 r(x, y) = \beta \log \frac{\pi^*(y \mid x)}{\pi_{\text{ref}}(y \mid x)} + \beta \log Z(x)
 ```
 
-**Key insight**: The partition function $Z(x)$ depends only on $x$, not $y$. When we compute reward differences, it cancels out!
+**Key insight**: The partition function $Z(x)$ depends only on $x$, not $y$. When we compute reward differences, it cancels out! This is the central mathematical insight that makes DPO possible—it transforms an intractable problem (computing $Z(x)$ requires summing over all $V^{L} \approx 10^{4,699}$ possible responses) into tractable supervised learning. See [Appendix: Partition Functions](../appendices/partition-functions.md) for a detailed explanation of why $Z(x)$ is intractable and why this cancellation is so significant.
 
 ```math
 r(x, y_w) - r(x, y_l) = \beta \log \frac{\pi^*(y_w \mid x)}{\pi_{\text{ref}}(y_w \mid x)} - \beta \log \frac{\pi^*(y_l \mid x)}{\pi_{\text{ref}}(y_l \mid x)}
@@ -2150,35 +2150,35 @@ This is a common whiteboard question. Walk through step-by-step:
 
    ```math
 P(y_w \succ y_l | x) = \frac{\exp(r(x, y_w))}{\exp(r(x, y_w)) + \exp(r(x, y_l))} = \sigma(r(x, y_w) - r(x, y_l))
-```
+   ```
 
 2. Substitute reward reparameterization:
 
 
    ```math
 r(x, y) = \beta \log \frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y|x)} + \beta \log Z(x)
-```
+   ```
 
 3. Compute reward difference (Z cancels):
 
 
    ```math
 r(x, y_w) - r(x, y_l) = \beta \left[\log \frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \log \frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)}\right]
-```
+   ```
 
 4. Substitute into Bradley-Terry:
 
 
    ```math
 P(y_w \succ y_l | x) = \sigma\left(\beta \left[\log \frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \log \frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)}\right]\right)
-```
+   ```
 
 5. Negative log-likelihood gives DPO loss:
 
 
    ```math
 \mathcal{L}_{\text{DPO}} = -\mathbb{E}_{(x,y_w,y_l)} \left[\log \sigma(\beta[\log \pi_\theta(y_w|x)/\pi_{\text{ref}}(y_w|x) - \log \pi_\theta(y_l|x)/\pi_{\text{ref}}(y_l|x)])\right]
-```
+   ```
 
 **Emphasize:** The key step is recognizing that $Z(x)$ cancels in the difference.
 

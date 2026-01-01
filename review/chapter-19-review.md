@@ -78,7 +78,7 @@
                labels.extend([-100] * len(msg_tokens))  # Mask
 
        return torch.tensor(labels)
-```
+   ```
 
 2. **Missing Topics**
 
@@ -104,7 +104,7 @@
 
    This is equivalent to minimizing the KL divergence from the empirical data distribution
    to the model distribution over assistant responses given instructions.
-```
+   ```
 
 4. **Code Quality Improvements**
 
@@ -142,7 +142,7 @@
          T_max=total_steps - warmup_steps,  # Should be just total_steps
          eta_min=learning_rate * 0.1
      )
-```
+     ```
 
      The warmup isn't actually implemented here. Should either use `get_cosine_schedule_with_warmup` from transformers (as mentioned in best practices) or implement proper warmup.
 
@@ -150,7 +150,7 @@
 
      ```python
      padding="max_length",  # This pads everything to max_length
-```
+     ```
 
      This is inefficient. Should use dynamic padding in the collate function or padding="longest" in batches.
 
@@ -159,7 +159,7 @@
      ```python
      betas=(0.9, 0.95),  # More common: (0.9, 0.999)
      weight_decay=0.1    # Very high; typical: 0.01 or 0.1 for full fine-tuning
-```
+     ```
 
      Should clarify why these non-standard values are chosen or use standard values.
 
@@ -167,7 +167,7 @@
 
      ```python
      if in_assistant_response and assistant_marker not in token_text:
-```
+     ```
 
      This condition might incorrectly handle edge cases where the marker spans multiple tokens.
 
@@ -178,7 +178,7 @@
      ```python
      with open(data_path, 'r') as f:
          self.data = json.load(f)
-```
+     ```
 
      Should add try-except and validate JSON structure.
 
@@ -186,7 +186,7 @@
 
      ```python
      num_workers=4
-```
+     ```
 
      Should be configurable or set based on available CPUs.
 
@@ -228,7 +228,7 @@
    \`\`\`
 
    Expected time: 2-4 hours on a single A100 GPU for 10K examples.
-```
+   ```
 
 2. **Add Computational Requirements Table**
 
@@ -239,7 +239,7 @@
    | 3B        | 4         | 24GB       | 2-4 hours                              |
    | 7B        | 2         | 40GB       | 4-8 hours                              |
    | 13B       | 1         | 80GB       | 8-16 hours                             |
-```
+   ```
 
 3. **Improve the Loss Masking Section with Visual Aid**
 
@@ -257,7 +257,7 @@
    \`\`\`
 
    Only tokens marked ✓ contribute to the loss calculation.
-```
+   ```
 
 4. **Add Dataset Preparation Flowchart**
 
@@ -282,7 +282,7 @@
                                   Create batches
                                   Apply padding
    \`\`\`
-```
+   ```
 
 5. **Enhance Evaluation Section**
 
@@ -302,7 +302,7 @@
        )
 
        return results
-```
+   ```
 
 6. **Add Troubleshooting Section**
 
@@ -332,7 +332,7 @@
    - **Cause**: Loss masking not working correctly
    - **Solution**: Verify labels have -100 for instruction tokens, check chat template
 
-```
+   ```
 
 7. **Add More on Data Mixing**
 
@@ -373,7 +373,7 @@
        random.shuffle(mixed_data)
 
        return mixed_data
-```
+   ```
 
 ### Cross-Reference Quality
 

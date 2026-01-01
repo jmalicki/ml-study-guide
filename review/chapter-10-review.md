@@ -119,7 +119,7 @@
 
    # SwiGLU params: d_model * d_ff + d_model * d_ff + d_ff * d_model = d_model * (2*d_ff + d_ff)
 
-```
+   ```
 
    - The second line could be clearer: should be `d_model * $d_{ff}$ + d_model * $d_{ff}$ + $d_{ff}$ * d_model = 3 * d_model * $d_{ff}$`
    - Then to match standard FFN: `2 * d_model * (4 * d_model) = 3 * d_model * $d_{ff}$` → `$d_{ff}$ = 8/3 * d_model`
@@ -132,7 +132,7 @@
        torch.ones(seq_len, seq_len, device=input_ids.device),
        diagonal=1
    ).bool()
-```
+   ```
 
    - This is correct, but note that `nn.MultiheadAttention` expects mask convention where `True` means "mask out" (don't attend). This is correct as written, but worth a comment.
 
@@ -140,7 +140,7 @@
 
    ```python
    x.grad.zero_()
-```
+   ```
 
    - This works but is slightly outdated style; modern PyTorch prefers `x.grad = None` for better performance. Minor style point.
 
@@ -155,7 +155,7 @@
    | GELU | x·Φ(x) | GPT-2/3 era | BERT, GPT-2/3 |
    | SiLU/Swish | x·σ(x) | Alternative to GELU | Various |
    | SwiGLU | silu(xW)⊗(xV) | Modern LLMs | LLaMA, Mistral, PaLM |
-```
+   ```
 
 2. **Expand the "Why GLU Variants Perform Better" Section**
 
@@ -181,7 +181,7 @@
 
    # Output: [0.731, 0.078, 3.808]
 
-```
+   ```
 
 4. **Clarify ReLU "Dying" Problem**
 
@@ -190,7 +190,7 @@
    ```markdown
    If a neuron's weights shift such that xW + b < 0 for all inputs,
    it will output 0 and have gradient 0, never recovering.
-```
+   ```
 
 5. **Add Note on Approximate GELU Usage**
 
@@ -212,7 +212,7 @@
    | GELU (tanh) | tanh + polynomials | ~5x |
    | SiLU | sigmoid + multiply | ~3x |
    | SwiGLU | 2 linear + silu | ~1.5x (per param) |
-```
+   ```
 
 7. **Testing/Validation Section**
 
@@ -228,7 +228,7 @@
        loss.backward()
        assert x.grad is not None
        assert not torch.isnan(x.grad).any()
-```
+   ```
 
 ### Cross-Reference Quality
 

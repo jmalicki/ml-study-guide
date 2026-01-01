@@ -70,7 +70,7 @@
    ```python
    log_probs = F.log_softmax(logits[:, :-1], dim=-1)  # [batch, seq-1, vocab]
    actions = input_ids[:, 1:]  # [batch, seq-1]
-```
+   ```
 
    This shifts by one token but doesn't account for the prompt portion. The code should only compute losses on generated tokens, not prompt tokens.
 
@@ -83,7 +83,7 @@
        old_values[:, :-1],
        self.clip_epsilon
    )
-```
+   ```
 
    Similar issue - should mask prompt tokens when computing value loss.
 
@@ -118,7 +118,7 @@
 
    ```python
    self.model.lm_head = nn.Identity()
-```
+   ```
 
    This doesn't actually remove it from memory if the original model is still referenced. Better to use `del self.model.lm_head` or explain that this is for API compatibility.
 
@@ -131,7 +131,7 @@
        gamma=self.gamma,
        lambda_=self.lambda_
    )
-```
+   ```
 
    The `values_old` tensor includes the value head outputs for ALL positions, but rewards are only at the end. This could lead to incorrect advantage estimates. Should clarify or handle this more explicitly.
 
@@ -154,7 +154,7 @@
        torch.arange(batch_size, device=hidden_states.device),
        sequence_lengths
    ]
-```
+   ```
 
    If `sequence_lengths` goes out of bounds (all padding), this will error. Should add bounds checking.
 
@@ -189,7 +189,7 @@
        def normalize(self, rewards: torch.Tensor) -> torch.Tensor:
            """Normalize rewards using running statistics."""
            return (rewards - self.mean) / (torch.sqrt(self.var) + self.epsilon)
-```
+   ```
 
 2. **Add Prompt Masking Utility**
 
@@ -215,7 +215,7 @@
            response_mask[i, prompt_lengths[i]:] = 1
 
        return response_mask * attention_mask
-```
+   ```
 
 3. **Improve PPO Step to Only Train on Responses**
 
@@ -262,7 +262,7 @@
 
        # TODO: Implementation
 
-```
+   ```
 
 ### Cross-Reference Quality
 

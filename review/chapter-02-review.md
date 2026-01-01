@@ -118,13 +118,13 @@
 
    # Could add: "Broadcasting center across negatives: (batch, n_neg, emb_dim) @ (batch, emb_dim, 1) -> (batch, n_neg, 1) -> (batch, n_neg)"
 
-```
+   ```
 
 2. **Line 563**: Type hint uses `tuple[...]` which requires Python 3.9+
 
    ```python
    def forward(self, token_ids: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
-```
+   ```
 
    Should note Python version requirement or use `Tuple[...]` from typing for compatibility
 
@@ -132,7 +132,7 @@
 
    ```python
    kernel_sizes: list[int] = [3, 4, 5]
-```
+   ```
 
 4. **Exercise 1 (Lines 1131-1143)**: The `pass` placeholder could have a skeleton implementation or more detailed TODOs
 
@@ -173,7 +173,7 @@
       - Character-level fallback
       - UNK token strategies
 
-```
+   ```
 
 2. **Add a Troubleshooting Section**
 
@@ -183,33 +183,21 @@
 
    ### Problem: Embedding dimension mismatch
 
-   ```
-
    # Error: RuntimeError: mat1 and mat2 shapes cannot be multiplied
 
    # Solution: Check embedding_dim matches model's expected input
 
-```text
-
    ### Problem: Padding tokens getting non-zero gradients
-
-   ```
 
    # Use padding_idx parameter
 
    embedding = nn.Embedding(vocab_size, dim, padding_idx=0)
 
-```text
-
    ### Problem: Very large embedding memory
-
-   ```
 
    # Consider: gradient checkpointing, embedding quantization, or smaller vocab
 
-```text
-
-```
+   ```
 
 3. **Enhance the Modern LLM Section with Recent Models**
 
@@ -219,7 +207,7 @@
    | Llama 3.1 (405B) | 128,256 | 16,384 | 2.1B |
    | GPT-4 (rumored) | ~100,000 | ~12,800 | ~1.28B |
    | Gemini | ? | ? | ? |
-```
+   ```
 
 4. **Add a Practical Loading Example**
 
@@ -252,7 +240,7 @@
                embedding_matrix[idx] = embeddings[word]
 
        return torch.FloatTensor(embedding_matrix)
-```
+   ```
 
 5. **Add Memory Estimation Helper**
 
@@ -284,7 +272,7 @@
    # Example
 
    print(estimate_embedding_memory(128_256, 4096))  # LLaMA 3: "~2.10 GB"
-```
+   ```
 
 6. **Strengthen Semantic Arithmetic Example**
 
@@ -307,7 +295,7 @@
        print("With real Word2Vec embeddings trained on Wikipedia,")
        print("you would actually see: king - man + woman ≈ queen")
        print("Try loading real embeddings with the exercise below!")
-```
+   ```
 
 7. **Add Gradient Flow Visualization**
 
@@ -336,7 +324,7 @@
    plt.title('Sparse Gradient Updates')
    plt.tight_layout()
    plt.show()
-```
+   ```
 
 ### Cross-Reference Quality
 

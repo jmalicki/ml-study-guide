@@ -3496,7 +3496,7 @@ def qlora_with_bitsandbytes():
 
    ```math
 h = W_0 x + \frac{\alpha}{r} BAx
-```
+   ```
 
 
    - $W_0$: Frozen pre-trained weights

@@ -217,7 +217,7 @@ None of these are critical omissions for an interview study guide, but PagedAtte
    - Near-zero memory waste
 
    """
-```
+   ```
 
 2. **Note on Combining Techniques**:
    - Flash Attention + GQA (standard in LLaMA 2/3)

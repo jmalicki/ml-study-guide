@@ -277,21 +277,21 @@ The choice of $\beta_t$ (variance schedule) significantly impacts training and s
 
    ```math
 \beta_t = \beta_1 + \frac{t-1}{T-1}(\beta_T - \beta_1)
-```
+   ```
 
 2. **Cosine Schedule** (Improved DDPM):
 
 
    ```math
 \bar{\alpha}_t = \frac{f(t)}{f(0)}, \quad f(t) = \cos\left(\frac{t/T + s}{1 + s} \cdot \frac{\pi}{2}\right)^2
-```
+   ```
 
 3. **Quadratic Schedule**:
 
 
    ```math
 \beta_t = \beta_1 + \left(\frac{t-1}{T-1}\right)^2 (\beta_T - \beta_1)
-```
+   ```
 
 ![Noise Schedules Comparison](../assets/diagrams/ch32-noise-schedules.svg)
 

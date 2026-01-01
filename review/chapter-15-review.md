@@ -84,7 +84,7 @@
              input_ids = chunk[:-1]
              labels = chunk[1:]
              return {'input_ids': input_ids, 'labels': labels}
-```
+     ```
 
 3. **Troubleshooting and Common Issues**
    - Would benefit from a "Common Issues and Solutions" section covering:
@@ -143,7 +143,7 @@
    # Assume train_dataloader and val_dataloader are defined
    # See [Data Curation and Preprocessing](14-data-curation.md)
 
-```
+   ```
 
 3. **Line 1000**: Reference to Chapter 31 uses a different title format. Should check consistency: "Hardware, Quantization, and Training Optimization" vs "hardware-quantization-optimization"
 
@@ -151,7 +151,7 @@
 
    ```python
    def gradient_clipping_methods(model: nn.Module):
-```
+   ```
 
 5. **Lines 1658, 1660**: References to `train_dataset` and `val_dataset` without definition. Should add a comment or brief example.
 
@@ -189,7 +189,7 @@
            return min_lr + 0.5 * (max_lr - min_lr) * (1 + math.cos(math.pi * progress))
 
        return torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda)
-```
+   ```
 
 2. **Add Troubleshooting Section** (Medium Priority)
    - Common symptoms and solutions

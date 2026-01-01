@@ -123,7 +123,7 @@
    ```python
    alpha_t = 1 - i / num_steps
    x = (x - (1 - alpha_t) * noise_pred) / torch.sqrt(torch.tensor(alpha_t))
-```
+   ```
 
    - This is an oversimplified DDPM step; real implementation needs proper alpha_bar handling
    - Comment says "(simplified)" which is good, but might confuse readers
@@ -140,7 +140,7 @@
 
    ```python
    x_t, u_t = self.get_conditional_flow(x0, x1, t.view(-1, 1, 1, 1))
-```
+   ```
 
    - This assumes 4D tensors (images) but should be flexible for different dimensions
    - Should reshape based on actual dimensions or document image-only assumption
@@ -164,7 +164,7 @@
 
        # ... etc
 
-```
+   ```
 
 2. **Enhance U-Net Example**
    - Add at least downsampling/upsampling blocks
@@ -196,7 +196,7 @@
    token_indices = x0.flatten()
    probs = Q_t[token_indices]
    x_t = torch.multinomial(probs, 1).reshape(x0.shape)
-```
+   ```
 
 7. **Add Memory Optimization Tips**
    - Brief subsection on gradient checkpointing

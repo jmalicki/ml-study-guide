@@ -78,7 +78,7 @@
 
    ```python
    pass@k = E[1 - comb(n-c, k) / comb(n, k)]
-```
+   ```
 
    where n is number of samples, c is number of correct samples. The current implementation just checks if k samples passed, which is different.
 
@@ -174,7 +174,7 @@
        'cot': "Let's think step by step. ",
        'instruction': "Choose the correct answer from A-D. Answer: "
    }
-```
+   ```
 
 4. **Expand Contamination Section**: Add:
    - Bloom filter-based detection for scale
@@ -189,7 +189,7 @@
    def load_mmlu_data(subject='all'):
        dataset = load_dataset('cais/mmlu', subject)
        return dataset['test']
-```
+   ```
 
 6. **Complete the SimpleToxicityClassifier**: Either:
    - Implement using a real model (Detoxify, Perspective API)
@@ -215,7 +215,7 @@
        # Logic to categorize
 
        return categories
-```
+   ```
 
 9. **Add Cost Estimation**: Include function to estimate evaluation costs:
 
@@ -224,7 +224,7 @@
        tokens_per_example = ...
        cost_per_token = ...
        return total_cost
-```
+   ```
 
 10. **Add Debugging Tools**: Include utilities for:
     - Comparing outputs between models

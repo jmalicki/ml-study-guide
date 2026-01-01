@@ -302,14 +302,14 @@ The GPT-2 architecture establishes several key principles:
 
    ```math
 \text{mask}[i,j] = \begin{cases} 0 & \text{if } j > i \\ 1 & \text{if } j \leq i \end{cases}
-```
+   ```
 
 3. **GELU Activation**: The Gaussian Error Linear Unit provides smoother gradients than ReLU:
 
 
    ```math
 \text{GELU}(x) = x \cdot \Phi(x) = x \cdot \frac{1}{2}\left[1 + \text{erf}\left(\frac{x}{\sqrt{2}}\right)\right]
-```
+   ```
 
    This approximates $x \cdot P(X \leq x)$ where $X \sim \mathcal{N}(0,1)$, providing a probabilistic interpretation.
 
@@ -627,11 +627,13 @@ class RMSNorm(nn.Module):
     RMS(x) = sqrt((1/d) * Σ($x_i$^2) + ε)
 
     In LaTeX notation:
+    """
+```math
+\text{RMSNorm}(\mathbf{x}) = \frac{\mathbf{x}}{\sqrt{\frac{1}{d}\sum_{i=1}^d x_i^2 + \epsilon}} \odot \boldsymbol{\gamma}
+```
 
-    ```math
-    \text{RMSNorm}(\mathbf{x}) = \frac{\mathbf{x}}{\sqrt{\frac{1}{d}\sum_{i=1}^d x_i^2 + \epsilon}} \odot \boldsymbol{\gamma}
-    ```
-
+```python
+    """
     where:
 
     - $x \in \mathbb{R}^d$ is the input vector
@@ -671,21 +673,23 @@ class SwiGLU(nn.Module):
     Swish(x) = x · σ(x) = x · sigmoid(x)
 
     In LaTeX notation:
+    """
+```math
+\text{SwiGLU}(\mathbf{x}, \mathbf{W}, \mathbf{V}, \mathbf{b}, \mathbf{c}) = \text{Swish}(\mathbf{x}\mathbf{W} + \mathbf{b}) \odot (\mathbf{x}\mathbf{V} + \mathbf{c})
+```
 
-    ```math
-    \text{SwiGLU}(\mathbf{x}, \mathbf{W}, \mathbf{V}, \mathbf{b}, \mathbf{c}) = \text{Swish}(\mathbf{x}\mathbf{W} + \mathbf{b}) \odot (\mathbf{x}\mathbf{V} + \mathbf{c})
-    ```
+```math
+\text{Swish}(\mathbf{x}) = \mathbf{x} \odot \sigma(\mathbf{x})
+```
 
-    ```math
-    \text{Swish}(\mathbf{x}) = \mathbf{x} \odot \sigma(\mathbf{x})
-    ```
+Complete FFN architecture:
 
-    Complete FFN architecture:
+```math
+\text{FFN}_{\text{SwiGLU}}(\mathbf{x}) = (\text{Swish}(\mathbf{x}\mathbf{W}_1) \odot \mathbf{x}\mathbf{W}_3)\mathbf{W}_2
+```
 
-    ```math
-    \text{FFN}_{\text{SwiGLU}}(\mathbf{x}) = (\text{Swish}(\mathbf{x}\mathbf{W}_1) \odot \mathbf{x}\mathbf{W}_3)\mathbf{W}_2
-    ```
-
+```python
+    """
     where:
 
     - $W_1 \in \mathbb{R}^{d \times h}$ is the gate projection (typically $h = (8/3)d$)
@@ -785,17 +789,19 @@ class GroupedQueryAttention(nn.Module):
     Let $G = n_{\text{heads}} / n_{\text{kv\_heads}}$ be the group size.
 
     For standard MHA:
+    """
+```math
+\text{head}_i = \text{Attention}(\mathbf{Q}_i, \mathbf{K}_i, \mathbf{V}_i)
+```
 
-    ```math
-    \text{head}_i = \text{Attention}(\mathbf{Q}_i, \mathbf{K}_i, \mathbf{V}_i)
-    ```
+For GQA with G query heads per KV head:
 
-    For GQA with G query heads per KV head:
+```math
+\text{head}_i = \text{Attention}(\mathbf{Q}_i, \mathbf{K}_{\lfloor i/G \rfloor}, \mathbf{V}_{\lfloor i/G \rfloor})
+```
 
-    ```math
-    \text{head}_i = \text{Attention}(\mathbf{Q}_i, \mathbf{K}_{\lfloor i/G \rfloor}, \mathbf{V}_{\lfloor i/G \rfloor})
-    ```
-
+```python
+    """
     where:
 
     - $Q_i \in \mathbb{R}^{s \times d_h}$ for each of $n_{\text{heads}}$ query heads
@@ -803,11 +809,13 @@ class GroupedQueryAttention(nn.Module):
     - $s$ is sequence length, $d_h$ is head dimension
 
     KV Cache Reduction Ratio:
+    """
+```math
+r = \frac{n_{\text{heads}}}{n_{\text{kv\_heads}}}
+```
 
-    ```math
-    r = \frac{n_{\text{heads}}}{n_{\text{kv\_heads}}}
-    ```
-
+```python
+    """
     Memory savings example:
 
     - MHA (n_heads = 32): 32 K heads + 32 V heads = 64 heads in cache
@@ -1307,17 +1315,19 @@ class MultiHeadLatentAttention(nn.Module):
     MLA caches $c \in \mathbb{R}^{s \times d_c}$ where $d_c \ll n_h \times d_h$
 
     Compression phase:
+    """
+```math
+\mathbf{c}_t = \mathbf{W}_c \mathbf{x}_t
+```
 
-    ```math
-    \mathbf{c}_t = \mathbf{W}_c \mathbf{x}_t
-    ```
+Decompression phase:
 
-    Decompression phase:
+```math
+\mathbf{K}_t = \mathbf{W}_k \mathbf{c}_t, \quad \mathbf{V}_t = \mathbf{W}_v \mathbf{c}_t
+```
 
-    ```math
-    \mathbf{K}_t = \mathbf{W}_k \mathbf{c}_t, \quad \mathbf{V}_t = \mathbf{W}_v \mathbf{c}_t
-    ```
-
+```python
+    """
     where:
 
     - $W_c \in \mathbb{R}^{d \times d_c}$ is compression matrix
@@ -1326,11 +1336,13 @@ class MultiHeadLatentAttention(nn.Module):
     - $n_h$ is number of heads, $d_h$ is head dimension
 
     Compression ratio:
+    """
+```math
+\rho = \frac{2 \cdot n_h \cdot d_h}{d_c}
+```
 
-    ```math
-    \rho = \frac{2 \cdot n_h \cdot d_h}{d_c}
-    ```
-
+```python
+    """
     Example (DeepSeek V3):
 
     - Original KV: 2 × 128 heads × 128 dim = 32,768 dims per token
@@ -1414,17 +1426,15 @@ The key insight is to decouple routing decisions from the training signal:
 
 1. **Routing phase**: Use biased logits to select experts
 
-
    ```math
 \text{routing\_logits} = W_g x + b_{\text{expert}}
-```
+   ```
 
 2. **Weight computation**: Use unbiased logits for the actual output weights
 
-
    ```math
 \text{weights} = \text{softmax}(W_g x)
-```
+   ```
 
 The bias terms $b_{\text{expert}}$ are learned to balance load:
 
@@ -1518,17 +1528,15 @@ Interleaving local and global attention layers combines their strengths:
 
 - **Local layers** (odd): Sliding window of 4K tokens
 
-
   ```math
 \text{Attention}_{\text{local}}(Q, K, V) \text{ with mask } M_{ij} = \begin{cases} 1 & \text{if } i - 4096 < j \leq i \\ 0 & \text{otherwise} \end{cases}
-```
+  ```
 
 - **Global layers** (even): Full causal attention over 8K tokens
 
-
   ```math
 \text{Attention}_{\text{global}}(Q, K, V) \text{ with mask } M_{ij} = \begin{cases} 1 & \text{if } j \leq i \\ 0 & \text{otherwise} \end{cases}
-```
+  ```
 
 **Analysis of receptive field:**
 
@@ -1614,20 +1622,18 @@ This has several key properties:
 
 3. **Gradient behavior**:
 
-
    ```math
 \frac{d}{dx}\text{soft-cap}(x, c) = \text{sech}^2(x/c) = 1 - \tanh^2(x/c)
-```
+   ```
 
    - For small $|x|$: gradient $\approx 1$ (near-identity, doesn't interfere with learning)
    - For large $|x|$: gradient $\to 0$ smoothly (prevents further growth)
 
 4. **Linear region**: For $|x| \ll c$, we have $\tanh(x/c) \approx x/c$, so:
 
-
    ```math
 \text{soft-cap}(x, c) \approx c \cdot (x/c) = x
-```
+   ```
 
 **Comparison to Alternatives:**
 
@@ -1644,15 +1650,16 @@ This has several key properties:
 4. **Universal applicability**: Used for both attention logits and final output logits in Gemma 2
 5. **Tunable**: Cap value $c$ can be adjusted based on model scale
 
+```math
+\text{soft-cap}(x, c) = c \cdot \tanh(x / c)
+```
+
 ```python
 def soft_cap(logits: torch.Tensor, cap: float = 50.0) -> torch.Tensor:
     """Soft-cap logits to prevent extreme values.
 
-    Mathematical definition:
-
-    ```math
-    \text{soft-cap}(x, c) = c \cdot \tanh(x / c)
-    ```
+    Mathematical definition (see equation above):
+    soft-cap(x, c) = c · tanh(x / c)
 
     where:
 
@@ -1711,17 +1718,15 @@ WeDLM adapts diffusion to work with causal attention:
 
 - Forward: Gradually add noise/masks to clean sequence
 
-
   ```math
 q(x_t | x_0) = \text{Mask}(x_0, t)
-```
+  ```
 
 - Reverse: Iteratively denoise to recover clean sequence
 
-
   ```math
 p_\theta(x_{t-1} | x_t) = \text{Model}(x_t, t)
-```
+  ```
 
 **WeDLM innovation - Causal constraint:**
 Instead of bidirectional attention which allows $x_i$ to attend to all positions, WeDLM uses causal masking:

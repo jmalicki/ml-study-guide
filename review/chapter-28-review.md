@@ -81,7 +81,7 @@
 
    ```python
    x = x[torch.arange(x.shape[0]), text.argmax(dim=-1)]
-```
+   ```
 
    This assumes the EOS token has the maximum value, which isn't always true. Should track actual sequence lengths or use a special EOS token position.
 
@@ -92,7 +92,7 @@
        torch.ones(tokens.shape[1], tokens.shape[1]),
        diagonal=1
    ).bool()
-```
+   ```
 
    Should specify device: `device=tokens.device`
 
@@ -104,7 +104,7 @@
 
    ```python
    logits = x @ self.token_embedding.weight.T
-```
+   ```
 
    This is correct, but a comment explaining weight tying would be helpful.
 
@@ -148,7 +148,7 @@
        loss = loss * instruction_mask.view(-1).float()
 
        return loss.sum() / instruction_mask.sum()
-```
+   ```
 
 2. **Add Video Understanding Section**:
 
@@ -165,7 +165,7 @@
    3. **Temporal Attention**: Learn temporal relationships
    4. **Factorized Attention**: Separate spatial and temporal attention
 
-```
+   ```
 
 3. **Expand on Interleaved Image-Text**:
 
@@ -192,7 +192,7 @@
 
            bbox = self.bbox_head(text_features)
            return torch.sigmoid(bbox)  # Normalize to [0, 1]
-```
+   ```
 
 5. **Improve Mathematical Explanations**:
    - Add explanation of why cosine similarity is normalized in CLIP
@@ -217,7 +217,7 @@
    4. **Mention recent work**: GPT-4V, Gemini, Llama 3.2 Vision show current SOTA
    5. **Connect to other topics**: Bring up LoRA for efficient fine-tuning, Flash Attention for long contexts
 
-```
+   ```
 
 7. **Fix the SigLIP Formula**:
 
@@ -242,7 +242,7 @@
    - Memory savings: ~500MB
    - Trade-off: Additional perceiver parameters (~50M)
 
-```
+   ```
 
 ### Cross-Reference Quality
 

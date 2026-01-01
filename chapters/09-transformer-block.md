@@ -790,7 +790,7 @@ Attention masks implement two critical constraints:
 
    ```math
 P(x_i | x_1, ..., x_{i-1}, x_{i+1}, ..., x_n) = P(x_i | x_1, ..., x_{i-1})
-```
+   ```
 
    Violating this makes training and inference inconsistent—the model trains with future information but can't access it during generation.
 
@@ -799,7 +799,7 @@ P(x_i | x_1, ..., x_{i-1}, x_{i+1}, ..., x_n) = P(x_i | x_1, ..., x_{i-1})
 
    ```math
 \text{Attention}(\mathbf{q}_i, \mathbf{k}_p, \mathbf{v}_p) = 0
-```
+   ```
 
 **Relationship to Alternatives:**
 
@@ -1251,7 +1251,7 @@ if __name__ == "__main__":
 
      ```math
 W \sim U\left[-\sqrt{\frac{6}{d_{\text{in}} + d_{\text{out}}}}, \sqrt{\frac{6}{d_{\text{in}} + d_{\text{out}}}}\right]
-```
+     ```
 
 
    - **Kaiming/He**: Better for ReLU activations
@@ -1259,7 +1259,7 @@ W \sim U\left[-\sqrt{\frac{6}{d_{\text{in}} + d_{\text{out}}}}, \sqrt{\frac{6}{d
 
      ```math
 W \sim U\left[-\sqrt{\frac{6}{d_{\text{in}}}}, \sqrt{\frac{6}{d_{\text{in}}}}\right]
-```
+     ```
 
 
    - **Scaled initialization**: For very deep models (>24 layers)
@@ -1267,7 +1267,7 @@ W \sim U\left[-\sqrt{\frac{6}{d_{\text{in}}}}, \sqrt{\frac{6}{d_{\text{in}}}}\ri
 
      ```math
 W \gets W / \sqrt{2L}
-```
+     ```
 
      where $L$ is the number of layers
 
@@ -1504,7 +1504,7 @@ The parallel architecture is based on several observations:
    \text{Sequential: } & \mathbf{y} = \mathbf{x} + \text{FFN}(\mathbf{x} + \text{Attn}(\mathbf{x})) \\
    \text{Parallel: } & \mathbf{y} = \mathbf{x} + \text{Attn}(\mathbf{x}) + \text{FFN}(\mathbf{x})
    \end{align}
-```
+   ```
 
 
 3. **Shared normalization**: Both paths can normalize the same input, reducing parameters and computation

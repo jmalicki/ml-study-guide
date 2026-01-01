@@ -55,7 +55,7 @@
        trainer: DPOTrainer,  # ADD THIS
        num_samples: int = 100,
    ):
-```
+   ```
 
 2. **ORPO Odds Ratio Calculation** (lines 721-767):
    - The comment at line 749 mentions computing log odds correctly, but then line 754 uses a simplified approximation
@@ -69,7 +69,7 @@
    # However, for average log probabilities (normalized by length),
    # the ratio of log probs is a reasonable approximation used in practice
 
-```
+   ```
 
 3. **Missing Device Handling**: The example training function (lines 407-478) moves models to device but doesn't show best practices for mixed precision training or multi-GPU scenarios, which are common in production.
 
@@ -97,7 +97,7 @@
        'chosen_length': chosen_length,
        'rejected_length': rejected_length,
    }
-```
+   ```
 
 6. **Missing Memory Optimization Discussion**: DPO requires keeping two models in memory (policy and reference). For large models, this could be problematic. Could add a subsection on:
    - Using LoRA/PEFT for the policy model while keeping full reference model
@@ -163,7 +163,7 @@ All mathematical formulations have been verified:
            'optimizer_state_dict': self.optimizer.state_dict(),
            'beta': self.beta,
        }, path)
-```
+   ```
 
 2. **Add validation loop**:
 
@@ -177,7 +177,7 @@ All mathematical formulations have been verified:
 
    if labels.shape != input_ids.shape:
        raise ValueError(f"Labels shape {labels.shape} doesn't match input_ids shape {input_ids.shape}")
-```
+   ```
 
 4. **Add model.eval() toggle**:
 
@@ -186,7 +186,7 @@ All mathematical formulations have been verified:
    # At the end of train_step:
 
    self.model.eval()  # Return to eval mode after training
-```
+   ```
 
 ### Writing Quality
 

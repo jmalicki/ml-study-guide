@@ -96,13 +96,13 @@
 
    ```python
    alpha_bar_t_prev = torch.tensor(1.0)
-```
+   ```
 
    This creates a CPU tensor even if the model is on GPU. Should be:
 
    ```python
    alpha_bar_t_prev = torch.tensor(1.0, device=device)
-```
+   ```
 
 2. **Incomplete Implementation (line 1293)**
 
@@ -141,7 +141,7 @@
    # Track channels at each level for matching skip connections in decoder
 
    channels = [model_channels]
-```
+   ```
 
 3. **Complete Gradient Checkpointing Example**
 
@@ -164,7 +164,7 @@
 
        # ... rest of implementation
 
-```
+   ```
 
 4. **Add Warmup Scheduler**
 
@@ -178,7 +178,7 @@
    warmup_scheduler = LinearLR(optimizer, start_factor=0.1, total_iters=1000)
    main_scheduler = CosineAnnealingLR(optimizer, T_max=num_epochs)
    scheduler = SequentialLR(optimizer, [warmup_scheduler, main_scheduler], milestones=[1000])
-```
+   ```
 
 5. **Fix DDIM Device Bug**
 
@@ -186,7 +186,7 @@
 
    ```python
    alpha_bar_t_prev = torch.tensor(1.0, device=device)
-```
+   ```
 
 6. **Expand Variance Sampling Explanation**
 
@@ -206,7 +206,7 @@
    - Fixed variance works well enough for your use case
 
    """
-```
+   ```
 
 7. **Add Conditional Example**
 
@@ -223,7 +223,7 @@
 
            # ... rest remains the same
 
-```
+   ```
 
 8. **Add Flash Attention Note**
 
@@ -236,7 +236,7 @@
    # from torch.nn.functional import scaled_dot_product_attention
    # h = scaled_dot_product_attention(q, k, v, scale=scale)
 
-```
+   ```
 
 ### Cross-Reference Quality
 

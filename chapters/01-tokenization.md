@@ -1710,7 +1710,7 @@ Tokenization choices affect:
 
    ```math
 \text{Embedding Params} = V \times d_{model}
-```
+   ```
 
    where $V$ is vocab size and $d_{model}$ is embedding dimension.
 
@@ -1719,7 +1719,7 @@ Tokenization choices affect:
 
    ```math
 \text{Attention Cost} = O(n^2 d)
-```
+   ```
 
    where $n$ is sequence length.
 
@@ -2056,7 +2056,7 @@ text_with_rare_unicode = "Hello \u200b world"  # Zero-width space
    text1 = "resume"   # Tokens: ['res', 'ume']
    text2 = "résumé"   # Tokens: ['r', 'é', 's', 'um', 'é']
    # Model may not recognize these as related!
-```
+   ```
 
 3. **Tokenization instability**:
    - Small text changes causing large tokenization changes

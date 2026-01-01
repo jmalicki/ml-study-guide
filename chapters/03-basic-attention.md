@@ -1597,7 +1597,7 @@ assert torch.allclose(my_output, pt_output, atol=1e-5)
 
    ```math
 \text{score}(\mathbf{q}, \mathbf{k}) = \mathbf{v}^T \tanh(W_q \mathbf{q} + W_k \mathbf{k})
-```
+   ```
 
    Compare it with dot-product attention. Which is faster? Why?
 

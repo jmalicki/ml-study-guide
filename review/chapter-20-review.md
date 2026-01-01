@@ -84,7 +84,7 @@
      ```python
      train_dataset = prepare_dataset(tokenizer, "train")
      eval_dataset = prepare_dataset(tokenizer, "validation")
-```
+     ```
 
    - Suggestion: Add a simple example implementation or comment that this is task-specific
 
@@ -161,7 +161,7 @@
 
    prefix_flat = self.prefix[layer_idx].view(2, self.prefix_length, -1)
    prefix_hidden = self.prefix_mlp(prefix_flat)  # MLP expects [*, hidden_size]
-```
+   ```
 
    Should be:
 
@@ -172,13 +172,13 @@
    prefix_flat = self.prefix[layer_idx].view(2 * self.prefix_length, -1)
    prefix_hidden = self.prefix_mlp(prefix_flat)
    prefix_kv = prefix_hidden.view(2, self.prefix_length, self.n_heads, self.head_dim)
-```
+   ```
 
 2. **DoRA Weight Computation** (Line 1845)
 
    ```python
    weight = self.magnitude.unsqueeze(1) * direction
-```
+   ```
 
    This broadcasts magnitude correctly, but should include a comment about the shape for clarity.
 
@@ -186,14 +186,14 @@
 
    ```python
    final_output = torch.zeros(len(x), *outputs[0][1].shape[1:])
-```
+   ```
 
    Should specify device and dtype:
 
    ```python
    final_output = torch.zeros(len(x), *outputs[0][1].shape[1:],
                                device=x.device, dtype=x.dtype)
-```
+   ```
 
 #### Technical Issues:
 
@@ -205,13 +205,13 @@
    distances = torch.abs(nf4_levels.unsqueeze(0).unsqueeze(0) -
                         normalized.unsqueeze(-1))
    quantized = torch.argmin(distances, dim=-1).to(torch.uint8)
-```
+   ```
 
 5. **Memory Calculation** (Line 64)
 
    ```python
    optimizer_memory = model_params_billions * 1e9 * 4 * 2
-```
+   ```
 
    Comment says "2x for first and second moments" but should mention these are in FP32 (4 bytes each)
 
@@ -238,7 +238,7 @@
    | Code Generation | 100% | 94-97% | 96-98% | 95-97% | 80-88% |
 
    *Approximate performance relative to full fine-tuning baseline*
-```
+   ```
 
 2. **Add Failure Modes Section**
 
@@ -258,7 +258,7 @@
       - Limited capacity may not be sufficient
       - Consider higher rank or full FT
 
-```
+   ```
 
 3. **Fix Prefix Tuning MLP Implementation**
 
@@ -282,7 +282,7 @@
        - Number of LoRA target modules
 
        """
-```
+   ```
 
 5. **Add Visual Diagrams**
    - Consider adding ASCII art or references to diagrams for:

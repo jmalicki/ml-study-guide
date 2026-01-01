@@ -67,14 +67,14 @@
 
    ```python
    import re  # This is imported at line 247, but should be at top of file
-```
+   ```
 
    **Lines 118-119: Potential model loading issue**
 
    ```python
    model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.bfloat16)
    model.to("cuda")
-```
+   ```
 
    Should check if CUDA is available and handle device placement better.
 
@@ -90,7 +90,7 @@
 
    ```latex
    $$P(a|q) = \sum_{r \in \mathcal{R}} P(a|r, q) P(r|q)$$
-```
+   ```
 
    This is correct but could benefit from a note that in practice this is intractable and we approximate.
 
@@ -98,7 +98,7 @@
 
    ```latex
    $$r_{\text{process}}(q, r, a) = \sum_{i=1}^{n} w_i \cdot \text{score}(r_i | r_{<i}, q)$$
-```
+   ```
 
    The weights $w_i$ are not explained. Are they learned? Fixed? Should clarify.
 
@@ -140,7 +140,7 @@
 
    ```latex
    $$a^* \approx \arg\max_a P(a|r^*, q) \text{ where } r^* = \arg\max_r P(r|q)$$
-```
+   ```
 
    This should be clarified - are we doing greedy decoding or beam search? The notation suggests greedy but implementation uses sampling.
 
@@ -149,7 +149,7 @@
    ```python
    step_rewards = rewards.mean(dim=1)
    target_labels = labels.mean(dim=1)
-```
+   ```
 
    This averages all positions, but the comment says we should align with step positions. This is misleading - the implementation doesn't match the intention.
 
@@ -161,7 +161,7 @@
    # Negative loss is log probability (approximately)
 
    log_prob = -outputs.loss.item()
-```
+   ```
 
    This is not quite right. The loss is averaged over tokens, so this doesn't give you the true log probability of the sequence. Should multiply by sequence length or compute properly.
 
@@ -169,7 +169,7 @@
 
    ```python
    estimated_accuracy = 1.0 - (0.5 ** (n / 8))  # Diminishing returns
-```
+   ```
 
    This is a placeholder but should be noted more prominently that it's not real data.
 
@@ -188,7 +188,7 @@
    | Complex planning/search | Tree-of-Thought | Backtracking needed |
    | Have labeled process data | Train PRM | Best accuracy |
    | Need calibrated confidence | Self-consistency + PRM | Combines strengths |
-```
+   ```
 
 2. **Add Safety/Security Discussion**
    - Code execution risks

@@ -930,7 +930,7 @@ This enables efficient training by sampling any timestep directly without iterat
 
    ```math
 \tilde{\beta}_t = \frac{1-\bar{\alpha}_{t-1}}{1-\bar{\alpha}_t}\beta_t
-```
+   ```
 
    This is crucial for proper sampling dynamics.
 
@@ -3482,7 +3482,7 @@ Q_t[i,j] = \begin{cases}
    1-\alpha_t & \text{if } j=\text{[MASK]} \\
    0 & \text{otherwise}
    \end{cases}
-```
+   ```
 
 2. **Uniform**: Replace with random tokens
 
@@ -3492,7 +3492,7 @@ Q_t[i,j] = \begin{cases}
    \alpha_t & \text{if } i=j \\
    \frac{1-\alpha_t}{V} & \text{otherwise}
    \end{cases}
-```
+   ```
 
 **Approaches:**
 

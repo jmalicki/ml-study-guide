@@ -330,7 +330,7 @@ The comparison tables are excellent, but the "Best For" column in the summary ta
 
    ```python
    inv_freq = 1.0 / (self.base ** (torch.arange(0, self.dim, 2).float() / self.dim))
-```
+   ```
 
    This is correct, but a comment explaining why we only use even indices (since RoPE operates on pairs of dimensions) would help readers.
 
@@ -342,7 +342,7 @@ The comparison tables are excellent, but the "Best For" column in the summary ta
 
    ```python
    \text{score}_{i,j} \approx 0 \text{ for all } j \Rightarrow \text{softmax needs a "sink"}
-```
+   ```
 
    This is slightly imprecise. Even if scores are all equal (not zero), softmax would distribute evenly. The sink phenomenon occurs because the model learns to dump "null attention" somewhere, and the BOS token (first token) is a natural choice. Softmax doesn't inherently "need" a sink; the model learns this pattern.
 
@@ -356,13 +356,13 @@ The comparison tables are excellent, but the "Best For" column in the summary ta
    self.recent_k[layer_idx][:, idx] = k[:, i]
    self.recent_v[layer_idx][:, idx] = v[:, i]
    self.recent_position += 1
-```
+   ```
 
    The `recent_position` counter increments for every token after sinks, but should only track position within the rolling buffer. Should be:
 
    ```python
    idx = (self.recent_position % self.recent_size)
-```
+   ```
 
    and `recent_position` tracks global position relative to sink tokens, which it seems to do, so this is actually fine. But the variable name is confusing.
 
@@ -370,7 +370,7 @@ The comparison tables are excellent, but the "Best For" column in the summary ta
 
    ```python
    similarities = torch.matmul(q, self.memory_keys.T)
-```
+   ```
 
    This is dot product similarity, not kNN in the traditional sense (Euclidean distance). Should either normalize or use cosine similarity, or clarify that this is "dot product kNN."
 
@@ -382,7 +382,7 @@ The comparison tables are excellent, but the "Best For" column in the summary ta
        start = max(0, i - self.window_size)
        window_mask[i, start:i+1] = False
    scores.masked_fill_(window_mask, float('-inf'))
-```
+   ```
 
    This creates the mask in a loop, which is inefficient. Better to use torch operations:
 
@@ -390,7 +390,7 @@ The comparison tables are excellent, but the "Best For" column in the summary ta
    positions = torch.arange(seq_len, device=x.device)
    window_mask = (positions.unsqueeze(0) - positions.unsqueeze(1)) > self.window_size
    scores.masked_fill_(window_mask, float('-inf'))
-```
+   ```
 
 ### Missing Cross-References
 
@@ -433,7 +433,7 @@ The exercises are excellent and practical. A few additions:
 
    # Paper: https://www.reddit.com/r/LocalLLaMA/...
 
-```
+   ```
 
    While historically accurate (this was discovered on Reddit!), should note this is a community finding, later formalized. The actual paper link should be primary.
 
@@ -445,7 +445,7 @@ The exercises are excellent and practical. A few additions:
 
    ```python
    See [Architecture Comparison](30-model-architectures.md) for details.
-```
+   ```
 
    Make sure chapter 29 exists and covers SwiGLU. If not, should provide the explanation here or reference the correct chapter.
 

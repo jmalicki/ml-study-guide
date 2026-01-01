@@ -98,7 +98,7 @@
 
               # Full computation
 
-```
+      ```
 
    c. **When to Use Each Variant**:
 
@@ -120,7 +120,7 @@
 
       # Causal mask: (1, 1, seq_len_q, seq_len_k) or (batch_size, 1, seq_len_q, seq_len_k)
 
-```
+      ```
 
    b. **Test Function Output**:
 
@@ -187,7 +187,7 @@ I verified the following and found them all correct:
    3. **Not using .contiguous()**: Required before view() after transpose()
    4. **Wrong dimension for softmax**: Should be dim=-1 (over keys)
 
-```
+   ```
 
 2. **Enhance the Summary Table** (line 769):
    - Add a "Conversion" column showing how to convert between variants
@@ -200,7 +200,7 @@ I verified the following and found them all correct:
    ```python
    mha = MultiHeadAttention(d_model=512, num_heads=8)
    mha.apply(init_multihead_attention)
-```
+   ```
 
 4. **Clarify "Empirical Evidence" Section** (lines 36-43):
    - Add specific paper references for each claim

@@ -160,7 +160,7 @@
        # Only compute attention for new token
        # This is critical for efficient inference
 
-```
+   ```
 
 2. **Improve RoPE Implementation**
 
@@ -171,7 +171,7 @@
 
        # ... rest of implementation
 
-```
+   ```
 
 3. **Add Mixed Precision Example**
 
@@ -183,7 +183,7 @@
    with torch.cuda.amp.autocast():
        logits = model(x)
        loss = F.cross_entropy(...)
-```
+   ```
 
 4. **Improve Dataset for Large Scale**
 
@@ -194,7 +194,7 @@
    # - Memory-mapped files
    # - Streaming datasets (e.g., HuggingFace datasets library)
 
-```
+   ```
 
 5. **Add Initialization Explanation**
    - Add a section explaining why modern transformers use different initialization

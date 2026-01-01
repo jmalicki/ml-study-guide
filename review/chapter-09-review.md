@@ -69,7 +69,7 @@
        # Consider: output = self.dropout(output)  # Some implementations do this
 
        return output
-```
+   ```
 
    The current implementation is fine, but you might note this variation exists.
 
@@ -83,13 +83,13 @@
    ```python
    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
    x_device = x.to(device)
-```
+   ```
 
 2. **Missing Important Concepts**
 
    a. **Parallel Attention + FFN**: Mentioned in exercises but not in main text. Models like GPT-J, PaLM use this for efficiency. Worth a brief mention:
 
-```text
+   ```text
 
    x = x + attention(norm(x)) + ffn(norm(x))  # parallel
 
@@ -97,7 +97,7 @@
 
    x = x + attention(norm(x))  # sequential
    x = x + ffn(norm(x))
-```
+   ```
 
    b. **Final LayerNorm Placement**: You mention it in `TransformerStack` but don't explain why modern LLMs add final normalization after all blocks. This is important for output stability.
 
@@ -114,7 +114,7 @@
    # This won't work as intended - self_attn returns (output, weights) not just output
 
    plot_activation(axes[0, 2], output, 'After Attention + Residual')
-```
+   ```
 
    You're plotting final output twice (axes[0,2] and axes[1,2]). You need to capture intermediate values differently, perhaps using hooks on the residual addition itself.
 
@@ -132,10 +132,10 @@
 
    a. In the residual gradient flow section, you show:
 
-```text
+   ```text
 
    ∂x_{i+1}/∂x_i = I + ∂F_i(x_i)/∂x_i
-```
+   ```
 
    It would be helpful to show the full backprop chain through multiple layers to really demonstrate how gradients multiply with vs without residuals.
 
@@ -155,13 +155,13 @@
 
    ```python
    rms = torch.sqrt(torch.mean(x ** 2, dim=-1, keepdim=True) + self.eps)
-```
+   ```
 
    For numerical stability, some implementations do:
 
    ```python
    rms = torch.sqrt(torch.mean(x ** 2, dim=-1, keepdim=True).add_(self.eps))
-```
+   ```
 
    Though both work, in-place addition can be slightly more stable.
 
@@ -177,7 +177,7 @@
 
    #           = 2 * 512 * 2048 + 2048 + 512 = 2,099,712
 
-```
+   ```
 
    This is correct! Good attention to detail.
 
@@ -198,7 +198,7 @@
    - **LayerNorm**: γ initialized to 1, β to 0
    - **Residual path scaling**: Some models scale residual contributions
 
-```
+   ```
 
 2. **Enhance the mask handling** in TransformerBlock:
 
@@ -208,7 +208,7 @@
        mask = torch.triu(torch.ones(seq_len, seq_len), diagonal=1)
        mask = mask.masked_fill(mask == 1, float('-inf'))
        return mask
-```
+   ```
 
 3. **Add memory-efficient variant** showing gradient checkpointing:
 
@@ -220,7 +220,7 @@
            if self.training:
                return checkpoint(super().forward, x, mask)
            return super().forward(x, mask)
-```
+   ```
 
 4. **Fix visualization code** to properly capture intermediate activations:
 
@@ -241,7 +241,7 @@
        # ... etc
 
        return x, intermediates
-```
+   ```
 
 5. **Expand the modern variants section** with GQA mention:
 
@@ -255,7 +255,7 @@
    - Reduces KV cache size for inference
    - Better efficiency with minimal performance loss
 
-```
+   ```
 
 6. **Add a "Common Interview Questions" section**:
 
@@ -278,7 +278,7 @@
    5. **What's the typical FFN expansion ratio?**
       - 4x for standard models, 8/3x for SwiGLU variants
 
-```
+   ```
 
 ### Cross-Reference Quality
 

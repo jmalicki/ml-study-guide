@@ -113,7 +113,7 @@
    ```python
    from transformers import GPT2LMHeadModel, GPT2Tokenizer
    model = GPT2LMHeadModel.from_pretrained('gpt2')
-```
+   ```
 
 5. **LSH Probability**: The LSH section doesn't explain how to choose `num_bands` and `rows_per_band` given a desired similarity threshold. The relationship is: for similarity $s$ and threshold $t$, the probability of being detected as a candidate is approximately $1 - (1 - s^r)^b$ where $r$ is rows per band and $b$ is number of bands.
 
@@ -150,7 +150,7 @@
    $$\text{Overlap}(test, train) = \frac{|\text{n-grams}(test) \cap \text{n-grams}(train)|}{|\text{n-grams}(test)|}$$
 
    Flag examples with >X% overlap (typically 50-80% for 13-grams).
-```
+   ```
 
 2. **Expand LSH Parameter Selection**:
 
@@ -167,7 +167,7 @@
        optimal_r = int(math.log(0.5) / math.log(threshold))
        optimal_b = num_perm // optimal_r
        return optimal_b, optimal_r
-```
+   ```
 
 3. **Add Scaling Discussion**:
 
@@ -184,7 +184,7 @@
    3. **Approximate Deduplication**: Trade accuracy for speed
    4. **Sampling for Quality**: Score subset, filter all based on learned thresholds
 
-```
+   ```
 
 4. **Improve Safety Filtering Section**:
 
@@ -205,7 +205,7 @@
        # Using matplotlib or plotly
        # Show % passing each stage
 
-```
+   ```
 
 6. **Cross-Reference Exercise 6 with Chapter 32**:
 

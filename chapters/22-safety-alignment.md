@@ -1750,7 +1750,7 @@ The key insight is to use **multiple signals** that should correlate but may div
 
    ```math
 \text{Divergence}(y) = R_{\text{proxy}}(y) - R_{\text{gold}}(y)
-```
+   ```
 
    High divergence indicates the response exploits weaknesses in the proxy.
 
@@ -1759,7 +1759,7 @@ The key insight is to use **multiple signals** that should correlate but may div
 
    ```math
 \text{Anomaly}(y) = ||\text{Features}(y) - \mu_{\text{typical}}||
-```
+   ```
 
    Features might include: length, lexical diversity, sentiment, etc.
 
@@ -2307,21 +2307,21 @@ RLAIF follows the same RL framework as RLHF (see [RLHF](20-rlhf.md)), but the re
 
    ```math
 P(y_1 \succ y_2 | x) = \text{AI-Evaluator}(x, y_1, y_2, \text{constitution})
-```
+   ```
 
 2. **Reward Model Training**:
 
 
    ```math
 \mathcal{L}_R(\phi) = -\mathbb{E}_{(x,y_w,y_l) \sim \mathcal{D}_{\text{AI}}} \left[ \log \sigma(R_\phi(x,y_w) - R_\phi(x,y_l)) \right]
-```
+   ```
 
 3. **Policy Optimization** (same as RLHF):
 
 
    ```math
 \max_\theta \mathbb{E}_{x \sim \mathcal{D}, y \sim \pi_\theta} \left[ R_\phi(x,y) - \beta \log \frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y|x)} \right]
-```
+   ```
 
 ### Bradley-Terry Model: Mathematical Derivation
 
@@ -2518,7 +2518,7 @@ This is another form of reward hacking (Goodhart's law).
 
    ```math
 -\log \sigma(x) = -\log \frac{1}{1+e^{-x}} = \log(1+e^{-x}) = \text{softplus}(-x)
-```
+   ```
 
    PyTorch's `logsigmoid` implements this efficiently.
 
@@ -4071,7 +4071,7 @@ if __name__ == "__main__":
        action = "flag_for_review"
    elif toxicity > 0.5:
        action = "log_and_monitor"
-```
+   ```
 
 2. **Ensemble Methods**: Combine multiple models for better accuracy
 
@@ -4080,7 +4080,7 @@ if __name__ == "__main__":
    detoxify_score = detoxify_model.predict(text)['toxicity']
    hf_score = hf_model.predict(text)['score']
    final_score = 0.6 * detoxify_score + 0.4 * hf_score
-```
+   ```
 
 3. **Context-Aware Detection**: Some words are toxic in some contexts but not others
    - Consider conversation history
@@ -4101,7 +4101,7 @@ if __name__ == "__main__":
    except Exception as e:
        logger.error(f"Perspective API failed: {e}")
        score = detoxify_fallback.predict(text)  # Fallback to local model
-```
+   ```
 
 ---
 

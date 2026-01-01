@@ -93,7 +93,7 @@ The $T^2$ factor is crucial for maintaining proper gradient magnitudes:
 
    ```math
 \frac{\partial \mathcal{L}_{\text{KL}}}{\partial z_i} \propto \frac{1}{T^2} \left( p_s^T - p_t^T \right)
-```
+   ```
 
 3. **Compensation**: Without the $T^2$ factor, as we increase temperature to soften the distributions, the gradient magnitude would vanish. Multiplying by $T^2$ restores the gradient magnitude to a reasonable scale.
 

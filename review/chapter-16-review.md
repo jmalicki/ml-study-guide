@@ -101,7 +101,7 @@
 
    ```python
    model_memory_gb = model_size_billions * 16 / self.world_size
-```
+   ```
 
    - Uses `self.world_size` but this is a function, not a class method
    - Should be: `model_memory_gb = model_size_billions * 16`
@@ -115,7 +115,7 @@
        else:
            ...
            return None  # This will cause issues in PyTorch
-```
+   ```
 
    - Returning `None` from a gradient hook can cause problems
    - Should return the gradient or a zero tensor
@@ -140,7 +140,7 @@
 
    # Run with: run_ddp_demo(world_size=torch.cuda.device_count())
 
-```
+   ```
 
    - This comment suggests calling the function, but the code uses `mp.spawn`
    - Should clarify: "Example usage: run_ddp_demo(world_size=2)"
@@ -172,7 +172,7 @@
    Complements tensor parallelism by reducing activation memory.
 
    [Implementation example]
-```
+   ```
 
 2. **Expand Activation Checkpointing**
 
@@ -188,7 +188,7 @@
            # Actual computation
 
            ...
-```
+   ```
 
 3. **Add Communication Overlap Example**
 
@@ -198,7 +198,7 @@
    # Demonstrate bucket_cap_mb parameter
 
    model = DDP(model, bucket_cap_mb=25)  # Tune for overlap
-```
+   ```
 
 4. **Fix the `calculate_3d_parallelism` Bug**
 
@@ -230,7 +230,7 @@
 
        # ... rest of function
 
-```
+   ```
 
 5. **Add Debugging Tips Section**
 
@@ -240,12 +240,12 @@
 
    1. **NCCL Debugging**:
 
-      ```
+   ```
 
-      export NCCL_DEBUG=INFO  # Verbose NCCL logging
-      export NCCL_DEBUG_SUBSYS=ALL
+   export NCCL_DEBUG=INFO  # Verbose NCCL logging
+   export NCCL_DEBUG_SUBSYS=ALL
 
-```text
+   ```
 
    2. **Deadlock Detection**:
 
@@ -253,12 +253,12 @@
 
    3. **Memory Monitoring**:
 
-      ```
+   ```
 
-      torch.cuda.memory_summary()  # On each rank
+   torch.cuda.memory_summary()  # On each rank
 
-```text
-```
+   ```
+   ```
 
 6. **Clarify ZeRO Stage 3 Implementation**
    - Add a note: "Note: This is a simplified conceptual implementation. For production use, use PyTorch FSDP or DeepSpeed."
@@ -279,7 +279,7 @@
        if (i + 1) % accumulation_steps == 0:
            optimizer.step()
            optimizer.zero_grad()
-```
+   ```
 
 8. **Enhance Pipeline Parallelism Visualization**
    - The ASCII diagram is good but could add a second one showing the improved schedule with micro-batches
@@ -379,7 +379,7 @@
        num_params_billions: float,
        bytes_per_param: int = 2
    ) -> float:
-```
+   ```
 
 ### Missing Real-World Considerations
 

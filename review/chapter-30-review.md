@@ -171,7 +171,7 @@
 
        kv_cache = 2 * n_layers * n_kv_heads * head_dim * seq_len * batch_size * dtype_bytes
        return kv_cache / (1024 ** 3)  # Convert to GB
-```
+   ```
 
 3. **Add Visualization Suggestions**
    - While you can't include images in markdown, suggest what to visualize:

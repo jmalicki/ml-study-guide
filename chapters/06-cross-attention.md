@@ -111,20 +111,20 @@ Breaking this down:
 
    ```math
 Q = XW_{Q} \in \mathbb{R}^{n \times d_k}
-```
+   ```
    ```math
 K = YW_{K} \in \mathbb{R}^{m \times d_k}
-```
+   ```
    ```math
 V = YW_{V} \in \mathbb{R}^{m \times d_v}
-```
+   ```
 
 2. **Compute attention scores**:
 
 
    ```math
 S = \frac{QK^T}{\sqrt{d_k}} \in \mathbb{R}^{n \times m}
-```
+   ```
 
    Note: The score matrix is $n \times m$ (target length × source length), not $n \times n$ as in self-attention.
 
@@ -133,7 +133,7 @@ S = \frac{QK^T}{\sqrt{d_k}} \in \mathbb{R}^{n \times m}
 
    ```math
 A = \text{softmax}(S) \in \mathbb{R}^{n \times m}
-```
+   ```
 
    For each target position $i$: $A_{i,:} = \text{softmax}(S_{i,:})$
 
@@ -144,14 +144,14 @@ A = \text{softmax}(S) \in \mathbb{R}^{n \times m}
 
    ```math
 \text{Output} = AV \in \mathbb{R}^{n \times d_v}
-```
+   ```
 
 5. **Final projection**:
 
 
    ```math
 \text{CrossAttn}(X, Y) = (AV)W_{O} \in \mathbb{R}^{n \times d_{\text{model}}}
-```
+   ```
 
 ### Multi-Head Cross-Attention
 
@@ -875,7 +875,7 @@ x = x + sublayer(LayerNorm(x))
 
    # Pre-LN ensures sublayer input is always normalized
    # preventing activation explosion
-```
+   ```
 
 3. **Less Need for Warmup**:
    - Post-LN often requires careful learning rate warmup
@@ -1268,7 +1268,7 @@ def prepare_teacher_forcing_data(target_sequence):
        decoder_input = ground_truth_tokens
    else:
        decoder_input = model_predictions
-```
+   ```
 
 2. **Professor Forcing** (Lamb et al., 2016):
    - Use adversarial training to match behavior with/without teacher forcing

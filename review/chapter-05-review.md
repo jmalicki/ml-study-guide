@@ -72,7 +72,7 @@
 
      ```python
      mask = mask.unsqueeze(1).expand(-1, scores.size(1), -1)
-```
+     ```
 
    - This assumes `mask` has already been unsqueezed once (line 141), but if it comes in as 3D, there's a double unsqueeze. Should add shape checking or clarify expected input shape more explicitly.
 
@@ -113,7 +113,7 @@
    # Expand mask to (batch, seq_len, seq_len)
 
    mask = mask.unsqueeze(1).expand(-1, scores.size(1), -1)
-```
+   ```
 
    - If mask starts as 2D, it becomes 3D after line 141
    - Then line 143 calls unsqueeze(1) AGAIN, creating (batch, 1, 1, seq_len)
@@ -124,7 +124,7 @@
 
    ```python
    mask = mask.unsqueeze(1).expand(-1, seq_len, -1)
-```
+   ```
 
    - Same pattern as above; should check if mask handling is consistent
    - The comment says "(batch, 1, seq_len)" but the code may produce different shapes
@@ -133,7 +133,7 @@
 
    ```python
    causal_mask = torch.triu(torch.ones(seq_len, seq_len, device=x.device), diagonal=1).bool()
-```
+   ```
 
    - This creates an UPPER triangular matrix (excluding diagonal)
    - This is correct for PyTorch's nn.MultiheadAttention which expects True for masked positions
@@ -144,7 +144,7 @@
 
    ```python
    mask = torch.triu(torch.ones(seq_len, seq_len))
-```
+   ```
 
    - The bug is that `triu` creates UPPER triangular (should be `tril` for causal)
    - Also missing `.bool()` conversion and diagonal parameter
@@ -177,7 +177,7 @@
            'per_token_mb': cache_memory_mb / seq_len,
            'bytes': cache_memory_bytes
        }
-```
+   ```
 
 2. **Clarify Mask Conventions**
 
@@ -194,7 +194,7 @@
    - **HuggingFace Transformers**: `1` for positions that CAN be attended to
 
    Always check the documentation for the specific library you're using.
-```
+   ```
 
 3. **Add Worked Example for Performance**
 
@@ -208,7 +208,7 @@
    - **With KV cache**: 100 forward passes, complexity O(1 + 1 + 1 + ... + 1) = O(100) = 100 operations
    - **Speedup**: 100x for this example (scales with sequence length)
 
-```
+   ```
 
 4. **Fix Mask Dimension Handling**
 
@@ -231,7 +231,7 @@
 
        mask = mask.unsqueeze(1).expand(-1, scores.size(1), -1)
        scores = scores.masked_fill(mask == 0, float('-inf'))
-```
+   ```
 
 5. **Add Cross-Reference Preview**
 
@@ -249,7 +249,7 @@
    - Vision transformers attending to text
    - Retrieval-augmented generation
 
-```
+   ```
 
 6. **Strengthen Exercise Solutions Path**
 
@@ -266,7 +266,7 @@
    For each layer, we store K and V with shape (batch, num_heads, seq_len, head_dim).
    Total elements = 2 × layers × batch × heads × seq_len × head_dim
    Memory = elements × bytes_per_element
-```
+   ```
 
 ### Cross-Reference Quality
 

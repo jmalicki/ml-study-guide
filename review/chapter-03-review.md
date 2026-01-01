@@ -147,7 +147,7 @@ The mathematics, code, and explanations are all technically correct.
    ```python
    def compare_scaling():
        """Demonstrate the effect of scaling on softmax."""
-```
+   ```
 
    Better: `"""Demonstrate the effect of scaling on softmax saturation."""`
 

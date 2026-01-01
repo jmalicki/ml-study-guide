@@ -3389,7 +3389,7 @@ pkill -f "python.*train"
 
    # Run all-reduce bandwidth test
    mpirun -np 8 ./build/all_reduce_perf -b 8 -e 256M -f 2 -g 1
-```
+   ```
 
 5. **Custom logging**: Log to separate files per rank
 
@@ -3407,7 +3407,7 @@ pkill -f "python.*train"
                logging.StreamHandler()
            ]
        )
-```
+   ```
 
 ---
 
