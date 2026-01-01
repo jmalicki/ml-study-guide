@@ -1,4 +1,4 @@
-# Chapter 17: Muon and Operator Geometry
+# Chapter 16: Muon and Operator Geometry
 
 Muon represents a different philosophical approach to optimization: instead of approximating the Fisher information, it uses the **operator norm** geometry of weight matrices. This leads to a simple, elegant algorithm based on orthogonalization.
 
@@ -398,8 +398,8 @@ Hypotheses:
 
 ## What's Next
 
-- **Chapter 18**: Learning rate schedules—when to use what
-- **Chapter 19**: Practical optimization recipes for LLMs
+- **Chapter 17**: Learning rate schedules—when to use what
+- **Chapter 18**: Practical optimization recipes for LLMs
 
 ## Exercises
 

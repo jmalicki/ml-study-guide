@@ -1,4 +1,4 @@
-# Chapter 6: Why Classical Methods Break in Deep Learning
+# Chapter 5: Why Classical Methods Break in Deep Learning
 
 We've built up a beautiful hierarchy of optimization methods: gradient descent, Newton, conjugate gradient, quasi-Newton, Gauss-Newton. Each is more sophisticated than the last. Yet the deep learning community largely ignores them in favor of simple variants of SGD. Why?
 
@@ -200,7 +200,7 @@ $$P(\text{minimum}) \approx 2^{-n}$$
 
 For $n = 100$, this is $10^{-30}$. For $n = 10^9$, it's inconceivably small.
 
-This is actually **good news** (see Chapter 8)—but it means Newton's method has the wrong behavior.
+This is actually **good news** (see Chapter 7)—but it means Newton's method has the wrong behavior.
 
 ## The Heterogeneity Problem
 
@@ -292,7 +292,7 @@ $$g(x) = \sigma(w_2 \cdot 2x + b_2) \text{ where } w_2 = w_1/2$$
 
 These represent the same function, but gradient descent behaves differently on them!
 
-This is the motivation for **natural gradient** (Chapter 15), which uses the geometry of the function space rather than parameter space.
+This is the motivation for **natural gradient** (Chapter 14), which uses the geometry of the function space rather than parameter space.
 
 ## What Actually Works
 
@@ -353,11 +353,11 @@ The rest of this book explores how these barriers shape both the loss landscape 
 ## What's Next
 
 Part II dives into the deep learning loss landscape:
-- **Chapter 7**: Why high-dimensional intuition is different
-- **Chapter 8**: Saddle points and random matrix theory
-- **Chapter 9**: Symmetries and equivalent minima
-- **Chapter 10**: Mode connectivity
-- **Chapter 11**: Why SGD works despite everything
+- **Chapter 6**: Why high-dimensional intuition is different
+- **Chapter 7**: Saddle points and random matrix theory
+- **Chapter 8**: Symmetries and equivalent minima
+- **Chapter 9**: Mode connectivity
+- **Chapter 10**: Why SGD works despite everything
 
 ## Exercises
 

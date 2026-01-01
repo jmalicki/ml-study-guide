@@ -1,4 +1,4 @@
-# Chapter 13: Adaptive Learning Rates
+# Chapter 12: Adaptive Learning Rates
 
 Momentum uses a single learning rate for all parameters. But neural networks have wildly different gradient scales across parameters. Adaptive methods address this by maintaining per-parameter learning rates.
 
@@ -387,8 +387,8 @@ optimizer = torch.optim.AdamW(
 
 ## What's Next
 
-- **Chapter 14**: Hessian-free optimization—using CG for the Newton direction
-- **Chapter 15**: Natural gradient—using Fisher information geometry
+- **Chapter 13**: Hessian-free optimization—using CG for the Newton direction
+- **Chapter 14**: Natural gradient—using Fisher information geometry
 
 ## Exercises
 

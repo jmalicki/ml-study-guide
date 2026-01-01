@@ -1,4 +1,4 @@
-# Chapter 14: Hessian-Free Optimization
+# Chapter 13: Hessian-Free Optimization
 
 Hessian-free optimization uses conjugate gradient (Chapter 3) to compute Newton steps without forming the Hessian. It's a bridge between classical second-order methods and practical deep learning.
 
@@ -366,8 +366,8 @@ This influenced:
 
 ## What's Next
 
-- **Chapter 15**: Natural gradient—using Fisher information geometry
-- Chapter 15 connects the Gauss-Newton approximation to statistical geometry
+- **Chapter 14**: Natural gradient—using Fisher information geometry
+- Chapter 14 connects the Gauss-Newton approximation to statistical geometry
 
 ## Exercises
 

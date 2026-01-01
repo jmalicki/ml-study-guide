@@ -534,8 +534,8 @@ Practical guidelines:
 ## What's Next
 
 - **Chapter 4 (Quasi-Newton)**: Another approach—approximate H⁻¹ from gradient history
-- **Chapter 5 (Gauss-Newton)**: Special Hessian structure for least-squares
-- **Chapter 14 (Hessian-Free)**: Putting CG to work in deep learning
+- **Chapter 2 Addendum (Gauss-Newton)**: Special Hessian structure for least-squares
+- **Chapter 13 (Hessian-Free)**: Putting CG to work in deep learning
 
 ## Further Reading
 

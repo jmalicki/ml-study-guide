@@ -1,4 +1,4 @@
-# Chapter 18: Learning Rate Schedules
+# Chapter 17: Learning Rate Schedules
 
 The learning rate is the most important hyperparameter in deep learning. This chapter covers the theory and practice of learning rate schedules—how to vary the learning rate during training.
 
@@ -397,7 +397,7 @@ def imagenet_schedule(epoch: int, base_lr: float = 0.1):
 
 ## What's Next
 
-- **Chapter 19**: Practical optimization—putting it all together
+- **Chapter 18**: Practical optimization—putting it all together
 
 ## Exercises
 

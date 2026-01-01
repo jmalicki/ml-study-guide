@@ -391,8 +391,8 @@ The failures of gradient descent motivate everything that follows:
 
 - **Newton's method** (Chapter 2): Use the Hessian as the perfect preconditioner
 - **Conjugate gradient** (Chapter 3): Solve linear systems without matrix inversion
-- **Momentum** (Chapter 12): Accumulate velocity to overcome oscillation
-- **Adaptive methods** (Chapter 13): Learn per-parameter learning rates
+- **Momentum** (Chapter 11): Accumulate velocity to overcome oscillation
+- **Adaptive methods** (Chapter 12): Learn per-parameter learning rates
 
 Each addresses a specific failure mode of vanilla gradient descent.
 

@@ -1,4 +1,4 @@
-# Chapter 19: Practical Optimization for LLMs
+# Chapter 18: Practical Optimization for LLMs
 
 This chapter synthesizes everything we've learned into practical recipes for training large language models.
 

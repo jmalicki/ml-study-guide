@@ -1,4 +1,4 @@
-# Chapter 10: Mode Connectivity
+# Chapter 9: Mode Connectivity
 
 One of the most surprising discoveries in deep learning theory: independently trained neural networks are connected by paths of low loss. This "mode connectivity" fundamentally changes how we think about the loss landscape.
 
@@ -442,7 +442,7 @@ def probe_solution_manifold():
 
 ## What's Next
 
-- **Chapter 11**: The complete picture—why SGD finds good solutions
+- **Chapter 10**: The complete picture—why SGD finds good solutions
 
 ## Further Reading
 

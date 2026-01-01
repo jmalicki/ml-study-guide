@@ -401,7 +401,7 @@ def demonstrate_hvp():
     print(f"Match: {torch.allclose(Hv_explicit, Hv_auto)}")
 ```
 
-This is the foundation of **Hessian-free optimization** (Chapter 14).
+This is the foundation of **Hessian-free optimization** (Chapter 13).
 
 ## The Newton Decrement
 
@@ -464,7 +464,7 @@ Newton sets a theoretical benchmark, but the $O(n^3)$ per-step cost and $O(n^2)$
 **But successful first-order methods take different approaches entirely:**
 - Momentum: Accelerates through gradient history, not curvature
 - Adam: Adaptive per-parameter learning rates from gradient statistics
-- Muon: Orthogonalization via operator geometry (Chapter 17)
+- Muon: Orthogonalization via operator geometry (Chapter 16)
 
 The lesson isn't that we must approximate Newton—it's that vanilla gradient descent leaves performance on the table, and there are multiple paths to improvement.
 
@@ -474,8 +474,9 @@ The computational impossibility of Newton leads to:
 
 - **Conjugate Gradient** (Chapter 3): Solve $Hx = g$ iteratively, using only Hessian-vector products
 - **Quasi-Newton** (Chapter 4): Approximate $H^{-1}$ from gradient history
-- **Gauss-Newton** (Chapter 5): Approximate $H$ for least-squares problems
-- **Hessian-Free** (Chapter 14): Combine Newton with CG for deep learning
+- **Hessian-Free** (Chapter 13): Combine Newton with CG for deep learning
+
+See the Addendum below for **Gauss-Newton**, a special structure for least-squares that connects to Fisher information.
 
 ## Exercises
 
@@ -486,3 +487,95 @@ The computational impossibility of Newton leads to:
 3. **Analyze damping**: For the saddle function $f(x,y) = x^2 - y^2$, find the minimum damping $\lambda$ that makes the origin unstable for damped Newton.
 
 4. **HVP efficiency**: Verify empirically that Hessian-vector products take approximately 2× the time of gradient computation.
+
+---
+
+## Addendum: Gauss-Newton for Least-Squares
+
+For least-squares problems, there's a special Hessian approximation called **Gauss-Newton** that's always positive semi-definite and connects optimization to statistics. Like Newton, Gauss-Newton is not a practical optimizer for neural networks—computing the full Jacobian is intractable. But it's foundational theory that explains why practical methods work:
+
+- **Adam's per-parameter scaling** approximates the diagonal of $J^TJ$
+- **Natural gradient** (Chapter 14) is Gauss-Newton viewed through statistics
+- **K-FAC** (Chapter 15) makes Gauss-Newton tractable via Kronecker factorization
+- **The Fisher information matrix** equals the Gauss-Newton Hessian for Gaussian likelihoods
+
+### The Least-Squares Structure
+
+Consider minimizing:
+
+$$L(\theta) = \frac{1}{2} \sum_{i=1}^{n} r_i(\theta)^2 = \frac{1}{2} \|r(\theta)\|^2$$
+
+where $r(\theta) \in \mathbb{R}^n$ is the **residual vector**.
+
+The exact Hessian is:
+
+$$\nabla^2 L = J^T J + \sum_{i=1}^{n} r_i \nabla^2 r_i$$
+
+where $J = \frac{\partial r}{\partial \theta}$ is the Jacobian of residuals.
+
+### The Gauss-Newton Approximation
+
+**Drop the second term**:
+
+$$H_{GN} = J^T J$$
+
+This is reasonable because:
+1. **Near the solution**: If $r_i \approx 0$, the second term vanishes
+2. **Always positive semi-definite**: $J^T J \succeq 0$ regardless of the landscape
+3. **Cheap**: We already compute $J$ for the gradient
+
+![Gauss-Newton geometry](../images/gauss-newton-geometry.svg)
+
+### Levenberg-Marquardt: Interpolating GD and Gauss-Newton
+
+The **Levenberg-Marquardt** algorithm adds adaptive damping:
+
+$$(J^T J + \lambda I) \delta = -J^T r$$
+
+- **Large $\lambda$**: Behaves like gradient descent (safe, small steps)
+- **Small $\lambda$**: Behaves like Gauss-Newton (fast convergence near solution)
+
+### Connection to Fisher Information
+
+For Gaussian likelihood (equivalent to squared error):
+
+$$p(y|x;\theta) = \mathcal{N}(y; f(x;\theta), \sigma^2 I)$$
+
+The Fisher information matrix is:
+
+$$F = \frac{1}{\sigma^2} J^T J$$
+
+**This is exactly the Gauss-Newton Hessian!** This connection is profound:
+- **Gauss-Newton** = optimization viewpoint
+- **Fisher** = statistical viewpoint
+- They're the same matrix (up to scaling)
+
+This leads directly to natural gradient methods (Chapter 14).
+
+### The Gauss-Newton Intuition Behind Adam
+
+What does the diagonal of $J^TJ$ represent? It measures how much each parameter affects the residuals. Parameters with large influence get scaled down; parameters with small influence get scaled up.
+
+When you write:
+```python
+v_t = beta2 * v_{t-1} + (1 - beta2) * g_t**2
+update = g_t / (sqrt(v_t) + eps)
+```
+
+You're approximating $\text{diag}(J^TJ)^{-1/2} g$—a diagonal Gauss-Newton step.
+
+### The Path to Practical Methods
+
+| Gauss-Newton Concept | Practical Approximation |
+|---------------------|------------------------|
+| Full $J^TJ$ matrix | Intractable for neural nets |
+| Diagonal of $J^TJ$ | Adam, RMSprop, Adagrad |
+| Block-diagonal $J^TJ$ | K-FAC (Chapter 15) |
+| Kronecker-factored blocks | K-FAC, Shampoo |
+| Fisher information view | Natural gradient (Chapter 14) |
+
+### Gauss-Newton Exercises
+
+5. **Verify the Hessian formula**: Derive the exact Hessian of $\frac{1}{2}\|r(\theta)\|^2$ and identify the Gauss-Newton approximation.
+
+6. **Fisher connection**: For logistic regression, show that the Fisher information equals the Gauss-Newton Hessian for the cross-entropy loss.
