@@ -46,7 +46,7 @@
   <rect width="900" height="550" class="bg-main"/>
 
   <!-- Title -->
-  <text x="450" y="35" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="bold" text-anchor="middle" fill="#333">CLIP: Siamese Architecture for Vision-Language Alignment</text>
+  <text x="450" y="35" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="bold" text-anchor="middle" fill="#333">CLIP: Dual-Encoder Architecture for Vision-Language Alignment</text>
 
   <!-- Left side: Image Branch -->
   <g transform="translate(50, 70)">

@@ -267,17 +267,25 @@ class TransformerBlock(nn.Module):
 
 CLIP (Contrastive Language-Image Pre-training) learns aligned representations of images and text through contrastive learning.
 
-**Siamese Architecture:**
+**Dual-Encoder Architecture:**
 
-CLIP uses a dual-encoder (Siamese) architecture where separate encoders process images and text independently, projecting them into a shared embedding space:
+CLIP uses a dual-encoder (also called "two-tower" or "bi-encoder") architecture where separate encoders process images and text independently, projecting them into a shared embedding space:
 
-![CLIP Siamese Architecture](../assets/diagrams/ch24-clip-siamese-architecture.svg)
+![CLIP Dual-Encoder Architecture](../assets/diagrams/ch24-clip-dual-encoder.svg)
+
+> **Siamese vs Dual-Encoder Networks:**
+>
+> **Siamese networks** (introduced by Bromley et al., 1993 for signature verification) use *identical, weight-sharing* encoders for both inputs. They're used when comparing items of the same type—face verification, signature matching, one-shot learning. The shared weights ensure both inputs are processed identically.
+>
+> **Dual-encoder networks** like CLIP use *different* encoders for each modality. Images and text require fundamentally different processing (CNNs/ViTs vs text transformers), so weight sharing isn't possible. The encoders only share the output embedding dimension.
+>
+> Both architectures produce embeddings in a shared space for similarity comparison, but the key distinction is whether the encoder weights are tied.
 
 **Architecture Components:**
 
-- **Image Encoder**: ViT or ResNet
-- **Text Encoder**: Transformer
-- **Projection Heads**: Linear layers mapping to shared embedding space
+- **Image Encoder**: ViT or ResNet (vision-specific architecture)
+- **Text Encoder**: Transformer (language-specific architecture)
+- **Projection Heads**: Linear layers mapping to shared embedding space (d=512 or 768)
 - **Training**: Contrastive loss on image-text pairs
 
 **Contrastive Learning:**
