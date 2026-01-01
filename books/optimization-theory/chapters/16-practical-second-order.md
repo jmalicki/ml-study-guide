@@ -18,7 +18,13 @@ where $F$ is the Fisher information matrix. The problem is that for a network wi
 
 The Fisher information matrix has a natural block structure corresponding to layers. For a network with $L$ layers:
 
-$$F = \begin{pmatrix} F_{11} & F_{12} & \cdots \\ F_{21} & F_{22} & \cdots \\ \vdots & & \ddots \end{pmatrix}$$
+$$
+F = \begin{pmatrix}
+F_{11} & F_{12} & \cdots \\
+F_{21} & F_{22} & \cdots \\
+\vdots &        & \ddots
+\end{pmatrix}
+$$
 
 The key approximation is to treat layers as independent, zeroing out the off-diagonal blocks:
 
