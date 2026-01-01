@@ -7,7 +7,9 @@ including:
 1. {#...} anchor syntax (not standard markdown, displays literally)
 2. Unmatched LaTeX delimiters
 3. Malformed link syntax
-4. Other rendering issues
+4. Code blocks with suspicious content (LaTeX/markdown that should be rendered)
+5. Mismatched code block fence indentation (especially in list context)
+6. Other rendering issues
 
 Usage:
     python3 scripts/check_markdown_syntax.py [path]
@@ -49,6 +51,9 @@ class MarkdownSyntaxChecker:
         except Exception as e:
             print(f"Error reading {file_path}: {e}", file=sys.stderr)
             return file_issues
+
+        # Check for code block issues (needs full file context)
+        file_issues.extend(self._check_code_blocks(file_path, lines))
 
         for line_num, line in enumerate(lines, start=1):
             # Check for {#...} anchor syntax in headers
@@ -105,6 +110,119 @@ class MarkdownSyntaxChecker:
 
         self.issues.extend(file_issues)
         return file_issues
+
+    def _check_code_blocks(self, file_path: Path, lines: List[str]) -> List[Issue]:
+        """Check code blocks for suspicious content and formatting issues"""
+        issues = []
+        in_code_block = False
+        code_block_start_line = 0
+        code_block_start_indent = 0
+        code_block_lang = ""
+        code_block_content = []
+
+        # Patterns that suggest content should be rendered, not shown as code
+        # These are suspicious when found in non-math, non-python code blocks
+        latex_patterns = [
+            (r'\\begin\{', "LaTeX \\begin{} environment"),
+            (r'\\end\{', "LaTeX \\end{} environment"),
+            (r'\\frac\{', "LaTeX \\frac command"),
+            (r'\\text\{', "LaTeX \\text command"),
+            (r'\\mathbb\{', "LaTeX \\mathbb command"),
+            (r'\\sum_', "LaTeX \\sum command"),
+            (r'\\prod_', "LaTeX \\prod command"),
+            (r'\\int_', "LaTeX \\int command"),
+        ]
+
+        markdown_patterns = [
+            (r'^\s*#{1,6}\s+\w', "Markdown header"),
+            (r'^\s*\*\*[^*]+\*\*\s*$', "Bold text on its own line"),
+            (r'^\s*\[[^\]]+\]\([^)]+\)\s*$', "Markdown link on its own line"),
+        ]
+
+        for line_num, line in enumerate(lines, start=1):
+            # Check for code block fence
+            fence_match = re.match(r'^(\s*)(```+)(\w*)', line)
+
+            if fence_match and not in_code_block:
+                # Starting a code block
+                in_code_block = True
+                code_block_start_line = line_num
+                code_block_start_indent = len(fence_match.group(1))
+                code_block_lang = fence_match.group(3).lower()
+                code_block_content = []
+
+            elif fence_match and in_code_block:
+                # Ending a code block
+                closing_indent = len(fence_match.group(1))
+
+                # Check for mismatched indentation
+                if closing_indent != code_block_start_indent:
+                    issues.append(Issue(
+                        file_path=file_path,
+                        line_number=line_num,
+                        line_content=line.rstrip(),
+                        issue_type="CODE_BLOCK_INDENT_MISMATCH",
+                        description=f"Closing fence indent ({closing_indent}) doesn't match opening fence indent ({code_block_start_indent}) at line {code_block_start_line}",
+                        suggestion="Ensure opening and closing ``` have the same indentation"
+                    ))
+
+                # Check content for suspicious patterns
+                # Skip known code languages and documentation blocks (latex, markdown show examples)
+                safe_langs = ['math', 'python', 'py', 'javascript', 'js',
+                              'typescript', 'ts', 'bash', 'sh', 'shell',
+                              'json', 'yaml', 'yml', 'html', 'css', 'sql',
+                              'rust', 'go', 'java', 'c', 'cpp', 'c++',
+                              'latex', 'tex', 'markdown', 'md']
+
+                if code_block_lang not in safe_langs:
+                    content_str = '\n'.join(code_block_content)
+
+                    # Check for LaTeX in unlabeled blocks (these are the real errors)
+                    if code_block_lang == '':
+                        for pattern, desc in latex_patterns:
+                            if re.search(pattern, content_str):
+                                issues.append(Issue(
+                                    file_path=file_path,
+                                    line_number=code_block_start_line,
+                                    line_content=lines[code_block_start_line - 1].rstrip(),
+                                    issue_type="SUSPICIOUS_CODE_BLOCK_CONTENT",
+                                    description=f"Unlabeled code block contains {desc}",
+                                    suggestion="If this is LaTeX, use ```math fence; if showing example syntax, use ```latex"
+                                ))
+                                break  # Only report once per block
+
+                        # Check for markdown-like content in unlabeled blocks
+                        for pattern, desc in markdown_patterns:
+                            if re.search(pattern, content_str, re.MULTILINE):
+                                issues.append(Issue(
+                                    file_path=file_path,
+                                    line_number=code_block_start_line,
+                                    line_content=lines[code_block_start_line - 1].rstrip(),
+                                    issue_type="SUSPICIOUS_CODE_BLOCK_CONTENT",
+                                    description=f"Unlabeled code block contains {desc}",
+                                    suggestion="Add a language identifier or check if this should be rendered as markdown"
+                                ))
+                                break  # Only report once per block
+
+                in_code_block = False
+                code_block_content = []
+
+            elif in_code_block:
+                # Accumulate content
+                code_block_content.append(line)
+
+        # Check for unclosed code block
+        if in_code_block:
+            issues.append(Issue(
+                file_path=file_path,
+                line_number=code_block_start_line,
+                line_content=lines[code_block_start_line - 1].rstrip() if code_block_start_line <= len(lines) else "",
+                issue_type="UNCLOSED_CODE_BLOCK",
+                description="Code block opened but never closed",
+                suggestion="Add closing ``` fence"
+            ))
+
+        return issues
 
     def _check_header_anchor(self, line: str) -> bool:
         """Check if line is a header with {#...} anchor syntax"""
