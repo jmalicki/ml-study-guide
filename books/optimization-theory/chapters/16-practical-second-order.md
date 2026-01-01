@@ -145,7 +145,7 @@ This is the **Kronecker factorization assumption**.
 
 ### Beyond Kronecker
 
-**Shampoo** (Gupta et al., 2018) generalizes K-FAC to arbitrary tensors:
+**Shampoo** ([Gupta et al., 2018](https://arxiv.org/abs/1802.09568)) generalizes K-FAC to arbitrary tensors:
 
 For a weight matrix $W \in \mathbb{R}^{m \times n}$:
 - Maintain $L \in \mathbb{R}^{m \times m}$: Left preconditioner
@@ -232,7 +232,7 @@ This covers:
 
 ### Combining the Best
 
-**SOAP** (Vyas et al., 2024) combines:
+**SOAP** ([Vyas et al., 2024](https://arxiv.org/abs/2409.11321)) combines:
 - Shampoo's preconditioners for curvature
 - Adam's momentum and per-element adaptivity
 - Efficient implementation tricks

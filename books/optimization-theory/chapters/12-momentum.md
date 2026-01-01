@@ -56,7 +56,7 @@ def gradient_descent_vs_momentum():
 
 ### The Update Rule
 
-**Polyak's Heavy Ball** (1964):
+**Polyak's Heavy Ball** ([Polyak, 1964](https://www.sciencedirect.com/science/article/abs/pii/0041555364901375)):
 
 $$v_{t+1} = \beta v_t + \nabla f(\theta_t)$$
 $$\theta_{t+1} = \theta_t - \eta v_{t+1}$$
@@ -155,7 +155,7 @@ At saddles, the gradient is near zero. Momentum's velocity persists:
 
 ### The Lookahead Idea
 
-Nesterov (1983) improved momentum with a key insight:
+Nesterov improved momentum with a key insight ([Nesterov, 1983](https://www.mathnet.ru/eng/dan46009)):
 
 **Don't compute the gradient at the current position—compute it at where you're about to be.**
 
@@ -300,6 +300,12 @@ For eigenvalue $\lambda$ with eigenvector $v$, the component along $v$ follows:
 $$x_{t+1}^{(v)} = (1 + \beta - \eta\lambda)x_t^{(v)} - \beta x_{t-1}^{(v)}$$
 
 This is a second-order linear recurrence—it can oscillate if parameters are wrong.
+
+<div align="center">
+<img src="../images/momentum-oscillation.svg" alt="Momentum oscillation behavior" width="700"/>
+</div>
+
+The dynamics depend critically on the eigenvalue $\lambda$ and the parameter combination $(1 + \beta - \eta\lambda)$. With good parameters, the trajectory decays smoothly to zero. With poor parameters (too large $\eta\lambda$), the system oscillates, and with very poor parameters, it diverges.
 
 ```python
 def eigenvalue_dynamics():

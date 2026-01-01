@@ -92,11 +92,20 @@ def bfgs(
         s = x_new.detach() - x.detach()  # Step
         y = grad_new - grad  # Gradient change
 
-        rho = 1.0 / (y @ s + 1e-10)
+        # Check curvature condition: y^T s > 0
+        # This is essential for maintaining positive definiteness of B_inv.
+        # For non-convex problems (like neural networks), this condition can be
+        # violated near saddle points or in regions of negative curvature.
+        ys = y @ s
+        if ys > 1e-10:
+            rho = 1.0 / ys
 
-        # Sherman-Morrison-Woodbury update
-        I = torch.eye(n)
-        B_inv = (I - rho * s.outer(y)) @ B_inv @ (I - rho * y.outer(s)) + rho * s.outer(s)
+            # Sherman-Morrison-Woodbury update
+            I = torch.eye(n)
+            B_inv = (I - rho * s.outer(y)) @ B_inv @ (I - rho * y.outer(s)) + rho * s.outer(s)
+        # else: Skip BFGS update when curvature condition is violated.
+        # This prevents the inverse Hessian approximation from becoming
+        # indefinite or poorly conditioned.
 
         x = x_new
         grad = grad_new
@@ -238,16 +247,25 @@ def lbfgs(
         # Update history
         s = x_new.detach() - x.detach()
         y = grad_new - grad
-        rho = 1.0 / (y @ s + 1e-10)
 
-        if len(s_history) >= m:
-            s_history.pop(0)
-            y_history.pop(0)
-            rho_history.pop(0)
+        # Check curvature condition: y^T s > 0
+        # For L-BFGS, we only add (s, y) pairs that satisfy this condition.
+        # In non-convex optimization, violating pairs can corrupt the curvature
+        # approximation and lead to poor search directions.
+        ys = y @ s
+        if ys > 1e-10:
+            rho = 1.0 / ys
 
-        s_history.append(s)
-        y_history.append(y)
-        rho_history.append(rho)
+            if len(s_history) >= m:
+                s_history.pop(0)
+                y_history.pop(0)
+                rho_history.pop(0)
+
+            s_history.append(s)
+            y_history.append(y)
+            rho_history.append(rho)
+        # else: Skip adding this (s, y) pair to history when curvature
+        # condition is violated
 
         x = x_new
         grad = grad_new

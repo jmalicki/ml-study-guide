@@ -66,7 +66,7 @@ The paths are different even though the model is identical!
 
 ### Optimization in Distribution Space
 
-Amari (1998): Optimize in the space of distributions, not parameters.
+Optimize in the space of distributions, not parameters ([Amari, 1998](https://direct.mit.edu/neco/article/10/2/251/6143/Natural-Gradient-Works-Efficiently-in-Learning)).
 
 The "natural" metric on distributions is the **KL divergence**:
 

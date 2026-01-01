@@ -8,7 +8,7 @@ One of the most surprising discoveries in deep learning theory: independently tr
 
 Train the same architecture with different random seeds. You get different solutions $\theta_1$ and $\theta_2$.
 
-**Surprising fact** (Garipov et al., 2018; Draxler et al., 2018): There exist paths from $\theta_1$ to $\theta_2$ where the loss stays low the entire way.
+**Surprising fact** ([Garipov et al., 2018](https://arxiv.org/abs/1802.10026); [Draxler et al., 2018](https://arxiv.org/abs/1803.00885)): There exist paths from $\theta_1$ to $\theta_2$ where the loss stays low the entire way.
 
 ```python
 import torch
@@ -208,34 +208,24 @@ Mode connectivity suggests that (for well-trained networks):
 
 There aren't many isolated local minima—there's essentially one "solution manifold."
 
-```python
-def visualize_mode_connectivity():
-    """
-    Conceptual visualization of mode connectivity.
+**Conceptual visualization of mode connectivity:**
 
-    In 2D this would show:
-    - Multiple trained networks as points
-    - Low-loss paths connecting them
-    - The "solution manifold" they all lie on
-    """
-    # This is conceptual - real visualization requires dimensionality reduction
+Traditional View:
+```
+┌─────────────────────────┐
+│    ∪     ∪     ∪       │  Isolated minima
+│   min1  min2  min3     │
+│ ╱╲   ╱╲   ╱╲   ╱╲     │  Barriers between
+└─────────────────────────┘
+```
 
-    concepts = """
-    Traditional View:
-    ┌─────────────────────────┐
-    │    ∪     ∪     ∪       │  Isolated minima
-    │   min1  min2  min3     │
-    │ ╱╲   ╱╲   ╱╲   ╱╲     │  Barriers between
-    └─────────────────────────┘
-
-    Mode Connectivity View:
-    ┌─────────────────────────┐
-    │  ───────────────────    │  Connected valley
-    │     •     •     •       │  Solutions on manifold
-    │    min1  min2  min3     │
-    └─────────────────────────┘
-    """
-    print(concepts)
+Mode Connectivity View:
+```
+┌─────────────────────────┐
+│  ───────────────────    │  Connected valley
+│     •     •     •       │  Solutions on manifold
+│    min1  min2  min3     │
+└─────────────────────────┘
 ```
 
 ### Loss Landscape Taxonomy
@@ -251,7 +241,7 @@ def visualize_mode_connectivity():
 
 ### The Stronger Property
 
-Sometimes even the **linear** path has no barrier. This is **linear mode connectivity** (Frankle et al., 2020).
+Sometimes even the **linear** path has no barrier. This is **linear mode connectivity** ([Frankle et al., 2020](https://arxiv.org/abs/1912.05671)).
 
 When does this happen?
 - Networks trained from the same initialization (lottery tickets)
@@ -456,9 +446,9 @@ def probe_solution_manifold():
 
 ## Further Reading
 
-- Garipov et al. (2018): "Loss Surfaces, Mode Connectivity, and Fast Ensembling of DNNs"
-- Draxler et al. (2018): "Essentially No Barriers in Neural Network Energy Landscape"
-- Frankle et al. (2020): "Linear Mode Connectivity and the Lottery Ticket Hypothesis"
+- [Garipov et al. (2018): "Loss Surfaces, Mode Connectivity, and Fast Ensembling of DNNs"](https://arxiv.org/abs/1802.10026)
+- [Draxler et al. (2018): "Essentially No Barriers in Neural Network Energy Landscape"](https://arxiv.org/abs/1803.00885)
+- [Frankle et al. (2020): "Linear Mode Connectivity and the Lottery Ticket Hypothesis"](https://arxiv.org/abs/1912.05671)
 
 ## Exercises
 

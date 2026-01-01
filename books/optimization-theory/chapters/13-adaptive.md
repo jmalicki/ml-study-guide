@@ -62,7 +62,7 @@ These constraints are often incompatible.
 
 ### The Idea
 
-**AdaGrad** (Duchi et al., 2011): Scale each parameter's learning rate by the sum of squared gradients seen so far.
+**AdaGrad** ([Duchi et al., 2011](https://jmlr.org/papers/v12/duchi11a.html)): Scale each parameter's learning rate by the sum of squared gradients seen so far.
 
 Parameters that had large gradients get smaller learning rates.
 
@@ -151,7 +151,7 @@ class RMSProp:
 
 ### The Best of Both Worlds
 
-**Adam** (Kingma & Ba, 2015): Momentum + RMSProp + Bias Correction.
+**Adam** ([Kingma & Ba, 2015](https://arxiv.org/abs/1412.6980)): Momentum + RMSProp + Bias Correction.
 
 $$m_t = \beta_1 m_{t-1} + (1-\beta_1) g_t \quad \text{(momentum)}$$
 $$v_t = \beta_2 v_{t-1} + (1-\beta_2) g_t^2 \quad \text{(adaptivity)}$$
@@ -259,7 +259,7 @@ def l2_in_adam_problem():
 
 ### AdamW: Decoupled Weight Decay
 
-**AdamW** (Loshchilov & Hutter, 2019): Apply weight decay **after** the adaptive scaling.
+**AdamW** ([Loshchilov & Hutter, 2019](https://arxiv.org/abs/1711.05101)): Apply weight decay **after** the adaptive scaling.
 
 $$\theta_t = \theta_{t-1} - \eta \left( \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon} + \lambda \theta_{t-1} \right)$$
 

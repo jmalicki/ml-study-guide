@@ -104,13 +104,22 @@ def demonstrate_convergence_rate():
 
 ## The Condition Number Problem
 
+When you run gradient descent on real problems, you often see slow, oscillating convergence—making tiny progress despite taking thousands of steps. The culprit is usually **ill-conditioning**: the loss surface is much steeper in some directions than others.
+
 ### Condition Number Definition
 
-For a quadratic $f(x) = \frac{1}{2} x^T A x$, the **condition number** is:
+The **condition number** κ (kappa) quantifies this problem. For a quadratic function $f(x) = \frac{1}{2} x^T A x$ where $A$ is symmetric positive definite, the condition number is:
 
 $$\kappa = \frac{\lambda_{\max}(A)}{\lambda_{\min}(A)}$$
 
-This measures the "elongation" of the level sets—how much the curvature varies across directions.
+This is the ratio of the largest to smallest eigenvalue of $A$.
+
+**What it means**:
+- $\kappa = 1$: All directions have equal curvature (perfectly conditioned, spherical level sets)
+- $\kappa$ large: Directions have vastly different curvatures (ill-conditioned, elongated level sets)
+- $\kappa$ measures how "stretched" or "eccentric" the optimization landscape is
+
+**Example**: If $\lambda_{\max} = 1000$ and $\lambda_{\min} = 1$, then $\kappa = 1000$. The surface is 1000× steeper in one direction than another.
 
 ![Well-conditioned vs ill-conditioned](../images/condition-number.svg)
 

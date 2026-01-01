@@ -10,7 +10,7 @@ Newton's method requires solving:
 
 $$H \delta = -g$$
 
-Hessian-free (Martens, 2010) uses CG to solve this iteratively using only Hessian-vector products:
+Hessian-free ([Martens, 2010](https://www.cs.toronto.edu/~jmartens/docs/Deep_HessianFree.pdf)) uses CG to solve this iteratively using only Hessian-vector products:
 
 $$Hv = \frac{\partial}{\partial t}[\nabla f(\theta + tv)]_{t=0}$$
 
@@ -331,7 +331,7 @@ If k=20: Each HF step costs 20x an SGD step, but may make much more progress.
 
 ## Historical Importance
 
-Martens (2010) demonstrated that:
+Martens demonstrated that ([Martens, 2010](https://www.cs.toronto.edu/~jmartens/docs/Deep_HessianFree.pdf)):
 - Hessian-free could train deep networks
 - When others said "deep networks can't be trained"
 - Showed that curvature information helps

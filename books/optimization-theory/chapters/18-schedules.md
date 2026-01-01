@@ -296,7 +296,7 @@ def one_cycle_lr(base_lr: float, max_lr: float, step: int,
 
 ### Empirical LR Selection
 
-**LR finder** (Smith, 2017): Train for a few epochs with exponentially increasing LR, plot loss vs LR.
+**LR finder** ([Smith, 2017](https://arxiv.org/abs/1506.01186)): Train for a few epochs with exponentially increasing LR, plot loss vs LR.
 
 The best LR is usually just before the loss explodes.
 

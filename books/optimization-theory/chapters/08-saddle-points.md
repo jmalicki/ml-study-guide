@@ -113,7 +113,7 @@ n=100: P(min)=0.0000, P(index=1)=0.0000, mean index=50.0
 
 ### The Index Theorem for Neural Networks
 
-For neural network losses, there's a deeper result (Baldi & Hornik, 1989; Dauphin et al., 2014):
+For neural network losses, there's a deeper result ([Baldi & Hornik, 1989](https://doi.org/10.1162/neco.1989.1.1.53); [Dauphin et al., 2014](https://arxiv.org/abs/1406.2572)):
 
 **At high loss values**: Critical points have high index (many negative eigenvalues) → mostly saddles
 

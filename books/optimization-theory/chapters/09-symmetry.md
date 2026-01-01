@@ -330,7 +330,7 @@ These curves have implications:
 
 ### What Actually Connects Minima
 
-Recent research (Garipov et al., 2018; Draxler et al., 2018) shows:
+Recent research ([Garipov et al., 2018](https://arxiv.org/abs/1802.10026); [Draxler et al., 2018](https://arxiv.org/abs/1803.00885)) shows:
 
 Different minima found by SGD are connected by **paths of low loss**.
 

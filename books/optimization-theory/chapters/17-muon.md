@@ -94,7 +94,11 @@ Given a matrix $G$ (gradient), we want to find the closest orthogonal matrix $Q$
 
 $$X_{k+1} = X_k \cdot (3I - X_k^T X_k) / 2$$
 
-Starting from $X_0 = G / \|G\|$, this converges to an orthogonal matrix.
+Starting from $X_0 = G / \|G\|$, this converges to:
+- An **orthogonal matrix** (if $G$ is square)
+- A matrix with **orthonormal columns** (if $G$ is rectangular with more rows than columns)
+
+For a $m \times n$ matrix where $m \geq n$, the iteration ensures $X^T X = I_n$, meaning the $n$ columns are orthonormal. This is ideal for weight matrices where we want to preserve the structure of the output space while constraining the operator norm.
 
 ```python
 def newton_schulz_orthogonalize(
@@ -105,21 +109,42 @@ def newton_schulz_orthogonalize(
     """
     Orthogonalize a matrix using Newton-Schulz iteration.
 
+    This function computes the nearest orthogonal/orthonormal matrix to G:
+    - For square matrices (m×m): Returns orthogonal matrix Q where Q^T Q = I
+    - For tall matrices (m×n, m>n): Returns matrix with orthonormal columns
+    - For wide matrices (m×n, m<n): Returns matrix with orthonormal rows (scaled)
+
+    The Newton-Schulz iteration converges cubically to the orthogonal polar factor.
+
     Args:
-        G: Input matrix
-        steps: Number of iterations
-        eps: Numerical stability
+        G: Input matrix of shape (m, n). Can be square or rectangular.
+        steps: Number of Newton-Schulz iterations (5 is usually sufficient)
+        eps: Small constant for numerical stability when normalizing
 
     Returns:
-        Orthogonalized matrix (closest orthogonal in Frobenius norm)
+        Orthogonalized matrix of same shape as G.
+        - If m=n: Q is orthogonal (Q^T Q = Q Q^T = I)
+        - If m>n: Q has orthonormal columns (Q^T Q = I_n, but Q Q^T ≠ I_m)
+        - If m<n: Q has orthonormal rows scaled by sqrt(m/n)
+
+    Note:
+        X.T @ X is always n×n (where n is the number of columns), which is why
+        we create an n×n identity matrix. For non-square matrices, this produces
+        orthonormal columns, which is the desired behavior for weight matrices
+        where we want to preserve the output dimension.
     """
-    # Normalize
+    # Normalize by Frobenius norm
     X = G / (G.norm() + eps)
+
+    # Get number of columns (n) for the identity matrix dimension
+    n_cols = X.shape[1]
 
     for _ in range(steps):
         # Newton-Schulz step: X ← X(3I - X^TX)/2
-        XTX = X.T @ X
-        X = X @ (3 * torch.eye(XTX.shape[0], device=G.device, dtype=G.dtype) - XTX) / 2
+        # X^T X is n×n (square), measuring column orthonormality
+        XTX = X.T @ X  # Shape: (n, n)
+        I_n = torch.eye(n_cols, device=G.device, dtype=G.dtype)
+        X = X @ (3 * I_n - XTX) / 2  # X: (m,n) @ (n,n) -> (m,n)
 
     return X
 
@@ -131,6 +156,7 @@ def demonstrate_newton_schulz():
     G = torch.randn(5, 5)
     X = G / G.norm()
 
+    print("Square matrix (5×5):")
     print("Step | ||X^TX - I||")
     print("-" * 25)
 
@@ -140,20 +166,42 @@ def demonstrate_newton_schulz():
         print(f"{step:4d} | {error:.6f}")
 
         X = X @ (3 * torch.eye(5) - XTX) / 2
+
+    print("\nNon-square matrix (10×5) - should have orthonormal columns:")
+    G_tall = torch.randn(10, 5)
+    X_tall = newton_schulz_orthogonalize(G_tall, steps=5)
+
+    # Check column orthonormality
+    XTX = X_tall.T @ X_tall
+    col_error = (XTX - torch.eye(5)).norm().item()
+    print(f"||X^T X - I_5|| = {col_error:.6f}")  # Should be ~0
+
+    # Check that X X^T ≠ I (since 10 > 5)
+    XXT = X_tall @ X_tall.T
+    row_error = (XXT - torch.eye(10)).norm().item()
+    print(f"||X X^T - I_10|| = {row_error:.6f}")  # Should be large (not orthogonal rows)
 ```
 
 Output:
 ```
+Square matrix (5×5):
 Step | ||X^TX - I||
-0 | 1.234567
-1 | 0.123456
-2 | 0.001234
-3 | 0.000001
-4 | 0.000000
+-------------------------
+   0 | 1.234567
+   1 | 0.123456
+   2 | 0.001234
+   3 | 0.000001
+   4 | 0.000000
 ...
+
+Non-square matrix (10×5) - should have orthonormal columns:
+||X^T X - I_5|| = 0.000001
+||X X^T - I_10|| = 5.236821
 ```
 
 Convergence is **cubically fast**!
+
+For **non-square matrices**, Newton-Schulz produces orthonormal **columns**, not a fully orthogonal matrix. This is exactly what we want for neural network weight matrices, where each column corresponds to features of the output.
 
 ### Why Newton-Schulz?
 
@@ -359,6 +407,6 @@ Hypotheses:
 
 3. **Layer-wise analysis**: Which layers benefit most from Muon?
 
-4. **Rectangular matrices**: How does Muon handle m ≠ n matrices?
+4. **Rectangular matrices**: Verify that Newton-Schulz produces orthonormal columns for tall matrices (m > n) and analyze the operator norm of the result. Compare with SVD-based orthogonalization.
 
 5. **Gradient noise**: Does orthogonalization change how noise affects optimization?

@@ -106,11 +106,26 @@ Equivalently: $\nabla^2 f(x) \preceq L I$ for all $x$.
 
 ### Condition Number
 
-For an L-smooth, μ-strongly convex function:
+The **condition number** measures how "stretched" or "elongated" the level sets of a function are, which directly impacts optimization difficulty.
+
+**For quadratic functions** $f(x) = \frac{1}{2}x^T A x$ where $A$ is symmetric positive definite:
+
+$$\kappa(A) = \frac{\lambda_{\max}(A)}{\lambda_{\min}(A)}$$
+
+This is the ratio of the largest to smallest eigenvalue of $A$.
+
+**For general smooth, strongly convex functions**:
 
 $$\kappa = \frac{L}{\mu}$$
 
-The condition number measures the ratio of maximum to minimum curvature.
+where $L$ is the Lipschitz constant of the gradient and $\mu$ is the strong convexity parameter.
+
+**Why it matters**:
+- $\kappa = 1$: Perfectly conditioned (sphere-like level sets) - gradient descent converges in one step
+- $\kappa$ large: Ill-conditioned (elongated level sets) - gradient descent requires $O(\kappa)$ iterations
+- Neural networks often have $\kappa \geq 10^6$, making vanilla gradient descent impractical
+
+**Geometric interpretation**: The condition number measures the eccentricity of the quadratic approximation. High condition number means the function has vastly different curvatures in different directions—steep in some directions, flat in others.
 
 ## D. Convergence Theory
 
@@ -255,25 +270,25 @@ Global norm is generally preferred—preserves relative magnitudes.
 ## Further Reading
 
 ### Classical Optimization
-- Nocedal & Wright, "Numerical Optimization"
-- Boyd & Vandenberghe, "Convex Optimization"
+- [Nocedal & Wright, "Numerical Optimization"](https://www.springer.com/gp/book/9780387303031)
+- [Boyd & Vandenberghe, "Convex Optimization"](https://web.stanford.edu/~boyd/cvxbook/)
 
 ### Deep Learning Optimization
-- Bottou, Curtis, & Nocedal, "Optimization Methods for Large-Scale Machine Learning"
-- Ruder, "An Overview of Gradient Descent Optimization Algorithms"
+- [Bottou, Curtis, & Nocedal, "Optimization Methods for Large-Scale Machine Learning"](https://arxiv.org/abs/1606.04838)
+- [Ruder, "An Overview of Gradient Descent Optimization Algorithms"](https://arxiv.org/abs/1609.04747)
 
 ### Second-Order Methods
-- Martens, "Deep Learning via Hessian-free Optimization"
-- Martens & Grosse, "Optimizing Neural Networks with Kronecker-factored Approximate Curvature"
+- [Martens, "Deep Learning via Hessian-free Optimization"](https://www.cs.toronto.edu/~jmartens/docs/Deep_HessianFree.pdf)
+- [Martens & Grosse, "Optimizing Neural Networks with Kronecker-factored Approximate Curvature"](https://arxiv.org/abs/1503.05671)
 
 ### Natural Gradient
-- Amari, "Natural Gradient Works Efficiently in Learning"
-- Pascanu & Bengio, "Revisiting Natural Gradient for Deep Networks"
+- [Amari, "Natural Gradient Works Efficiently in Learning"](https://direct.mit.edu/neco/article/10/2/251/6143/Natural-Gradient-Works-Efficiently-in-Learning)
+- [Pascanu & Bengio, "Revisiting Natural Gradient for Deep Networks"](https://arxiv.org/abs/1301.3584)
 
 ### Loss Landscape
-- Li et al., "Visualizing the Loss Landscape of Neural Nets"
-- Garipov et al., "Loss Surfaces, Mode Connectivity, and Fast Ensembling"
+- [Li et al., "Visualizing the Loss Landscape of Neural Nets"](https://arxiv.org/abs/1712.09913)
+- [Garipov et al., "Loss Surfaces, Mode Connectivity, and Fast Ensembling"](https://arxiv.org/abs/1802.10026)
 
 ### Modern Optimizers
-- Loshchilov & Hutter, "Decoupled Weight Decay Regularization" (AdamW)
-- Vyas et al., "SOAP: Improving and Stabilizing Shampoo using Adam"
+- [Loshchilov & Hutter, "Decoupled Weight Decay Regularization" (AdamW)](https://arxiv.org/abs/1711.05101)
+- [Vyas et al., "SOAP: Improving and Stabilizing Shampoo using Adam"](https://arxiv.org/abs/2409.11321)

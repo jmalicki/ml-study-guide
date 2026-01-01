@@ -514,9 +514,12 @@ class HessianFreeOptimizer:
         Args:
             loss_fn: Function that computes loss given current params
         """
-        # Flatten all parameters
-        flat_params = torch.cat([p.flatten() for p in self.params])
-        flat_params = flat_params.detach().requires_grad_(True)
+        # Save current parameters as the single authoritative representation
+        with torch.no_grad():
+            flat_params_data = torch.cat([p.flatten() for p in self.params])
+
+        # Create version with grad for differentiation
+        flat_params = flat_params_data.detach().requires_grad_(True)
 
         def loss_from_flat(flat):
             # Unflatten and compute loss
@@ -544,14 +547,14 @@ class HessianFreeOptimizer:
             damping=self.damping
         )
 
-        # Apply update
-        flat_params = flat_params.detach() + self.lr * delta
+        # Apply update to the authoritative flat representation
+        flat_params_data = flat_params_data + self.lr * delta
 
-        # Update actual parameters
+        # Update actual parameters from authoritative representation
         idx = 0
         for p in self.params:
             size = p.numel()
-            p.data = flat_params[idx:idx+size].view(p.shape)
+            p.data = flat_params_data[idx:idx+size].view(p.shape)
             idx += size
 
 
