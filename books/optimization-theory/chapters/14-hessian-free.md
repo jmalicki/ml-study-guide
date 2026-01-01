@@ -12,7 +12,9 @@ $$H \delta = -g$$
 
 Hessian-free ([Martens, 2010](https://www.cs.toronto.edu/~jmartens/docs/Deep_HessianFree.pdf)) uses CG to solve this iteratively using only Hessian-vector products:
 
-$$Hv = \frac{\partial}{\partial t}[\nabla f(\theta + tv)]_{t=0}$$
+$$Hv = \frac{\partial}{\partial t}[\nabla f(\theta + tv)]_{t=0} = \lim_{t \to 0} \frac{\nabla f(\theta + tv) - \nabla f(\theta)}{t}$$
+
+This is the **directional derivative** of the gradient along direction $v$. See [Appendix C](20-appendix.md#directional-derivatives) for background on directional derivatives and finite difference approximations.
 
 ```python
 import torch
@@ -188,43 +190,48 @@ def gauss_newton_vector_product(
     Compute Gauss-Newton vector product: (J^T J) v
 
     This is always PSD, unlike the full Hessian.
+
+    The computation has two parts:
+    1. Jv (Jacobian-vector product): How outputs change when params move in direction v
+    2. J^T(Jv) (vector-Jacobian product): Backprop the output change to get param change
+
+    We use finite differences for Jv because PyTorch's autodiff is reverse-mode,
+    which gives us J^T u (VJP) efficiently but not Jv (JVP) directly.
+    See Appendix C for finite difference background.
     """
     # Forward pass
     outputs = model(inputs)
-
-    # Compute Jv using forward-mode AD (or finite differences)
-    # Jv = d/dt output(params + t*v) at t=0
     params = list(model.parameters())
 
-    # Flatten v
-    v_flat = torch.cat([v_i.flatten() for v_i in v])
-
-    # Approximate Jv with finite differences
+    # Step 1: Compute Jv using finite differences
+    # Jv = d/dt[model(inputs; params + t*v)]|_{t=0}
+    #    ≈ (model(inputs; params + ε*v) - model(inputs; params)) / ε
     eps = 1e-4
     with torch.no_grad():
         # Save original params
         original = [p.clone() for p in params]
 
-        # Perturb
-        idx = 0
+        # Perturb params in direction v
         for p, v_i in zip(params, v):
             p.add_(eps * v_i)
 
         outputs_plus = model(inputs)
 
-        # Restore
+        # Restore original params
         for p, orig in zip(params, original):
             p.data = orig
 
-    Jv = (outputs_plus - outputs) / eps
+    Jv = (outputs_plus - outputs) / eps  # Shape: same as outputs
 
-    # Now compute J^T (Jv)
-    # This is a standard VJP
+    # Step 2: Compute J^T(Jv) using autodiff (reverse mode)
+    # This is a standard VJP: backprop Jv through the model
     loss = (outputs * Jv.detach()).sum()
     JTJv = torch.autograd.grad(loss, params)
 
     return list(JTJv)
 ```
+
+> **Note**: PyTorch 2.0+ provides `torch.func.jvp` for forward-mode autodiff, which can replace the finite difference approximation with an exact JVP. See the [PyTorch documentation](https://pytorch.org/docs/stable/func.api.html#torch.func.jvp).
 
 ## Practical Considerations
 

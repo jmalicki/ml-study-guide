@@ -162,6 +162,79 @@ $$J = \frac{\partial f}{\partial x} = \begin{bmatrix} \frac{\partial f_1}{\parti
 
 The Jacobian generalizes the gradient to vector-valued functions.
 
+### Directional Derivatives
+
+The **directional derivative** measures the rate of change of $f$ along a direction $v$:
+
+$$D_v f(x) = \lim_{t \to 0} \frac{f(x + tv) - f(x)}{t} = \nabla f(x)^T v$$
+
+For vector-valued functions, the directional derivative gives the **Jacobian-vector product (JVP)**:
+
+$$D_v f(x) = Jv$$
+
+This is the "forward mode" of automatic differentiation.
+
+**Hessian-vector products** are directional derivatives of the gradient:
+
+$$Hv = D_v(\nabla f)(x) = \lim_{t \to 0} \frac{\nabla f(x + tv) - \nabla f(x)}{t}$$
+
+This identity is central to Hessian-free optimization (Chapter 14).
+
+### Finite Difference Approximation
+
+When analytic derivatives aren't available (or as a simple implementation), we can approximate directional derivatives using **finite differences**:
+
+**Forward difference**:
+$$D_v f(x) \approx \frac{f(x + \epsilon v) - f(x)}{\epsilon}$$
+
+**Central difference** (more accurate, costs 2 evaluations):
+$$D_v f(x) \approx \frac{f(x + \epsilon v) - f(x - \epsilon v)}{2\epsilon}$$
+
+**Choosing $\epsilon$**: There's a tradeoff:
+- Too large: Truncation error dominates (approximation is inaccurate)
+- Too small: Floating-point rounding error dominates
+
+For float32, $\epsilon \approx 10^{-4}$ is often reasonable. For float64, $\epsilon \approx 10^{-7}$ works better.
+
+**Error analysis** for forward difference:
+$$\frac{f(x + \epsilon v) - f(x)}{\epsilon} = D_v f(x) + O(\epsilon)$$
+
+For central difference:
+$$\frac{f(x + \epsilon v) - f(x - \epsilon v)}{2\epsilon} = D_v f(x) + O(\epsilon^2)$$
+
+**Example: Finite difference Hessian-vector product**
+
+```python
+def hvp_finite_diff(f, x, v, eps=1e-4):
+    """
+    Approximate Hv using finite differences.
+
+    Hv = (∇f(x + εv) - ∇f(x)) / ε
+
+    Args:
+        f: Scalar function
+        x: Point at which to evaluate
+        v: Direction vector
+        eps: Finite difference step size
+
+    Returns:
+        Approximate Hessian-vector product
+    """
+    grad_plus = gradient(f, x + eps * v)
+    grad_x = gradient(f, x)
+    return (grad_plus - grad_x) / eps
+```
+
+In practice, autodiff (using `torch.autograd.grad` with `create_graph=True`) is preferred over finite differences because:
+1. It's exact (no truncation error)
+2. It's numerically stable
+3. It can be more efficient for high-dimensional problems
+
+However, finite differences remain useful for:
+- Gradient checking / debugging
+- When autodiff isn't available
+- Understanding what autodiff is computing
+
 ## D. Convexity and Smoothness
 
 ### Convexity
