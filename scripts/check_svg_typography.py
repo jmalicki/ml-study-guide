@@ -280,6 +280,55 @@ def check_math_fonts(elements: List[TextElement]) -> List[str]:
     return issues
 
 
+def check_ascii_subscripts(elements: List[TextElement]) -> List[str]:
+    """Check for ASCII subscript/superscript notation that should use Unicode or tspan.
+
+    Patterns like x_i, π_θ, y_w should use proper subscripts:
+    - Unicode subscripts: x₁, πθ, etc.
+    - SVG tspan with baseline-shift and smaller font-size
+    """
+    issues = []
+
+    # Pattern for ASCII subscript: letter(s) or Greek followed by _letter(s)/digit(s)
+    # Examples: x_i, y_w, π_θ, P_ref, y_l
+    ascii_subscript_pattern = re.compile(r'[a-zA-Zπσθφψωαβγδελμ][_][a-zA-Z0-9]+')
+
+    # Pattern for ASCII superscript: letter(s) followed by ^letter(s)/digit(s)
+    ascii_superscript_pattern = re.compile(r'[a-zA-Z0-9]\^[a-zA-Z0-9]+')
+
+    for elem in elements:
+        text = elem.content
+
+        # Check for ASCII subscripts
+        subscript_matches = ascii_subscript_pattern.findall(text)
+        if subscript_matches:
+            # Filter out common false positives
+            real_issues = []
+            for match in subscript_matches:
+                # Skip if it looks like a variable name in code context
+                if match in ('font_size', 'font_family', 'text_anchor'):
+                    continue
+                real_issues.append(match)
+
+            if real_issues:
+                issues.append(
+                    f"  WARNING: ASCII subscript notation at ({elem.x:.0f}, {elem.y:.0f}): "
+                    f"'{', '.join(real_issues)}' - use Unicode subscripts (x₁, θᵢ) or "
+                    f"tspan with baseline-shift for proper rendering"
+                )
+
+        # Check for ASCII superscripts
+        superscript_matches = ascii_superscript_pattern.findall(text)
+        if superscript_matches:
+            issues.append(
+                f"  WARNING: ASCII superscript notation at ({elem.x:.0f}, {elem.y:.0f}): "
+                f"'{', '.join(superscript_matches)}' - use Unicode superscripts (x², xⁿ) or "
+                f"tspan with baseline-shift for proper rendering"
+            )
+
+    return issues
+
+
 def check_fraction_syntax(content: str) -> List[str]:
     """Check for inline division that should be proper fractions."""
     issues = []
@@ -587,6 +636,10 @@ def check_svg_file(svg_path: Path) -> List[str]:
             # Check math fonts
             math_issues = check_math_fonts(elements)
             issues.extend(math_issues)
+
+            # Check ASCII subscript/superscript notation
+            subscript_issues = check_ascii_subscripts(elements)
+            issues.extend(subscript_issues)
 
             # Check fraction syntax
             fraction_issues = check_fraction_syntax(content)

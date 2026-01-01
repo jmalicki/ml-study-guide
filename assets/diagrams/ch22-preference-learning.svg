@@ -72,7 +72,7 @@
   
   <rect x="50" y="180" width="300" height="120" class="bg-green" stroke="#81C784" stroke-width="3" rx="5" />
   <text x="200" y="205" font-size="14" font-weight="bold" text-anchor="middle" fill="#2E7D32">
-    Chosen Response (y_w)
+    Chosen Response (y<tspan baseline-shift="sub" font-size="10">w</tspan>)
   </text>
   <text x="200" y="225" font-size="10" text-anchor="middle" fill="#333">"Quantum computers use qubits that</text>
   <text x="200" y="240" font-size="10" text-anchor="middle" fill="#333">can be in superposition, allowing</text>
@@ -82,10 +82,10 @@
     ✓ Preferred by human
   </text>
 
-  
+
   <rect x="450" y="180" width="300" height="120" class="bg-red" stroke="#E57373" stroke-width="3" rx="5" />
   <text x="600" y="205" font-size="14" font-weight="bold" text-anchor="middle" fill="#C62828">
-    Rejected Response (y_l)
+    Rejected Response (y<tspan baseline-shift="sub" font-size="10">l</tspan>)
   </text>
   <text x="600" y="225" font-size="10" text-anchor="middle" fill="#333">"Quantum is very fast and uses</text>
   <text x="600" y="240" font-size="10" text-anchor="middle" fill="#333">special particles to compute</text>
@@ -103,19 +103,19 @@
   
   <rect x="50" y="360" width="300" height="60" fill="#4A90A4" stroke="#333" stroke-width="2" rx="5" />
   <text x="200" y="380" font-size="12" font-weight="bold" text-anchor="middle" >
-    Policy Model π_θ
+    Policy Model π<tspan baseline-shift="sub" font-size="9">θ</tspan>
   </text>
   <text x="200" y="400" font-size="10" text-anchor="middle" >
-    Increase: log π_θ(y_w | x)
+    Increase: log π<tspan baseline-shift="sub" font-size="7">θ</tspan>(y<tspan baseline-shift="sub" font-size="7">w</tspan> | x)
   </text>
   <text x="200" y="415" font-size="10" text-anchor="middle" >
-    Decrease: log π_θ(y_l | x)
+    Decrease: log π<tspan baseline-shift="sub" font-size="7">θ</tspan>(y<tspan baseline-shift="sub" font-size="7">l</tspan> | x)
   </text>
 
-  
+
   <rect x="450" y="360" width="300" height="60" fill="#757575" stroke="#333" stroke-width="2" rx="5" />
   <text x="600" y="380" font-size="12" font-weight="bold" text-anchor="middle" >
-    Reference Model π_ref (frozen)
+    Reference Model π<tspan baseline-shift="sub" font-size="9">ref</tspan> (frozen)
   </text>
   <text x="600" y="400" font-size="10" text-anchor="middle" >
     Provides baseline probabilities
@@ -124,10 +124,10 @@
     Prevents drift via KL constraint
   </text>
 
-  
+
   <rect x="100" y="440" width="600" height="50" class="bg-yellow" stroke="#F9A825" stroke-width="2" rx="5" />
-  <text x="400" y="460" font-size="11" text-anchor="middle"  font-family="monospace">
-    Loss = -log σ(β [log(π_θ(y_w|x)/π_ref(y_w|x)) - log(π_θ(y_l|x)/π_ref(y_l|x))])
+  <text x="400" y="460" font-size="11" text-anchor="middle" font-family="'STIX Two Math', serif">
+    Loss = −log σ(β [log(π<tspan baseline-shift="sub" font-size="8">θ</tspan>(y<tspan baseline-shift="sub" font-size="8">w</tspan>|x)/π<tspan baseline-shift="sub" font-size="8">ref</tspan>(y<tspan baseline-shift="sub" font-size="8">w</tspan>|x)) − log(π<tspan baseline-shift="sub" font-size="8">θ</tspan>(y<tspan baseline-shift="sub" font-size="8">l</tspan>|x)/π<tspan baseline-shift="sub" font-size="8">ref</tspan>(y<tspan baseline-shift="sub" font-size="8">l</tspan>|x))])
   </text>
   <text x="400" y="478" font-size="9" text-anchor="middle" >
     Maximize separation between chosen and rejected responses
