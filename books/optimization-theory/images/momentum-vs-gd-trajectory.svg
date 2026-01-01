@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 300">
+  <!-- Background -->
+  <rect width="500" height="300" fill="#fafafa"/>
+
+  <!-- Title -->
+  <text x="250" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333">Gradient Descent vs Momentum</text>
+
+  <!-- Contours -->
+  <g transform="translate(250, 165)">
+    <ellipse cx="0" cy="0" rx="180" ry="50" fill="none" stroke="#ddd" stroke-width="1.5"/>
+    <ellipse cx="0" cy="0" rx="140" ry="39" fill="none" stroke="#ccc" stroke-width="1.5"/>
+    <ellipse cx="0" cy="0" rx="100" ry="28" fill="none" stroke="#bbb" stroke-width="1.5"/>
+    <ellipse cx="0" cy="0" rx="60" ry="17" fill="none" stroke="#aaa" stroke-width="1.5"/>
+    <ellipse cx="0" cy="0" rx="20" ry="6" fill="none" stroke="#999" stroke-width="1.5"/>
+
+    <!-- Minimum -->
+    <circle cx="0" cy="0" r="4" fill="#333"/>
+
+    <!-- GD trajectory (oscillating) -->
+    <path d="M 160 40 L 80 -30 L 100 15 L 50 -18 L 60 8 L 25 -10 L 30 3 L 10 -4 L 12 1 L 0 0"
+          fill="none" stroke="#f44336" stroke-width="2"/>
+    <circle cx="160" cy="40" r="5" fill="#f44336"/>
+    <text x="175" y="45" font-family="Arial, sans-serif" font-size="11" fill="#f44336">start</text>
+
+    <!-- Momentum trajectory (smooth) -->
+    <path d="M -160 -35 Q -80 -25, -20 -10 Q 10 0, 0 0"
+          fill="none" stroke="#4CAF50" stroke-width="2.5"/>
+    <circle cx="-160" cy="-35" r="5" fill="#4CAF50"/>
+    <text x="-175" y="-40" font-family="Arial, sans-serif" font-size="11" fill="#4CAF50">start</text>
+  </g>
+
+  <!-- Legend -->
+  <g transform="translate(100, 260)">
+    <line x1="0" y1="0" x2="30" y2="0" stroke="#f44336" stroke-width="2"/>
+    <text x="40" y="4" font-family="Arial, sans-serif" font-size="11" fill="#333">GD: oscillates in steep direction</text>
+  </g>
+  <g transform="translate(280, 260)">
+    <line x1="0" y1="0" x2="30" y2="0" stroke="#4CAF50" stroke-width="2.5"/>
+    <text x="40" y="4" font-family="Arial, sans-serif" font-size="11" fill="#333">Momentum: smooth convergence</text>
+  </g>
+</svg>

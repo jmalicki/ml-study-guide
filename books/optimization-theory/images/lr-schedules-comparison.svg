@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 550 350">
+  <!-- Background -->
+  <rect width="550" height="350" fill="#fafafa"/>
+
+  <!-- Title -->
+  <text x="275" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333">Learning Rate Schedules Comparison</text>
+
+  <!-- Axes -->
+  <line x1="60" y1="280" x2="520" y2="280" stroke="#333" stroke-width="1.5"/>
+  <line x1="60" y1="280" x2="60" y2="50" stroke="#333" stroke-width="1.5"/>
+
+  <!-- Y-axis label -->
+  <text x="25" y="165" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#333" transform="rotate(-90, 25, 165)">Learning Rate</text>
+
+  <!-- X-axis label -->
+  <text x="290" y="310" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#333">Training Steps</text>
+
+  <!-- Y-axis ticks -->
+  <text x="50" y="75" text-anchor="end" font-family="Arial, sans-serif" font-size="10" fill="#666">α₀</text>
+  <text x="50" y="280" text-anchor="end" font-family="Arial, sans-serif" font-size="10" fill="#666">0</text>
+
+  <!-- X-axis ticks -->
+  <text x="60" y="295" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#666">0</text>
+  <text x="175" y="295" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#666">warmup</text>
+  <text x="520" y="295" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#666">T</text>
+
+  <!-- Warmup region -->
+  <rect x="60" y="50" width="115" height="230" fill="#FFF8E1" opacity="0.5"/>
+  <line x1="175" y1="50" x2="175" y2="280" stroke="#FFC107" stroke-width="1" stroke-dasharray="3,3"/>
+
+  <!-- 1. Constant (flat line) -->
+  <path d="M 60 250 L 175 70 L 520 70" fill="none" stroke="#9E9E9E" stroke-width="2"/>
+
+  <!-- 2. Step decay -->
+  <path d="M 60 250 L 175 70 L 280 70 L 280 140 L 380 140 L 380 210 L 520 210" fill="none" stroke="#f44336" stroke-width="2"/>
+
+  <!-- 3. Cosine -->
+  <path d="M 60 250 L 175 70 Q 347 70, 400 165 Q 460 260, 520 270" fill="none" stroke="#4CAF50" stroke-width="2.5"/>
+
+  <!-- 4. Linear decay -->
+  <path d="M 60 250 L 175 70 L 520 270" fill="none" stroke="#2196F3" stroke-width="2" stroke-dasharray="8,4"/>
+
+  <!-- 5. WSD (warmup-stable-decay) -->
+  <path d="M 60 250 L 175 70 L 380 70 Q 450 70, 480 165 Q 510 260, 520 270" fill="none" stroke="#9C27B0" stroke-width="2.5"/>
+
+  <!-- Legend -->
+  <g transform="translate(90, 320)">
+    <line x1="0" y1="0" x2="20" y2="0" stroke="#9E9E9E" stroke-width="2"/>
+    <text x="25" y="4" font-family="Arial, sans-serif" font-size="10" fill="#333">Constant</text>
+
+    <line x1="90" y1="0" x2="110" y2="0" stroke="#f44336" stroke-width="2"/>
+    <text x="115" y="4" font-family="Arial, sans-serif" font-size="10" fill="#333">Step</text>
+
+    <line x1="160" y1="0" x2="180" y2="0" stroke="#4CAF50" stroke-width="2.5"/>
+    <text x="185" y="4" font-family="Arial, sans-serif" font-size="10" fill="#333">Cosine</text>
+
+    <line x1="240" y1="0" x2="260" y2="0" stroke="#2196F3" stroke-width="2" stroke-dasharray="8,4"/>
+    <text x="265" y="4" font-family="Arial, sans-serif" font-size="10" fill="#333">Linear</text>
+
+    <line x1="320" y1="0" x2="340" y2="0" stroke="#9C27B0" stroke-width="2.5"/>
+    <text x="345" y="4" font-family="Arial, sans-serif" font-size="10" fill="#333">WSD</text>
+  </g>
+
+  <!-- Annotations -->
+  <g transform="translate(380, 55)">
+    <rect x="0" y="0" width="140" height="40" fill="#E8F5E9" stroke="#4CAF50" stroke-width="1" rx="3"/>
+    <text x="70" y="16" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#333">WSD: stable phase allows</text>
+    <text x="70" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#333">extending training cheaply</text>
+  </g>
+</svg>

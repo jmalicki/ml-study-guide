@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 550 320">
+  <!-- Background -->
+  <rect width="550" height="320" fill="#fafafa"/>
+
+  <!-- Title -->
+  <text x="275" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333">Adam: Combining Momentum and Adaptivity</text>
+
+  <!-- Input gradient -->
+  <g transform="translate(50, 100)">
+    <rect x="0" y="0" width="80" height="50" fill="#E3F2FD" stroke="#2196F3" stroke-width="2" rx="5"/>
+    <text x="40" y="22" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#333">Gradient</text>
+    <text x="40" y="38" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#2196F3">gₜ</text>
+  </g>
+
+  <!-- Arrow to m -->
+  <line x1="130" y1="110" x2="160" y2="80" stroke="#666" stroke-width="1.5"/>
+  <!-- Arrow to v -->
+  <line x1="130" y1="140" x2="160" y2="170" stroke="#666" stroke-width="1.5"/>
+
+  <!-- First moment (m) -->
+  <g transform="translate(160, 50)">
+    <rect x="0" y="0" width="130" height="60" fill="#E8F5E9" stroke="#4CAF50" stroke-width="2" rx="5"/>
+    <text x="65" y="20" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#4CAF50">First Moment (m)</text>
+    <text x="65" y="38" text-anchor="middle" font-family="monospace" font-size="10" fill="#333">mₜ = β₁mₜ₋₁ + (1-β₁)gₜ</text>
+    <text x="65" y="52" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#666">≈ momentum</text>
+  </g>
+
+  <!-- Second moment (v) -->
+  <g transform="translate(160, 140)">
+    <rect x="0" y="0" width="130" height="60" fill="#FFF3E0" stroke="#FF9800" stroke-width="2" rx="5"/>
+    <text x="65" y="20" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#FF9800">Second Moment (v)</text>
+    <text x="65" y="38" text-anchor="middle" font-family="monospace" font-size="10" fill="#333">vₜ = β₂vₜ₋₁ + (1-β₂)gₜ²</text>
+    <text x="65" y="52" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#666">≈ RMSprop</text>
+  </g>
+
+  <!-- Arrow from m to bias correction -->
+  <line x1="290" y1="80" x2="320" y2="80" stroke="#666" stroke-width="1.5"/>
+  <!-- Arrow from v to bias correction -->
+  <line x1="290" y1="170" x2="320" y2="170" stroke="#666" stroke-width="1.5"/>
+
+  <!-- Bias correction m -->
+  <g transform="translate(320, 55)">
+    <rect x="0" y="0" width="90" height="50" fill="#F3E5F5" stroke="#9C27B0" stroke-width="2" rx="5"/>
+    <text x="45" y="18" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#9C27B0">Bias Correct</text>
+    <text x="45" y="35" text-anchor="middle" font-family="monospace" font-size="9" fill="#333">m̂ = m/(1-β₁ᵗ)</text>
+  </g>
+
+  <!-- Bias correction v -->
+  <g transform="translate(320, 145)">
+    <rect x="0" y="0" width="90" height="50" fill="#F3E5F5" stroke="#9C27B0" stroke-width="2" rx="5"/>
+    <text x="45" y="18" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#9C27B0">Bias Correct</text>
+    <text x="45" y="35" text-anchor="middle" font-family="monospace" font-size="9" fill="#333">v̂ = v/(1-β₂ᵗ)</text>
+  </g>
+
+  <!-- Arrows to update -->
+  <line x1="410" y1="80" x2="440" y2="110" stroke="#666" stroke-width="1.5"/>
+  <line x1="410" y1="170" x2="440" y2="140" stroke="#666" stroke-width="1.5"/>
+
+  <!-- Final update -->
+  <g transform="translate(440, 100)">
+    <rect x="0" y="0" width="100" height="55" fill="#FFCDD2" stroke="#f44336" stroke-width="2" rx="5"/>
+    <text x="50" y="18" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#f44336">Update</text>
+    <text x="50" y="38" text-anchor="middle" font-family="monospace" font-size="10" fill="#333">θ = θ - α·m̂</text>
+    <text x="50" y="50" text-anchor="middle" font-family="monospace" font-size="10" fill="#333">      /(√v̂ + ε)</text>
+  </g>
+
+  <!-- Default values -->
+  <g transform="translate(80, 210)">
+    <text x="0" y="0" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#333">Typical Hyperparameters:</text>
+    <text x="0" y="20" font-family="monospace" font-size="11" fill="#333">β₁ = 0.9      (momentum decay)</text>
+    <text x="0" y="38" font-family="monospace" font-size="11" fill="#333">β₂ = 0.999    (RMSprop decay)</text>
+    <text x="0" y="56" font-family="monospace" font-size="11" fill="#333">ε = 1e-8      (numerical stability)</text>
+    <text x="0" y="74" font-family="monospace" font-size="11" fill="#333">α = 3e-4      (learning rate)</text>
+  </g>
+
+  <!-- AdamW note -->
+  <g transform="translate(300, 210)">
+    <rect x="0" y="0" width="200" height="75" fill="#E1F5FE" stroke="#03A9F4" stroke-width="1" rx="5"/>
+    <text x="100" y="18" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#03A9F4">AdamW (Decoupled Weight Decay)</text>
+    <text x="100" y="38" text-anchor="middle" font-family="monospace" font-size="10" fill="#333">θ = θ - α·m̂/(√v̂ + ε)</text>
+    <text x="100" y="52" text-anchor="middle" font-family="monospace" font-size="10" fill="#f44336">θ = θ - λ·θ  ← separate!</text>
+    <text x="100" y="68" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#666">Better than L2 regularization in Adam</text>
+  </g>
+</svg>

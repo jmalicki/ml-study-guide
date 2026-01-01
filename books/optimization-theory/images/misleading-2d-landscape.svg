@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 300">
+  <!-- Background -->
+  <rect width="500" height="300" fill="#fafafa"/>
+
+  <!-- Title -->
+  <text x="250" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333">Why 2D Visualizations Are Misleading</text>
+
+  <!-- Left: 2D view -->
+  <g transform="translate(125, 160)">
+    <text x="0" y="-100" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#333">What We Draw (2D)</text>
+
+    <!-- Mountain landscape -->
+    <path d="M -90 50 Q -60 -30, -30 40 Q 0 -60, 30 30 Q 50 -20, 90 50"
+          fill="none" stroke="#666" stroke-width="2"/>
+
+    <!-- Local minima markers -->
+    <circle cx="-30" cy="40" r="5" fill="#f44336"/>
+    <circle cx="30" cy="30" r="5" fill="#f44336"/>
+    <text x="-30" y="60" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#f44336">min</text>
+    <text x="30" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#f44336">min</text>
+
+    <!-- Saddle marker -->
+    <circle cx="0" cy="-50" r="5" fill="#FF9800"/>
+    <text x="0" y="-65" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#FF9800">saddle</text>
+
+    <!-- Barrier line -->
+    <path d="M -30 40 L 0 -50 L 30 30" fill="none" stroke="#f44336" stroke-width="1" stroke-dasharray="4,2"/>
+
+    <text x="0" y="85" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#666">Isolated minima</text>
+    <text x="0" y="100" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#666">with barriers</text>
+  </g>
+
+  <!-- Right: High-D reality -->
+  <g transform="translate(375, 160)">
+    <text x="0" y="-100" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#333">High-D Reality</text>
+
+    <!-- Valley/manifold representation -->
+    <ellipse cx="0" cy="0" rx="80" ry="30" fill="#E8F5E9" stroke="#4CAF50" stroke-width="2"/>
+    <ellipse cx="0" cy="-10" rx="60" ry="20" fill="#C8E6C9" stroke="#4CAF50" stroke-width="1"/>
+
+    <!-- Multiple points on the manifold -->
+    <circle cx="-40" cy="5" r="4" fill="#4CAF50"/>
+    <circle cx="0" cy="-5" r="4" fill="#4CAF50"/>
+    <circle cx="35" cy="8" r="4" fill="#4CAF50"/>
+
+    <!-- Connecting path -->
+    <path d="M -40 5 Q -20 -15, 0 -5 Q 20 5, 35 8" fill="none" stroke="#4CAF50" stroke-width="1.5" stroke-dasharray="3,2"/>
+
+    <text x="0" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#666">Connected valley</text>
+    <text x="0" y="70" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#666">Saddles have escape routes</text>
+    <text x="0" y="85" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#666">Most directions are flat</text>
+  </g>
+
+  <!-- Bottom note -->
+  <text x="250" y="280" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#333">In high dimensions: saddle points dominate, minima are rare, and solutions connect</text>
+</svg>
