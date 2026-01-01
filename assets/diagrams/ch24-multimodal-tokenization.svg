@@ -16,6 +16,9 @@
     .tiny-text { font-size: 9px; }
     text { fill: #333; font-family: Arial, sans-serif; }
 
+
+    /* Background colors */
+    .bg-blue-light { fill: #E3F2FD; }
     @media (prefers-color-scheme: dark) {
       .bg-main { fill: #1a1a1a; }
       .text-color { fill: #fff; }
@@ -27,6 +30,7 @@
       .embedding { fill: #0A2A3A; stroke: #29B6F6; }
       .sequence { fill: #3A1E5F; stroke: #9C27B0; }
       .arrow { stroke: #999; }
+      .bg-blue-light { fill: #1a237e; }
     }
   </style>
 
@@ -249,7 +253,7 @@
 
   <!-- Annotation boxes -->
   <g transform="translate(750, 100)">
-    <rect fill="#E3F2FD" stroke="#1976D2" stroke-width="1.5" width="220" height="120" rx="4" opacity="0.3"/>
+    <rect class="bg-blue-light" stroke="#1976D2" stroke-width="1.5" width="220" height="120" rx="4" opacity="0.3"/>
     <text x="110" y="20" class="small-text text-color" text-anchor="middle" font-weight="600">Late Fusion Approach</text>
     <text x="110" y="40" class="tiny-text text-color" text-anchor="middle">1. Encode modalities separately</text>
     <text x="110" y="55" class="tiny-text text-color" text-anchor="middle">2. Project to shared dimension</text>

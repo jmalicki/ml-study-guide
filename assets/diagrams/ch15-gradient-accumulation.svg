@@ -11,6 +11,11 @@
     .bg-summary { fill: #F5F5F5; }
 
     /* Dark mode */
+
+    /* Background colors */
+    .bg-blue-light { fill: #E3F2FD; }
+    .bg-orange-light { fill: #FFF3E0; }
+    .bg-red-light { fill: #FFEBEE; }
     @media (prefers-color-scheme: dark) {
       text { fill: #ffffff; }
       .axis-text { fill: #ffffff; }
@@ -45,6 +50,9 @@
       text[fill="#666"] {
         fill: #ffffff;
       }
+      .bg-blue-light { fill: #1a237e; }
+      .bg-orange-light { fill: #e65100; }
+      .bg-red-light { fill: #b71c1c; }
     }
   </style><rect width="700" height="450" class="bg-main" />
 
@@ -55,7 +63,7 @@
 
   
   <g id="step1">
-    <rect x="50" y="60" width="140" height="70" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2" rx="5" />
+    <rect x="50" y="60" width="140" height="70" class="bg-blue-light" stroke="#4A90A4" stroke-width="2" rx="5" />
     <text x="120" y="85" font-family="Arial, sans-serif" font-size="13" font-weight="bold"  text-anchor="middle">
       Step 1: Forward
     </text>
@@ -72,7 +80,7 @@
 
   
   <g id="backward1">
-    <rect x="50" y="160" width="140" height="50" fill="#FFF3E0" stroke="#FF9800" stroke-width="2" rx="5" />
+    <rect x="50" y="160" width="140" height="50" class="bg-orange-light" stroke="#FF9800" stroke-width="2" rx="5" />
     <text x="120" y="180" font-family="Arial, sans-serif" font-size="12"  text-anchor="middle">
       Backward
     </text>
@@ -83,7 +91,7 @@
 
   
   <g id="step2">
-    <rect x="210" y="60" width="140" height="70" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2" rx="5" />
+    <rect x="210" y="60" width="140" height="70" class="bg-blue-light" stroke="#4A90A4" stroke-width="2" rx="5" />
     <text x="280" y="85" font-family="Arial, sans-serif" font-size="13" font-weight="bold"  text-anchor="middle">
       Step 2: Forward
     </text>
@@ -100,7 +108,7 @@
 
   
   <g id="backward2">
-    <rect x="210" y="160" width="140" height="50" fill="#FFF3E0" stroke="#FF9800" stroke-width="2" rx="5" />
+    <rect x="210" y="160" width="140" height="50" class="bg-orange-light" stroke="#FF9800" stroke-width="2" rx="5" />
     <text x="280" y="180" font-family="Arial, sans-serif" font-size="12"  text-anchor="middle">
       Backward
     </text>
@@ -111,7 +119,7 @@
 
   
   <g id="step3">
-    <rect x="370" y="60" width="140" height="70" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2" rx="5" />
+    <rect x="370" y="60" width="140" height="70" class="bg-blue-light" stroke="#4A90A4" stroke-width="2" rx="5" />
     <text x="440" y="85" font-family="Arial, sans-serif" font-size="13" font-weight="bold"  text-anchor="middle">
       Step 3: Forward
     </text>
@@ -128,7 +136,7 @@
 
   
   <g id="backward3">
-    <rect x="370" y="160" width="140" height="50" fill="#FFF3E0" stroke="#FF9800" stroke-width="2" rx="5" />
+    <rect x="370" y="160" width="140" height="50" class="bg-orange-light" stroke="#FF9800" stroke-width="2" rx="5" />
     <text x="440" y="180" font-family="Arial, sans-serif" font-size="12"  text-anchor="middle">
       Backward
     </text>
@@ -139,7 +147,7 @@
 
   
   <g id="step4">
-    <rect x="530" y="60" width="140" height="70" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2" rx="5" />
+    <rect x="530" y="60" width="140" height="70" class="bg-blue-light" stroke="#4A90A4" stroke-width="2" rx="5" />
     <text x="600" y="85" font-family="Arial, sans-serif" font-size="13" font-weight="bold"  text-anchor="middle">
       Step 4: Forward
     </text>
@@ -156,7 +164,7 @@
 
   
   <g id="backward4">
-    <rect x="530" y="160" width="140" height="50" fill="#FFF3E0" stroke="#FF9800" stroke-width="2" rx="5" />
+    <rect x="530" y="160" width="140" height="50" class="bg-orange-light" stroke="#FF9800" stroke-width="2" rx="5" />
     <text x="600" y="180" font-family="Arial, sans-serif" font-size="12"  text-anchor="middle">
       Backward
     </text>
@@ -190,7 +198,7 @@
 
   
   <g id="zero">
-    <rect x="250" y="340" width="200" height="45" fill="#FFEBEE" stroke="#E57373" stroke-width="2" rx="5" />
+    <rect x="250" y="340" width="200" height="45" class="bg-red-light" stroke="#E57373" stroke-width="2" rx="5" />
     <text x="350" y="362" font-family="Arial, sans-serif" font-size="13" font-weight="bold"  text-anchor="middle">
       Zero Gradients
     </text>

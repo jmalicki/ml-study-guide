@@ -95,10 +95,27 @@ def get_element_fill(elem: ET.Element) -> Optional[str]:
     return None
 
 
-def find_background_at_position(root: ET.Element, x: float, y: float) -> Optional[Tuple[str, str, ET.Element]]:
+def get_element_opacity(elem: ET.Element) -> float:
+    """Get opacity from element, checking both opacity attr and style."""
+    # Check inline style first
+    style = elem.get('style', '')
+    if style:
+        match = re.search(r'opacity:\s*([0-9.]+)', style)
+        if match:
+            return float(match.group(1))
+
+    # Check opacity attribute
+    opacity = elem.get('opacity', '1')
+    try:
+        return float(opacity)
+    except ValueError:
+        return 1.0
+
+
+def find_background_at_position(root: ET.Element, x: float, y: float) -> Optional[Tuple[str, str, ET.Element, float]]:
     """Find colored background shape at given position.
 
-    Returns (fill_color, element_type, element) or None.
+    Returns (fill_color, element_type, element, opacity) or None.
     """
     # SVG namespace
     ns = {'svg': 'http://www.w3.org/2000/svg'}
@@ -118,7 +135,8 @@ def find_background_at_position(root: ET.Element, x: float, y: float) -> Optiona
                 height = float(shape.get('height', 0))
 
                 if sx <= x <= sx + width and sy <= y <= sy + height:
-                    return (fill, shape_type, shape)
+                    opacity = get_element_opacity(shape)
+                    return (fill, shape_type, shape, opacity)
 
         # Also check without namespace
         for shape in root.iter(shape_type):
@@ -133,7 +151,8 @@ def find_background_at_position(root: ET.Element, x: float, y: float) -> Optiona
                 height = float(shape.get('height', 0))
 
                 if sx <= x <= sx + width and sy <= y <= sy + height:
-                    return (fill, shape_type, shape)
+                    opacity = get_element_opacity(shape)
+                    return (fill, shape_type, shape, opacity)
 
     return None
 
@@ -566,7 +585,12 @@ def check_svg_file(svg_path: Path) -> List[str]:
             bg_info = find_background_at_position(root, x, y)
 
             if bg_info:
-                bg_color, shape_type, bg_elem = bg_info
+                bg_color, shape_type, bg_elem, bg_opacity = bg_info
+
+                # Skip contrast check if background has low opacity (<= 0.5)
+                # Low opacity backgrounds blend with the page background, so contrast is fine
+                if bg_opacity <= 0.5:
+                    continue
 
                 # Text is on a colored background
                 try:

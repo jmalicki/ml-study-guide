@@ -14,6 +14,9 @@
     circle.node { fill: #4A90A4; stroke: #2d5f6f; }
 
     /* Dark mode */
+
+    /* Background colors */
+    .bg-orange-light { fill: #FFF3E0; }
     @media (prefers-color-scheme: dark) {
       text { fill: #ffffff; }
       .title { fill: #ffffff; }
@@ -41,6 +44,7 @@
       text[fill="#2E7D32"] { fill: #66bb6a; }
       text[fill="#e65100"],
       text[fill="#E65100"] { fill: #ff9800; }
+      .bg-orange-light { fill: #e65100; }
     }
   </style>
 
@@ -161,7 +165,7 @@
 
   <!-- Explanation box -->
   <g id="explanation">
-    <rect x="580" y="160" width="200" height="280" fill="#FFF3E0" stroke="#FB8C00" stroke-width="2" rx="5"/>
+    <rect x="580" y="160" width="200" height="280" class="bg-orange-light" stroke="#FB8C00" stroke-width="2" rx="5"/>
 
     <text x="680" y="185" text-anchor="middle" font-weight="bold" font-size="13">
       How It Works:

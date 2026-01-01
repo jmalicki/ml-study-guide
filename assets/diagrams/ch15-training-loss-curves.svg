@@ -9,6 +9,9 @@
     line[stroke="#333"] { stroke: #333333; }
 
     /* Dark mode */
+
+    /* Background colors */
+    .bg-white { fill: white; }
     @media (prefers-color-scheme: dark) {
       text { fill: #ffffff; }
       .axis-text { fill: #ffffff; }
@@ -42,8 +45,9 @@
       text[fill="#666"] {
         fill: #ffffff;
       }
+      .bg-white { fill: #2d2d2d; }
     }
-  </style><rect width="600" height="400" fill="white" />
+  </style><rect width="600" height="400" class="bg-white" />
 
   
   <text x="300" y="30" font-family="Arial, sans-serif" font-size="18" font-weight="bold"  text-anchor="middle">
@@ -90,7 +94,7 @@
   <!-- Legend -->
   <g class="legend">
     <!-- Legend background box -->
-    <rect x="390" y="70" width="160" height="65" fill="white" stroke="#333" stroke-width="1" rx="5"/>
+    <rect x="390" y="70" width="160" height="65" class="bg-white" stroke="#333" stroke-width="1" rx="5"/>
 
     <!-- Training Loss -->
     <line x1="400" y1="90" x2="430" y2="90" stroke="#4A90A4" stroke-width="3" />

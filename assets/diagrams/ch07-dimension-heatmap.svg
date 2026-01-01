@@ -7,6 +7,9 @@
     .label-text { fill: #666666; }
     line[stroke="#333"] { stroke: #333333; }
 
+
+    /* Background colors */
+    .bg-white { fill: white; }
     @media (prefers-color-scheme: dark) {
       text { fill: #ffffff; }
       .axis-text { fill: #ffffff; }
@@ -23,6 +26,7 @@
       rect[fill="white"] { fill: #1a1a1a; }
       rect[fill="#ffffff"] { fill: #1a1a1a; }
       rect[fill="#f0f8ff"] { fill: #2d5f6f; }
+      .bg-white { fill: #2d2d2d; }
     }
   </style><text x="400" y="30" text-anchor="middle" font-size="20" font-weight="bold">
     Sinusoidal Encoding: Position × Dimension Heatmap
@@ -50,50 +54,50 @@
       
       
       <rect x="0" y="0" width="60" height="50" fill="#E57373" />
-      <rect x="10" y="0" width="10" height="50" fill="#fff" opacity="0.4" />
-      <rect x="30" y="0" width="10" height="50" fill="#fff" opacity="0.4" />
-      <rect x="50" y="0" width="10" height="50" fill="#fff" opacity="0.4" />
+      <rect x="10" y="0" width="10" height="50" class="bg-white" opacity="0.4" />
+      <rect x="30" y="0" width="10" height="50" class="bg-white" opacity="0.4" />
+      <rect x="50" y="0" width="10" height="50" class="bg-white" opacity="0.4" />
 
-      <rect x="60" y="0" width="60" height="50" fill="#fff" opacity="0.9" />
+      <rect x="60" y="0" width="60" height="50" class="bg-white" opacity="0.9" />
       <rect x="70" y="0" width="10" height="50" fill="#E57373" opacity="0.6" />
       <rect x="90" y="0" width="10" height="50" fill="#E57373" opacity="0.6" />
       <rect x="110" y="0" width="10" height="50" fill="#E57373" opacity="0.6" />
 
       <rect x="120" y="0" width="60" height="50" fill="#E57373" />
-      <rect x="130" y="0" width="10" height="50" fill="#fff" opacity="0.4" />
-      <rect x="150" y="0" width="10" height="50" fill="#fff" opacity="0.4" />
+      <rect x="130" y="0" width="10" height="50" class="bg-white" opacity="0.4" />
+      <rect x="150" y="0" width="10" height="50" class="bg-white" opacity="0.4" />
 
-      <rect x="180" y="0" width="60" height="50" fill="#fff" opacity="0.9" />
+      <rect x="180" y="0" width="60" height="50" class="bg-white" opacity="0.9" />
       <rect x="190" y="0" width="10" height="50" fill="#E57373" opacity="0.6" />
       <rect x="210" y="0" width="10" height="50" fill="#E57373" opacity="0.6" />
       <rect x="230" y="0" width="10" height="50" fill="#E57373" opacity="0.6" />
 
       <rect x="240" y="0" width="60" height="50" fill="#E57373" />
-      <rect x="250" y="0" width="10" height="50" fill="#fff" opacity="0.4" />
-      <rect x="270" y="0" width="10" height="50" fill="#fff" opacity="0.4" />
-      <rect x="290" y="0" width="10" height="50" fill="#fff" opacity="0.4" />
+      <rect x="250" y="0" width="10" height="50" class="bg-white" opacity="0.4" />
+      <rect x="270" y="0" width="10" height="50" class="bg-white" opacity="0.4" />
+      <rect x="290" y="0" width="10" height="50" class="bg-white" opacity="0.4" />
 
-      <rect x="300" y="0" width="60" height="50" fill="#fff" opacity="0.9" />
+      <rect x="300" y="0" width="60" height="50" class="bg-white" opacity="0.9" />
       <rect x="310" y="0" width="10" height="50" fill="#E57373" opacity="0.6" />
       <rect x="330" y="0" width="10" height="50" fill="#E57373" opacity="0.6" />
       <rect x="350" y="0" width="10" height="50" fill="#E57373" opacity="0.6" />
 
       <rect x="360" y="0" width="60" height="50" fill="#E57373" />
-      <rect x="370" y="0" width="10" height="50" fill="#fff" opacity="0.4" />
-      <rect x="390" y="0" width="10" height="50" fill="#fff" opacity="0.4" />
-      <rect x="410" y="0" width="10" height="50" fill="#fff" opacity="0.4" />
+      <rect x="370" y="0" width="10" height="50" class="bg-white" opacity="0.4" />
+      <rect x="390" y="0" width="10" height="50" class="bg-white" opacity="0.4" />
+      <rect x="410" y="0" width="10" height="50" class="bg-white" opacity="0.4" />
 
-      <rect x="420" y="0" width="60" height="50" fill="#fff" opacity="0.9" />
+      <rect x="420" y="0" width="60" height="50" class="bg-white" opacity="0.9" />
       <rect x="430" y="0" width="10" height="50" fill="#E57373" opacity="0.6" />
       <rect x="450" y="0" width="10" height="50" fill="#E57373" opacity="0.6" />
       <rect x="470" y="0" width="10" height="50" fill="#E57373" opacity="0.6" />
 
       <rect x="480" y="0" width="60" height="50" fill="#E57373" />
-      <rect x="490" y="0" width="10" height="50" fill="#fff" opacity="0.4" />
-      <rect x="510" y="0" width="10" height="50" fill="#fff" opacity="0.4" />
-      <rect x="530" y="0" width="10" height="50" fill="#fff" opacity="0.4" />
+      <rect x="490" y="0" width="10" height="50" class="bg-white" opacity="0.4" />
+      <rect x="510" y="0" width="10" height="50" class="bg-white" opacity="0.4" />
+      <rect x="530" y="0" width="10" height="50" class="bg-white" opacity="0.4" />
 
-      <rect x="540" y="0" width="60" height="50" fill="#fff" opacity="0.9" />
+      <rect x="540" y="0" width="60" height="50" class="bg-white" opacity="0.9" />
       <rect x="550" y="0" width="10" height="50" fill="#E57373" opacity="0.6" />
       <rect x="570" y="0" width="10" height="50" fill="#E57373" opacity="0.6" />
       <rect x="590" y="0" width="10" height="50" fill="#E57373" opacity="0.6" />
@@ -102,39 +106,39 @@
     
     <g id="dim-med-high">
       <rect x="0" y="50" width="600" height="75" fill="#4A90A4" />
-      <rect x="0" y="50" width="40" height="75" fill="#fff" opacity="0.4" />
-      <rect x="120" y="50" width="40" height="75" fill="#fff" opacity="0.4" />
-      <rect x="240" y="50" width="40" height="75" fill="#fff" opacity="0.4" />
-      <rect x="360" y="50" width="40" height="75" fill="#fff" opacity="0.4" />
-      <rect x="480" y="50" width="40" height="75" fill="#fff" opacity="0.4" />
+      <rect x="0" y="50" width="40" height="75" class="bg-white" opacity="0.4" />
+      <rect x="120" y="50" width="40" height="75" class="bg-white" opacity="0.4" />
+      <rect x="240" y="50" width="40" height="75" class="bg-white" opacity="0.4" />
+      <rect x="360" y="50" width="40" height="75" class="bg-white" opacity="0.4" />
+      <rect x="480" y="50" width="40" height="75" class="bg-white" opacity="0.4" />
     </g>
 
     
     <g id="dim-med">
       <rect x="0" y="125" width="600" height="75" fill="#81C784" />
-      <rect x="0" y="125" width="80" height="75" fill="#fff" opacity="0.4" />
-      <rect x="200" y="125" width="80" height="75" fill="#fff" opacity="0.4" />
-      <rect x="400" y="125" width="80" height="75" fill="#fff" opacity="0.4" />
+      <rect x="0" y="125" width="80" height="75" class="bg-white" opacity="0.4" />
+      <rect x="200" y="125" width="80" height="75" class="bg-white" opacity="0.4" />
+      <rect x="400" y="125" width="80" height="75" class="bg-white" opacity="0.4" />
     </g>
 
     
     <g id="dim-med-low">
       <rect x="0" y="200" width="600" height="75" fill="#BA68C8" />
-      <rect x="0" y="200" width="120" height="75" fill="#fff" opacity="0.4" />
-      <rect x="300" y="200" width="120" height="75" fill="#fff" opacity="0.4" />
+      <rect x="0" y="200" width="120" height="75" class="bg-white" opacity="0.4" />
+      <rect x="300" y="200" width="120" height="75" class="bg-white" opacity="0.4" />
     </g>
 
     
     <g id="dim-low">
       <rect x="0" y="275" width="600" height="62.5" fill="#FFB74D" />
-      <rect x="0" y="275" width="200" height="62.5" fill="#fff" opacity="0.4" />
-      <rect x="400" y="275" width="200" height="62.5" fill="#fff" opacity="0.4" />
+      <rect x="0" y="275" width="200" height="62.5" class="bg-white" opacity="0.4" />
+      <rect x="400" y="275" width="200" height="62.5" class="bg-white" opacity="0.4" />
     </g>
 
     
     <g id="dim-very-low">
       <rect x="0" y="337.5" width="600" height="62.5" fill="#78909C" />
-      <rect x="0" y="337.5" width="300" height="62.5" fill="#fff" opacity="0.3" />
+      <rect x="0" y="337.5" width="300" height="62.5" class="bg-white" opacity="0.3" />
       <rect x="300" y="337.5" width="300" height="62.5" fill="#78909C" opacity="0.7" />
     </g>
 
@@ -188,7 +192,7 @@
 
 
   <g transform="translate(50, 500)">
-    <rect x="0" y="0" width="200" height="35" fill="white" stroke="#ccc" stroke-width="1" rx="4" />
+    <rect x="0" y="0" width="200" height="35" class="bg-white" stroke="#ccc" stroke-width="1" rx="4" />
     <text x="5" y="15" font-size="11" font-weight="bold">Value Range:</text>
 
 

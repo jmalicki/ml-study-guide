@@ -9,6 +9,10 @@
     line[stroke="#333"] { stroke: #333333; }
 
     /* Dark mode */
+
+    /* Background colors */
+    .bg-gray-light { fill: #f5f5f5; }
+    .bg-green-light { fill: #E8F5E9; }
     @media (prefers-color-scheme: dark) {
       text { fill: #ffffff; }
       .axis-text { fill: #ffffff; }
@@ -52,6 +56,8 @@
 
       /* Darken light backgrounds so dark text stays visible */
       rect[fill="#F5F5F5"] { fill: #2a2a2a; }
+      .bg-gray-light { fill: #424242; }
+      .bg-green-light { fill: #1b5e20; }
     }
   </style><text x="400" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#333">
     Softmax Temperature Effects on Attention Distribution
@@ -162,14 +168,14 @@
     <line x1="560" y1="100" x2="560" y2="305" stroke="#999" stroke-width="1" />
 
     
-    <rect x="570" y="360" width="240" height="55" fill="#E8F5E9" stroke="#81C784" stroke-width="1.5" rx="3" />
+    <rect x="570" y="360" width="240" height="55" class="bg-green-light" stroke="#81C784" stroke-width="1.5" rx="3" />
     <text x="690" y="377" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" >More uniform attention</text>
     <text x="690" y="392" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" >Spreads attention across many</text>
     <text x="690" y="405" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" >positions (exploration)</text>
   </g>
 
   
-  <rect x="50" y="440" width="700" height="90" fill="#F5F5F5" stroke="#999" stroke-width="1.5" rx="5" />
+  <rect x="50" y="440" width="700" height="90" class="bg-gray-light" stroke="#999" stroke-width="1.5" rx="5" />
   <text x="400" y="462" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" >Temperature Formula: softmax(scores / T)</text>
 
   <text x="60" y="485" font-family="system-ui, -apple-system, sans-serif" font-size="11">• T &lt; 1 (low): Divides scores by smaller number → larger values → sharper distribution (peaked)</text>

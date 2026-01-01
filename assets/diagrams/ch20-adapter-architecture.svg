@@ -10,6 +10,9 @@
     .bg-info { fill: #F5F5F5; }
 
     /* Dark mode */
+
+    /* Background colors */
+    .bg-white { fill: #fff; }
     @media (prefers-color-scheme: dark) {
       text { fill: #ffffff; }
       .axis-text { fill: #ffffff; }
@@ -43,6 +46,7 @@
       text[fill="#666"] {
         fill: #ffffff;
       }
+      .bg-white { fill: #2d2d2d; }
     }
   </style><text x="350" y="30" font-size="20" font-weight="bold" text-anchor="middle" fill="#333">
     Adapter Bottleneck Architecture
@@ -127,7 +131,7 @@
   
   <line x1="150" y1="450" x2="275" y2="520" stroke="#666" stroke-width="3" />
   <line x1="350" y1="495" x2="275" y2="520" stroke="#4A90A4" stroke-width="3" />
-  <circle cx="275" cy="520" r="20" fill="#FFF" stroke="#333" stroke-width="3" />
+  <circle cx="275" cy="520" r="20" class="bg-white" stroke="#333" stroke-width="3" />
   <text x="275" y="527" font-size="20" font-weight="bold" text-anchor="middle" fill="#333">+</text>
 
   <line x1="275" y1="540" x2="275" y2="560" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)" />

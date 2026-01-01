@@ -23,7 +23,16 @@ COLOR_MAP = {
     # Light yellow/amber/orange
     '#fff8e1': ('bg-amber-light', '#FFF8E1', '#ff6f00'),
     '#fff3e0': ('bg-orange-light', '#FFF3E0', '#e65100'),
+    '#fff9e6': ('bg-cream', '#fff9e6', '#5d4037'),
     '#ffcdd2': ('bg-pink-light', '#FFCDD2', '#c62828'),
+    # Light indigo
+    '#e8eaf6': ('bg-indigo-light', '#E8EAF6', '#1a237e'),
+    # Named colors and other backgrounds
+    '#87ceeb': ('bg-skyblue', '#87ceeb', '#01579b'),
+    '#90ee90': ('bg-lightgreen', '#90ee90', '#1b5e20'),
+    '#ffe4b5': ('bg-moccasin', '#ffe4b5', '#e65100'),
+    '#dc143c': ('bg-crimson', '#dc143c', '#b71c1c'),
+    '#7b1fa2': ('bg-purple-dark', '#7b1fa2', '#4a148c'),
     # Light purple
     '#f3e5f5': ('bg-purple-light', '#F3E5F5', '#4a148c'),
     # Light gray
@@ -76,9 +85,9 @@ def fix_svg_file(svg_path: Path) -> bool:
             result = re.sub(r'fill\s*=\s*"[^"]*"', f'class="{class_name}"', full_match)
             return result
 
-    # Match shape elements with fill attribute
+    # Match shape elements with fill attribute (any hex color or "white")
     content = re.sub(
-        r'(<(?:rect|circle|ellipse|path|polygon)[^>]*)\bfill\s*=\s*"((?:white|#[fFeE][0-9a-fA-F]{5}|#[fFeE]{3}))"([^>]*>)',
+        r'(<(?:rect|circle|ellipse|path|polygon)[^>]*)\bfill\s*=\s*"((?:white|#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3}))"([^>]*>)',
         replace_fill,
         content,
         flags=re.IGNORECASE

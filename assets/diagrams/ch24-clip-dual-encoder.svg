@@ -15,6 +15,13 @@
     .bg-embed { fill: #F3E5F5; }
 
     /* Dark mode */
+
+    /* Background colors */
+    .bg-white { fill: white; }
+
+    /* Background colors */
+    .bg-purple-dark { fill: #7b1fa2; }
+    .bg-skyblue { fill: #87ceeb; }
     @media (prefers-color-scheme: dark) {
       text { fill: #ffffff; }
       .label-text { fill: #cccccc; }
@@ -40,6 +47,9 @@
       line[stroke="#1565C0"] { stroke: #64B5F6; }
       line[stroke="#E65100"] { stroke: #FFB74D; }
       path[stroke="#7B1FA2"] { stroke: #CE93D8; }
+      .bg-white { fill: #2d2d2d; }
+      .bg-purple-dark { fill: #4a148c; }
+      .bg-skyblue { fill: #01579b; }
     }
   </style>
 
@@ -55,7 +65,7 @@
     <text x="90" y="25" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#1565C0">Input Image</text>
 
     <!-- Simplified image representation: a cat -->
-    <rect x="20" y="35" width="140" height="75" fill="#87CEEB" rx="3"/>
+    <rect x="20" y="35" width="140" height="75" class="bg-skyblue" rx="3"/>
     <ellipse cx="90" cy="70" rx="30" ry="25" fill="#FFA500"/>
     <circle cx="80" cy="62" r="4" fill="#000"/>
     <circle cx="100" cy="62" r="4" fill="#000"/>
@@ -85,7 +95,7 @@
     <line x1="90" y1="345" x2="90" y2="380" stroke="#7B1FA2" stroke-width="2" marker-end="url(#arrow-purple)"/>
 
     <!-- Image Embedding -->
-    <rect x="10" y="385" width="160" height="45" fill="#7B1FA2" stroke="#7B1FA2" stroke-width="2" rx="5"/>
+    <rect x="10" y="385" width="160" height="45" class="bg-purple-dark" stroke="#7B1FA2" stroke-width="2" rx="5"/>
     <text x="90" y="412" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" fill="white">I<tspan baseline-shift="sub" font-size="9">embed</tspan> ∈ ℝ<tspan baseline-shift="super" font-size="9">d</tspan></text>
   </g>
 
@@ -96,7 +106,7 @@
     <text x="90" y="25" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#E65100">Input Text</text>
 
     <!-- Text content -->
-    <rect x="15" y="40" width="150" height="65" fill="white" stroke="#E65100" stroke-width="1" rx="3"/>
+    <rect x="15" y="40" width="150" height="65" class="bg-white" stroke="#E65100" stroke-width="1" rx="3"/>
     <text x="90" y="65" font-family="Georgia, serif" font-size="13" font-style="italic" text-anchor="middle" fill="#333">"A photo of a cat</text>
     <text x="90" y="82" font-family="Georgia, serif" font-size="13" font-style="italic" text-anchor="middle" fill="#333">sitting in the sun"</text>
 
@@ -121,7 +131,7 @@
     <line x1="90" y1="345" x2="90" y2="380" stroke="#7B1FA2" stroke-width="2" marker-end="url(#arrow-purple)"/>
 
     <!-- Text Embedding -->
-    <rect x="10" y="385" width="160" height="45" fill="#7B1FA2" stroke="#7B1FA2" stroke-width="2" rx="5"/>
+    <rect x="10" y="385" width="160" height="45" class="bg-purple-dark" stroke="#7B1FA2" stroke-width="2" rx="5"/>
     <text x="90" y="412" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" fill="white">T<tspan baseline-shift="sub" font-size="9">embed</tspan> ∈ ℝ<tspan baseline-shift="super" font-size="9">d</tspan></text>
   </g>
 
@@ -166,7 +176,7 @@
       <polygon points="0 0, 10 3, 0 6" fill="#2E7D32"/>
     </marker>
     <marker id="arrow-purple" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-      <polygon points="0 0, 10 3, 0 6" fill="#7B1FA2"/>
+      <polygon points="0 0, 10 3, 0 6" class="bg-purple-dark"/>
     </marker>
   </defs>
 </svg>

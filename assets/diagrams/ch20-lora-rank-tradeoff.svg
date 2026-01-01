@@ -15,6 +15,9 @@
       .full-ft-line { stroke: #9C27B0; stroke-width: 2; stroke-dasharray: 5,5; }
 
       /* Dark mode support */
+
+    /* Background colors */
+    .bg-white { fill: white; }
       @media (prefers-color-scheme: dark) {
         .axis { stroke: #cccccc; }
         .grid { stroke: #444444; }
@@ -36,6 +39,7 @@
         text[fill="white"] {
           fill: #ffffff;
         }
+      .bg-white { fill: #2d2d2d; }
       }
     </style>
   </defs>
@@ -112,7 +116,7 @@
 
   <!-- Legend -->
   <g transform="translate(450, 280)">
-    <rect x="0" y="0" width="190" height="100" fill="white" stroke="#333" stroke-width="1" rx="5"/>
+    <rect x="0" y="0" width="190" height="100" class="bg-white" stroke="#333" stroke-width="1" rx="5"/>
     <text x="10" y="20" class="annotation" font-weight="600">Metrics:</text>
 
     <line x1="10" y1="35" x2="40" y2="35" class="performance-curve"/>
@@ -142,7 +146,7 @@
   <text x="540" y="255" text-anchor="middle" class="annotation" fill="#1565C0">• Diminishing returns</text>
 
   <!-- Key insights box -->
-  <rect x="110" y="110" width="230" height="135" fill="white" stroke="#333" stroke-width="1" rx="5" opacity="0.95"/>
+  <rect x="110" y="110" width="230" height="135" class="bg-white" stroke="#333" stroke-width="1" rx="5" opacity="0.95"/>
   <text x="120" y="130" class="annotation" font-weight="600">Empirical Findings:</text>
   <text x="120" y="148" class="annotation">• r=8: 95%+ of full FT performance</text>
   <text x="125" y="163" class="annotation">with only ~0.1% trainable params</text>
