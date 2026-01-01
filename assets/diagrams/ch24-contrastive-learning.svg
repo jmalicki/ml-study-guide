@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 950 650" style="max-width: 950px; width: 100%; height: auto">
+
+  <style>
+    /* Light mode (default) */
+    text { fill: #000000; }
+    .label-text { fill: #666666; }
+
+    /* Adaptive backgrounds */
+    .bg-main { fill: #f5f5f5; }
+    .bg-box { fill: white; }
+    .positive { fill: #4CAF50; }
+    .negative { fill: #F44336; }
+    .neutral { fill: #E0E0E0; }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .label-text { fill: #cccccc; }
+      .bg-main { fill: #1a1a1a; }
+      .bg-box { fill: #2d2d2d; }
+      .positive { fill: #2E7D32; }
+      .negative { fill: #C62828; }
+      .neutral { fill: #424242; }
+
+      text[fill="#333"] { fill: #ffffff; }
+      text[fill="#666"] { fill: #cccccc; }
+      text[fill="#1565C0"] { fill: #64B5F6; }
+      text[fill="#E65100"] { fill: #FFB74D; }
+      text[fill="#4CAF50"] { fill: #81C784; }
+      text[fill="#F44336"] { fill: #EF5350; }
+
+      rect[stroke="#1565C0"] { stroke: #64B5F6; }
+      rect[stroke="#E65100"] { stroke: #FFB74D; }
+    }
+  </style>
+
+  <rect width="950" height="650" class="bg-main"/>
+
+  <!-- Title -->
+  <text x="475" y="35" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="bold" text-anchor="middle" fill="#333">Contrastive Learning: Training CLIP</text>
+
+  <!-- Left side: Batch of Images -->
+  <g transform="translate(30, 60)">
+    <text x="100" y="20" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#1565C0">Image Batch (N=4)</text>
+
+    <!-- Image 1: Cat -->
+    <rect x="10" y="35" width="80" height="60" fill="#87CEEB" stroke="#1565C0" stroke-width="2" rx="3"/>
+    <ellipse cx="50" cy="60" rx="18" ry="15" fill="#FFA500"/>
+    <circle cx="44" cy="55" r="3" fill="#000"/>
+    <circle cx="56" cy="55" r="3" fill="#000"/>
+    <polygon points="38,48 35,38 42,45" fill="#FFA500"/>
+    <polygon points="62,48 65,38 58,45" fill="#FFA500"/>
+    <text x="110" y="65" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#1565C0">I<tspan baseline-shift="sub" font-size="7">1</tspan></text>
+    <text x="50" y="108" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#666">cat</text>
+
+    <!-- Image 2: Dog -->
+    <rect x="10" y="120" width="80" height="60" fill="#90EE90" stroke="#1565C0" stroke-width="2" rx="3"/>
+    <ellipse cx="50" cy="145" rx="20" ry="18" fill="#8B4513"/>
+    <circle cx="42" cy="140" r="3" fill="#000"/>
+    <circle cx="58" cy="140" r="3" fill="#000"/>
+    <ellipse cx="50" cy="150" rx="5" ry="3" fill="#000"/>
+    <ellipse cx="35" cy="135" rx="8" ry="12" fill="#8B4513"/>
+    <ellipse cx="65" cy="135" rx="8" ry="12" fill="#8B4513"/>
+    <text x="110" y="150" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#1565C0">I<tspan baseline-shift="sub" font-size="7">2</tspan></text>
+    <text x="50" y="193" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#666">dog</text>
+
+    <!-- Image 3: Car -->
+    <rect x="10" y="205" width="80" height="60" fill="#FFE4B5" stroke="#1565C0" stroke-width="2" rx="3"/>
+    <rect x="25" y="225" width="50" height="25" fill="#DC143C" rx="3"/>
+    <rect x="35" y="220" width="30" height="15" fill="#87CEEB" rx="2"/>
+    <circle cx="35" cy="252" r="6" fill="#333"/>
+    <circle cx="65" cy="252" r="6" fill="#333"/>
+    <text x="110" y="235" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#1565C0">I<tspan baseline-shift="sub" font-size="7">3</tspan></text>
+    <text x="50" y="278" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#666">car</text>
+
+    <!-- Image 4: Beach -->
+    <rect x="10" y="290" width="80" height="60" fill="#87CEEB" stroke="#1565C0" stroke-width="2" rx="3"/>
+    <rect x="10" y="330" width="80" height="20" fill="#F4A460"/>
+    <circle cx="70" cy="305" r="10" fill="#FFD700"/>
+    <path d="M 20 325 Q 35 320 50 325 Q 65 330 80 325" stroke="#4169E1" stroke-width="2" fill="none"/>
+    <text x="110" y="320" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#1565C0">I<tspan baseline-shift="sub" font-size="7">4</tspan></text>
+    <text x="50" y="363" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#666">beach</text>
+  </g>
+
+  <!-- Right side: Batch of Texts -->
+  <g transform="translate(750, 60)">
+    <text x="90" y="20" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#E65100">Text Batch (N=4)</text>
+
+    <!-- Text 1 -->
+    <rect x="10" y="35" width="160" height="60" fill="white" stroke="#E65100" stroke-width="2" rx="3"/>
+    <text x="90" y="60" font-family="Georgia, serif" font-size="10" font-style="italic" text-anchor="middle" fill="#333">"A cute orange cat</text>
+    <text x="90" y="75" font-family="Georgia, serif" font-size="10" font-style="italic" text-anchor="middle" fill="#333">with pointy ears"</text>
+    <text x="185" y="65" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#E65100">T<tspan baseline-shift="sub" font-size="7">1</tspan></text>
+
+    <!-- Text 2 -->
+    <rect x="10" y="120" width="160" height="60" fill="white" stroke="#E65100" stroke-width="2" rx="3"/>
+    <text x="90" y="145" font-family="Georgia, serif" font-size="10" font-style="italic" text-anchor="middle" fill="#333">"A brown dog</text>
+    <text x="90" y="160" font-family="Georgia, serif" font-size="10" font-style="italic" text-anchor="middle" fill="#333">with floppy ears"</text>
+    <text x="185" y="150" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#E65100">T<tspan baseline-shift="sub" font-size="7">2</tspan></text>
+
+    <!-- Text 3 -->
+    <rect x="10" y="205" width="160" height="60" fill="white" stroke="#E65100" stroke-width="2" rx="3"/>
+    <text x="90" y="230" font-family="Georgia, serif" font-size="10" font-style="italic" text-anchor="middle" fill="#333">"A red sports car</text>
+    <text x="90" y="245" font-family="Georgia, serif" font-size="10" font-style="italic" text-anchor="middle" fill="#333">on a road"</text>
+    <text x="185" y="235" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#E65100">T<tspan baseline-shift="sub" font-size="7">3</tspan></text>
+
+    <!-- Text 4 -->
+    <rect x="10" y="290" width="160" height="60" fill="white" stroke="#E65100" stroke-width="2" rx="3"/>
+    <text x="90" y="315" font-family="Georgia, serif" font-size="10" font-style="italic" text-anchor="middle" fill="#333">"A sunny beach</text>
+    <text x="90" y="330" font-family="Georgia, serif" font-size="10" font-style="italic" text-anchor="middle" fill="#333">with golden sand"</text>
+    <text x="185" y="320" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#E65100">T<tspan baseline-shift="sub" font-size="7">4</tspan></text>
+  </g>
+
+  <!-- Center: Similarity Matrix -->
+  <g transform="translate(275, 80)">
+    <text x="200" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="#333">Similarity Matrix (N × N)</text>
+    <text x="200" y="20" font-family="system-ui, -apple-system, sans-serif" font-size="11" text-anchor="middle" fill="#666">sim(I<tspan baseline-shift="sub" font-size="8">i</tspan>, T<tspan baseline-shift="sub" font-size="8">j</tspan>) = cosine similarity</text>
+
+    <!-- Column headers -->
+    <text x="85" y="55" font-family="system-ui, -apple-system, sans-serif" font-size="11" text-anchor="middle" fill="#E65100">T<tspan baseline-shift="sub" font-size="8">1</tspan></text>
+    <text x="155" y="55" font-family="system-ui, -apple-system, sans-serif" font-size="11" text-anchor="middle" fill="#E65100">T<tspan baseline-shift="sub" font-size="8">2</tspan></text>
+    <text x="225" y="55" font-family="system-ui, -apple-system, sans-serif" font-size="11" text-anchor="middle" fill="#E65100">T<tspan baseline-shift="sub" font-size="8">3</tspan></text>
+    <text x="295" y="55" font-family="system-ui, -apple-system, sans-serif" font-size="11" text-anchor="middle" fill="#E65100">T<tspan baseline-shift="sub" font-size="8">4</tspan></text>
+
+    <!-- Row headers -->
+    <text x="35" y="100" font-family="system-ui, -apple-system, sans-serif" font-size="11" text-anchor="middle" fill="#1565C0">I<tspan baseline-shift="sub" font-size="8">1</tspan></text>
+    <text x="35" y="170" font-family="system-ui, -apple-system, sans-serif" font-size="11" text-anchor="middle" fill="#1565C0">I<tspan baseline-shift="sub" font-size="8">2</tspan></text>
+    <text x="35" y="240" font-family="system-ui, -apple-system, sans-serif" font-size="11" text-anchor="middle" fill="#1565C0">I<tspan baseline-shift="sub" font-size="8">3</tspan></text>
+    <text x="35" y="310" font-family="system-ui, -apple-system, sans-serif" font-size="11" text-anchor="middle" fill="#1565C0">I<tspan baseline-shift="sub" font-size="8">4</tspan></text>
+
+    <!-- Matrix cells - Row 1 -->
+    <rect x="50" y="65" width="70" height="60" class="positive" stroke="#2E7D32" stroke-width="3" rx="3"/>
+    <text x="85" y="100" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="white">0.92</text>
+    <text x="85" y="115" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="white">✓ match</text>
+
+    <rect x="120" y="65" width="70" height="60" class="negative" rx="3"/>
+    <text x="155" y="100" font-family="system-ui, -apple-system, sans-serif" font-size="14" text-anchor="middle" fill="white">0.15</text>
+
+    <rect x="190" y="65" width="70" height="60" class="negative" rx="3"/>
+    <text x="225" y="100" font-family="system-ui, -apple-system, sans-serif" font-size="14" text-anchor="middle" fill="white">0.08</text>
+
+    <rect x="260" y="65" width="70" height="60" class="negative" rx="3"/>
+    <text x="295" y="100" font-family="system-ui, -apple-system, sans-serif" font-size="14" text-anchor="middle" fill="white">0.12</text>
+
+    <!-- Matrix cells - Row 2 -->
+    <rect x="50" y="135" width="70" height="60" class="negative" rx="3"/>
+    <text x="85" y="170" font-family="system-ui, -apple-system, sans-serif" font-size="14" text-anchor="middle" fill="white">0.18</text>
+
+    <rect x="120" y="135" width="70" height="60" class="positive" stroke="#2E7D32" stroke-width="3" rx="3"/>
+    <text x="155" y="170" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="white">0.89</text>
+    <text x="155" y="185" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="white">✓ match</text>
+
+    <rect x="190" y="135" width="70" height="60" class="negative" rx="3"/>
+    <text x="225" y="170" font-family="system-ui, -apple-system, sans-serif" font-size="14" text-anchor="middle" fill="white">0.11</text>
+
+    <rect x="260" y="135" width="70" height="60" class="negative" rx="3"/>
+    <text x="295" y="170" font-family="system-ui, -apple-system, sans-serif" font-size="14" text-anchor="middle" fill="white">0.14</text>
+
+    <!-- Matrix cells - Row 3 -->
+    <rect x="50" y="205" width="70" height="60" class="negative" rx="3"/>
+    <text x="85" y="240" font-family="system-ui, -apple-system, sans-serif" font-size="14" text-anchor="middle" fill="white">0.05</text>
+
+    <rect x="120" y="205" width="70" height="60" class="negative" rx="3"/>
+    <text x="155" y="240" font-family="system-ui, -apple-system, sans-serif" font-size="14" text-anchor="middle" fill="white">0.09</text>
+
+    <rect x="190" y="205" width="70" height="60" class="positive" stroke="#2E7D32" stroke-width="3" rx="3"/>
+    <text x="225" y="240" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="white">0.95</text>
+    <text x="225" y="255" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="white">✓ match</text>
+
+    <rect x="260" y="205" width="70" height="60" class="negative" rx="3"/>
+    <text x="295" y="240" font-family="system-ui, -apple-system, sans-serif" font-size="14" text-anchor="middle" fill="white">0.21</text>
+
+    <!-- Matrix cells - Row 4 -->
+    <rect x="50" y="275" width="70" height="60" class="negative" rx="3"/>
+    <text x="85" y="310" font-family="system-ui, -apple-system, sans-serif" font-size="14" text-anchor="middle" fill="white">0.10</text>
+
+    <rect x="120" y="275" width="70" height="60" class="negative" rx="3"/>
+    <text x="155" y="310" font-family="system-ui, -apple-system, sans-serif" font-size="14" text-anchor="middle" fill="white">0.07</text>
+
+    <rect x="190" y="275" width="70" height="60" class="negative" rx="3"/>
+    <text x="225" y="310" font-family="system-ui, -apple-system, sans-serif" font-size="14" text-anchor="middle" fill="white">0.13</text>
+
+    <rect x="260" y="275" width="70" height="60" class="positive" stroke="#2E7D32" stroke-width="3" rx="3"/>
+    <text x="295" y="310" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="white">0.91</text>
+    <text x="295" y="325" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="white">✓ match</text>
+  </g>
+
+  <!-- Legend -->
+  <g transform="translate(275, 445)">
+    <rect x="0" y="0" width="400" height="60" class="bg-box" stroke="#666" stroke-width="1" rx="5"/>
+    <text x="200" y="20" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#333">Training Objective</text>
+
+    <rect x="20" y="32" width="20" height="15" class="positive" rx="2"/>
+    <text x="50" y="44" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">Positive pairs (diagonal) → Maximize similarity</text>
+
+    <rect x="220" y="32" width="20" height="15" class="negative" rx="2"/>
+    <text x="250" y="44" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">Negative pairs → Minimize similarity</text>
+  </g>
+
+  <!-- Loss function -->
+  <g transform="translate(50, 520)">
+    <rect x="0" y="0" width="850" height="115" class="bg-box" stroke="#666" stroke-width="1" rx="5"/>
+    <text x="425" y="25" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#333">Symmetric Cross-Entropy Loss (InfoNCE)</text>
+
+    <!-- Image-to-text loss -->
+    <text x="30" y="55" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#1565C0" font-weight="bold">Image→Text:</text>
+    <text x="130" y="55" font-family="'STIX Two Math', Georgia, serif" font-size="12" fill="#333">ℒ<tspan baseline-shift="sub" font-size="9">I→T</tspan> = −(1/N) Σ log[exp(sim(I<tspan baseline-shift="sub" font-size="9">i</tspan>,T<tspan baseline-shift="sub" font-size="9">i</tspan>)/τ) / Σ<tspan baseline-shift="sub" font-size="9">j</tspan> exp(sim(I<tspan baseline-shift="sub" font-size="9">i</tspan>,T<tspan baseline-shift="sub" font-size="9">j</tspan>)/τ)]</text>
+
+    <!-- Text-to-image loss -->
+    <text x="30" y="80" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#E65100" font-weight="bold">Text→Image:</text>
+    <text x="130" y="80" font-family="'STIX Two Math', Georgia, serif" font-size="12" fill="#333">ℒ<tspan baseline-shift="sub" font-size="9">T→I</tspan> = −(1/N) Σ log[exp(sim(T<tspan baseline-shift="sub" font-size="9">i</tspan>,I<tspan baseline-shift="sub" font-size="9">i</tspan>)/τ) / Σ<tspan baseline-shift="sub" font-size="9">j</tspan> exp(sim(T<tspan baseline-shift="sub" font-size="9">i</tspan>,I<tspan baseline-shift="sub" font-size="9">j</tspan>)/τ)]</text>
+
+    <!-- Total loss -->
+    <text x="30" y="105" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333" font-weight="bold">Total Loss:</text>
+    <text x="130" y="105" font-family="'STIX Two Math', Georgia, serif" font-size="13" fill="#333">ℒ<tspan baseline-shift="sub" font-size="9">CLIP</tspan> = (ℒ<tspan baseline-shift="sub" font-size="9">I→T</tspan> + ℒ<tspan baseline-shift="sub" font-size="9">T→I</tspan>) / 2</text>
+    <text x="450" y="105" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666">(symmetric: both directions matter equally)</text>
+  </g>
+
+</svg>

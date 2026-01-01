@@ -267,11 +267,24 @@ class TransformerBlock(nn.Module):
 
 CLIP (Contrastive Language-Image Pre-training) learns aligned representations of images and text through contrastive learning.
 
-**Architecture:**
+**Siamese Architecture:**
+
+CLIP uses a dual-encoder (Siamese) architecture where separate encoders process images and text independently, projecting them into a shared embedding space:
+
+![CLIP Siamese Architecture](../assets/diagrams/ch24-clip-siamese-architecture.svg)
+
+**Architecture Components:**
 
 - **Image Encoder**: ViT or ResNet
 - **Text Encoder**: Transformer
+- **Projection Heads**: Linear layers mapping to shared embedding space
 - **Training**: Contrastive loss on image-text pairs
+
+**Contrastive Learning:**
+
+The key insight of CLIP is learning through contrastive loss on batches of image-text pairs. For a batch of N pairs, CLIP computes an N×N similarity matrix and trains to maximize diagonal (matching) similarities while minimizing off-diagonal (non-matching) similarities:
+
+![Contrastive Learning in CLIP](../assets/diagrams/ch24-contrastive-learning.svg)
 
 ```math
 \large \mathcal{L}_{\text{CLIP}} = -\frac{1}{N} \sum_{i=1}^{N} \left[ \log \frac{\exp(\text{sim}(I_i, T_i) / \tau)}{\sum_{j=1}^{N} \exp(\text{sim}(I_i, T_j) / \tau)} \right]
