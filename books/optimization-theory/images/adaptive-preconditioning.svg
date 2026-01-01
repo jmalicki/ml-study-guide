@@ -81,7 +81,7 @@
     <text x="55" y="-25" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#81C784">∇̃L</text>
 
     <!-- Axes labels -->
-    <text x="0" y="80" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">θ̃₁ = θ₁</text>
+    <text x="0" y="72" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">θ̃₁ = θ₁</text>
     <text x="-70" y="0" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666" transform="rotate(-90, -70, 0)">θ̃₂</text>
   </g>
 
