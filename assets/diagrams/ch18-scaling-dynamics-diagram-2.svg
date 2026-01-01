@@ -51,9 +51,9 @@
     <line x1="50" y1="240" x2="360" y2="240" stroke="#333" stroke-width="2" />
     <line x1="50" y1="20" x2="50" y2="240" stroke="#333" stroke-width="2" />
     
-    <path d="M 70 200 L 140 130 L 210 80 L 280 40 L 340 15" fill="none" stroke="#4A90A4" stroke-width="2.5" />
-    
-    <path d="M 70 215 L 140 160 L 210 115 L 280 75 L 340 45" fill="none" stroke="#E57373" stroke-width="2.5" stroke-dasharray="5,5" />
+    <path d="M 70 200 L 85 178 L 100 160 L 115 145 L 130 132 L 145 120 L 160 110 L 175 100 L 190 92 L 205 84 L 220 77 L 235 70 L 250 64 L 265 58 L 280 52 L 295 47 L 310 42 L 325 37 L 340 33" fill="none" stroke="#4A90A4" stroke-width="2.5" />
+
+    <path d="M 70 215 L 85 198 L 100 183 L 115 170 L 130 158 L 145 148 L 160 138 L 175 130 L 190 122 L 205 115 L 220 108 L 235 102 L 250 96 L 265 91 L 280 86 L 295 81 L 310 77 L 325 73 L 340 69" fill="none" stroke="#E57373" stroke-width="2.5" stroke-dasharray="5,5" />
     
     <text x="200" y="270" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" >Compute Budget (FLOPs)</text>
     <text x="15" y="140" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11"  transform="rotate(-90, 15, 140)">Model Size (Params)</text>
@@ -76,9 +76,9 @@
     <line x1="50" y1="240" x2="360" y2="240" stroke="#333" stroke-width="2" />
     <line x1="50" y1="20" x2="50" y2="240" stroke="#333" stroke-width="2" />
     
-    <path d="M 70 220 L 140 180 L 210 145 L 280 115 L 340 90" fill="none" stroke="#4A90A4" stroke-width="2.5" />
-    
-    <path d="M 70 210 L 140 150 L 210 100 L 280 60 L 340 30" fill="none" stroke="#E57373" stroke-width="2.5" stroke-dasharray="5,5" />
+    <path d="M 70 220 L 85 210 L 100 201 L 115 193 L 130 186 L 145 179 L 160 173 L 175 167 L 190 162 L 205 157 L 220 152 L 235 148 L 250 144 L 265 140 L 280 136 L 295 133 L 310 130 L 325 127 L 340 124" fill="none" stroke="#4A90A4" stroke-width="2.5" />
+
+    <path d="M 70 210 L 85 193 L 100 178 L 115 165 L 130 153 L 145 143 L 160 133 L 175 125 L 190 117 L 205 110 L 220 103 L 235 97 L 250 92 L 265 87 L 280 82 L 295 78 L 310 74 L 325 70 L 340 67" fill="none" stroke="#E57373" stroke-width="2.5" stroke-dasharray="5,5" />
     
     <text x="200" y="270" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" >Compute Budget (FLOPs)</text>
     <text x="15" y="140" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11"  transform="rotate(-90, 15, 140)">Training Tokens</text>
