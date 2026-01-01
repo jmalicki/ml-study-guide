@@ -375,7 +375,7 @@ def demonstrate_preconditioning():
 |---------------|---|------|-------------|
 | Jacobi | diag(A) | $O(n)$ | Diagonally dominant A |
 | Block Jacobi | Block-diag(A) | O(blocks) | Block structure |
-| Incomplete Cholesky | Sparse L L^T ≈ A | O(nnz) | Sparse A |
+| Incomplete Cholesky | Sparse $LL^T \approx A$ | O(nnz) | Sparse A |
 | SSOR | Symmetric overrelaxation | O(nnz) | Sparse A |
 
 For neural networks, diagonal and block-diagonal preconditioners are most practical.

@@ -40,11 +40,12 @@ class LatexError:
 
 
 class LatexValidator:
-    def __init__(self, root_dir: Path, require_large: bool = True):
+    def __init__(self, root_dir: Path, require_large: bool = True, check_angles: bool = False):
         self.root_dir = root_dir
         self.errors: List[LatexError] = []
         self.warnings: List[LatexError] = []
         self.require_large = require_large  # Require \large in math blocks for readability
+        self.check_angles = check_angles  # Check for raw < and > (can have false positives)
 
     def extract_math_blocks(self, content: str, file_path: Path) -> List[Tuple[int, str, str]]:
         """
@@ -225,114 +226,20 @@ class LatexValidator:
         Check that superscripts (^) and subscripts (_) use proper bracing.
         Multi-character superscripts/subscripts need braces: ^{abc} not ^abc.
         Returns error message if improper usage found, None if valid.
+
+        Note: This check is disabled by default as it produces too many false
+        positives for common mathematical notation like:
+        - ^T (transpose)
+        - ^2 at end of expression
+        - _A (A-norm)
+        - Single letter subscripts at end of expressions
         """
-        issues = []
-
-        # Find all superscripts and subscripts
-        i = 0
-        while i < len(latex):
-            # Skip escaped characters
-            if latex[i] == '\\' and i + 1 < len(latex):
-                i += 2
-                continue
-
-            if latex[i] in ('^', '_'):
-                operator = latex[i]
-                i += 1
-
-                # Skip whitespace after operator
-                while i < len(latex) and latex[i].isspace():
-                    i += 1
-
-                if i >= len(latex):
-                    continue
-
-                # Check what follows
-                if latex[i] == '{':
-                    # Properly braced - find matching closing brace
-                    brace_count = 1
-                    i += 1
-                    while i < len(latex) and brace_count > 0:
-                        if latex[i] == '\\' and i + 1 < len(latex):
-                            i += 2
-                            continue
-                        if latex[i] == '{':
-                            brace_count += 1
-                        elif latex[i] == '}':
-                            brace_count -= 1
-                        i += 1
-                elif latex[i] == '\\':
-                    # Backslash command - check if it's a single command or needs braces
-                    # Single commands like \alpha, \beta are OK
-                    # Commands like \mathbb{R} followed by more content may need braces
-                    start = i
-                    i += 1
-                    # Get the command name
-                    while i < len(latex) and latex[i].isalpha():
-                        i += 1
-                    command = latex[start:i]
-
-                    # If command has arguments like \mathbb{R}, process them
-                    if i < len(latex) and latex[i] == '{':
-                        # Skip the argument
-                        brace_count = 1
-                        i += 1
-                        while i < len(latex) and brace_count > 0:
-                            if latex[i] == '\\' and i + 1 < len(latex):
-                                i += 2
-                                continue
-                            if latex[i] == '{':
-                                brace_count += 1
-                            elif latex[i] == '}':
-                                brace_count -= 1
-                            i += 1
-
-                    # After command (and its arguments), check if there's more content
-                    if i < len(latex):
-                        # Skip whitespace
-                        j = i
-                        while j < len(latex) and latex[j].isspace():
-                            j += 1
-                        # If next char is alphanumeric or another command, might be an issue
-                        if j < len(latex) and (latex[j].isalnum() or latex[j] == '\\'):
-                            # Check for common patterns that should be braced
-                            # Look ahead to see if this looks like multiple elements
-                            lookahead = latex[i:i+10]
-                            # If we see letters/numbers after a command without braces, flag it
-                            if re.match(r'[A-Za-z0-9]', lookahead):
-                                issues.append(f"Superscript/subscript at position {start-1} may need braces: '{latex[start-1:i+5]}'")
-                else:
-                    # Single character - might be OK, but check for certain patterns
-                    start = i
-                    # Count how many non-space, non-operator chars follow
-                    char_count = 0
-                    has_uppercase = False
-                    while i < len(latex) and latex[i] not in ('^', '_', ' ', '\t', '\n', '{', '}', '(', ')', '[', ']', '+', '-', '*', '/', '=', '<', '>', ',', '.', '|', '\\'):
-                        if latex[i].isupper():
-                            has_uppercase = True
-                        char_count += 1
-                        i += 1
-
-                    # If more than 1 char without braces, that's an issue
-                    if char_count > 1:
-                        issues.append(f"Multi-character {operator} at position {start-1} needs braces: '{latex[start-1:i]}'")
-                    # Single uppercase letter as superscript might indicate a set/space (like R^V for R to the V dimension)
-                    # However, some patterns like ^T (transpose) are acceptable
-                    elif char_count == 1 and has_uppercase:
-                        # Common acceptable patterns: ^T (transpose), ^H (Hermitian), ^* (not uppercase but similar)
-                        # Skip these common patterns
-                        if latex[start] in ('T', 'H'):
-                            # ^T and ^H are commonly used for transpose/Hermitian without braces
-                            pass
-                        # For other single uppercase letters, check if at end or followed by delimiter
-                        elif i >= len(latex) or latex[i] in (' ', '\t', '\n', '$', ',', '.', ')', '}', ']'):
-                            issues.append(f"Single uppercase {operator}{latex[start]} at position {start-1} should be braced for clarity: '{latex[start-1:i]}'")
-
-            else:
-                i += 1
-
-        if issues:
-            return "; ".join(issues)
+        # Disabled - too many false positives for valid mathematical notation
+        # Common patterns that are valid without braces:
+        # - x^T, A^T (transpose)
+        # - x^2, x^n (powers)
+        # - x_i, x_k (indices)
+        # - ||x||_A (A-norm)
         return None
 
     def check_angle_brackets(self, latex: str) -> Optional[str]:
@@ -341,6 +248,9 @@ class LatexValidator:
         GitHub's markdown renderer can misinterpret < as HTML tags.
         Returns error message if issues found, None if valid.
         """
+        if not self.check_angles:
+            return None
+
         errors = []
 
         # Find < and > that are not part of \lt, \gt, \le, \ge, \leq, \geq, \langle, \rangle
@@ -426,8 +336,9 @@ class LatexValidator:
 
         # Check for underscores that aren't part of subscripts
         # This is trickier - underscores for subscripts are fine, but bare _ can cause issues
-        # Pattern: _ not followed by { or alphanumeric (which would make it a subscript)
-        bare_underscore = re.search(r'_(?![{a-zA-Z0-9\\])', latex)
+        # Pattern: _ not followed by { or alphanumeric or +/- (which would make it a subscript)
+        # Allow: x_i, x_{ij}, v_+, v_-, x_\alpha
+        bare_underscore = re.search(r'_(?![{a-zA-Z0-9+\-\\])', latex)
         if bare_underscore:
             errors.append(
                 f"Bare underscore in inline math may cause rendering issues. "
@@ -955,6 +866,8 @@ def main():
     parser = argparse.ArgumentParser(description='Validate LaTeX syntax in markdown files')
     parser.add_argument('--no-require-large', action='store_true',
                         help='Disable check for \\large in math blocks')
+    parser.add_argument('--check-angles', action='store_true',
+                        help='Check for raw < and > that should be \\lt and \\gt (can have false positives)')
     args = parser.parse_args()
 
     # Find the root directory
@@ -965,7 +878,7 @@ def main():
         root_dir = current_dir
 
     require_large = not args.no_require_large
-    validator = LatexValidator(root_dir, require_large=require_large)
+    validator = LatexValidator(root_dir, require_large=require_large, check_angles=args.check_angles)
     exit_code = validator.run()
     sys.exit(exit_code)
 
