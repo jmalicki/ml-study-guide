@@ -272,7 +272,7 @@ $$I(\theta) = \text{Var}_{x \sim p_\theta}[s(x; \theta)]$$
 
 ### Equivalent Form: Negative Expected Hessian
 
-Under regularity conditions (interchanging differentiation and integration):
+Under [regularity conditions](https://en.wikipedia.org/wiki/Leibniz_integral_rule) (interchanging differentiation and integration):
 
 $$I(\theta) = -\mathbb{E}_{x \sim p_\theta}\left[\frac{\partial^2 \log p(x; \theta)}{\partial \theta^2}\right]$$
 
