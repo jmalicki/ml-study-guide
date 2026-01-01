@@ -238,7 +238,7 @@ def analyze_gradient_heterogeneity():
     x = torch.randint(0, 10000, (32,))
     y = torch.randint(0, 10, (32,))
 
-    output = model[0](x).mean(1)  # Embedding
+    output = model[0](x)  # Embedding: shape (32, 512)
     for layer in model[1:]:
         output = layer(output)
 

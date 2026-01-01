@@ -305,7 +305,7 @@ def preconditioned_cg(
     Preconditioned Conjugate Gradient.
 
     Args:
-        A: Matrix (or matvec function)
+        A: Matrix (torch.Tensor). For matrix-free version, see matrix_free_cg.
         b: Right-hand side
         M_inv: Function applying M^{-1}
         max_iter: Maximum iterations

@@ -350,6 +350,8 @@ def check_gradient_flow(model: nn.Module):
 ## The Complete Training Loop
 
 ```python
+import time
+
 def train_llm(
     model: nn.Module,
     train_dataloader,
@@ -361,6 +363,7 @@ def train_llm(
     log_interval: int = 10,
     eval_interval: int = 500,
     eval_fn=None,
+    compute_loss=None,  # User must provide task-specific loss function
 ):
     """Complete LLM training loop."""
     num_training_steps = len(train_dataloader) * num_epochs

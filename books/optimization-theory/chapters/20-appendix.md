@@ -207,7 +207,7 @@ Special case of Woodbury for rank-1 updates.
 
 ## H. Numerical Stability
 
-### Floating Point Precision
+### Floating-Point Precision
 
 | Type | Bits | Exponent | Mantissa | Range | Epsilon |
 |------|------|----------|----------|-------|---------|

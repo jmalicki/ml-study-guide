@@ -195,8 +195,8 @@ class NesterovSGD:
             # Update velocity with gradient at lookahead
             v.mul_(self.momentum).add_(p.grad)
 
-            # The momentum step was already taken; now add gradient step
-            p.data.sub_(self.lr * p.grad)
+            # Update parameters using velocity (lookahead already applied above)
+            p.data.sub_(self.lr * v)
 
         self.zero_grad()
 

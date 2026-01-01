@@ -40,11 +40,13 @@ def linear_interpolation_loss(
     criterion = nn.CrossEntropyLoss()
     losses = []
 
+    import copy
+
     params1 = {name: p.data.clone() for name, p in model1.named_parameters()}
     params2 = {name: p.data.clone() for name, p in model2.named_parameters()}
 
-    # Create interpolated model
-    interp_model = type(model1)(*model1.__init__.__code__.co_varnames[1:])
+    # Create interpolated model by copying model1
+    interp_model = copy.deepcopy(model1)
 
     for t in torch.linspace(0, 1, n_points):
         # Interpolate parameters
@@ -142,11 +144,13 @@ def find_bezier_path(
     params1 = torch.cat([p.flatten() for p in model1.parameters()])
     params2 = torch.cat([p.flatten() for p in model2.parameters()])
 
+    import copy
+
     # Initialize midpoint as average
     params_mid = ((params1 + params2) / 2).clone().requires_grad_(True)
 
     # Create a template model for evaluation
-    template = type(model1)(*[m for m in model1.modules()][0])
+    template = copy.deepcopy(model1)
 
     def set_params(model, flat_params):
         idx = 0
