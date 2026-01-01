@@ -213,12 +213,12 @@ K-FAC's Kronecker factorization $F \approx A \otimes G$ is exact for linear netw
 
 ## Further Reading
 
-1. **Amari, S.** "Natural Gradient Works Efficiently in Learning" (1998)
+1. [Amari, S. "Natural Gradient Works Efficiently in Learning" (1998)](https://direct.mit.edu/neco/article/10/2/251/6143/Natural-Gradient-Works-Efficiently-in-Learning)
 
-2. **Martens, J. & Grosse, R.** "Optimizing Neural Networks with Kronecker-factored Approximate Curvature" (ICML 2015)
+2. [Martens, J. & Grosse, R. "Optimizing Neural Networks with Kronecker-factored Approximate Curvature" (ICML 2015)](https://arxiv.org/abs/1503.05671)
 
-3. **Gupta, V. et al.** "Shampoo: Preconditioned Stochastic Tensor Optimization" (ICML 2018)
+3. [Gupta, V. et al. "Shampoo: Preconditioned Stochastic Tensor Optimization" (ICML 2018)](https://arxiv.org/abs/1802.09568)
 
-4. **Bernstein, J. et al.** "Old Optimizer, New Norm: An Anthology" (2023) — Muon theoretical foundations
+4. [Bernstein, J. et al. "Old Optimizer, New Norm: An Anthology" (2023)](https://arxiv.org/abs/2312.08621) — Muon theoretical foundations
 
-5. **Absil, P-A. et al.** "Optimization Algorithms on Matrix Manifolds" (2008)
+5. [Absil, P-A. et al. "Optimization Algorithms on Matrix Manifolds" (2008)](https://press.princeton.edu/absil)
