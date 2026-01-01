@@ -1065,6 +1065,8 @@ print(f"Answer: {result['answer']}")
 
 - [PAL: Program-aided Language Models (Gao et al., 2023)](https://arxiv.org/abs/2211.10435)
 
+<a id="react-reasoning-and-acting"></a>
+
 ## ReAct: Reasoning and Acting
 
 ReAct (Reasoning + Acting), proposed by Yao et al. (2023), interleaves reasoning traces with action execution, enabling LLMs to interact with external environments and tools.
@@ -1471,6 +1473,8 @@ result = web_agent.solve(task, max_steps=10)
 
 - [ReAct: Synergizing Reasoning and Acting in Language Models (Yao et al., 2023)](https://arxiv.org/abs/2210.03629)
 
+<a id="tree-of-thought-reasoning"></a>
+
 ## Tree-of-Thought Reasoning
 
 Tree-of-Thought (ToT), proposed by Yao et al. (2023), generalizes CoT by exploring a tree of reasoning steps rather than a single chain.
@@ -1771,6 +1775,8 @@ print(f"\nConfidence score: {score:.2f}")
 **Reference:**
 
 - [Tree of Thoughts: Deliberate Problem Solving with Large Language Models (Yao et al., 2023)](https://arxiv.org/abs/2305.10601)
+
+<a id="process-reward-models-prms"></a>
 
 ## Process Reward Models (PRMs)
 
@@ -2123,6 +2129,8 @@ def best_of_n_with_prm(model, prm, tokenizer, question, n=8, device="cuda"):
 
 - [Let's Verify Step by Step (OpenAI, Lightman et al., 2023)](https://arxiv.org/abs/2305.20050)
 
+<a id="reasoning-traces-and-verification"></a>
+
 ## Reasoning Traces and Verification
 
 Reasoning traces are the explicit intermediate steps a model generates. Verification involves checking whether these steps are correct.
@@ -2305,6 +2313,8 @@ print(f"Code answer: {result['code_answer']}")
 print(f"Verified: {result['verified']}")
 
 ```text
+
+<a id="test-time-compute-scaling"></a>
 
 ## Test-Time Compute Scaling
 
@@ -2679,8 +2689,10 @@ Key principles:
 
 **References:**
 
-- [Learning to Reason with LLMs (OpenAI o1 announcement)](https://openai.com/index/learning-to-reason-with-llms/)
+- [OpenAI o1 System Card (arXiv)](https://arxiv.org/abs/2412.16720)
 - [Scaling LLM Test-Time Compute Optimally (Snell et al., 2024)](https://arxiv.org/abs/2408.03314)
+
+<a id="method-selection-guide"></a>
 
 ## Method Selection Guide
 
@@ -2908,6 +2920,8 @@ def adaptive_reasoning(question: str, difficulty: str, budget: float) -> Reasoni
             )
 
 ```text
+
+<a id="failure-modes-and-mitigation"></a>
 
 ## Failure Modes and Mitigation
 
@@ -3303,6 +3317,8 @@ def reason_with_fallback(question, max_attempts=3):
 
 ```text
 
+<a id="benchmark-results"></a>
+
 ## Benchmark Results
 
 Here we present real-world benchmark results for different reasoning methods across standard datasets.
@@ -3534,6 +3550,8 @@ print(f"Avg time per question: {results['avg_time_per_question']:.2f}s")
 print(f"Avg cost per question: ${results['avg_cost_per_question']:.4f}")
 
 ```text
+
+<a id="implementation-building-a-reasoning-system"></a>
 
 ## Implementation: Building a Reasoning System
 
@@ -3815,6 +3833,8 @@ for i, question in enumerate(questions, 1):
     print()
 
 ```text
+
+<a id="exercises"></a>
 
 ## Exercises
 
