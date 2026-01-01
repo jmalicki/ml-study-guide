@@ -965,7 +965,6 @@ When implementing and deploying activation functions, several practical consider
 
 3. **Implementation Tip**:
 
-
    ```python
    # Numerically stable sigmoid for very negative values
    def stable_sigmoid(x: torch.Tensor) -> torch.Tensor:
@@ -975,7 +974,7 @@ When implementing and deploying activation functions, several practical consider
            1 / (1 + torch.exp(-x)),
            torch.exp(x) / (1 + torch.exp(x))
        )
-```
+   ```
 
 **Memory Considerations:**
 
@@ -991,13 +990,12 @@ When implementing and deploying activation functions, several practical consider
 
 3. **Memory Example**:
 
-
    ```python
    # For a layer with input shape (batch_size, seq_len, d_model):
    # Standard activation memory: batch_size * seq_len * d_ff
    # SwiGLU activation memory: batch_size * seq_len * d_ff * 2
    # (must store both gate and value for backprop)
-```
+   ```
 
 4. **Hardware Efficiency**:
    - Many implementations round $d_{\text{ff}}$ to multiples of 256 or 512
