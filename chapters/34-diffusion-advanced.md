@@ -4209,7 +4209,7 @@ def train_stable_diffusion_example():
 ### Latent Diffusion
 
 3. [High-Resolution Image Synthesis with Latent Diffusion Models](https://arxiv.org/abs/2112.10752) (Rombach et al., 2022)
-4. [Stable Diffusion GitHub](https://github.com/Stability-AI/stablediffusion)
+4. [Stability AI Generative Models](https://github.com/Stability-AI/generative-models)
 
 ### Conditioning
 
