@@ -2709,13 +2709,14 @@ if __name__ == "__main__":
    ```python
    class FlamingoStyleDecoder(nn.Module):
        def __init__(self, n_layers=12, cross_attn_frequency=4):
+           super().__init__()
            self.layers = nn.ModuleList()
            for i in range(n_layers):
                use_cross_attn = (i % cross_attn_frequency == 0)
                self.layers.append(
                    MultimodalDecoderOnlyLayer(use_cross_attention=use_cross_attn)
                )
-```
+   ```
 
 2. **Prefix Cross-Attention (LLaVA)**:
    - Visual features processed into "visual tokens"
