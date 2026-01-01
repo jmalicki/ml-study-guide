@@ -368,7 +368,7 @@ The preconditioned version converges in 1-2 steps because the perfect preconditi
 
 1. **Gradient descent is simple but limited**: O(1/T) convergence, crippled by ill-conditioning
 
-2. **Condition number is the enemy**: High κ means slow convergence and narrow stability regions
+2. **Condition number is the enemy**: High $\kappa$ means slow convergence and narrow stability regions
 
 3. **The spherical trust region is wrong**: Gradient descent can't adapt to direction-dependent curvature
 
@@ -389,10 +389,10 @@ Each addresses a specific failure mode of vanilla gradient descent.
 
 ## Exercises
 
-1. **Prove the O(1/T) rate**: For L-smooth convex f, show that gradient descent with η = 1/L satisfies the convergence bound.
+1. **Prove the $O(1/T)$ rate**: For $L$-smooth convex $f$, show that gradient descent with $\eta = 1/L$ satisfies the convergence bound.
 
-2. **Eigenvalue analysis**: For the quadratic f(x) = ½x^TAx, express the gradient descent update in the eigenbasis of A. Show that each eigencomponent contracts by (1 - ηλᵢ).
+2. **Eigenvalue analysis**: For the quadratic $f(x) = \frac{1}{2}x^TAx$, express the gradient descent update in the eigenbasis of $A$. Show that each eigencomponent contracts by $(1 - \eta\lambda_i)$.
 
-3. **Optimal learning rate**: For a quadratic with eigenvalues λ₁ ≤ ... ≤ λₙ, find the learning rate that minimizes the worst-case contraction factor.
+3. **Optimal learning rate**: For a quadratic with eigenvalues $\lambda_1 \leq ... \leq \lambda_n$, find the learning rate that minimizes the worst-case contraction factor.
 
 4. **Implement line search**: Write a gradient descent variant that chooses the learning rate adaptively at each step using backtracking line search.

@@ -131,7 +131,7 @@ Near a saddle point, the gradient is small in all directions.
 
 For a quadratic saddle $f(x, y) = x^2 - y^2$ at the origin:
 - Gradient = 0 at (0, 0)
-- Near (ε, ε): gradient ≈ (2ε, -2ε)
+- Near $(\epsilon, \epsilon)$: gradient $\approx (2\epsilon, -2\epsilon)$
 
 Gradient descent slows down dramatically near saddles.
 
@@ -167,7 +167,7 @@ def saddle_slowdown_demo():
 
 ### The Attraction-Repulsion Dynamics
 
-At a saddle point with eigenvalue +λ in direction $v_+$ and -μ in direction $v_-$:
+At a saddle point with eigenvalue $+\lambda$ in direction $v_+$ and $-\mu$ in direction $v_-$:
 
 - Along $v_+$: pulled toward saddle (attractive)
 - Along $v_-$: pushed away from saddle (repulsive)

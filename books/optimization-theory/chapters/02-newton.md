@@ -444,8 +444,8 @@ Newton's method is the **theoretically optimal** optimizer:
 
 | Property | Gradient Descent | Newton |
 |----------|-----------------|--------|
-| Convergence | Linear: O(κ log 1/ε) | Quadratic: O(log log 1/ε) |
-| Condition dependence | Crippled by high κ | Invariant to κ |
+| Convergence | Linear: $O(\kappa \log 1/\epsilon)$ | Quadratic: $O(\log \log 1/\epsilon)$ |
+| Condition dependence | Crippled by high $\kappa$ | Invariant to $\kappa$ |
 | Per-step cost | O(n) | O(n³) |
 | Memory | O(n) | O(n²) |
 | Saddle points | Escapes slowly | Can converge to them |
@@ -467,10 +467,10 @@ The computational impossibility of Newton leads to:
 
 ## Exercises
 
-1. **Quadratic convergence proof**: Show that for f with Lipschitz Hessian, Newton satisfies $\|θ_{t+1} - θ^*\| ≤ C\|θ_t - θ^*\|²$.
+1. **Quadratic convergence proof**: Show that for $f$ with Lipschitz Hessian, Newton satisfies $\|\theta_{t+1} - \theta^*\| \leq C\|\theta_t - \theta^*\|^2$.
 
 2. **Newton for logistic regression**: Implement Newton's method for logistic regression. Compare iterations needed vs. gradient descent.
 
-3. **Analyze damping**: For the saddle function $f(x,y) = x² - y²$, find the minimum damping $λ$ that makes the origin unstable for damped Newton.
+3. **Analyze damping**: For the saddle function $f(x,y) = x^2 - y^2$, find the minimum damping $\lambda$ that makes the origin unstable for damped Newton.
 
 4. **HVP efficiency**: Verify empirically that Hessian-vector products take approximately 2× the time of gradient computation.

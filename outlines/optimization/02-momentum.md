@@ -49,7 +49,7 @@ Momentum methods accelerate convergence by accumulating velocity, helping escape
 ### 5. Convergence Analysis
 
 - For quadratics: optimal β approaches 1 as condition number increases
-- Convergence rate: O(√κ) vs O(κ) for GD
+- Convergence rate: $O(\sqrt{\kappa})$ vs $O(\kappa)$ for GD
 - The "momentum gap": why Nesterov is faster
 - Heavy ball vs Nesterov: when does lookahead help?
 

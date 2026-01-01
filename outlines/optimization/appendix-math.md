@@ -122,8 +122,8 @@ This appendix provides the mathematical background for understanding the geometr
 
 **Condition Number**:
 - κ = L/μ (smoothness / strong convexity)
-- GD convergence: O(κ log(1/ε))
-- Accelerated: O(√κ log(1/ε))
+- GD convergence: $O(\kappa \log(1/\epsilon))$
+- Accelerated: $O(\sqrt{\kappa} \log(1/\epsilon))$
 
 ### 10. Convergence Analysis
 

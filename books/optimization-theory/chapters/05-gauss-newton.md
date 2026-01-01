@@ -142,8 +142,8 @@ The **Levenberg-Marquardt** algorithm adds adaptive damping:
 
 $$(J^T J + \lambda I) \delta = -J^T r$$
 
-- **Large λ**: Behaves like gradient descent (safe, small steps)
-- **Small λ**: Behaves like Gauss-Newton (fast convergence near solution)
+- **Large $\lambda$**: Behaves like gradient descent (safe, small steps)
+- **Small $\lambda$**: Behaves like Gauss-Newton (fast convergence near solution)
 
 ```python
 def levenberg_marquardt(
@@ -212,7 +212,7 @@ Levenberg-Marquardt can be understood as a trust-region method:
 
 $$\min_\delta \|r + J\delta\|^2 \quad \text{s.t.} \quad \|\delta\| \leq \Delta$$
 
-The damping λ plays the role of a Lagrange multiplier for the constraint.
+The damping $\lambda$ plays the role of a Lagrange multiplier for the constraint.
 
 ## Connection to Fisher Information
 
@@ -480,7 +480,7 @@ class GaussNewtonOptimizer:
 
 ## Exercises
 
-1. **Verify the Hessian formula**: Derive the exact Hessian of ½||r(θ)||² and identify the Gauss-Newton approximation.
+1. **Verify the Hessian formula**: Derive the exact Hessian of $\frac{1}{2}\|r(\theta)\|^2$ and identify the Gauss-Newton approximation.
 
 2. **Compare convergence**: Implement Gauss-Newton and gradient descent for nonlinear regression. Compare convergence rates.
 

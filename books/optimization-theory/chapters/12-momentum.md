@@ -140,7 +140,7 @@ def momentum_dampens_oscillations():
 
 When the gradient is small but consistent, momentum builds up:
 
-After k steps with constant gradient g:
+After $k$ steps with constant gradient $g$:
 $$v_k = g(1 + \beta + \beta^2 + \cdots + \beta^{k-1}) = g\frac{1-\beta^k}{1-\beta}$$
 
 For $\beta = 0.9$: Effective gradient is amplified by up to 10×.
@@ -222,7 +222,7 @@ def nesterov_update_pytorch_style(param, grad, velocity, lr, momentum):
 
 ### Why Nesterov Is Better
 
-For convex quadratics with condition number κ:
+For convex quadratics with condition number $\kappa$:
 
 | Method | Convergence Rate |
 |--------|------------------|
@@ -238,12 +238,12 @@ Nesterov achieves the **optimal rate** for first-order methods on convex problem
 
 | Hyperparameter | Common Value | Notes |
 |---------------|--------------|-------|
-| β (momentum) | 0.9 | Higher for stable, lower for noisy |
+| $\beta$ (momentum) | 0.9 | Higher for stable, lower for noisy |
 | Learning rate | Reduced vs no-momentum | Momentum amplifies steps |
 
 ### Interaction with Learning Rate
 
-With momentum β = 0.9, the effective step size is amplified by 1/(1-β) = 10.
+With momentum $\beta = 0.9$, the effective step size is amplified by $1/(1-\beta) = 10$.
 
 Rule of thumb: If using momentum, you may need to reduce the learning rate.
 
@@ -284,10 +284,10 @@ def lr_momentum_interaction():
 ### Momentum Schedule
 
 Some practitioners reduce momentum early in training:
-- Start with β = 0.5
-- Gradually increase to β = 0.9
+- Start with $\beta = 0.5$
+- Gradually increase to $\beta = 0.9$
 
-This allows larger learning rates early (β is lower) and stable convergence later (β is higher).
+This allows larger learning rates early ($\beta$ is lower) and stable convergence later ($\beta$ is higher).
 
 ## Understanding the Dynamics
 
@@ -295,7 +295,7 @@ This allows larger learning rates early (β is lower) and stable convergence lat
 
 For a quadratic $f(x) = \frac{1}{2}x^TAx$, momentum dynamics decompose by eigenvalue.
 
-For eigenvalue λ with eigenvector v, the component along v follows:
+For eigenvalue $\lambda$ with eigenvector $v$, the component along $v$ follows:
 
 $$x_{t+1}^{(v)} = (1 + \beta - \eta\lambda)x_t^{(v)} - \beta x_{t-1}^{(v)}$$
 
@@ -341,7 +341,7 @@ For momentum to be stable, the learning rate must satisfy:
 
 $$\eta < \frac{(1 + \beta)^2}{\lambda_{max}}$$
 
-This is more restrictive than GD (η < 2/λ_max) when β > 0.
+This is more restrictive than GD ($\eta < 2/\lambda_{\max}$) when $\beta > 0$.
 
 ## Momentum and Noise
 
@@ -353,7 +353,7 @@ $$v_t = \sum_{i=0}^{t-1} \beta^i g_{t-1-i}$$
 
 The effective noise variance is reduced by a factor of $(1-\beta^2)/(1-\beta)^2 \approx (1+\beta)/(1-\beta)$.
 
-For β = 0.9: Noise reduced by factor of 19.
+For $\beta = 0.9$: Noise reduced by factor of 19.
 
 ### But Momentum Has Memory
 
@@ -366,7 +366,7 @@ Solutions:
 
 ## Key Takeaways
 
-1. **Momentum accelerates convergence** by O(√κ) for quadratics
+1. **Momentum accelerates convergence** by $O(\sqrt{\kappa})$ for quadratics
 
 2. **It dampens oscillations** in high-curvature directions
 
@@ -376,7 +376,7 @@ Solutions:
 
 5. **It smooths stochastic noise** by averaging over history
 
-6. **The standard setting β = 0.9** works well in practice
+6. **The standard setting $\beta = 0.9$** works well in practice
 
 ## What's Next
 
@@ -385,7 +385,7 @@ Solutions:
 
 ## Exercises
 
-1. **Eigenvalue stability**: For what range of learning rates is momentum stable for eigenvalue λ = 10 with β = 0.9?
+1. **Eigenvalue stability**: For what range of learning rates is momentum stable for eigenvalue $\lambda = 10$ with $\beta = 0.9$?
 
 2. **Noise reduction**: Empirically measure the variance reduction from momentum on a noisy gradient.
 

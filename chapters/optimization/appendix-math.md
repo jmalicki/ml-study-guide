@@ -169,15 +169,15 @@ Convergence: $\theta_k = (I - \eta H)^k \theta_0$
 
 For convergence, need $|1 - \eta \lambda_i| < 1$ for all $i$, giving $\eta < 2/\lambda_{\max}$.
 
-Optimal $\eta = 2/(\lambda_{\max} + \lambda_{\min})$ gives rate $(κ-1)/(κ+1)$ where $κ = \lambda_{\max}/\lambda_{\min}$.
+Optimal $\eta = 2/(\lambda_{\max} + \lambda_{\min})$ gives rate $(\kappa-1)/(\kappa+1)$ where $\kappa = \lambda_{\max}/\lambda_{\min}$.
 
 ### Momentum Analysis
 
 Heavy ball: $\theta_{k+1} = \theta_k - \eta \nabla L + \beta(\theta_k - \theta_{k-1})$
 
-Optimal $\beta = ((√κ - 1)/(√κ + 1))^2$ gives rate $(√κ-1)/(√κ+1)$.
+Optimal $\beta = ((\sqrt{\kappa} - 1)/(\sqrt{\kappa} + 1))^2$ gives rate $(\sqrt{\kappa}-1)/(\sqrt{\kappa}+1)$.
 
-Improvement: $O(κ)$ iterations → $O(√κ)$ iterations.
+Improvement: $O(\kappa)$ iterations → $O(\sqrt{\kappa})$ iterations.
 
 ### Strong Convexity
 

@@ -213,11 +213,11 @@ Early steps need this correction most.
 | Parameter | Typical Value | Effect |
 |-----------|--------------|--------|
 | lr | 0.001 | Step size |
-| β₁ | 0.9 | Momentum decay |
-| β₂ | 0.999 | Squared gradient decay |
-| ε | 1e-8 | Numerical stability |
+| $\beta_1$ | 0.9 | Momentum decay |
+| $\beta_2$ | 0.999 | Squared gradient decay |
+| $\epsilon$ | 1e-8 | Numerical stability |
 
-**β₂ is crucial**: Too small = noisy estimates. Too large = slow adaptation.
+**$\beta_2$ is crucial**: Too small = noisy estimates. Too large = slow adaptation.
 
 ![Adam component visualization](../images/adam-components-visual.svg)
 
@@ -354,9 +354,9 @@ Each parameter moves by approximately the same amount, regardless of gradient ma
 
 2. **Learning rate needs tuning** per problem
 
-3. **β₂ too high** can cause slow adaptation
+3. **$\beta_2$ too high** can cause slow adaptation
 
-4. **ε matters** for numerical stability with half-precision
+4. **$\epsilon$ matters** for numerical stability with half-precision
 
 ### Hyperparameter Guidelines
 
@@ -396,6 +396,6 @@ optimizer = torch.optim.AdamW(
 
 2. **Compare Adam vs SGD**: Train the same network with both. How do loss curves differ?
 
-3. **β₂ sensitivity**: How does Adam performance change with β₂ ∈ {0.9, 0.99, 0.999, 0.9999}?
+3. **$\beta_2$ sensitivity**: How does Adam performance change with $\beta_2 \in \{0.9, 0.99, 0.999, 0.9999\}$?
 
 4. **Weight decay comparison**: Compare L2 regularization in Adam vs AdamW weight decay.

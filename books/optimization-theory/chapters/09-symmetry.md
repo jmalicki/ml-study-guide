@@ -299,7 +299,7 @@ For networks with homogeneous activations, scaling weights up in one layer and d
 
 $$f(x; \alpha W_1, W_2/\alpha) = f(x; W_1, W_2)$$
 
-This is a **continuous** symmetry (α can be any positive number).
+This is a **continuous** symmetry ($\alpha$ can be any positive number).
 
 ```python
 def scaling_symmetry():

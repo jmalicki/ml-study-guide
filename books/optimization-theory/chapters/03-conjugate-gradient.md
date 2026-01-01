@@ -521,7 +521,7 @@ Practical guidelines:
 
 1. **CG solves linear systems in O(n) memory** using only matrix-vector products
 
-2. **Convergence depends on √κ**, much better than gradient descent's κ
+2. **Convergence depends on $\sqrt{\kappa}$**, much better than gradient descent's $\kappa$
 
 3. **Matrix-free nature** enables use with implicit matrices (Hessians)
 

@@ -106,9 +106,9 @@ Second-order methods use curvature information (the Hessian) to determine optima
 
 | Method | Memory | Per-step cost | Convergence |
 |--------|--------|---------------|-------------|
-| GD | O(n) | O(n) | O(κ) steps |
-| Momentum | O(n) | O(n) | O(√κ) steps |
-| Adam | O(n) | O(n) | O(√κ) (empirical) |
+| GD | O(n) | O(n) | $O(\kappa)$ steps |
+| Momentum | O(n) | O(n) | $O(\sqrt{\kappa})$ steps |
+| Adam | O(n) | O(n) | $O(\sqrt{\kappa})$ (empirical) |
 | L-BFGS | O(mn) | O(mn) | Superlinear |
 | Hessian-Free | O(n) | O(kn) per step | ~Quadratic |
 | Newton | O(n²) | O(n³) | Quadratic |

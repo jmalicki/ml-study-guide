@@ -6,9 +6,9 @@ One of the most surprising discoveries in deep learning theory: independently tr
 
 ### Independent Solutions Are Connected
 
-Train the same architecture with different random seeds. You get different solutions θ₁ and θ₂.
+Train the same architecture with different random seeds. You get different solutions $\theta_1$ and $\theta_2$.
 
-**Surprising fact** (Garipov et al., 2018; Draxler et al., 2018): There exist paths from θ₁ to θ₂ where the loss stays low the entire way.
+**Surprising fact** (Garipov et al., 2018; Draxler et al., 2018): There exist paths from $\theta_1$ to $\theta_2$ where the loss stays low the entire way.
 
 ```python
 import torch

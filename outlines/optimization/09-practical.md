@@ -58,8 +58,8 @@ adamw_optimizer = AdamW(
 | Learning rate | Very high | 1e-4 to 1e-3 |
 | Warmup steps | Medium | 0.5-5% of total |
 | Weight decay | Medium | 0.01 to 0.3 |
-| β₁ (momentum) | Low | 0.9 to 0.95 |
-| β₂ (Adam) | Low-Medium | 0.95 to 0.999 |
+| $\beta_1$ (momentum) | Low | 0.9 to 0.95 |
+| $\beta_2$ (Adam) | Low-Medium | 0.95 to 0.999 |
 | Batch size | High (with LR) | 256 to 4096 |
 
 ### 4. Gradient Clipping
