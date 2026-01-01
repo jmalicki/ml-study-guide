@@ -267,10 +267,10 @@ Where:
 - $r$ is the reasoning trace
 - $\mathcal{R}$ is the space of all possible reasoning traces
 
-In practice, we approximate by sampling or greedily generating a single reasoning trace $r^*$:
+In practice, we approximate by sampling or greedily generating a single reasoning trace $r^\ast$:
 
 ```math
-\large a^* \approx \arg\max_a P(a|r^*, q) \text{ where } r^* = \arg\max_r P(r|q)
+\large a^\ast \approx \arg\max_a P(a|r^\ast, q) \text{ where } r^\ast = \arg\max_r P(r|q)
 ```
 
 **References:**
@@ -305,7 +305,7 @@ Self-consistency addresses this by treating reasoning as a **stochastic process*
 Self-consistency is based on the **wisdom of crowds** principle from ensemble learning:
 
 ```math
-\large a^* = \text{argmax}_a \sum_{r \in \mathcal{R}} P(a|r, q) P(r|q) \approx \text{mode}\{a_1, a_2, ..., a_N\}
+\large a^\ast = \text{argmax}_a \sum_{r \in \mathcal{R}} P(a|r, q) P(r|q) \approx \text{mode}\{a_1, a_2, ..., a_N\}
 ```
 
 where we approximate the marginalized distribution over reasoning paths by sampling $N$ paths and taking a majority vote.
@@ -1781,7 +1781,7 @@ Process Reward Models (PRMs), introduced by OpenAI for improving mathematical re
 **Outcome Reward Model (ORM):**
 
 $$
-r_{\text{outcome}}(q, r, a) = \mathbb{1}[a = a^*]
+r_{\text{outcome}}(q, r, a) = \mathbb{1}[a = a^\ast]
 $$
 
 Only rewards correct final answers, regardless of reasoning quality.
@@ -2345,7 +2345,7 @@ The fundamental insight is that **inference is optimization**:
 
 ```
 
-a^* = \arg\max_a P(a|q) = \arg\max_a \sum_{r} P(a|r, q) P(r|q)
+a^\ast = \arg\max_a P(a|q) = \arg\max_a \sum_{r} P(a|r, q) P(r|q)
 
 ```text
 

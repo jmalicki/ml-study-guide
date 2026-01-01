@@ -139,7 +139,7 @@
 1. **Line 222: Notation inconsistency**
 
    ```latex
-   $$a^* \approx \arg\max_a P(a|r^*, q) \text{ where } r^* = \arg\max_r P(r|q)$$
+   $$a^\ast \approx \arg\max_a P(a|r^\ast, q) \text{ where } r^\ast = \arg\max_r P(r|q)$$
    ```
 
    This should be clarified - are we doing greedy decoding or beam search? The notation suggests greedy but implementation uses sampling.

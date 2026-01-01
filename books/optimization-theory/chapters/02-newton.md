@@ -10,7 +10,7 @@ $$f(\theta + \delta) \approx f(\theta) + \nabla f(\theta)^T \delta + \frac{1}{2}
 
 Minimizing this quadratic gives the **Newton step**:
 
-$$\delta^* = -[\nabla^2 f(\theta)]^{-1} \nabla f(\theta)$$
+$$\delta^\ast = -[\nabla^2 f(\theta)]^{-1} \nabla f(\theta)$$
 
 The update is:
 
@@ -80,14 +80,14 @@ def newton_method(
 
 ### What Quadratic Convergence Means
 
-Near a minimum $\theta^*$, Newton's method satisfies:
+Near a minimum $\theta^\ast$, Newton's method satisfies:
 
-$$\|\theta_{t+1} - \theta^*\| \leq C \|\theta_t - \theta^*\|^2$$
+$$\|\theta_{t+1} - \theta^\ast\| \leq C \|\theta_t - \theta^\ast\|^2$$
 
 The error **squares** at each iteration. If you're at distance 0.1, next step you're at distance 0.01, then 0.0001, then 0.00000001.
 
 Compare to gradient descent's linear convergence:
-$$\|\theta_{t+1} - \theta^*\| \leq \rho \|\theta_t - \theta^*\|$$
+$$\|\theta_{t+1} - \theta^\ast\| \leq \rho \|\theta_t - \theta^\ast\|$$
 
 where $\rho = 1 - 1/\kappa$.
 
@@ -414,7 +414,7 @@ $$\lambda(\theta) = \sqrt{\nabla f(\theta)^T [H(\theta)]^{-1} \nabla f(\theta)}$
 This measures how far we are from the optimum in the local Hessian metric.
 
 Properties:
-- $\lambda(\theta^*) = 0$ at the optimum
+- $\lambda(\theta^\ast) = 0$ at the optimum
 - For $\lambda(\theta) \lt 1$, Newton converges quadratically
 - The decrease in $f$ per Newton step is approximately $\lambda^2/2$
 
@@ -479,7 +479,7 @@ The computational impossibility of Newton leads to:
 
 ## Exercises
 
-1. **Quadratic convergence proof**: Show that for $f$ with Lipschitz Hessian, Newton satisfies $\|\theta_{t+1} - \theta^*\| \leq C\|\theta_t - \theta^*\|^2$.
+1. **Quadratic convergence proof**: Show that for $f$ with Lipschitz Hessian, Newton satisfies $\|\theta_{t+1} - \theta^\ast\| \leq C\|\theta_t - \theta^\ast\|^2$.
 
 2. **Newton for logistic regression**: Implement Newton's method for logistic regression. Compare iterations needed vs. gradient descent.
 

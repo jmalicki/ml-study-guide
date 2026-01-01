@@ -112,7 +112,7 @@ Orthogonal matrices have **perfect conditioning**:
 
 Given any matrix $G$, we can find the **nearest orthogonal matrix**:
 
-$$Q^* = \arg\min_{Q: Q^\top Q = I} \|G - Q\|_F$$
+$$Q^\ast = \arg\min_{Q: Q^\top Q = I} \|G - Q\|_F$$
 
 This projection is given by the **polar decomposition**: $G = QP$ where $Q$ is orthogonal and $P$ is positive semi-definite.
 

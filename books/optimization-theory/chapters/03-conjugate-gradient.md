@@ -20,7 +20,7 @@ CG solves this using only **$O(n)$** memory and **$O(kn)$** time, where $k$ is t
 
 ### The Key Insight
 
-Consider a quadratic $f(x) = \frac{1}{2}x^TAx - b^Tx$. Its minimum is at $x^* = A^{-1}b$.
+Consider a quadratic $f(x) = \frac{1}{2}x^TAx - b^Tx$. Its minimum is at $x^\ast = A^{-1}b$.
 
 A set of directions $\{p_0, p_1, \ldots, p_{n-1}\}$ is **A-conjugate** if:
 
@@ -110,7 +110,7 @@ After k iterations, CG has explored the **Krylov subspace**:
 
 $$\mathcal{K}_k(A, b) = \text{span}\{b, Ab, A^2b, \ldots, A^{k-1}b\}$$
 
-CG finds the **best solution within this subspace**—the x that minimizes $\|x - x^*\|_A$.
+CG finds the **best solution within this subspace**—the x that minimizes $\|x - x^\ast\|_A$.
 
 ```python
 def demonstrate_krylov():
@@ -144,7 +144,7 @@ def demonstrate_krylov():
 
 For a matrix with condition number $\kappa$:
 
-$$\|x_k - x^*\|_A \leq 2\left(\frac{\sqrt{\kappa} - 1}{\sqrt{\kappa} + 1}\right)^k \|x_0 - x^*\|_A$$
+$$\|x_k - x^\ast\|_A \leq 2\left(\frac{\sqrt{\kappa} - 1}{\sqrt{\kappa} + 1}\right)^k \|x_0 - x^\ast\|_A$$
 
 Key observations:
 - Convergence depends on $\sqrt{\kappa}$, not $\kappa$ (much better than gradient descent!)

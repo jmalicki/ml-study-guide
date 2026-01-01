@@ -35,7 +35,7 @@ where:
 For smooth, convex functions with Lipschitz-continuous gradients, gradient descent converges at rate $O(1/t)$:
 
 ```math
-\large L(\theta_t) - L(\theta^*) \leq \frac{\|\theta_0 - \theta^*\|^2}{2\eta t}
+\large L(\theta_t) - L(\theta^\ast) \leq \frac{\|\theta_0 - \theta^\ast\|^2}{2\eta t}
 ```
 
 This means the error decreases as $1/t$—slow, but guaranteed.
@@ -51,7 +51,7 @@ The learning rate $\eta$ is critical:
 For a quadratic loss with Hessian $H$, the optimal learning rate is:
 
 ```math
-\large \eta^* = \frac{2}{\lambda_{\max} + \lambda_{\min}}
+\large \eta^\ast = \frac{2}{\lambda_{\max} + \lambda_{\min}}
 ```
 
 where $\lambda_{\max}$ and $\lambda_{\min}$ are the largest and smallest eigenvalues of $H$.
@@ -195,7 +195,7 @@ with $\lambda_1 = 100$ and $\lambda_2 = 1$ (so $\kappa = 100$).
 
 At point $(1, 1)$:
 - Gradient: $\nabla L = (100, 1)$ — mostly in the $\theta_1$ direction
-- Optimal step: $(\theta_1^*, \theta_2^*) - (\theta_1, \theta_2) = (-1, -1)$ — equal in both directions
+- Optimal step: $(\theta_1^\ast, \theta_2^\ast) - (\theta_1, \theta_2) = (-1, -1)$ — equal in both directions
 
 The gradient vastly overemphasizes $\theta_1$ because its curvature is higher, even though both parameters are equally far from optimal.
 
@@ -513,7 +513,7 @@ Implement gradient descent on a 2D quadratic with $\lambda_1 = 1$, $\lambda_2 = 
 ### Exercise 2: Optimal Learning Rate
 
 For a quadratic $L(\theta) = \frac{1}{2}\theta^\top H \theta$ with $H = \text{diag}(\lambda_1, \ldots, \lambda_n)$:
-1. Derive the optimal learning rate $\eta^* = 2/(\lambda_{\max} + \lambda_{\min})$
+1. Derive the optimal learning rate $\eta^\ast = 2/(\lambda_{\max} + \lambda_{\min})$
 2. Show that this is the largest stable learning rate
 
 ### Exercise 3: One-Step Convergence

@@ -194,11 +194,11 @@ Momentum changes $O(\kappa)$ convergence to $O(\sqrt{\kappa})$—a dramatic impr
 For quadratics, the optimal $\beta$ approaches 1 as $\kappa$ increases:
 
 ```math
-\large \beta^* = \left(\frac{\sqrt{\kappa} - 1}{\sqrt{\kappa} + 1}\right)^2 \approx 1 - \frac{4}{\sqrt{\kappa}}
+\large \beta^\ast = \left(\frac{\sqrt{\kappa} - 1}{\sqrt{\kappa} + 1}\right)^2 \approx 1 - \frac{4}{\sqrt{\kappa}}
 ```
 
-For $\kappa = 100$: $\beta^* \approx 0.67$
-For $\kappa = 10^4$: $\beta^* \approx 0.96$
+For $\kappa = 100$: $\beta^\ast \approx 0.67$
+For $\kappa = 10^4$: $\beta^\ast \approx 0.96$
 
 In practice, $\beta = 0.9$ works well across many problems.
 

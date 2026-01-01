@@ -410,17 +410,17 @@ where $L$ is the Lipschitz constant of the gradient and $\mu$ is the strong conv
 
 **For L-smooth convex functions** with $\eta = 1/L$:
 
-$$f(x_T) - f(x^*) \leq \frac{L \|x_0 - x^*\|^2}{2T}$$
+$$f(x_T) - f(x^\ast) \leq \frac{L \|x_0 - x^\ast\|^2}{2T}$$
 
 **For L-smooth, μ-strongly convex functions** with $\eta = 1/L$:
 
-$$\|x_T - x^*\|^2 \leq \left(1 - \frac{\mu}{L}\right)^T \|x_0 - x^*\|^2$$
+$$\|x_T - x^\ast\|^2 \leq \left(1 - \frac{\mu}{L}\right)^T \|x_0 - x^\ast\|^2$$
 
 ### Newton Convergence
 
 For functions with Lipschitz Hessian, near the optimum:
 
-$$\|x_{t+1} - x^*\| \leq C \|x_t - x^*\|^2$$
+$$\|x_{t+1} - x^\ast\| \leq C \|x_t - x^\ast\|^2$$
 
 This is **quadratic convergence**—the error squares each step.
 
@@ -428,7 +428,7 @@ This is **quadratic convergence**—the error squares each step.
 
 For L-smooth, μ-strongly convex functions with optimal momentum:
 
-$$f(x_T) - f(x^*) \leq \left(1 - \frac{1}{\sqrt{\kappa}}\right)^T (f(x_0) - f(x^*))$$
+$$f(x_T) - f(x^\ast) \leq \left(1 - \frac{1}{\sqrt{\kappa}}\right)^T (f(x_0) - f(x^\ast))$$
 
 This is the **optimal rate** for first-order methods.
 

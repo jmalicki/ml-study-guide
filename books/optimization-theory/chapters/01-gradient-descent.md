@@ -69,7 +69,7 @@ This bounds how fast the gradient can change. Equivalently, the Hessian eigenval
 
 For an L-smooth function, gradient descent with $\eta = 1/L$ satisfies:
 
-$$f(\theta_T) - f(\theta^*) \leq \frac{L \|\theta_0 - \theta^*\|^2}{2T}$$
+$$f(\theta_T) - f(\theta^\ast) \leq \frac{L \|\theta_0 - \theta^\ast\|^2}{2T}$$
 
 This is **$O(1/T)$** convergence—sublinear. To halve the error, you need twice as many iterations.
 
@@ -127,7 +127,7 @@ This is the ratio of the largest to smallest eigenvalue of $A$.
 
 For strongly convex functions with condition number $\kappa$:
 
-$$f(\theta_T) - f(\theta^*) \leq \left(1 - \frac{1}{\kappa}\right)^T (f(\theta_0) - f(\theta^*))$$
+$$f(\theta_T) - f(\theta^\ast) \leq \left(1 - \frac{1}{\kappa}\right)^T (f(\theta_0) - f(\theta^\ast))$$
 
 To reduce error by factor $e$, you need $T \approx \kappa$ iterations.
 

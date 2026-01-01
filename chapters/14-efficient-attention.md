@@ -280,7 +280,7 @@ def compare_linear_vs_standard():
 Any shift-invariant kernel $k(x-y)$ can be expressed as:
 
 ```math
-\large k(x-y) = \mathbb{E}_{\omega}[\phi_{\omega}(x)^* \phi_{\omega}(y)]
+\large k(x-y) = \mathbb{E}_{\omega}[\phi_{\omega}(x)^\ast \phi_{\omega}(y)]
 ```
 
 where $\phi_{\omega}(x) = e^{i\omega^T x}$ and $\omega$ is drawn from the Fourier transform of $k$.
