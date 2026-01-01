@@ -40,12 +40,14 @@ class LatexError:
 
 
 class LatexValidator:
-    def __init__(self, root_dir: Path, require_large: bool = True, check_angles: bool = True):
+    def __init__(self, root_dir: Path, require_large: bool = True, check_angles: bool = True,
+                 warnings_as_errors: bool = False):
         self.root_dir = root_dir
         self.errors: List[LatexError] = []
         self.warnings: List[LatexError] = []
         self.require_large = require_large  # Require \large in math blocks for readability
         self.check_angles = check_angles  # Check for raw < and > (should use \lt and \gt)
+        self.warnings_as_errors = warnings_as_errors  # Treat warnings as errors
 
     def extract_math_blocks(self, content: str, file_path: Path) -> List[Tuple[int, str, str]]:
         """
@@ -845,8 +847,12 @@ class LatexValidator:
             print("Validation FAILED")
             return 1
         elif self.warnings:
-            print(f"Validation PASSED with {len(self.warnings)} warning(s)")
-            return 0
+            if self.warnings_as_errors:
+                print(f"Validation FAILED: {len(self.warnings)} warning(s) treated as errors")
+                return 1
+            else:
+                print(f"Validation PASSED with {len(self.warnings)} warning(s)")
+                return 0
         else:
             print("All LaTeX syntax checks PASSED")
             return 0
@@ -861,6 +867,8 @@ def main():
                         help='Disable check for \\large in math blocks')
     parser.add_argument('--no-check-angles', action='store_true',
                         help='Disable check for raw < and > (should use \\lt and \\gt)')
+    parser.add_argument('--warnings-as-errors', '-Werror', action='store_true',
+                        help='Treat warnings as errors (exit with failure if any warnings)')
     args = parser.parse_args()
 
     # Find the root directory
@@ -872,7 +880,12 @@ def main():
 
     require_large = not args.no_require_large
     check_angles = not args.no_check_angles
-    validator = LatexValidator(root_dir, require_large=require_large, check_angles=check_angles)
+    validator = LatexValidator(
+        root_dir,
+        require_large=require_large,
+        check_angles=check_angles,
+        warnings_as_errors=args.warnings_as_errors
+    )
     exit_code = validator.run()
     sys.exit(exit_code)
 
