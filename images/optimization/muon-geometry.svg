@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 750 420">
+  <defs>
+    <marker id="orth-arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#16a34a"/>
+    </marker>
+    <marker id="raw-arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#dc2626"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="750" height="420" fill="#fafafa"/>
+
+  <!-- Title -->
+  <text x="375" y="30" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="bold" fill="#1f2937">Muon: Operator Geometry via Orthogonalization</text>
+
+  <!-- Left: Singular value spectrum of gradient -->
+  <g transform="translate(190, 200)">
+    <text x="0" y="-140" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="bold" fill="#374151">Raw Gradient</text>
+    <text x="0" y="-120" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#6b7280">Singular value spectrum</text>
+
+    <!-- Axes -->
+    <line x1="-100" y1="80" x2="100" y2="80" stroke="#9ca3af" stroke-width="1"/>
+    <line x1="-90" y1="90" x2="-90" y2="-80" stroke="#9ca3af" stroke-width="1"/>
+    <text x="105" y="85" font-family="sans-serif" font-size="9" fill="#6b7280">i</text>
+    <text x="-85" y="-85" font-family="sans-serif" font-size="9" fill="#6b7280">σᵢ</text>
+
+    <!-- Bars (decreasing singular values) -->
+    <rect x="-80" y="-60" width="12" height="140" fill="#dc2626"/>
+    <rect x="-60" y="-30" width="12" height="110" fill="#dc2626"/>
+    <rect x="-40" y="0" width="12" height="80" fill="#dc2626"/>
+    <rect x="-20" y="25" width="12" height="55" fill="#dc2626"/>
+    <rect x="0" y="45" width="12" height="35" fill="#dc2626"/>
+    <rect x="20" y="58" width="12" height="22" fill="#dc2626"/>
+    <rect x="40" y="67" width="12" height="13" fill="#dc2626"/>
+    <rect x="60" y="72" width="12" height="8" fill="#dc2626"/>
+
+    <text x="0" y="110" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#dc2626">σ_max >> σ_min</text>
+    <text x="0" y="125" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#dc2626">Poor conditioning</text>
+  </g>
+
+  <!-- Arrow: Newton-Schulz -->
+  <g transform="translate(350, 200)">
+    <line x1="-30" y1="0" x2="30" y2="0" stroke="#374151" stroke-width="2"/>
+    <polygon points="30,-5 45,0 30,5" fill="#374151"/>
+    <text x="0" y="-15" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#374151">Newton-Schulz</text>
+    <text x="0" y="20" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#374151">5 iterations</text>
+  </g>
+
+  <!-- Right: Orthogonalized gradient -->
+  <g transform="translate(560, 200)">
+    <text x="0" y="-140" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="bold" fill="#374151">Orthogonalized Gradient</text>
+    <text x="0" y="-120" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#6b7280">Singular value spectrum</text>
+
+    <!-- Axes -->
+    <line x1="-100" y1="80" x2="100" y2="80" stroke="#9ca3af" stroke-width="1"/>
+    <line x1="-90" y1="90" x2="-90" y2="-80" stroke="#9ca3af" stroke-width="1"/>
+    <text x="105" y="85" font-family="sans-serif" font-size="9" fill="#6b7280">i</text>
+    <text x="-85" y="-85" font-family="sans-serif" font-size="9" fill="#6b7280">σᵢ</text>
+
+    <!-- All bars equal height (orthogonal matrix: all σ = 1) -->
+    <rect x="-80" y="30" width="12" height="50" fill="#16a34a"/>
+    <rect x="-60" y="30" width="12" height="50" fill="#16a34a"/>
+    <rect x="-40" y="30" width="12" height="50" fill="#16a34a"/>
+    <rect x="-20" y="30" width="12" height="50" fill="#16a34a"/>
+    <rect x="0" y="30" width="12" height="50" fill="#16a34a"/>
+    <rect x="20" y="30" width="12" height="50" fill="#16a34a"/>
+    <rect x="40" y="30" width="12" height="50" fill="#16a34a"/>
+    <rect x="60" y="30" width="12" height="50" fill="#16a34a"/>
+
+    <!-- Reference line at σ = 1 -->
+    <line x1="-90" y1="30" x2="80" y2="30" stroke="#16a34a" stroke-width="1" stroke-dasharray="3,2"/>
+    <text x="85" y="35" font-family="sans-serif" font-size="8" fill="#16a34a">σ=1</text>
+
+    <text x="0" y="110" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#16a34a">All σᵢ = 1</text>
+    <text x="0" y="125" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#16a34a">Perfect conditioning!</text>
+  </g>
+
+  <!-- Newton-Schulz iteration at bottom -->
+  <g transform="translate(375, 370)">
+    <rect x="-280" y="-35" width="560" height="65" rx="5" fill="#f0fdf4" stroke="#16a34a"/>
+    <text x="0" y="-12" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="#166534">
+      Newton-Schulz Iteration
+    </text>
+    <text x="0" y="8" text-anchor="middle" font-family="monospace" font-size="12" fill="#166534">
+      X_{k+1} = X_k (3I - X_k^T X_k) / 2
+    </text>
+    <text x="0" y="25" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#374151">
+      Converges quadratically to nearest orthogonal matrix. 5 iterations typically sufficient.
+    </text>
+  </g>
+</svg>

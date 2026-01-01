@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 350">
+  <defs>
+    <marker id="traj-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#dc2626"/>
+    </marker>
+    <marker id="mom-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#2563eb"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="700" height="350" fill="#fafafa"/>
+
+  <!-- Title -->
+  <text x="350" y="25" text-anchor="middle" font-family="sans-serif" font-size="15" font-weight="bold" fill="#1f2937">Gradient Descent vs Momentum on Ill-Conditioned Problem</text>
+
+  <!-- Shared coordinate system -->
+  <g transform="translate(350, 185)">
+    <!-- Elliptical contours -->
+    <ellipse cx="0" cy="0" rx="280" ry="70" fill="none" stroke="#e5e7eb" stroke-width="1"/>
+    <ellipse cx="0" cy="0" rx="240" ry="60" fill="none" stroke="#d1d5db" stroke-width="1"/>
+    <ellipse cx="0" cy="0" rx="200" ry="50" fill="none" stroke="#9ca3af" stroke-width="1"/>
+    <ellipse cx="0" cy="0" rx="160" ry="40" fill="none" stroke="#6b7280" stroke-width="1"/>
+    <ellipse cx="0" cy="0" rx="120" ry="30" fill="none" stroke="#4b5563" stroke-width="1"/>
+    <ellipse cx="0" cy="0" rx="80" ry="20" fill="none" stroke="#374151" stroke-width="1"/>
+    <ellipse cx="0" cy="0" rx="40" ry="10" fill="none" stroke="#1f2937" stroke-width="1"/>
+
+    <!-- Optimum -->
+    <circle cx="0" cy="0" r="5" fill="#16a34a"/>
+    <text x="10" y="-5" font-family="sans-serif" font-size="11" fill="#16a34a">θ*</text>
+
+    <!-- GD trajectory (oscillating, slow) -->
+    <path d="M -250 55 L -200 -45 L -155 38 L -115 -32 L -80 26 L -50 -20 L -25 15 L -5 -8"
+          fill="none" stroke="#dc2626" stroke-width="2" opacity="0.8"/>
+    <circle cx="-250" cy="55" r="6" fill="#dc2626"/>
+
+    <!-- Momentum trajectory (smoother, faster) -->
+    <path d="M -250 -55 L -180 -30 L -120 -5 L -70 8 L -30 5 L -5 2"
+          fill="none" stroke="#2563eb" stroke-width="2.5"/>
+    <circle cx="-250" cy="-55" r="6" fill="#2563eb"/>
+
+    <!-- Labels for starting points -->
+    <text x="-270" y="75" font-family="sans-serif" font-size="10" fill="#dc2626">GD start</text>
+    <text x="-270" y="-65" font-family="sans-serif" font-size="10" fill="#2563eb">Momentum start</text>
+  </g>
+
+  <!-- Legend -->
+  <g transform="translate(50, 310)">
+    <line x1="0" y1="0" x2="40" y2="0" stroke="#dc2626" stroke-width="2"/>
+    <circle cx="0" cy="0" r="4" fill="#dc2626"/>
+    <text x="50" y="4" font-family="sans-serif" font-size="11" fill="#374151">Gradient Descent: oscillates, many steps</text>
+
+    <line x1="320" y1="0" x2="360" y2="0" stroke="#2563eb" stroke-width="2.5"/>
+    <circle cx="320" cy="0" r="4" fill="#2563eb"/>
+    <text x="370" y="4" font-family="sans-serif" font-size="11" fill="#374151">Momentum: smooth, fewer steps</text>
+  </g>
+
+  <!-- Comparison stats -->
+  <g transform="translate(550, 70)">
+    <text x="0" y="0" font-family="sans-serif" font-size="11" fill="#dc2626">GD: ~50 steps</text>
+    <text x="0" y="18" font-family="sans-serif" font-size="11" fill="#2563eb">Momentum: ~15 steps</text>
+    <text x="0" y="40" font-family="sans-serif" font-size="10" fill="#6b7280">κ = 16, β = 0.9</text>
+  </g>
+</svg>

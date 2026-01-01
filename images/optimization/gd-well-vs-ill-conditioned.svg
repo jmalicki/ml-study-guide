@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 350">
+  <defs>
+    <marker id="arr" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#dc2626"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="700" height="350" fill="#fafafa"/>
+
+  <!-- Left: Well-conditioned (κ ≈ 1) -->
+  <g transform="translate(175, 175)">
+    <text x="0" y="-140" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="bold" fill="#1f2937">Well-Conditioned (κ ≈ 1)</text>
+
+    <!-- Circular contours -->
+    <circle cx="0" cy="0" r="120" fill="none" stroke="#e5e7eb" stroke-width="1"/>
+    <circle cx="0" cy="0" r="100" fill="none" stroke="#d1d5db" stroke-width="1"/>
+    <circle cx="0" cy="0" r="80" fill="none" stroke="#9ca3af" stroke-width="1"/>
+    <circle cx="0" cy="0" r="60" fill="none" stroke="#6b7280" stroke-width="1"/>
+    <circle cx="0" cy="0" r="40" fill="none" stroke="#4b5563" stroke-width="1"/>
+    <circle cx="0" cy="0" r="20" fill="none" stroke="#374151" stroke-width="1"/>
+
+    <!-- Optimum -->
+    <circle cx="0" cy="0" r="4" fill="#16a34a"/>
+
+    <!-- Direct path to optimum -->
+    <path d="M -90 70 L -60 47 L -35 27 L -15 12 L 0 0"
+          fill="none" stroke="#dc2626" stroke-width="2"/>
+    <circle cx="-90" cy="70" r="5" fill="#dc2626"/>
+
+    <text x="0" y="145" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#6b7280">Gradient points toward minimum</text>
+    <text x="0" y="160" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#16a34a">Fast convergence</text>
+  </g>
+
+  <!-- Right: Ill-conditioned (κ >> 1) -->
+  <g transform="translate(525, 175)">
+    <text x="0" y="-140" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="bold" fill="#1f2937">Ill-Conditioned (κ >> 1)</text>
+
+    <!-- Elliptical contours -->
+    <ellipse cx="0" cy="0" rx="140" ry="35" fill="none" stroke="#e5e7eb" stroke-width="1"/>
+    <ellipse cx="0" cy="0" rx="117" ry="29" fill="none" stroke="#d1d5db" stroke-width="1"/>
+    <ellipse cx="0" cy="0" rx="93" ry="23" fill="none" stroke="#9ca3af" stroke-width="1"/>
+    <ellipse cx="0" cy="0" rx="70" ry="17" fill="none" stroke="#6b7280" stroke-width="1"/>
+    <ellipse cx="0" cy="0" rx="47" ry="12" fill="none" stroke="#4b5563" stroke-width="1"/>
+    <ellipse cx="0" cy="0" rx="23" ry="6" fill="none" stroke="#374151" stroke-width="1"/>
+
+    <!-- Optimum -->
+    <circle cx="0" cy="0" r="4" fill="#16a34a"/>
+
+    <!-- Oscillating path -->
+    <path d="M -110 28 L -80 -22 L -55 18 L -35 -14 L -18 10 L -5 -5 L 0 0"
+          fill="none" stroke="#dc2626" stroke-width="2"/>
+    <circle cx="-110" cy="28" r="5" fill="#dc2626"/>
+
+    <text x="0" y="145" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#6b7280">Gradient nearly perpendicular to optimal</text>
+    <text x="0" y="160" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#dc2626">Slow, oscillating convergence</text>
+  </g>
+
+  <!-- Divider -->
+  <line x1="350" y1="40" x2="350" y2="310" stroke="#d1d5db" stroke-width="1" stroke-dasharray="4,4"/>
+</svg>
