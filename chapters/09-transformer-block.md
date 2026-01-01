@@ -41,6 +41,10 @@ Each sub-layer is wrapped with:
 - **Residual connections**: Enable gradient flow in deep networks
 - **Layer normalization**: Stabilize training
 
+![Transformer Block Architecture](../assets/diagrams/ch09-full-block-with-text.svg)
+
+The diagram above shows the complete pre-norm transformer block architecture, tracing data flow for "The quick brown fox" through one layer. The blue residual paths (skip connections) bypass each sublayer, enabling stable gradient flow. Note that input and output shapes are identical [4, 512], allowing blocks to stack.
+
 The arrangement of these components (pre-norm vs post-norm) significantly affects training stability and performance.
 
 ---
@@ -437,6 +441,10 @@ Residual connections (skip connections) add the input of a sub-layer to its outp
 ```math
 \mathbf{y} = \mathbf{x} + \text{SubLayer}(\mathbf{x})
 ```
+
+![Residual Connection Example](../assets/diagrams/ch09-residual-connection-example.svg)
+
+The diagram above shows why residual connections are critical: the identity path (blue) provides a direct route for gradients to flow backward during training. Even if the sublayer's gradients vanish (∂F/∂x → 0), the identity path ensures ∂L/∂x never vanishes completely.
 
 Residual connections are essential for training deep transformers, enabling gradient flow through 100+ layers. They solve the vanishing gradient problem by providing identity shortcuts that allow gradients to flow directly backward.
 

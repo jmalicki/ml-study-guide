@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 420">
+  <style>
+    /* Light mode (default) */
+    text { fill: #000000; }
+    .label-text { fill: #666666; }
+    .bg-box { fill: #f5f5f5; }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .label-text { fill: #cccccc; }
+      .bg-box { fill: #2d2d2d; }
+
+      text[fill="#000"], text[fill="#000000"], text[fill="#333"], text[fill="#666"] {
+        fill: #ffffff;
+      }
+      text[fill="#fff"], text[fill="#ffffff"], text[fill="white"] {
+        fill: #ffffff;
+      }
+      text[fill="#E57373"] { fill: #ef5350; }
+      text[fill="#81C784"] { fill: #66bb6a; }
+      text[fill="#FFB74D"] { fill: #ffa726; }
+      text[fill="#4A90A4"] { fill: #4fc3f7; }
+      text[fill="#9575CD"] { fill: #b39ddb; }
+      text[fill="#4DB6AC"] { fill: #80cbc4; }
+
+      rect[fill="#f9f9f9"] { fill: #2d2d2d; }
+      rect[fill="#FFF9E6"] { fill: #3a3620; }
+      rect[fill="#E8EAF6"] { fill: #3d3d4d; }
+    }
+  </style>
+
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#999" />
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="425" y="28" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#333">
+    Multi-Head Attention: Concatenation and Output Projection
+  </text>
+  <text x="425" y="48" font-family="system-ui, -apple-system, sans-serif" font-size="12" text-anchor="middle" fill="#666">
+    Head outputs are concatenated and projected back to model dimension
+  </text>
+
+  <!-- Head outputs -->
+  <g id="head-outputs">
+    <text x="425" y="85" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#4A90A4">Parallel Head Outputs</text>
+
+    <rect x="60" y="95" width="85" height="55" fill="#E57373" opacity="0.25" stroke="#E57373" stroke-width="2" rx="5" />
+    <text x="102" y="118" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#E57373">Head 1</text>
+    <text x="102" y="138" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#333">[4, 64]</text>
+
+    <rect x="160" y="95" width="85" height="55" fill="#81C784" opacity="0.25" stroke="#81C784" stroke-width="2" rx="5" />
+    <text x="202" y="118" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#81C784">Head 2</text>
+    <text x="202" y="138" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#333">[4, 64]</text>
+
+    <rect x="260" y="95" width="85" height="55" fill="#FFB74D" opacity="0.25" stroke="#FFB74D" stroke-width="2" rx="5" />
+    <text x="302" y="118" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#FFB74D">Head 3</text>
+    <text x="302" y="138" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#333">[4, 64]</text>
+
+    <text x="380" y="122" font-family="system-ui, -apple-system, sans-serif" font-size="20" text-anchor="middle" fill="#666">...</text>
+
+    <rect x="420" y="95" width="85" height="55" fill="#9575CD" opacity="0.25" stroke="#9575CD" stroke-width="2" rx="5" />
+    <text x="462" y="118" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#9575CD">Head 7</text>
+    <text x="462" y="138" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#333">[4, 64]</text>
+
+    <rect x="520" y="95" width="85" height="55" fill="#4DB6AC" opacity="0.25" stroke="#4DB6AC" stroke-width="2" rx="5" />
+    <text x="562" y="118" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#4DB6AC">Head 8</text>
+    <text x="562" y="138" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#333">[4, 64]</text>
+  </g>
+
+  <!-- Arrows to concatenation -->
+  <g id="concat-arrows">
+    <line x1="102" y1="150" x2="102" y2="175" stroke="#999" stroke-width="1.5" />
+    <line x1="202" y1="150" x2="202" y2="175" stroke="#999" stroke-width="1.5" />
+    <line x1="302" y1="150" x2="302" y2="175" stroke="#999" stroke-width="1.5" />
+    <line x1="462" y1="150" x2="462" y2="175" stroke="#999" stroke-width="1.5" />
+    <line x1="562" y1="150" x2="562" y2="175" stroke="#999" stroke-width="1.5" />
+
+    <line x1="102" y1="175" x2="332" y2="195" stroke="#999" stroke-width="1.5" />
+    <line x1="202" y1="175" x2="332" y2="195" stroke="#999" stroke-width="1.5" />
+    <line x1="302" y1="175" x2="332" y2="195" stroke="#999" stroke-width="1.5" />
+    <line x1="462" y1="175" x2="332" y2="195" stroke="#999" stroke-width="1.5" />
+    <line x1="562" y1="175" x2="332" y2="195" stroke="#999" stroke-width="1.5" />
+  </g>
+
+  <!-- Concatenation operation -->
+  <g id="concatenation">
+    <rect x="220" y="195" width="225" height="45" fill="#9575CD" opacity="0.2" stroke="#9575CD" stroke-width="2" rx="5" />
+    <text x="332" y="215" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" fill="#9575CD">Concatenate</text>
+    <text x="332" y="232" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#333">[head₁ | head₂ | ... | head₈]</text>
+  </g>
+
+  <!-- Concatenated output -->
+  <g id="concat-result">
+    <line x1="332" y1="240" x2="332" y2="265" stroke="#999" stroke-width="1.5" marker-end="url(#arrowhead)" />
+
+    <!-- Visual representation of concatenated tensor -->
+    <rect x="110" y="270" width="445" height="50" fill="#E8EAF6" stroke="#4A90A4" stroke-width="2" rx="5" />
+
+    <!-- Color bands showing each head's contribution -->
+    <rect x="115" y="275" width="52" height="40" fill="#E57373" opacity="0.3" rx="2" />
+    <rect x="169" y="275" width="52" height="40" fill="#81C784" opacity="0.3" rx="2" />
+    <rect x="223" y="275" width="52" height="40" fill="#FFB74D" opacity="0.3" rx="2" />
+    <rect x="277" y="275" width="52" height="40" fill="#4A90A4" opacity="0.3" rx="2" />
+    <rect x="331" y="275" width="52" height="40" fill="#E57373" opacity="0.2" rx="2" />
+    <rect x="385" y="275" width="52" height="40" fill="#81C784" opacity="0.2" rx="2" />
+    <rect x="439" y="275" width="52" height="40" fill="#9575CD" opacity="0.3" rx="2" />
+    <rect x="493" y="275" width="52" height="40" fill="#4DB6AC" opacity="0.3" rx="2" />
+
+    <text x="332" y="298" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#333">Concatenated: [4, 512]</text>
+    <text x="332" y="312" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#666">8 heads × 64 = 512</text>
+  </g>
+
+  <!-- Output projection -->
+  <g id="output-projection">
+    <line x1="332" y1="320" x2="332" y2="345" stroke="#999" stroke-width="1.5" marker-end="url(#arrowhead)" />
+
+    <rect x="220" y="350" width="225" height="45" class="bg-box" stroke="#4A90A4" stroke-width="2" rx="5" />
+    <text x="332" y="372" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" fill="#4A90A4">W_O (Output Projection)</text>
+    <text x="332" y="388" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#333">[512, 512]</text>
+  </g>
+
+  <!-- Final output -->
+  <g id="final-output">
+    <line x1="445" y1="372" x2="520" y2="372" stroke="#999" stroke-width="1.5" marker-end="url(#arrowhead)" />
+
+    <rect x="530" y="350" width="130" height="50" fill="#4DB6AC" opacity="0.3" stroke="#4DB6AC" stroke-width="2" rx="5" />
+    <text x="595" y="373" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#4DB6AC">Output</text>
+    <text x="595" y="392" font-family="system-ui, -apple-system, sans-serif" font-size="11" text-anchor="middle" fill="#333">[4, 512]</text>
+  </g>
+
+  <!-- Key insight box -->
+  <rect x="630" y="95" width="200" height="130" fill="#FFF9E6" stroke="#FFB74D" stroke-width="2" rx="5" />
+  <text x="645" y="117" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" fill="#333">Key Insights:</text>
+  <text x="645" y="137" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">• Each head captures</text>
+  <text x="650" y="150" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">different patterns</text>
+  <text x="645" y="170" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">• Concatenation preserves</text>
+  <text x="650" y="183" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">all head information</text>
+  <text x="645" y="203" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">• W_O mixes information</text>
+  <text x="650" y="216" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">across heads</text>
+
+  <!-- Formula box -->
+  <rect x="630" y="240" width="200" height="75" fill="#f9f9f9" stroke="#ccc" stroke-width="1" rx="5" />
+  <text x="645" y="260" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="bold" fill="#333">Multi-Head Formula:</text>
+  <text x="650" y="280" font-family="monospace" font-size="9" fill="#333">MHA(Q,K,V) =</text>
+  <text x="660" y="295" font-family="monospace" font-size="9" fill="#333">Concat(head₁,...,head_h)W_O</text>
+  <text x="650" y="310" font-family="monospace" font-size="9" fill="#333">head_i = Attention(QW_Q^i,...)</text>
+</svg>

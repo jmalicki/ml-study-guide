@@ -294,6 +294,10 @@ At each step, we can only use previously generated tokens.
 
 A causal mask is a lower triangular matrix that prevents attention to future positions:
 
+![Causal vs Bidirectional Attention with Text Example](../assets/diagrams/ch05-causal-mask-example.svg)
+
+The diagram above shows how causal and bidirectional masks differ using a concrete example with "The quick brown fox jumped". In the causal mask (left), each token can only attend to itself and previous tokens - "brown" can see "The" and "quick" but not "fox" or "jumped". In the bidirectional mask (right), every token can attend to every other token, enabling full context access.
+
 ```python
 def create_causal_mask(seq_len: int) -> torch.Tensor:
     """Create a causal (lower triangular) mask.

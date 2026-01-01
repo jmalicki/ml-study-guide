@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 950 650">
+  <style>
+    /* Load STIX Two Math font from CDN if not installed */
+    @font-face {
+      font-family: 'STIX Two Math';
+      src: local('STIX Two Math'),
+           url('https://cdn.jsdelivr.net/npm/@fontsource/stix-two-text@5.0.19/files/stix-two-text-latin-400-normal.woff2') format('woff2');
+      font-weight: normal;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'STIX Two Math';
+      src: local('STIX Two Math Italic'),
+           url('https://cdn.jsdelivr.net/npm/@fontsource/stix-two-text@5.0.19/files/stix-two-text-latin-400-italic.woff2') format('woff2');
+      font-weight: normal;
+      font-style: italic;
+    }
+
+    /* Light mode (default) */
+    text { fill: #000000; }
+    .label-text { fill: #666666; }
+    .bg-box { fill: #f5f5f5; }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .label-text { fill: #cccccc; }
+      .bg-box { fill: #2d2d2d; }
+
+      text[fill="#000"], text[fill="#000000"], text[fill="#333"], text[fill="#666"] {
+        fill: #ffffff;
+      }
+      text[fill="#fff"], text[fill="#ffffff"], text[fill="white"] {
+        fill: #ffffff;
+      }
+      text[fill="#E57373"] { fill: #ef5350; }
+      text[fill="#81C784"] { fill: #66bb6a; }
+      text[fill="#FFB74D"] { fill: #ffa726; }
+      text[fill="#4A90A4"] { fill: #4fc3f7; }
+
+      rect[fill="#f9f9f9"] { fill: #2d2d2d; }
+      rect[fill="#FFF9E6"] { fill: #3a3620; }
+      rect[fill="#E8EAF6"] { fill: #3d3d4d; }
+    }
+  </style>
+
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#999" />
+    </marker>
+    <marker id="arrowhead-q" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#E57373" />
+    </marker>
+    <marker id="arrowhead-k" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#81C784" />
+    </marker>
+    <marker id="arrowhead-v" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#FFB74D" />
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="475" y="28" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#333">
+    Each Token Gets Its Own Q, K, V Vectors
+  </text>
+  <text x="475" y="48" font-family="system-ui, -apple-system, sans-serif" font-size="12" text-anchor="middle" fill="#666">
+    Self-attention: Every token produces a Query, Key, and Value — but uses them differently
+  </text>
+
+  <!-- Token columns - showing each token's individual Q, K, V -->
+  <!-- Token: The -->
+  <g id="token-the">
+    <rect x="80" y="75" width="90" height="35" fill="#E8EAF6" stroke="#4A90A4" stroke-width="2" rx="5" />
+    <text x="125" y="98" font-family="monospace" font-size="14" font-weight="bold" text-anchor="middle" fill="#333">The</text>
+
+    <line x1="125" y1="110" x2="125" y2="130" stroke="#999" stroke-width="1.5" marker-end="url(#arrowhead)" />
+
+    <!-- Q, K, V for "The" -->
+    <rect x="70" y="140" width="50" height="30" fill="#E57373" opacity="0.3" stroke="#E57373" stroke-width="1.5" rx="3" />
+    <text x="95" y="160" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="#E57373">q_The</text>
+
+    <rect x="70" y="180" width="50" height="30" fill="#81C784" opacity="0.3" stroke="#81C784" stroke-width="1.5" rx="3" />
+    <text x="95" y="200" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="#81C784">k_The</text>
+
+    <rect x="70" y="220" width="50" height="30" fill="#FFB74D" opacity="0.3" stroke="#FFB74D" stroke-width="1.5" rx="3" />
+    <text x="95" y="240" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="#FFB74D">v_The</text>
+  </g>
+
+  <!-- Token: quick -->
+  <g id="token-quick">
+    <rect x="190" y="75" width="90" height="35" fill="#E8EAF6" stroke="#4A90A4" stroke-width="2" rx="5" />
+    <text x="235" y="98" font-family="monospace" font-size="14" font-weight="bold" text-anchor="middle" fill="#333">quick</text>
+
+    <line x1="235" y1="110" x2="235" y2="130" stroke="#999" stroke-width="1.5" marker-end="url(#arrowhead)" />
+
+    <rect x="180" y="140" width="50" height="30" fill="#E57373" opacity="0.3" stroke="#E57373" stroke-width="1.5" rx="3" />
+    <text x="205" y="160" font-family="system-ui, -apple-system, sans-serif" font-size="9" font-weight="bold" text-anchor="middle" fill="#E57373">q_quick</text>
+
+    <rect x="180" y="180" width="50" height="30" fill="#81C784" opacity="0.3" stroke="#81C784" stroke-width="1.5" rx="3" />
+    <text x="205" y="200" font-family="system-ui, -apple-system, sans-serif" font-size="9" font-weight="bold" text-anchor="middle" fill="#81C784">k_quick</text>
+
+    <rect x="180" y="220" width="50" height="30" fill="#FFB74D" opacity="0.3" stroke="#FFB74D" stroke-width="1.5" rx="3" />
+    <text x="205" y="240" font-family="system-ui, -apple-system, sans-serif" font-size="9" font-weight="bold" text-anchor="middle" fill="#FFB74D">v_quick</text>
+  </g>
+
+  <!-- Token: brown -->
+  <g id="token-brown">
+    <rect x="300" y="75" width="90" height="35" fill="#E8EAF6" stroke="#4A90A4" stroke-width="2" rx="5" />
+    <text x="345" y="98" font-family="monospace" font-size="14" font-weight="bold" text-anchor="middle" fill="#333">brown</text>
+
+    <line x1="345" y1="110" x2="345" y2="130" stroke="#999" stroke-width="1.5" marker-end="url(#arrowhead)" />
+
+    <rect x="290" y="140" width="50" height="30" fill="#E57373" opacity="0.3" stroke="#E57373" stroke-width="1.5" rx="3" />
+    <text x="315" y="160" font-family="system-ui, -apple-system, sans-serif" font-size="9" font-weight="bold" text-anchor="middle" fill="#E57373">q_brown</text>
+
+    <rect x="290" y="180" width="50" height="30" fill="#81C784" opacity="0.3" stroke="#81C784" stroke-width="1.5" rx="3" />
+    <text x="315" y="200" font-family="system-ui, -apple-system, sans-serif" font-size="9" font-weight="bold" text-anchor="middle" fill="#81C784">k_brown</text>
+
+    <rect x="290" y="220" width="50" height="30" fill="#FFB74D" opacity="0.3" stroke="#FFB74D" stroke-width="1.5" rx="3" />
+    <text x="315" y="240" font-family="system-ui, -apple-system, sans-serif" font-size="9" font-weight="bold" text-anchor="middle" fill="#FFB74D">v_brown</text>
+  </g>
+
+  <!-- Token: fox (highlighted as example) -->
+  <g id="token-fox">
+    <rect x="410" y="75" width="90" height="35" fill="#E8EAF6" stroke="#E57373" stroke-width="3" rx="5" />
+    <text x="455" y="98" font-family="monospace" font-size="14" font-weight="bold" text-anchor="middle" fill="#333">fox</text>
+    <text x="455" y="68" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#E57373">← example token</text>
+
+    <line x1="455" y1="110" x2="455" y2="130" stroke="#999" stroke-width="1.5" marker-end="url(#arrowhead)" />
+
+    <rect x="400" y="140" width="50" height="30" fill="#E57373" opacity="0.5" stroke="#E57373" stroke-width="2" rx="3" />
+    <text x="425" y="160" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="#E57373">q_fox</text>
+
+    <rect x="400" y="180" width="50" height="30" fill="#81C784" opacity="0.3" stroke="#81C784" stroke-width="1.5" rx="3" />
+    <text x="425" y="200" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="#81C784">k_fox</text>
+
+    <rect x="400" y="220" width="50" height="30" fill="#FFB74D" opacity="0.3" stroke="#FFB74D" stroke-width="1.5" rx="3" />
+    <text x="425" y="240" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="#FFB74D">v_fox</text>
+  </g>
+
+  <!-- Row labels -->
+  <text x="55" y="160" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" text-anchor="end" fill="#E57373">Q:</text>
+  <text x="55" y="200" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" text-anchor="end" fill="#81C784">K:</text>
+  <text x="55" y="240" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" text-anchor="end" fill="#FFB74D">V:</text>
+
+  <!-- Separator line -->
+  <line x1="60" y1="280" x2="480" y2="280" stroke="#ccc" stroke-width="1" stroke-dasharray="5,5" />
+  <text x="270" y="300" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#333">How attention USES these vectors (computing output for "fox"):</text>
+
+  <!-- Attention computation visualization -->
+  <!-- q_fox highlighted -->
+  <g id="attention-query">
+    <rect x="80" y="330" width="70" height="40" fill="#E57373" opacity="0.5" stroke="#E57373" stroke-width="2" rx="5" />
+    <text x="115" y="355" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#E57373">q_fox</text>
+    <text x="115" y="385" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#666">Query from</text>
+    <text x="115" y="397" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#666">"fox" only</text>
+  </g>
+
+  <!-- "compares against" arrow -->
+  <line x1="155" y1="350" x2="185" y2="350" stroke="#999" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="170" y="340" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#666">·</text>
+
+  <!-- All K vectors -->
+  <g id="attention-keys">
+    <text x="305" y="320" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" text-anchor="middle" fill="#81C784">Keys from ALL tokens</text>
+
+    <rect x="195" y="330" width="50" height="40" fill="#81C784" opacity="0.3" stroke="#81C784" stroke-width="1.5" rx="3" />
+    <text x="220" y="355" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#81C784">k_The</text>
+
+    <rect x="255" y="330" width="50" height="40" fill="#81C784" opacity="0.3" stroke="#81C784" stroke-width="1.5" rx="3" />
+    <text x="280" y="355" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#81C784">k_quick</text>
+
+    <rect x="315" y="330" width="50" height="40" fill="#81C784" opacity="0.5" stroke="#81C784" stroke-width="2" rx="3" />
+    <text x="340" y="355" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#81C784">k_brown</text>
+
+    <rect x="375" y="330" width="50" height="40" fill="#81C784" opacity="0.3" stroke="#81C784" stroke-width="1.5" rx="3" />
+    <text x="400" y="355" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#81C784">k_fox</text>
+  </g>
+
+  <!-- Arrow to scores -->
+  <line x1="305" y1="375" x2="305" y2="405" stroke="#999" stroke-width="1.5" marker-end="url(#arrowhead)" />
+  <text x="335" y="395" font-family="system-ui, -apple-system, sans-serif" font-size="9" fill="#666">softmax</text>
+
+  <!-- Attention scores/weights -->
+  <g id="attention-weights">
+    <text x="305" y="425" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#333">Attention weights:</text>
+
+    <rect x="195" y="435" width="50" height="25" class="bg-box" stroke="#999" stroke-width="1" rx="3" />
+    <text x="220" y="452" font-family="monospace" font-size="10" text-anchor="middle" fill="#333">0.12</text>
+
+    <rect x="255" y="435" width="50" height="25" class="bg-box" stroke="#999" stroke-width="1" rx="3" />
+    <text x="280" y="452" font-family="monospace" font-size="10" text-anchor="middle" fill="#333">0.08</text>
+
+    <rect x="315" y="435" width="50" height="25" fill="#81C784" opacity="0.3" stroke="#81C784" stroke-width="2" rx="3" />
+    <text x="340" y="452" font-family="monospace" font-size="10" font-weight="bold" text-anchor="middle" fill="#333">0.52</text>
+
+    <rect x="375" y="435" width="50" height="25" class="bg-box" stroke="#999" stroke-width="1" rx="3" />
+    <text x="400" y="452" font-family="monospace" font-size="10" text-anchor="middle" fill="#333">0.28</text>
+  </g>
+
+  <!-- "weights" arrow -->
+  <line x1="305" y1="465" x2="305" y2="490" stroke="#999" stroke-width="1.5" marker-end="url(#arrowhead)" />
+  <text x="335" y="482" font-family="system-ui, -apple-system, sans-serif" font-size="9" fill="#666">weight ×</text>
+
+  <!-- All V vectors -->
+  <g id="attention-values">
+    <text x="305" y="510" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" text-anchor="middle" fill="#FFB74D">Values from ALL tokens</text>
+
+    <rect x="195" y="520" width="50" height="40" fill="#FFB74D" opacity="0.2" stroke="#FFB74D" stroke-width="1" rx="3" />
+    <text x="220" y="545" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#FFB74D">v_The</text>
+
+    <rect x="255" y="520" width="50" height="40" fill="#FFB74D" opacity="0.2" stroke="#FFB74D" stroke-width="1" rx="3" />
+    <text x="280" y="545" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#FFB74D">v_quick</text>
+
+    <rect x="315" y="520" width="50" height="40" fill="#FFB74D" opacity="0.5" stroke="#FFB74D" stroke-width="2" rx="3" />
+    <text x="340" y="545" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#FFB74D">v_brown</text>
+
+    <rect x="375" y="520" width="50" height="40" fill="#FFB74D" opacity="0.2" stroke="#FFB74D" stroke-width="1" rx="3" />
+    <text x="400" y="545" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#FFB74D">v_fox</text>
+  </g>
+
+  <!-- Arrow to output -->
+  <line x1="305" y1="565" x2="305" y2="595" stroke="#999" stroke-width="2" marker-end="url(#arrowhead)" />
+  <text x="340" y="585" font-family="system-ui, -apple-system, sans-serif" font-size="9" fill="#666">Σ weighted sum</text>
+
+  <!-- Output for fox -->
+  <rect x="245" y="600" width="120" height="40" fill="#4A90A4" opacity="0.3" stroke="#4A90A4" stroke-width="2" rx="5" />
+  <text x="305" y="625" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#4A90A4">output_fox</text>
+
+  <!-- Key insight boxes on the right -->
+  <rect x="520" y="75" width="400" height="125" fill="#FFF9E6" stroke="#FFB74D" stroke-width="2" rx="5" />
+  <text x="535" y="97" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#333">The Key Insight:</text>
+  <text x="545" y="117" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Each token computes its own q, k, v vectors.</text>
+  <text x="545" y="137" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">But to compute output for token i:</text>
+  <text x="555" y="157" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#E57373">• Use q_i (query from token i only)</text>
+  <text x="555" y="175" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#81C784">• Compare against k_j for ALL tokens j</text>
+  <text x="555" y="193" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#FFB74D">• Weighted sum of v_j for ALL tokens j</text>
+
+  <!-- Analogy box -->
+  <rect x="520" y="215" width="400" height="95" fill="#E8EAF6" stroke="#4A90A4" stroke-width="2" rx="5" />
+  <text x="535" y="237" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#4A90A4">Intuition (Database Analogy):</text>
+  <text x="545" y="260" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#E57373">Q = "What am I looking for?" (the question)</text>
+  <text x="545" y="280" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#81C784">K = "What do I contain?" (index/label)</text>
+  <text x="545" y="300" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#FFB74D">V = "Here's my actual content" (data)</text>
+
+  <!-- Formula box -->
+  <rect x="520" y="315" width="400" height="85" fill="#f9f9f9" stroke="#ccc" stroke-width="1" rx="5" />
+  <text x="535" y="337" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" fill="#333">Formula for output at position i:</text>
+
+  <!-- Formula with proper fraction layout -->
+  <text x="545" y="368" font-family="'STIX Two Math', Georgia, 'Times New Roman', serif" font-size="14" fill="#333"><tspan font-style="italic">output</tspan>ᵢ = </text>
+  <!-- Large sum with subscript j below -->
+  <text x="610" y="374" font-family="'STIX Two Math', Georgia, 'Times New Roman', serif" font-size="26" fill="#333">∑</text>
+  <text x="617" y="388" font-family="'STIX Two Math', Georgia, 'Times New Roman', serif" font-size="10" font-style="italic" fill="#333">j</text>
+  <text x="632" y="368" font-family="'STIX Two Math', Georgia, 'Times New Roman', serif" font-size="14" fill="#333">softmax</text>
+  <!-- Left paren - tall to match fraction -->
+  <text x="693" y="378" font-family="'STIX Two Math', Georgia, 'Times New Roman', serif" font-size="28" fill="#333">(</text>
+  <!-- Fraction: numerator -->
+  <text x="710" y="356" font-family="'STIX Two Math', Georgia, 'Times New Roman', serif" font-size="12" fill="#333"><tspan font-style="italic">q</tspan>ᵢ · <tspan font-style="italic">k</tspan>ⱼ</text>
+  <!-- Fraction bar -->
+  <line x1="708" y1="362" x2="761" y2="362" stroke="#333" stroke-width="1" />
+  <!-- Fraction: denominator -->
+  <text x="721" y="377" font-family="'STIX Two Math', Georgia, 'Times New Roman', serif" font-size="12" fill="#333">√<tspan font-style="italic">d</tspan></text>
+  <!-- Right paren - tall to match fraction -->
+  <text x="761" y="378" font-family="'STIX Two Math', Georgia, 'Times New Roman', serif" font-size="28" fill="#333">)</text>
+  <!-- Rest of formula -->
+  <text x="777" y="368" font-family="'STIX Two Math', Georgia, 'Times New Roman', serif" font-size="14" fill="#333"> · <tspan font-style="italic">v</tspan>ⱼ</text>
+
+  <text x="545" y="393" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">q from position i; k and v from all positions j</text>
+
+  <!-- Why this matters box -->
+  <rect x="520" y="415" width="400" height="90" fill="#FFF9E6" stroke="#E57373" stroke-width="2" rx="5" />
+  <text x="535" y="437" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#E57373">Why This Matters:</text>
+  <text x="545" y="460" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">• "fox" asks: "who should I attend to?"</text>
+  <text x="545" y="478" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">• Compares its q against everyone's k</text>
+  <text x="545" y="496" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">• Finds "brown" is most relevant (k_brown matches best)</text>
+</svg>

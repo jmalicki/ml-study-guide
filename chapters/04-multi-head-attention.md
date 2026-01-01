@@ -45,6 +45,10 @@ Research has shown that attention heads do specialize:
 - Heads in upper layers perform task-specific reasoning
 - Some heads are more important than others (can be pruned without significant loss)
 
+The following diagram illustrates how the input is split into multiple heads, with each head learning different attention patterns:
+
+![Multi-Head Attention: Splitting Input into Heads](../assets/diagrams/ch04-head-splitting.svg)
+
 ---
 
 ## Mathematical Formulation
@@ -339,6 +343,10 @@ if __name__ == "__main__":
 ---
 
 ## Concatenation and Projection
+
+The head outputs are concatenated and projected back to the model dimension:
+
+![Multi-Head Attention: Concatenation and Output Projection](../assets/diagrams/ch04-parallel-heads-concat.svg)
 
 ### Why Concatenate?
 

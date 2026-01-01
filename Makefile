@@ -1,4 +1,4 @@
-.PHONY: help lint validate check-svg validate-svg validate-activation-svg check-svg-contrast check-latex lint-latex check-markdown-syntax check install-hooks install-claude-hooks clean
+.PHONY: help lint validate check-svg validate-svg validate-activation-svg check-svg-contrast check-svg-typography check-svg-typography-strict check-latex lint-latex check-markdown-syntax check install-hooks install-claude-hooks clean
 
 help:
 	@echo "ML Study Guide - Development Commands"
@@ -10,6 +10,8 @@ help:
 	@echo "  make validate-svg             - Validate SVG files with SVGO"
 	@echo "  make validate-activation-svg  - Validate activation function SVG against PyTorch"
 	@echo "  make check-svg-contrast       - Check SVG text contrast accessibility"
+	@echo "  make check-svg-typography     - Check SVG typography (fonts, spacing, formulas)"
+	@echo "  make check-svg-typography-strict - Same as above but warnings are errors"
 	@echo "  make check-latex              - Validate LaTeX syntax in markdown files (custom rules)"
 	@echo "  make lint-latex               - Lint LaTeX with ChkTeX (external linter)"
 	@echo "  make check-markdown-syntax    - Check for suspicious markdown rendering patterns"
@@ -51,6 +53,14 @@ check-svg-contrast:
 	@echo "Checking SVG text contrast accessibility..."
 	python3 scripts/check_svg_contrast.py
 
+check-svg-typography:
+	@echo "Checking SVG typography (fonts, spacing, formulas)..."
+	python3 scripts/check_svg_typography.py
+
+check-svg-typography-strict:
+	@echo "Checking SVG typography (strict mode - warnings are errors)..."
+	python3 scripts/check_svg_typography.py --strict
+
 check-latex:
 	@echo "Validating LaTeX syntax..."
 	python3 scripts/check_latex.py
@@ -64,7 +74,7 @@ check-markdown-syntax:
 	@echo "Checking markdown syntax..."
 	python3 scripts/check_markdown_syntax.py
 
-check: lint validate check-svg validate-svg check-svg-contrast check-latex lint-latex check-markdown-syntax
+check: lint validate check-svg validate-svg check-svg-contrast check-svg-typography check-latex lint-latex check-markdown-syntax
 	@echo ""
 	@echo "All checks passed!"
 

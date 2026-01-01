@@ -122,6 +122,10 @@ This formulation has several advantages:
 
 The most common way to compute similarity in attention is the **dot product**.
 
+In self-attention, the Query (Q), Key (K), and Value (V) vectors are all computed from the same input embeddings through learned linear projections:
+
+![Computing Q, K, V from Input Embeddings](../assets/diagrams/ch03-qkv-from-embeddings.svg)
+
 ### Mathematical Formulation
 
 Given:
@@ -597,6 +601,10 @@ Attention weights provide valuable insights into what the model is "looking at."
 - Debugging model behavior
 - Building intuition
 - Interpreting model decisions
+
+The following diagram traces how a single query position ("fox") computes its attention output by attending to all keys:
+
+![Attention for a Single Query Position](../assets/diagrams/ch03-attention-single-query.svg)
 
 ![Attention Heatmap Example](../assets/diagrams/ch03-attention-heatmap.svg)
 
