@@ -5,6 +5,10 @@
     .label-text { fill: #666666; }
 
     /* Dark mode */
+
+    /* Background colors */
+    .bg-amber-light { fill: #FFF8E1; }
+    .bg-green-light { fill: #E8F5E9; }
     @media (prefers-color-scheme: dark) {
       text { fill: #ffffff; }
       .label-text { fill: #cccccc; }
@@ -19,6 +23,8 @@
       text[fill="#81C784"] { fill: #66bb6a; }
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
+      .bg-amber-light { fill: #ff6f00; }
+      .bg-green-light { fill: #1b5e20; }
     }
   </style>
 
@@ -45,7 +51,7 @@
   <text x="520" y="295" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">T</text>
 
   <!-- Warmup region -->
-  <rect x="60" y="50" width="115" height="230" fill="#FFF8E1" opacity="0.5"/>
+  <rect x="60" y="50" width="115" height="230" class="bg-amber-light" opacity="0.5"/>
   <line x1="175" y1="50" x2="175" y2="280" stroke="#FFC107" stroke-width="1" stroke-dasharray="3,3"/>
 
   <!-- 1. Constant (flat line) -->
@@ -83,7 +89,7 @@
 
   <!-- Annotations -->
   <g transform="translate(380, 55)">
-    <rect x="0" y="0" width="140" height="40" fill="#E8F5E9" stroke="#81C784" stroke-width="1" rx="3"/>
+    <rect x="0" y="0" width="140" height="40" class="bg-green-light" stroke="#81C784" stroke-width="1" rx="3"/>
     <text x="70" y="16" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="9" fill="#333">WSD: stable phase allows</text>
     <text x="70" y="30" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="9" fill="#333">extending training cheaply</text>
   </g>

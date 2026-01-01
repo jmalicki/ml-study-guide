@@ -338,8 +338,9 @@ def check_dark_mode_consistency(content: str) -> List[str]:
     # Check for hardcoded light backgrounds in the SVG
     # Look for rect/path/etc with fill="white" or fill="#fff" etc. in XML
     # This matches white, #fff, #ffffff, #f5f5f5, #fafafa, #eee, #eeeeee, etc.
-    hardcoded_light_bg_pattern = r'<(?:rect|path|circle|ellipse|polygon)[^>]*fill\s*=\s*["\']?\s*(?:white|#(?:fff(?:fff)?|[ef][0-9a-f][ef][0-9a-f][ef][0-9a-f]|[ef]{3}(?:[ef]{3})?))\s*["\']?[^>]*>'
-    has_hardcoded_light_bg = bool(re.search(hardcoded_light_bg_pattern, content, re.IGNORECASE))
+    hardcoded_light_bg_pattern = r'<(rect|path|circle|ellipse|polygon)[^>]*fill\s*=\s*["\']?\s*(white|#(?:fff(?:fff)?|[ef][0-9a-f][ef][0-9a-f][ef][0-9a-f]|[ef]{3}(?:[ef]{3})?))\s*["\']?[^>]*>'
+    hardcoded_light_bg_matches = list(re.finditer(hardcoded_light_bg_pattern, content, re.IGNORECASE))
+    has_hardcoded_light_bg = len(hardcoded_light_bg_matches) > 0
 
     # Also check for light backgrounds in regular CSS
     regular_light_backgrounds = []
@@ -363,8 +364,16 @@ def check_dark_mode_consistency(content: str) -> List[str]:
             )
             if has_hardcoded_light_bg:
                 issues.append(
-                    f"    Found hardcoded light backgrounds in SVG elements (not using CSS)"
+                    f"    Found hardcoded light backgrounds in SVG elements (not using CSS):"
                 )
+                for match in hardcoded_light_bg_matches:
+                    elem_type = match.group(1)
+                    fill_color = match.group(2)
+                    # Get line number
+                    line_num = content[:match.start()].count('\n') + 1
+                    issues.append(
+                        f"      Line {line_num}: <{elem_type}> with fill=\"{fill_color}\" - add CSS class with dark mode override"
+                    )
             if regular_light_backgrounds:
                 issues.append(
                     f"    Light background selectors not changing in dark mode: {', '.join(regular_light_backgrounds)}"

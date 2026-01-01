@@ -5,6 +5,12 @@
     .label-text { fill: #666666; }
 
     /* Dark mode */
+
+    /* Background colors */
+    .bg-blue-light { fill: #E3F2FD; }
+
+    /* Background colors */
+    .bg-pink-light { fill: #FFCDD2; }
     @media (prefers-color-scheme: dark) {
       text { fill: #ffffff; }
       .label-text { fill: #cccccc; }
@@ -19,6 +25,8 @@
       text[fill="#81C784"] { fill: #66bb6a; }
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
+      .bg-blue-light { fill: #1a237e; }
+      .bg-pink-light { fill: #c62828; }
     }
   </style>
 
@@ -30,18 +38,18 @@
     <text x="0" y="-90" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="bold" fill="#333">Network 1</text>
 
     <!-- Input -->
-    <circle cx="-60" cy="0" r="12" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2"/>
+    <circle cx="-60" cy="0" r="12" class="bg-blue-light" stroke="#4A90A4" stroke-width="2"/>
     <text x="-60" y="4" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">x</text>
 
     <!-- Hidden layer -->
-    <circle cx="0" cy="-30" r="12" fill="#FFCDD2" stroke="#E57373" stroke-width="2"/>
+    <circle cx="0" cy="-30" r="12" class="bg-pink-light" stroke="#E57373" stroke-width="2"/>
     <text x="0" y="-26" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">h₁</text>
 
     <circle cx="0" cy="30" r="12" fill="#C8E6C9" stroke="#81C784" stroke-width="2"/>
     <text x="0" y="34" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">h₂</text>
 
     <!-- Output -->
-    <circle cx="60" cy="0" r="12" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2"/>
+    <circle cx="60" cy="0" r="12" class="bg-blue-light" stroke="#4A90A4" stroke-width="2"/>
     <text x="60" y="4" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">y</text>
 
     <!-- Connections with weights -->
@@ -65,18 +73,18 @@
     <text x="0" y="-90" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="bold" fill="#333">Network 2 (permuted)</text>
 
     <!-- Input -->
-    <circle cx="-60" cy="0" r="12" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2"/>
+    <circle cx="-60" cy="0" r="12" class="bg-blue-light" stroke="#4A90A4" stroke-width="2"/>
     <text x="-60" y="4" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">x</text>
 
     <!-- Hidden layer (SWAPPED) -->
     <circle cx="0" cy="-30" r="12" fill="#C8E6C9" stroke="#81C784" stroke-width="2"/>
     <text x="0" y="-26" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">h₂</text>
 
-    <circle cx="0" cy="30" r="12" fill="#FFCDD2" stroke="#E57373" stroke-width="2"/>
+    <circle cx="0" cy="30" r="12" class="bg-pink-light" stroke="#E57373" stroke-width="2"/>
     <text x="0" y="34" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">h₁</text>
 
     <!-- Output -->
-    <circle cx="60" cy="0" r="12" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2"/>
+    <circle cx="60" cy="0" r="12" class="bg-blue-light" stroke="#4A90A4" stroke-width="2"/>
     <text x="60" y="4" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">y</text>
 
     <!-- Connections with weights (swapped) -->

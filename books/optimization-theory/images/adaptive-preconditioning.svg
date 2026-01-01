@@ -5,6 +5,10 @@
     .label-text { fill: #666666; }
 
     /* Dark mode */
+
+    /* Background colors */
+    .bg-green-light { fill: #E8F5E9; }
+    .bg-red-light { fill: #FFEBEE; }
     @media (prefers-color-scheme: dark) {
       text { fill: #ffffff; }
       .label-text { fill: #cccccc; }
@@ -19,6 +23,8 @@
       text[fill="#81C784"] { fill: #66bb6a; }
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
+      .bg-green-light { fill: #1b5e20; }
+      .bg-red-light { fill: #b71c1c; }
     }
   </style>
 
@@ -81,14 +87,14 @@
 
   <!-- Explanation boxes -->
   <g transform="translate(50, 230)">
-    <rect x="0" y="0" width="200" height="55" fill="#FFEBEE" stroke="#E57373" stroke-width="1" rx="5"/>
+    <rect x="0" y="0" width="200" height="55" class="bg-red-light" stroke="#E57373" stroke-width="1" rx="5"/>
     <text x="100" y="18" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" fill="#E57373">Problem</text>
     <text x="100" y="35" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">Different parameters have</text>
     <text x="100" y="48" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">very different curvatures</text>
   </g>
 
   <g transform="translate(300, 230)">
-    <rect x="0" y="0" width="200" height="55" fill="#E8F5E9" stroke="#81C784" stroke-width="1" rx="5"/>
+    <rect x="0" y="0" width="200" height="55" class="bg-green-light" stroke="#81C784" stroke-width="1" rx="5"/>
     <text x="100" y="18" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" fill="#81C784">Solution</text>
     <text x="100" y="35" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">Divide each parameter by</text>
     <text x="100" y="48" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">√(accumulated squared gradients)</text>

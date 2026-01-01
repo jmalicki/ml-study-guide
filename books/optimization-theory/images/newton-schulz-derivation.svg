@@ -5,6 +5,12 @@
     .label-text { fill: #666666; }
 
     /* Dark mode */
+
+    /* Background colors */
+    .bg-amber-light { fill: #FFF8E1; }
+    .bg-blue-light { fill: #E3F2FD; }
+    .bg-gray-light { fill: #f5f5f5; }
+    .bg-green-light { fill: #E8F5E9; }
     @media (prefers-color-scheme: dark) {
       text { fill: #ffffff; }
       .label-text { fill: #cccccc; }
@@ -27,6 +33,10 @@
       rect[fill="#FFF8E1"] { fill: #4a4020; }
       rect[fill="#EDE7F6"] { fill: #3a2a4a; }
       rect[fill="#f5f5f5"] { fill: #2a2a2a; }
+      .bg-amber-light { fill: #ff6f00; }
+      .bg-blue-light { fill: #1a237e; }
+      .bg-gray-light { fill: #424242; }
+      .bg-green-light { fill: #1b5e20; }
     }
   </style>
 
@@ -34,7 +44,7 @@
   <text x="350" y="28" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="bold" fill="#333">Newton-Schulz: Derivation from Inverse Square Root</text>
 
   <!-- Goal box -->
-  <rect x="30" y="50" width="200" height="70" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2" rx="8"/>
+  <rect x="30" y="50" width="200" height="70" class="bg-blue-light" stroke="#4A90A4" stroke-width="2" rx="8"/>
   <text x="130" y="72" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#4A90A4">Goal: Orthogonal Polar Factor</text>
   <text x="130" y="95" text-anchor="middle" font-family="monospace" font-size="12" fill="#333">Q = G · (G^T G)^{-1/2}</text>
   <text x="130" y="112" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">where Q^T Q = I</text>
@@ -54,7 +64,7 @@
   <polygon points="520,85 513,81 513,89" fill="#333"/>
 
   <!-- Newton's method box -->
-  <rect x="530" y="50" width="140" height="70" fill="#FFF8E1" stroke="#FFB74D" stroke-width="2" rx="8"/>
+  <rect x="530" y="50" width="140" height="70" class="bg-amber-light" stroke="#FFB74D" stroke-width="2" rx="8"/>
   <text x="600" y="72" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#FFB74D">Newton's Method</text>
   <text x="600" y="95" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">for solving</text>
   <text x="600" y="112" text-anchor="middle" font-family="monospace" font-size="11" fill="#333">Y² A = I</text>
@@ -64,7 +74,7 @@
 
   <!-- Step 1 -->
   <g transform="translate(50, 170)">
-    <rect x="0" y="0" width="280" height="85" fill="#f5f5f5" stroke="#ccc" stroke-width="1" rx="5"/>
+    <rect x="0" y="0" width="280" height="85" class="bg-gray-light" stroke="#ccc" stroke-width="1" rx="5"/>
     <text x="140" y="20" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" fill="#333">Step 1: Define f(Y) = 0</text>
     <text x="20" y="42" font-family="monospace" font-size="11" fill="#333">f(Y) = Y⁻¹ - AY = 0</text>
     <text x="20" y="60" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">Rearranges to: Y² A = I</text>
@@ -77,7 +87,7 @@
 
   <!-- Step 2 -->
   <g transform="translate(50, 285)">
-    <rect x="0" y="0" width="280" height="75" fill="#f5f5f5" stroke="#ccc" stroke-width="1" rx="5"/>
+    <rect x="0" y="0" width="280" height="75" class="bg-gray-light" stroke="#ccc" stroke-width="1" rx="5"/>
     <text x="140" y="20" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" fill="#333">Step 2: Newton Update</text>
     <text x="20" y="42" font-family="monospace" font-size="11" fill="#333">Y_{k+1} = Y_k - [df/dY]⁻¹ f(Y_k)</text>
     <text x="20" y="62" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">After matrix calculus...</text>
@@ -85,7 +95,7 @@
 
   <!-- Result box -->
   <g transform="translate(370, 170)">
-    <rect x="0" y="0" width="280" height="85" fill="#E8F5E9" stroke="#81C784" stroke-width="2" rx="8"/>
+    <rect x="0" y="0" width="280" height="85" class="bg-green-light" stroke="#81C784" stroke-width="2" rx="8"/>
     <text x="140" y="22" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#81C784">Newton Iteration for A^{-1/2}</text>
     <text x="140" y="50" text-anchor="middle" font-family="monospace" font-size="13" fill="#333">Y_{k+1} = Y_k(3I - AY_k²)/2</text>
     <text x="140" y="75" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">The 3 emerges from the Newton formula!</text>
@@ -97,7 +107,7 @@
 
   <!-- Final transformation -->
   <g transform="translate(370, 285)">
-    <rect x="0" y="0" width="280" height="75" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2" rx="8"/>
+    <rect x="0" y="0" width="280" height="75" class="bg-blue-light" stroke="#4A90A4" stroke-width="2" rx="8"/>
     <text x="140" y="20" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" fill="#4A90A4">Substituting X_k = G · Y_k</text>
     <text x="140" y="45" text-anchor="middle" font-family="monospace" font-size="12" fill="#333">X_{k+1} = X_k(3I - X_k^T X_k)/2</text>
     <text x="140" y="65" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">Newton-Schulz orthogonalization!</text>

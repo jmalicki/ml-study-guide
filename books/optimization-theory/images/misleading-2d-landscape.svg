@@ -5,6 +5,9 @@
     .label-text { fill: #666666; }
 
     /* Dark mode */
+
+    /* Background colors */
+    .bg-green-light { fill: #E8F5E9; }
     @media (prefers-color-scheme: dark) {
       text { fill: #ffffff; }
       .label-text { fill: #cccccc; }
@@ -19,6 +22,7 @@
       text[fill="#81C784"] { fill: #66bb6a; }
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
+      .bg-green-light { fill: #1b5e20; }
     }
   </style>
 
@@ -55,7 +59,7 @@
     <text x="0" y="-100" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="bold" fill="#333">High-D Reality</text>
 
     <!-- Valley/manifold representation -->
-    <ellipse cx="0" cy="0" rx="80" ry="30" fill="#E8F5E9" stroke="#81C784" stroke-width="2"/>
+    <ellipse cx="0" cy="0" rx="80" ry="30" class="bg-green-light" stroke="#81C784" stroke-width="2"/>
     <ellipse cx="0" cy="-10" rx="60" ry="20" fill="#C8E6C9" stroke="#81C784" stroke-width="1"/>
 
     <!-- Multiple points on the manifold -->

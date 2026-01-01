@@ -5,6 +5,14 @@
     .label-text { fill: #666666; }
 
     /* Dark mode */
+
+    /* Background colors */
+    .bg-blue-light { fill: #E3F2FD; }
+    .bg-green-light { fill: #E8F5E9; }
+    .bg-red-light { fill: #FFEBEE; }
+
+    /* Background colors */
+    .bg-pink-light { fill: #FFCDD2; }
     @media (prefers-color-scheme: dark) {
       text { fill: #ffffff; }
       .label-text { fill: #cccccc; }
@@ -19,6 +27,10 @@
       text[fill="#81C784"] { fill: #66bb6a; }
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
+      .bg-blue-light { fill: #1a237e; }
+      .bg-green-light { fill: #1b5e20; }
+      .bg-red-light { fill: #b71c1c; }
+      .bg-pink-light { fill: #c62828; }
     }
   </style>
 
@@ -30,13 +42,13 @@
     <text x="0" y="-80" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="bold" fill="#333">n = 2</text>
 
     <!-- Outer circle (full ball) -->
-    <circle cx="0" cy="0" r="60" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2"/>
+    <circle cx="0" cy="0" r="60" class="bg-blue-light" stroke="#4A90A4" stroke-width="2"/>
 
     <!-- Inner circle (90% radius) -->
     <circle cx="0" cy="0" r="54" fill="#BBDEFB" stroke="#1976D2" stroke-width="1"/>
 
     <!-- Core (inner 90%) -->
-    <circle cx="0" cy="0" r="54" fill="#E3F2FD"/>
+    <circle cx="0" cy="0" r="54" class="bg-blue-light"/>
 
     <!-- Shell highlighted -->
     <text x="0" y="80" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Shell: 19%</text>
@@ -50,7 +62,7 @@
     <circle cx="0" cy="0" r="60" fill="#C8E6C9" stroke="#81C784" stroke-width="2"/>
 
     <!-- Inner (now much smaller volume) -->
-    <circle cx="0" cy="0" r="54" fill="#E8F5E9"/>
+    <circle cx="0" cy="0" r="54" class="bg-green-light"/>
 
     <text x="0" y="80" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Shell: 65%</text>
   </g>
@@ -60,10 +72,10 @@
     <text x="0" y="-80" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="bold" fill="#333">n = 100</text>
 
     <!-- Outer circle (almost all volume here) -->
-    <circle cx="0" cy="0" r="60" fill="#FFCDD2" stroke="#E57373" stroke-width="2"/>
+    <circle cx="0" cy="0" r="60" class="bg-pink-light" stroke="#E57373" stroke-width="2"/>
 
     <!-- Inner (negligible) -->
-    <circle cx="0" cy="0" r="54" fill="#FFEBEE"/>
+    <circle cx="0" cy="0" r="54" class="bg-red-light"/>
 
     <text x="0" y="80" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Shell: 99.997%</text>
   </g>
