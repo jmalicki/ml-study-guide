@@ -1,16 +1,36 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 550 280">
-  <!-- Background -->
-  <rect width="550" height="280" fill="#fafafa"/>
+  <style>
+    /* Light mode (default) */
+    text { fill: #000000; }
+    .label-text { fill: #666666; }
 
-  <!-- Title -->
-  <text x="275" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333">Volume Concentration: Most Volume Is Near the Surface</text>
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .label-text { fill: #cccccc; }
+
+      text[fill="#000"], text[fill="#000000"], text[fill="#333"], text[fill="#666"] {
+        fill: #ffffff;
+      }
+      text[fill="#fff"], text[fill="#ffffff"], text[fill="white"] {
+        fill: #ffffff;
+      }
+      text[fill="#E57373"] { fill: #ef5350; }
+      text[fill="#81C784"] { fill: #66bb6a; }
+      text[fill="#FFB74D"] { fill: #ffa726; }
+      text[fill="#4A90A4"] { fill: #4fc3f7; }
+    }
+  </style>
+
+    <!-- Title -->
+  <text x="275" y="25" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="bold" fill="#333">Volume Concentration: Most Volume Is Near the Surface</text>
 
   <!-- 2D case -->
   <g transform="translate(100, 150)">
-    <text x="0" y="-80" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#333">n = 2</text>
+    <text x="0" y="-80" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="bold" fill="#333">n = 2</text>
 
     <!-- Outer circle (full ball) -->
-    <circle cx="0" cy="0" r="60" fill="#E3F2FD" stroke="#2196F3" stroke-width="2"/>
+    <circle cx="0" cy="0" r="60" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2"/>
 
     <!-- Inner circle (90% radius) -->
     <circle cx="0" cy="0" r="54" fill="#BBDEFB" stroke="#1976D2" stroke-width="1"/>
@@ -19,37 +39,37 @@
     <circle cx="0" cy="0" r="54" fill="#E3F2FD"/>
 
     <!-- Shell highlighted -->
-    <text x="0" y="80" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#333">Shell: 19%</text>
+    <text x="0" y="80" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Shell: 19%</text>
   </g>
 
   <!-- 10D case -->
   <g transform="translate(275, 150)">
-    <text x="0" y="-80" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#333">n = 10</text>
+    <text x="0" y="-80" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="bold" fill="#333">n = 10</text>
 
     <!-- Outer circle -->
-    <circle cx="0" cy="0" r="60" fill="#C8E6C9" stroke="#4CAF50" stroke-width="2"/>
+    <circle cx="0" cy="0" r="60" fill="#C8E6C9" stroke="#81C784" stroke-width="2"/>
 
     <!-- Inner (now much smaller volume) -->
     <circle cx="0" cy="0" r="54" fill="#E8F5E9"/>
 
-    <text x="0" y="80" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#333">Shell: 65%</text>
+    <text x="0" y="80" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Shell: 65%</text>
   </g>
 
   <!-- 100D case -->
   <g transform="translate(450, 150)">
-    <text x="0" y="-80" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#333">n = 100</text>
+    <text x="0" y="-80" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="bold" fill="#333">n = 100</text>
 
     <!-- Outer circle (almost all volume here) -->
-    <circle cx="0" cy="0" r="60" fill="#FFCDD2" stroke="#f44336" stroke-width="2"/>
+    <circle cx="0" cy="0" r="60" fill="#FFCDD2" stroke="#E57373" stroke-width="2"/>
 
     <!-- Inner (negligible) -->
     <circle cx="0" cy="0" r="54" fill="#FFEBEE"/>
 
-    <text x="0" y="80" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#333">Shell: 99.997%</text>
+    <text x="0" y="80" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Shell: 99.997%</text>
   </g>
 
   <!-- Formula -->
-  <text x="275" y="250" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#333">
+  <text x="275" y="250" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">
     Volume in outer 10% shell = 1 - 0.9ⁿ → 1 as n → ∞
   </text>
 </svg>

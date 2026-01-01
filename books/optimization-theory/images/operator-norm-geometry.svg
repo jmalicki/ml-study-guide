@@ -1,65 +1,85 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 550 300">
-  <!-- Background -->
-  <rect width="550" height="300" fill="#fafafa"/>
+  <style>
+    /* Light mode (default) */
+    text { fill: #000000; }
+    .label-text { fill: #666666; }
 
-  <!-- Title -->
-  <text x="275" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333">Spectral Norm: Maximum Stretch of a Matrix</text>
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .label-text { fill: #cccccc; }
+
+      text[fill="#000"], text[fill="#000000"], text[fill="#333"], text[fill="#666"] {
+        fill: #ffffff;
+      }
+      text[fill="#fff"], text[fill="#ffffff"], text[fill="white"] {
+        fill: #ffffff;
+      }
+      text[fill="#E57373"] { fill: #ef5350; }
+      text[fill="#81C784"] { fill: #66bb6a; }
+      text[fill="#FFB74D"] { fill: #ffa726; }
+      text[fill="#4A90A4"] { fill: #4fc3f7; }
+    }
+  </style>
+
+    <!-- Title -->
+  <text x="275" y="25" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="bold" fill="#333">Spectral Norm: Maximum Stretch of a Matrix</text>
 
   <!-- Left: Input unit sphere -->
   <g transform="translate(120, 150)">
-    <text x="0" y="-75" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#333">Input: Unit Sphere</text>
+    <text x="0" y="-75" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#333">Input: Unit Sphere</text>
 
     <!-- Unit circle -->
-    <circle cx="0" cy="0" r="50" fill="#E3F2FD" stroke="#2196F3" stroke-width="2"/>
+    <circle cx="0" cy="0" r="50" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2"/>
 
     <!-- Sample vectors -->
-    <line x1="0" y1="0" x2="35" y2="35" stroke="#2196F3" stroke-width="1.5"/>
-    <line x1="0" y1="0" x2="50" y2="0" stroke="#2196F3" stroke-width="1.5"/>
-    <line x1="0" y1="0" x2="0" y2="-50" stroke="#2196F3" stroke-width="1.5"/>
-    <line x1="0" y1="0" x2="-35" y2="35" stroke="#2196F3" stroke-width="1.5"/>
+    <line x1="0" y1="0" x2="35" y2="35" stroke="#4A90A4" stroke-width="1.5"/>
+    <line x1="0" y1="0" x2="50" y2="0" stroke="#4A90A4" stroke-width="1.5"/>
+    <line x1="0" y1="0" x2="0" y2="-50" stroke="#4A90A4" stroke-width="1.5"/>
+    <line x1="0" y1="0" x2="-35" y2="35" stroke="#4A90A4" stroke-width="1.5"/>
 
-    <text x="0" y="75" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#333">||x|| = 1</text>
+    <text x="0" y="75" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">||x|| = 1</text>
   </g>
 
   <!-- Arrow with W -->
   <g transform="translate(220, 150)">
     <line x1="0" y1="0" x2="80" y2="0" stroke="#333" stroke-width="2"/>
     <polygon points="80,0 73,-4 73,4" fill="#333"/>
-    <text x="40" y="-12" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#333">W</text>
+    <text x="40" y="-12" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">W</text>
   </g>
 
   <!-- Right: Output ellipse -->
   <g transform="translate(400, 150)">
-    <text x="0" y="-75" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#333">Output: Ellipse</text>
+    <text x="0" y="-75" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#333">Output: Ellipse</text>
 
     <!-- Ellipse (stretched) -->
-    <ellipse cx="0" cy="0" rx="80" ry="30" fill="#FFEBEE" stroke="#f44336" stroke-width="2" transform="rotate(-20)"/>
+    <ellipse cx="0" cy="0" rx="80" ry="30" fill="#FFEBEE" stroke="#E57373" stroke-width="2" transform="rotate(-20)"/>
 
     <!-- Maximum stretch direction -->
-    <line x1="0" y1="0" x2="75" y2="-27" stroke="#f44336" stroke-width="2.5"/>
-    <circle cx="75" cy="-27" r="4" fill="#f44336"/>
-    <text x="90" y="-35" font-family="Arial, sans-serif" font-size="11" fill="#f44336">σ₁ (max)</text>
+    <line x1="0" y1="0" x2="75" y2="-27" stroke="#E57373" stroke-width="2.5"/>
+    <circle cx="75" cy="-27" r="4" fill="#E57373"/>
+    <text x="90" y="-35" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#E57373">σ₁ (max)</text>
 
     <!-- Minimum stretch -->
-    <line x1="0" y1="0" x2="10" y2="28" stroke="#4CAF50" stroke-width="2"/>
-    <circle cx="10" cy="28" r="4" fill="#4CAF50"/>
-    <text x="25" y="40" font-family="Arial, sans-serif" font-size="11" fill="#4CAF50">σₙ (min)</text>
+    <line x1="0" y1="0" x2="10" y2="28" stroke="#81C784" stroke-width="2"/>
+    <circle cx="10" cy="28" r="4" fill="#81C784"/>
+    <text x="25" y="40" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#81C784">σₙ (min)</text>
 
-    <text x="0" y="75" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#333">||Wx|| varies</text>
+    <text x="0" y="75" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">||Wx|| varies</text>
   </g>
 
   <!-- Definitions -->
   <g transform="translate(50, 220)">
-    <rect x="0" y="0" width="200" height="65" fill="#E8F5E9" stroke="#4CAF50" stroke-width="1" rx="5"/>
-    <text x="100" y="18" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#4CAF50">Spectral Norm</text>
+    <rect x="0" y="0" width="200" height="65" fill="#E8F5E9" stroke="#81C784" stroke-width="1" rx="5"/>
+    <text x="100" y="18" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" fill="#81C784">Spectral Norm</text>
     <text x="100" y="38" text-anchor="middle" font-family="monospace" font-size="11" fill="#333">||W||₂ = σ₁ = max ||Wx||</text>
-    <text x="100" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#666">subject to ||x|| = 1</text>
+    <text x="100" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">subject to ||x|| = 1</text>
   </g>
 
   <g transform="translate(300, 220)">
-    <rect x="0" y="0" width="200" height="65" fill="#FFF3E0" stroke="#FF9800" stroke-width="1" rx="5"/>
-    <text x="100" y="18" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#FF9800">Condition Number</text>
+    <rect x="0" y="0" width="200" height="65" fill="#FFF3E0" stroke="#FFB74D" stroke-width="1" rx="5"/>
+    <text x="100" y="18" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" fill="#FFB74D">Condition Number</text>
     <text x="100" y="38" text-anchor="middle" font-family="monospace" font-size="11" fill="#333">κ(W) = σ₁/σₙ</text>
-    <text x="100" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#666">ratio of max to min stretch</text>
+    <text x="100" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">ratio of max to min stretch</text>
   </g>
 </svg>

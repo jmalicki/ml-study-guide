@@ -1,28 +1,48 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 550 280">
-  <!-- Background -->
-  <rect width="550" height="280" fill="#fafafa"/>
+  <style>
+    /* Light mode (default) */
+    text { fill: #000000; }
+    .label-text { fill: #666666; }
 
-  <!-- Title -->
-  <text x="275" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333">Permutation Symmetry: Same Function, Different Parameters</text>
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .label-text { fill: #cccccc; }
+
+      text[fill="#000"], text[fill="#000000"], text[fill="#333"], text[fill="#666"] {
+        fill: #ffffff;
+      }
+      text[fill="#fff"], text[fill="#ffffff"], text[fill="white"] {
+        fill: #ffffff;
+      }
+      text[fill="#E57373"] { fill: #ef5350; }
+      text[fill="#81C784"] { fill: #66bb6a; }
+      text[fill="#FFB74D"] { fill: #ffa726; }
+      text[fill="#4A90A4"] { fill: #4fc3f7; }
+    }
+  </style>
+
+    <!-- Title -->
+  <text x="275" y="25" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="bold" fill="#333">Permutation Symmetry: Same Function, Different Parameters</text>
 
   <!-- Left network -->
   <g transform="translate(120, 150)">
-    <text x="0" y="-90" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#333">Network 1</text>
+    <text x="0" y="-90" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="bold" fill="#333">Network 1</text>
 
     <!-- Input -->
-    <circle cx="-60" cy="0" r="12" fill="#E3F2FD" stroke="#2196F3" stroke-width="2"/>
-    <text x="-60" y="4" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333">x</text>
+    <circle cx="-60" cy="0" r="12" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2"/>
+    <text x="-60" y="4" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">x</text>
 
     <!-- Hidden layer -->
-    <circle cx="0" cy="-30" r="12" fill="#FFCDD2" stroke="#f44336" stroke-width="2"/>
-    <text x="0" y="-26" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333">h₁</text>
+    <circle cx="0" cy="-30" r="12" fill="#FFCDD2" stroke="#E57373" stroke-width="2"/>
+    <text x="0" y="-26" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">h₁</text>
 
-    <circle cx="0" cy="30" r="12" fill="#C8E6C9" stroke="#4CAF50" stroke-width="2"/>
-    <text x="0" y="34" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333">h₂</text>
+    <circle cx="0" cy="30" r="12" fill="#C8E6C9" stroke="#81C784" stroke-width="2"/>
+    <text x="0" y="34" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">h₂</text>
 
     <!-- Output -->
-    <circle cx="60" cy="0" r="12" fill="#E3F2FD" stroke="#2196F3" stroke-width="2"/>
-    <text x="60" y="4" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333">y</text>
+    <circle cx="60" cy="0" r="12" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2"/>
+    <text x="60" y="4" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">y</text>
 
     <!-- Connections with weights -->
     <line x1="-48" y1="-5" x2="-12" y2="-25" stroke="#666" stroke-width="1.5"/>
@@ -31,33 +51,33 @@
     <line x1="12" y1="25" x2="48" y2="5" stroke="#666" stroke-width="1.5"/>
 
     <!-- Weight labels -->
-    <text x="-35" y="-25" font-family="Arial, sans-serif" font-size="9" fill="#f44336">w₁</text>
-    <text x="-35" y="35" font-family="Arial, sans-serif" font-size="9" fill="#4CAF50">w₂</text>
-    <text x="35" y="-25" font-family="Arial, sans-serif" font-size="9" fill="#f44336">v₁</text>
-    <text x="35" y="35" font-family="Arial, sans-serif" font-size="9" fill="#4CAF50">v₂</text>
+    <text x="-35" y="-25" font-family="system-ui, -apple-system, sans-serif" font-size="9" fill="#E57373">w₁</text>
+    <text x="-35" y="35" font-family="system-ui, -apple-system, sans-serif" font-size="9" fill="#81C784">w₂</text>
+    <text x="35" y="-25" font-family="system-ui, -apple-system, sans-serif" font-size="9" fill="#E57373">v₁</text>
+    <text x="35" y="35" font-family="system-ui, -apple-system, sans-serif" font-size="9" fill="#81C784">v₂</text>
   </g>
 
   <!-- Equals sign -->
-  <text x="275" y="155" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="#333">=</text>
+  <text x="275" y="155" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="24" fill="#333">=</text>
 
   <!-- Right network (permuted) -->
   <g transform="translate(430, 150)">
-    <text x="0" y="-90" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#333">Network 2 (permuted)</text>
+    <text x="0" y="-90" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="bold" fill="#333">Network 2 (permuted)</text>
 
     <!-- Input -->
-    <circle cx="-60" cy="0" r="12" fill="#E3F2FD" stroke="#2196F3" stroke-width="2"/>
-    <text x="-60" y="4" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333">x</text>
+    <circle cx="-60" cy="0" r="12" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2"/>
+    <text x="-60" y="4" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">x</text>
 
     <!-- Hidden layer (SWAPPED) -->
-    <circle cx="0" cy="-30" r="12" fill="#C8E6C9" stroke="#4CAF50" stroke-width="2"/>
-    <text x="0" y="-26" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333">h₂</text>
+    <circle cx="0" cy="-30" r="12" fill="#C8E6C9" stroke="#81C784" stroke-width="2"/>
+    <text x="0" y="-26" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">h₂</text>
 
-    <circle cx="0" cy="30" r="12" fill="#FFCDD2" stroke="#f44336" stroke-width="2"/>
-    <text x="0" y="34" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333">h₁</text>
+    <circle cx="0" cy="30" r="12" fill="#FFCDD2" stroke="#E57373" stroke-width="2"/>
+    <text x="0" y="34" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">h₁</text>
 
     <!-- Output -->
-    <circle cx="60" cy="0" r="12" fill="#E3F2FD" stroke="#2196F3" stroke-width="2"/>
-    <text x="60" y="4" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333">y</text>
+    <circle cx="60" cy="0" r="12" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2"/>
+    <text x="60" y="4" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">y</text>
 
     <!-- Connections with weights (swapped) -->
     <line x1="-48" y1="-5" x2="-12" y2="-25" stroke="#666" stroke-width="1.5"/>
@@ -66,13 +86,13 @@
     <line x1="12" y1="25" x2="48" y2="5" stroke="#666" stroke-width="1.5"/>
 
     <!-- Weight labels (swapped) -->
-    <text x="-35" y="-25" font-family="Arial, sans-serif" font-size="9" fill="#4CAF50">w₂</text>
-    <text x="-35" y="35" font-family="Arial, sans-serif" font-size="9" fill="#f44336">w₁</text>
-    <text x="35" y="-25" font-family="Arial, sans-serif" font-size="9" fill="#4CAF50">v₂</text>
-    <text x="35" y="35" font-family="Arial, sans-serif" font-size="9" fill="#f44336">v₁</text>
+    <text x="-35" y="-25" font-family="system-ui, -apple-system, sans-serif" font-size="9" fill="#81C784">w₂</text>
+    <text x="-35" y="35" font-family="system-ui, -apple-system, sans-serif" font-size="9" fill="#E57373">w₁</text>
+    <text x="35" y="-25" font-family="system-ui, -apple-system, sans-serif" font-size="9" fill="#81C784">v₂</text>
+    <text x="35" y="35" font-family="system-ui, -apple-system, sans-serif" font-size="9" fill="#E57373">v₁</text>
   </g>
 
   <!-- Bottom notes -->
-  <text x="275" y="240" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#333">Same function f(x), different parameter values θ₁ ≠ θ₂</text>
-  <text x="275" y="260" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#666">For n hidden units: n! equivalent parameterizations</text>
+  <text x="275" y="240" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">Same function f(x), different parameter values θ₁ ≠ θ₂</text>
+  <text x="275" y="260" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666">For n hidden units: n! equivalent parameterizations</text>
 </svg>

@@ -1,22 +1,42 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300">
+  <style>
+    /* Light mode (default) */
+    text { fill: #000000; }
+    .label-text { fill: #666666; }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .label-text { fill: #cccccc; }
+
+      text[fill="#000"], text[fill="#000000"], text[fill="#333"], text[fill="#666"] {
+        fill: #ffffff;
+      }
+      text[fill="#fff"], text[fill="#ffffff"], text[fill="white"] {
+        fill: #ffffff;
+      }
+      text[fill="#E57373"] { fill: #ef5350; }
+      text[fill="#81C784"] { fill: #66bb6a; }
+      text[fill="#FFB74D"] { fill: #ffa726; }
+      text[fill="#4A90A4"] { fill: #4fc3f7; }
+    }
+  </style>
+
   <defs>
     <marker id="a1" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-      <polygon points="0 0, 8 3, 0 6" fill="#f44336"/>
+      <polygon points="0 0, 8 3, 0 6" fill="#E57373"/>
     </marker>
     <marker id="a2" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-      <polygon points="0 0, 8 3, 0 6" fill="#4CAF50"/>
+      <polygon points="0 0, 8 3, 0 6" fill="#81C784"/>
     </marker>
   </defs>
 
-  <!-- Background -->
-  <rect width="600" height="300" fill="#fafafa"/>
-
-  <!-- Title -->
-  <text x="300" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333">Steepest Descent vs Conjugate Gradient</text>
+    <!-- Title -->
+  <text x="300" y="25" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="bold" fill="#333">Steepest Descent vs Conjugate Gradient</text>
 
   <!-- Left: Steepest Descent -->
   <g transform="translate(150, 160)">
-    <text x="0" y="-110" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#333">Steepest Descent</text>
+    <text x="0" y="-110" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" fill="#333">Steepest Descent</text>
 
     <!-- Elliptical contours -->
     <ellipse cx="0" cy="0" rx="100" ry="30" fill="none" stroke="#ddd" stroke-width="1.5"/>
@@ -29,17 +49,17 @@
 
     <!-- Zig-zag path -->
     <path d="M 90 25 L 40 -18 L 55 8 L 20 -12 L 30 5 L 5 -5 L 10 2 L 0 0"
-          fill="none" stroke="#f44336" stroke-width="2" marker-end="url(#a1)"/>
+          fill="none" stroke="#E57373" stroke-width="2" marker-end="url(#a1)"/>
 
     <!-- Start point -->
-    <circle cx="90" cy="25" r="5" fill="#f44336"/>
+    <circle cx="90" cy="25" r="5" fill="#E57373"/>
 
-    <text x="0" y="70" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#666">Many oscillating steps</text>
+    <text x="0" y="70" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#666">Many oscillating steps</text>
   </g>
 
   <!-- Right: Conjugate Gradient -->
   <g transform="translate(450, 160)">
-    <text x="0" y="-110" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#333">Conjugate Gradient</text>
+    <text x="0" y="-110" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" fill="#333">Conjugate Gradient</text>
 
     <!-- Elliptical contours -->
     <ellipse cx="0" cy="0" rx="100" ry="30" fill="none" stroke="#ddd" stroke-width="1.5"/>
@@ -52,17 +72,17 @@
 
     <!-- Direct path (2 steps for 2D) -->
     <path d="M 90 25 L 20 -8 L 0 0"
-          fill="none" stroke="#4CAF50" stroke-width="2.5" marker-end="url(#a2)"/>
+          fill="none" stroke="#81C784" stroke-width="2.5" marker-end="url(#a2)"/>
 
     <!-- Start point -->
-    <circle cx="90" cy="25" r="5" fill="#4CAF50"/>
+    <circle cx="90" cy="25" r="5" fill="#81C784"/>
 
     <!-- Intermediate point -->
-    <circle cx="20" cy="-8" r="4" fill="#4CAF50"/>
+    <circle cx="20" cy="-8" r="4" fill="#81C784"/>
 
-    <text x="0" y="70" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#666">Exactly n steps in n dimensions</text>
+    <text x="0" y="70" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#666">Exactly n steps in n dimensions</text>
   </g>
 
   <!-- Bottom note -->
-  <text x="300" y="270" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#333">Conjugate directions are A-orthogonal: pᵢᵀApⱼ = 0 for i ≠ j</text>
+  <text x="300" y="270" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">Conjugate directions are A-orthogonal: pᵢᵀApⱼ = 0 for i ≠ j</text>
 </svg>

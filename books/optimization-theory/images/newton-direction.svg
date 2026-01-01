@@ -1,21 +1,41 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 320">
+  <style>
+    /* Light mode (default) */
+    text { fill: #000000; }
+    .label-text { fill: #666666; }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .label-text { fill: #cccccc; }
+
+      text[fill="#000"], text[fill="#000000"], text[fill="#333"], text[fill="#666"] {
+        fill: #ffffff;
+      }
+      text[fill="#fff"], text[fill="#ffffff"], text[fill="white"] {
+        fill: #ffffff;
+      }
+      text[fill="#E57373"] { fill: #ef5350; }
+      text[fill="#81C784"] { fill: #66bb6a; }
+      text[fill="#FFB74D"] { fill: #ffa726; }
+      text[fill="#4A90A4"] { fill: #4fc3f7; }
+    }
+  </style>
+
   <defs>
     <marker id="arw" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
       <polygon points="0 0, 10 3.5, 0 7" fill="#333"/>
     </marker>
     <marker id="arwGreen" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-      <polygon points="0 0, 10 3.5, 0 7" fill="#4CAF50"/>
+      <polygon points="0 0, 10 3.5, 0 7" fill="#81C784"/>
     </marker>
     <marker id="arwBlue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-      <polygon points="0 0, 10 3.5, 0 7" fill="#2196F3"/>
+      <polygon points="0 0, 10 3.5, 0 7" fill="#4A90A4"/>
     </marker>
   </defs>
 
-  <!-- Background -->
-  <rect width="500" height="320" fill="#fafafa"/>
-
-  <!-- Title -->
-  <text x="250" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333">Gradient vs Newton Direction</text>
+    <!-- Title -->
+  <text x="250" y="25" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="bold" fill="#333">Gradient vs Newton Direction</text>
 
   <!-- Contour plot -->
   <g transform="translate(250, 170)">
@@ -27,23 +47,23 @@
 
     <!-- Minimum -->
     <circle cx="50" cy="20" r="5" fill="#333"/>
-    <text x="60" y="40" font-family="Arial, sans-serif" font-size="11" fill="#333">θ*</text>
+    <text x="60" y="40" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">θ*</text>
 
     <!-- Current point -->
-    <circle cx="-80" cy="30" r="6" fill="#f44336"/>
-    <text x="-95" y="20" font-family="Arial, sans-serif" font-size="12" fill="#333">θₜ</text>
+    <circle cx="-80" cy="30" r="6" fill="#E57373"/>
+    <text x="-95" y="20" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">θₜ</text>
 
     <!-- Gradient direction (perpendicular to contour, but not toward minimum) -->
-    <line x1="-80" y1="30" x2="-20" y2="-20" stroke="#2196F3" stroke-width="2.5" marker-end="url(#arwBlue)"/>
-    <text x="-10" y="-30" font-family="Arial, sans-serif" font-size="12" fill="#2196F3">-∇f (gradient)</text>
+    <line x1="-80" y1="30" x2="-20" y2="-20" stroke="#4A90A4" stroke-width="2.5" marker-end="url(#arwBlue)"/>
+    <text x="-10" y="-30" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#4A90A4">-∇f (gradient)</text>
 
     <!-- Newton direction (directly toward minimum) -->
-    <line x1="-80" y1="30" x2="35" y2="22" stroke="#4CAF50" stroke-width="2.5" marker-end="url(#arwGreen)"/>
-    <text x="20" y="55" font-family="Arial, sans-serif" font-size="12" fill="#4CAF50">-H⁻¹∇f (Newton)</text>
+    <line x1="-80" y1="30" x2="35" y2="22" stroke="#81C784" stroke-width="2.5" marker-end="url(#arwGreen)"/>
+    <text x="20" y="55" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#81C784">-H⁻¹∇f (Newton)</text>
   </g>
 
   <!-- Explanation box -->
   <rect x="30" y="260" width="440" height="50" fill="white" stroke="#ddd" rx="5"/>
-  <text x="250" y="280" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#333">Gradient points perpendicular to contours (steepest descent locally)</text>
-  <text x="250" y="298" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#333">Newton points directly at the minimum (using curvature information)</text>
+  <text x="250" y="280" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">Gradient points perpendicular to contours (steepest descent locally)</text>
+  <text x="250" y="298" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">Newton points directly at the minimum (using curvature information)</text>
 </svg>

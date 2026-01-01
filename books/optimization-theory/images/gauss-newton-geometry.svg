@@ -1,33 +1,53 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 300">
-  <!-- Background -->
-  <rect width="500" height="300" fill="#fafafa"/>
+  <style>
+    /* Light mode (default) */
+    text { fill: #000000; }
+    .label-text { fill: #666666; }
 
-  <!-- Title -->
-  <text x="250" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333">Gauss-Newton: Linearized Residuals</text>
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .label-text { fill: #cccccc; }
+
+      text[fill="#000"], text[fill="#000000"], text[fill="#333"], text[fill="#666"] {
+        fill: #ffffff;
+      }
+      text[fill="#fff"], text[fill="#ffffff"], text[fill="white"] {
+        fill: #ffffff;
+      }
+      text[fill="#E57373"] { fill: #ef5350; }
+      text[fill="#81C784"] { fill: #66bb6a; }
+      text[fill="#FFB74D"] { fill: #ffa726; }
+      text[fill="#4A90A4"] { fill: #4fc3f7; }
+    }
+  </style>
+
+    <!-- Title -->
+  <text x="250" y="25" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="bold" fill="#333">Gauss-Newton: Linearized Residuals</text>
 
   <!-- Coordinate system -->
   <g transform="translate(130, 180)">
     <!-- Axes -->
     <line x1="0" y1="0" x2="220" y2="0" stroke="#333" stroke-width="1"/>
     <line x1="0" y1="0" x2="0" y2="-120" stroke="#333" stroke-width="1"/>
-    <text x="230" y="5" font-family="Arial, sans-serif" font-size="11" fill="#333">θ</text>
-    <text x="-15" y="-110" font-family="Arial, sans-serif" font-size="11" fill="#333">r(θ)</text>
+    <text x="230" y="5" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">θ</text>
+    <text x="-15" y="-110" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">r(θ)</text>
 
     <!-- True residual curve -->
     <path d="M 20 -80 Q 60 -95, 100 -50 Q 140 0, 180 20"
-          fill="none" stroke="#2196F3" stroke-width="2.5"/>
-    <text x="190" y="15" font-family="Arial, sans-serif" font-size="11" fill="#2196F3">r(θ)</text>
+          fill="none" stroke="#4A90A4" stroke-width="2.5"/>
+    <text x="190" y="15" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#4A90A4">r(θ)</text>
 
     <!-- Current point -->
-    <circle cx="60" cy="-90" r="5" fill="#f44336"/>
-    <text x="45" y="-95" font-family="Arial, sans-serif" font-size="11" fill="#f44336">θₜ</text>
+    <circle cx="60" cy="-90" r="5" fill="#E57373"/>
+    <text x="45" y="-95" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#E57373">θₜ</text>
 
     <!-- Linearization (tangent) -->
-    <line x1="20" y1="-70" x2="160" y2="-20" stroke="#4CAF50" stroke-width="2" stroke-dasharray="5,3"/>
-    <text x="165" y="-15" font-family="Arial, sans-serif" font-size="11" fill="#4CAF50">r(θₜ) + J(θ-θₜ)</text>
+    <line x1="20" y1="-70" x2="160" y2="-20" stroke="#81C784" stroke-width="2" stroke-dasharray="5,3"/>
+    <text x="165" y="-15" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#81C784">r(θₜ) + J(θ-θₜ)</text>
 
     <!-- Optimal point on linearization -->
-    <circle cx="140" cy="-30" r="4" fill="#4CAF50"/>
+    <circle cx="140" cy="-30" r="4" fill="#81C784"/>
 
     <!-- Zero line -->
     <line x1="0" y1="0" x2="220" y2="0" stroke="#999" stroke-width="1" stroke-dasharray="2,2"/>
@@ -37,14 +57,14 @@
   <g transform="translate(320, 100)">
     <rect x="0" y="0" width="160" height="120" fill="white" stroke="#ddd" rx="5"/>
 
-    <text x="80" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#333">Hessian Approximation</text>
+    <text x="80" y="25" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#333">Hessian Approximation</text>
 
-    <text x="15" y="50" font-family="Arial, sans-serif" font-size="11" fill="#333">Full: H = JᵀJ + Σrᵢ∇²rᵢ</text>
-    <text x="15" y="75" font-family="Arial, sans-serif" font-size="11" fill="#4CAF50">GN: H ≈ JᵀJ</text>
-    <text x="15" y="100" font-family="Arial, sans-serif" font-size="11" fill="#666">(drop 2nd derivatives)</text>
+    <text x="15" y="50" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Full: H = JᵀJ + Σrᵢ∇²rᵢ</text>
+    <text x="15" y="75" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#81C784">GN: H ≈ JᵀJ</text>
+    <text x="15" y="100" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666">(drop 2nd derivatives)</text>
   </g>
 
   <!-- Bottom note -->
-  <text x="250" y="260" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#333">Gauss-Newton linearizes residuals, ignores residual curvature</text>
-  <text x="250" y="278" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#666">Valid when residuals are small (near solution) or model is nearly linear</text>
+  <text x="250" y="260" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">Gauss-Newton linearizes residuals, ignores residual curvature</text>
+  <text x="250" y="278" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#666">Valid when residuals are small (near solution) or model is nearly linear</text>
 </svg>

@@ -1,59 +1,79 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 300">
+  <style>
+    /* Light mode (default) */
+    text { fill: #000000; }
+    .label-text { fill: #666666; }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .label-text { fill: #cccccc; }
+
+      text[fill="#000"], text[fill="#000000"], text[fill="#333"], text[fill="#666"] {
+        fill: #ffffff;
+      }
+      text[fill="#fff"], text[fill="#ffffff"], text[fill="white"] {
+        fill: #ffffff;
+      }
+      text[fill="#E57373"] { fill: #ef5350; }
+      text[fill="#81C784"] { fill: #66bb6a; }
+      text[fill="#FFB74D"] { fill: #ffa726; }
+      text[fill="#4A90A4"] { fill: #4fc3f7; }
+    }
+  </style>
+
   <defs>
     <marker id="arrowRed" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-      <polygon points="0 0, 8 3, 0 6" fill="#f44336"/>
+      <polygon points="0 0, 8 3, 0 6" fill="#E57373"/>
     </marker>
     <marker id="arrowGreen" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-      <polygon points="0 0, 8 3, 0 6" fill="#4CAF50"/>
+      <polygon points="0 0, 8 3, 0 6" fill="#81C784"/>
     </marker>
     <marker id="arrowBlue" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-      <polygon points="0 0, 8 3, 0 6" fill="#2196F3"/>
+      <polygon points="0 0, 8 3, 0 6" fill="#4A90A4"/>
     </marker>
   </defs>
 
-  <!-- Background -->
-  <rect width="500" height="300" fill="#fafafa"/>
-
-  <!-- Title -->
-  <text x="250" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333">Nesterov Momentum: Look Ahead Then Correct</text>
+    <!-- Title -->
+  <text x="250" y="25" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="bold" fill="#333">Nesterov Momentum: Look Ahead Then Correct</text>
 
   <!-- Current position -->
   <circle cx="100" cy="180" r="8" fill="#333"/>
-  <text x="100" y="210" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#333">θₜ</text>
+  <text x="100" y="210" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">θₜ</text>
 
   <!-- Momentum step (lookahead) -->
-  <line x1="108" y1="180" x2="248" y2="130" stroke="#f44336" stroke-width="2.5" marker-end="url(#arrowRed)"/>
-  <text x="180" y="140" font-family="Arial, sans-serif" font-size="11" fill="#f44336">momentum step</text>
-  <text x="180" y="152" font-family="Arial, sans-serif" font-size="10" fill="#f44336">βvₜ</text>
+  <line x1="108" y1="180" x2="248" y2="130" stroke="#E57373" stroke-width="2.5" marker-end="url(#arrowRed)"/>
+  <text x="180" y="140" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#E57373">momentum step</text>
+  <text x="180" y="152" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#E57373">βvₜ</text>
 
   <!-- Lookahead position -->
-  <circle cx="260" cy="125" r="6" fill="#f44336" opacity="0.5"/>
-  <text x="275" y="115" font-family="Arial, sans-serif" font-size="11" fill="#f44336">lookahead</text>
+  <circle cx="260" cy="125" r="6" fill="#E57373" opacity="0.5"/>
+  <text x="275" y="115" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#E57373">lookahead</text>
 
   <!-- Gradient at lookahead -->
-  <line x1="260" y1="125" x2="330" y2="165" stroke="#4CAF50" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
-  <text x="320" y="135" font-family="Arial, sans-serif" font-size="11" fill="#4CAF50">gradient at</text>
-  <text x="320" y="147" font-family="Arial, sans-serif" font-size="11" fill="#4CAF50">lookahead</text>
-  <text x="320" y="159" font-family="Arial, sans-serif" font-size="10" fill="#4CAF50">-α∇L(θₜ + βvₜ)</text>
+  <line x1="260" y1="125" x2="330" y2="165" stroke="#81C784" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+  <text x="320" y="135" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#81C784">gradient at</text>
+  <text x="320" y="147" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#81C784">lookahead</text>
+  <text x="320" y="159" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#81C784">-α∇L(θₜ + βvₜ)</text>
 
   <!-- Final position -->
-  <circle cx="340" cy="175" r="8" fill="#2196F3"/>
-  <text x="340" y="205" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#2196F3">θₜ₊₁</text>
+  <circle cx="340" cy="175" r="8" fill="#4A90A4"/>
+  <text x="340" y="205" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#4A90A4">θₜ₊₁</text>
 
   <!-- Direct path (combined) -->
-  <line x1="108" y1="180" x2="328" y2="175" stroke="#2196F3" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#arrowBlue)"/>
-  <text x="200" y="195" font-family="Arial, sans-serif" font-size="10" fill="#2196F3">effective update</text>
+  <line x1="108" y1="180" x2="328" y2="175" stroke="#4A90A4" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#arrowBlue)"/>
+  <text x="200" y="195" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#4A90A4">effective update</text>
 
   <!-- Comparison box: Classical vs Nesterov -->
   <g transform="translate(50, 235)">
-    <rect x="0" y="0" width="180" height="50" fill="#FFF3E0" stroke="#FF9800" stroke-width="1" rx="5"/>
-    <text x="90" y="18" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#333">Classical Momentum</text>
+    <rect x="0" y="0" width="180" height="50" fill="#FFF3E0" stroke="#FFB74D" stroke-width="1" rx="5"/>
+    <text x="90" y="18" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" fill="#333">Classical Momentum</text>
     <text x="90" y="35" text-anchor="middle" font-family="monospace" font-size="10" fill="#333">vₜ₊₁ = βvₜ + ∇L(θₜ)</text>
   </g>
 
   <g transform="translate(270, 235)">
-    <rect x="0" y="0" width="180" height="50" fill="#E8F5E9" stroke="#4CAF50" stroke-width="1" rx="5"/>
-    <text x="90" y="18" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#333">Nesterov Momentum</text>
+    <rect x="0" y="0" width="180" height="50" fill="#E8F5E9" stroke="#81C784" stroke-width="1" rx="5"/>
+    <text x="90" y="18" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" fill="#333">Nesterov Momentum</text>
     <text x="90" y="35" text-anchor="middle" font-family="monospace" font-size="10" fill="#333">vₜ₊₁ = βvₜ + ∇L(θₜ + βvₜ)</text>
   </g>
 </svg>
