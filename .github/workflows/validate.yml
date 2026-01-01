@@ -25,3 +25,8 @@ jobs:
 
       - name: Run validation script
         run: python scripts/validate_links.py
+
+      - name: Check SVG contrast and dark mode
+        run: |
+          python scripts/check_svg_contrast.py assets/diagrams/*.svg || true
+          python scripts/check_svg_contrast.py books/optimization-theory/images/*.svg
