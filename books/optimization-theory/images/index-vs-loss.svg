@@ -5,6 +5,9 @@
     .label-text { fill: #666666; }
 
     /* Dark mode */
+
+    /* Background colors */
+    .bg-white { fill: white; }
     @media (prefers-color-scheme: dark) {
       text { fill: #ffffff; }
       .label-text { fill: #cccccc; }
@@ -19,6 +22,7 @@
       text[fill="#81C784"] { fill: #66bb6a; }
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
+      .bg-white { fill: #2d2d2d; }
     }
   </style>
 
@@ -60,13 +64,13 @@
 
   <!-- Annotations -->
   <g transform="translate(420, 100)">
-    <rect x="-5" y="-15" width="70" height="35" fill="white" stroke="#E57373" rx="3"/>
+    <rect x="-5" y="-15" width="70" height="35" class="bg-white" stroke="#E57373" rx="3"/>
     <text x="30" y="0" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#E57373">High index</text>
     <text x="30" y="12" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#E57373">(many escapes)</text>
   </g>
 
   <g transform="translate(100, 200)">
-    <rect x="-5" y="-15" width="70" height="35" fill="white" stroke="#81C784" rx="3"/>
+    <rect x="-5" y="-15" width="70" height="35" class="bg-white" stroke="#81C784" rx="3"/>
     <text x="30" y="0" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#81C784">Low index</text>
     <text x="30" y="12" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#81C784">(near minima)</text>
   </g>

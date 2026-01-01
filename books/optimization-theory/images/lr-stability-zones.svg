@@ -5,6 +5,14 @@
     .label-text { fill: #666666; }
 
     /* Dark mode */
+
+    /* Background colors */
+    .bg-amber-light { fill: #FFF8E1; }
+    .bg-green-light { fill: #E8F5E9; }
+    .bg-red-light { fill: #FFEBEE; }
+
+    /* Background colors */
+    .bg-orange-light { fill: #FFF3E0; }
     @media (prefers-color-scheme: dark) {
       text { fill: #ffffff; }
       .label-text { fill: #cccccc; }
@@ -19,6 +27,10 @@
       text[fill="#81C784"] { fill: #66bb6a; }
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
+      .bg-amber-light { fill: #ff6f00; }
+      .bg-green-light { fill: #1b5e20; }
+      .bg-red-light { fill: #b71c1c; }
+      .bg-orange-light { fill: #e65100; }
     }
   </style>
 
@@ -30,22 +42,22 @@
 
   <!-- Zones -->
   <!-- Too small (0 to 0.5/L) -->
-  <rect x="40" y="70" width="100" height="60" fill="#FFF3E0" stroke="#FFB74D" stroke-width="1"/>
+  <rect x="40" y="70" width="100" height="60" class="bg-orange-light" stroke="#FFB74D" stroke-width="1"/>
   <text x="90" y="95" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#E65100">Too slow</text>
   <text x="90" y="110" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">Converges</text>
 
   <!-- Optimal (0.5/L to 1.5/L) -->
-  <rect x="140" y="70" width="140" height="60" fill="#E8F5E9" stroke="#81C784" stroke-width="2"/>
+  <rect x="140" y="70" width="140" height="60" class="bg-green-light" stroke="#81C784" stroke-width="2"/>
   <text x="210" y="95" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#2E7D32" font-weight="bold">Optimal</text>
   <text x="210" y="110" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">Fast convergence</text>
 
   <!-- Risky (1.5/L to 2/L) -->
-  <rect x="280" y="70" width="80" height="60" fill="#FFF8E1" stroke="#FFC107" stroke-width="1"/>
+  <rect x="280" y="70" width="80" height="60" class="bg-amber-light" stroke="#FFC107" stroke-width="1"/>
   <text x="320" y="95" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#F57F17">Risky</text>
   <text x="320" y="110" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">May oscillate</text>
 
   <!-- Divergent (> 2/L) -->
-  <rect x="360" y="70" width="100" height="60" fill="#FFEBEE" stroke="#E57373" stroke-width="1"/>
+  <rect x="360" y="70" width="100" height="60" class="bg-red-light" stroke="#E57373" stroke-width="1"/>
   <text x="410" y="95" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#C62828">Diverges</text>
   <text x="410" y="110" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">Unstable</text>
 

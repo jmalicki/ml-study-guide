@@ -28,7 +28,8 @@ jobs:
 
       - name: Check SVG contrast and dark mode
         run: |
-          echo "Checking SVG files for contrast and dark mode issues..."
-          python scripts/check_svg_contrast.py assets/diagrams/*.svg || true
-          python scripts/check_svg_contrast.py books/optimization-theory/images/*.svg || true
-          echo "Note: SVG contrast check is advisory only - fix issues when updating SVGs"
+          echo "=== Checking optimization book SVGs (strict) ==="
+          python scripts/check_svg_contrast.py books/optimization-theory/images/*.svg
+          echo ""
+          echo "=== Checking assets/diagrams SVGs (advisory) ==="
+          python scripts/check_svg_contrast.py assets/diagrams/*.svg || echo "Note: assets/diagrams has legacy contrast issues to fix"

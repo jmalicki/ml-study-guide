@@ -5,6 +5,13 @@
     .label-text { fill: #666666; }
 
     /* Dark mode */
+
+    /* Background colors */
+    .bg-blue-light { fill: #E3F2FD; }
+    .bg-green-light { fill: #E8F5E9; }
+
+    /* Background colors */
+    .bg-orange-light { fill: #FFF3E0; }
     @media (prefers-color-scheme: dark) {
       text { fill: #ffffff; }
       .label-text { fill: #cccccc; }
@@ -19,6 +26,9 @@
       text[fill="#81C784"] { fill: #66bb6a; }
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
+      .bg-blue-light { fill: #1a237e; }
+      .bg-green-light { fill: #1b5e20; }
+      .bg-orange-light { fill: #e65100; }
     }
   </style>
 
@@ -38,7 +48,7 @@
 
   <!-- First Loop (Right to Left) -->
   <g transform="translate(50, 120)">
-    <rect x="0" y="0" width="180" height="100" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2" rx="5"/>
+    <rect x="0" y="0" width="180" height="100" class="bg-blue-light" stroke="#4A90A4" stroke-width="2" rx="5"/>
     <text x="90" y="25" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="bold" fill="#1565C0">First Loop (← backward)</text>
 
     <text x="15" y="50" font-family="monospace" font-size="11" fill="#333">q = g</text>
@@ -51,7 +61,7 @@
 
   <!-- Initial Hessian -->
   <g transform="translate(280, 140)">
-    <rect x="0" y="0" width="120" height="60" fill="#FFF3E0" stroke="#FFB74D" stroke-width="2" rx="5"/>
+    <rect x="0" y="0" width="120" height="60" class="bg-orange-light" stroke="#FFB74D" stroke-width="2" rx="5"/>
     <text x="60" y="25" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#E65100">Scale</text>
     <text x="60" y="45" text-anchor="middle" font-family="monospace" font-size="11" fill="#333">r = γq</text>
   </g>
@@ -61,7 +71,7 @@
 
   <!-- Second Loop (Left to Right) -->
   <g transform="translate(250, 250)">
-    <rect x="0" y="0" width="200" height="80" fill="#E8F5E9" stroke="#81C784" stroke-width="2" rx="5"/>
+    <rect x="0" y="0" width="200" height="80" class="bg-green-light" stroke="#81C784" stroke-width="2" rx="5"/>
     <text x="100" y="22" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="bold" fill="#2E7D32">Second Loop (→ forward)</text>
 
     <text x="15" y="45" font-family="monospace" font-size="11" fill="#333">for i = 1,...,m:</text>

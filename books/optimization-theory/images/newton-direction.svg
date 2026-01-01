@@ -5,6 +5,9 @@
     .label-text { fill: #666666; }
 
     /* Dark mode */
+
+    /* Background colors */
+    .bg-white { fill: white; }
     @media (prefers-color-scheme: dark) {
       text { fill: #ffffff; }
       .label-text { fill: #cccccc; }
@@ -19,6 +22,7 @@
       text[fill="#81C784"] { fill: #66bb6a; }
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
+      .bg-white { fill: #2d2d2d; }
     }
   </style>
 
@@ -63,7 +67,7 @@
   </g>
 
   <!-- Explanation box -->
-  <rect x="30" y="260" width="440" height="50" fill="white" stroke="#ddd" rx="5"/>
+  <rect x="30" y="260" width="440" height="50" class="bg-white" stroke="#ddd" rx="5"/>
   <text x="250" y="280" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">Gradient points perpendicular to contours (steepest descent locally)</text>
   <text x="250" y="298" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#333">Newton points directly at the minimum (using curvature information)</text>
 </svg>

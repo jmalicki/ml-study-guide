@@ -5,6 +5,14 @@
     .label-text { fill: #666666; }
 
     /* Dark mode */
+
+    /* Background colors */
+    .bg-blue-light { fill: #E3F2FD; }
+    .bg-green-light { fill: #E8F5E9; }
+    .bg-red-light { fill: #FFEBEE; }
+
+    /* Background colors */
+    .bg-orange-light { fill: #FFF3E0; }
     @media (prefers-color-scheme: dark) {
       text { fill: #ffffff; }
       .label-text { fill: #cccccc; }
@@ -19,6 +27,10 @@
       text[fill="#81C784"] { fill: #66bb6a; }
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
+      .bg-blue-light { fill: #1a237e; }
+      .bg-green-light { fill: #1b5e20; }
+      .bg-red-light { fill: #b71c1c; }
+      .bg-orange-light { fill: #e65100; }
     }
   </style>
 
@@ -30,7 +42,7 @@
     <text x="0" y="-75" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#333">Input: Unit Sphere</text>
 
     <!-- Unit circle -->
-    <circle cx="0" cy="0" r="50" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2"/>
+    <circle cx="0" cy="0" r="50" class="bg-blue-light" stroke="#4A90A4" stroke-width="2"/>
 
     <!-- Sample vectors -->
     <line x1="0" y1="0" x2="35" y2="35" stroke="#4A90A4" stroke-width="1.5"/>
@@ -53,7 +65,7 @@
     <text x="0" y="-75" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#333">Output: Ellipse</text>
 
     <!-- Ellipse (stretched) -->
-    <ellipse cx="0" cy="0" rx="80" ry="30" fill="#FFEBEE" stroke="#E57373" stroke-width="2" transform="rotate(-20)"/>
+    <ellipse cx="0" cy="0" rx="80" ry="30" class="bg-red-light" stroke="#E57373" stroke-width="2" transform="rotate(-20)"/>
 
     <!-- Maximum stretch direction -->
     <line x1="0" y1="0" x2="75" y2="-27" stroke="#E57373" stroke-width="2.5"/>
@@ -70,14 +82,14 @@
 
   <!-- Definitions -->
   <g transform="translate(50, 220)">
-    <rect x="0" y="0" width="200" height="65" fill="#E8F5E9" stroke="#81C784" stroke-width="1" rx="5"/>
+    <rect x="0" y="0" width="200" height="65" class="bg-green-light" stroke="#81C784" stroke-width="1" rx="5"/>
     <text x="100" y="18" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" fill="#81C784">Spectral Norm</text>
     <text x="100" y="38" text-anchor="middle" font-family="monospace" font-size="11" fill="#333">||W||₂ = σ₁ = max ||Wx||</text>
     <text x="100" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">subject to ||x|| = 1</text>
   </g>
 
   <g transform="translate(300, 220)">
-    <rect x="0" y="0" width="200" height="65" fill="#FFF3E0" stroke="#FFB74D" stroke-width="1" rx="5"/>
+    <rect x="0" y="0" width="200" height="65" class="bg-orange-light" stroke="#FFB74D" stroke-width="1" rx="5"/>
     <text x="100" y="18" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" fill="#FFB74D">Condition Number</text>
     <text x="100" y="38" text-anchor="middle" font-family="monospace" font-size="11" fill="#333">κ(W) = σ₁/σₙ</text>
     <text x="100" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">ratio of max to min stretch</text>

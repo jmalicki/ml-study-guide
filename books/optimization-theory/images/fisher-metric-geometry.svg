@@ -5,6 +5,9 @@
     .label-text { fill: #666666; }
 
     /* Dark mode */
+
+    /* Background colors */
+    .bg-green-light { fill: #E8F5E9; }
     @media (prefers-color-scheme: dark) {
       text { fill: #ffffff; }
       .label-text { fill: #cccccc; }
@@ -19,6 +22,7 @@
       text[fill="#81C784"] { fill: #66bb6a; }
       text[fill="#FFB74D"] { fill: #ffa726; }
       text[fill="#4A90A4"] { fill: #4fc3f7; }
+      .bg-green-light { fill: #1b5e20; }
     }
   </style>
 
@@ -85,7 +89,7 @@
 
   <!-- Key insight box -->
   <g transform="translate(70, 230)">
-    <rect x="0" y="0" width="410" height="70" fill="#E8F5E9" stroke="#81C784" stroke-width="1.5" rx="5"/>
+    <rect x="0" y="0" width="410" height="70" class="bg-green-light" stroke="#81C784" stroke-width="1.5" rx="5"/>
     <text x="205" y="20" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#81C784">Key Insight</text>
     <text x="205" y="40" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Small parameter change can cause large distribution change (and vice versa)</text>
     <text x="205" y="58" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Fisher metric measures: how much does the distribution change?</text>
