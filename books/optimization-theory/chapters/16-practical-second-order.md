@@ -4,18 +4,108 @@ K-FAC, Shampoo, and SOAP represent the state-of-the-art in tractable second-orde
 
 ## K-FAC: Kronecker-Factored Approximate Curvature
 
-### The Key Insight
+### From Natural Gradient to K-FAC
 
-For a fully-connected layer $y = Wx + b$, the Fisher block has Kronecker structure:
+Recall from [Chapter 15](15-natural-gradient.md) that the natural gradient update is:
 
-$$F_W \approx A \otimes G$$
+$$\theta_{t+1} = \theta_t - \eta F^{-1} \nabla_\theta \mathcal{L}$$
+
+where $F$ is the Fisher information matrix. The problem is that for a network with $n$ parameters, $F$ is $n \times n$—storing it alone costs $O(n^2)$, and inverting it costs $O(n^3)$. For modern networks with billions of parameters, this is impossible.
+
+**K-FAC** ([Martens & Grosse, 2015](https://arxiv.org/abs/1503.05671)) makes this tractable by exploiting the *block structure* of the Fisher matrix and the *Kronecker structure* within each block.
+
+### Block Structure of the Fisher
+
+The Fisher information matrix has a natural block structure corresponding to layers. For a network with $L$ layers:
+
+$$
+F = \begin{pmatrix}
+F_{11} & F_{12} & \cdots \\
+F_{21} & F_{22} & \cdots \\
+\vdots &        & \ddots
+\end{pmatrix}
+$$
+
+The key approximation is to treat layers as independent, zeroing out the off-diagonal blocks:
+
+$$F \approx \text{block-diag}(F_{11}, F_{22}, \ldots, F_{LL})$$
+
+This is reasonable because most of the curvature information for each layer is contained in its own block.
+
+![Fisher block structure](../images/fisher-block-structure.svg)
+
+### Deriving the Kronecker Structure
+
+Now consider a single fully-connected layer: $y = Wa$ where $a \in \mathbb{R}^m$ is the input activation and $y \in \mathbb{R}^n$ is the pre-activation output. The weight matrix $W \in \mathbb{R}^{n \times m}$ has $nm$ parameters.
+
+The Fisher block for this layer is:
+
+$$F_W = \mathbb{E}\left[ \text{vec}(\nabla_W \log p)\ \text{vec}(\nabla_W \log p)^T \right]$$
+
+where $\text{vec}(\cdot)$ flattens the matrix into a vector.
+
+**Step 1: Compute the gradient.** By the chain rule:
+
+$$\nabla_W \log p = g \cdot a^T$$
+
+where $g = \nabla_y \log p \in \mathbb{R}^n$ is the gradient with respect to the layer's output. This is the outer product of the output gradient and input activation.
+
+**Step 2: Vectorize.** Using the identity $\text{vec}(uv^T) = v \otimes u$:
+
+$$\text{vec}(\nabla_W \log p) = a \otimes g$$
+
+**Step 3: Compute the Fisher block.** Substituting:
+
+$$F_W = \mathbb{E}\left[ (a \otimes g)(a \otimes g)^T \right] = \mathbb{E}\left[ (a \otimes g)(a^T \otimes g^T) \right]$$
+
+Using the mixed-product property $(A \otimes B)(C \otimes D) = (AC) \otimes (BD)$:
+
+$$F_W = \mathbb{E}\left[ (aa^T) \otimes (gg^T) \right]$$
+
+**Step 4: The independence assumption.** Here comes the crucial approximation. If we assume $a$ and $g$ are statistically independent:
+
+$$F_W = \mathbb{E}\left[ (aa^T) \otimes (gg^T) \right] \approx \mathbb{E}[aa^T] \otimes \mathbb{E}[gg^T] = A \otimes G$$
 
 where:
-- $A = \mathbb{E}[aa^T]$: Input covariance (m × m)
-- $G = \mathbb{E}[gg^T]$: Output gradient covariance (n × n)
-- $\otimes$: Kronecker product
+- $A = \mathbb{E}[aa^T] \in \mathbb{R}^{m \times m}$: the input activation covariance
+- $G = \mathbb{E}[gg^T] \in \mathbb{R}^{n \times n}$: the output gradient covariance
 
-This reduces storage from $O((mn)^2)$ to $O(m^2 + n^2)$.
+### Why the Independence Assumption Works
+
+The assumption that activations and gradients are independent is *not* strictly true—they're connected through the forward and backward pass. However:
+
+1. **They come from different data dimensions**: $a$ summarizes the input at this layer, while $g$ summarizes information flowing back from the loss.
+
+2. **Correlation weakens with depth**: In deep networks, many layers separate the computation of $a$ (determined by early layers) from $g$ (determined by later layers).
+
+3. **It works empirically**: Despite being an approximation, K-FAC achieves significant speedups over first-order methods in practice.
+
+4. **The alternative is intractable**: Without this assumption, we'd need to store the full $nm \times nm$ matrix.
+
+### The Computational Win
+
+The Kronecker factorization reduces complexity dramatically:
+
+| Operation | Full Fisher | K-FAC |
+|-----------|-------------|-------|
+| Storage | $O((nm)^2)$ | $O(m^2 + n^2)$ |
+| Inverse | $O((nm)^3)$ | $O(m^3 + n^3)$ |
+
+For a layer with $m = n = 1000$, full Fisher needs 1 trillion elements; K-FAC needs 2 million.
+
+**Inverting the Kronecker product** uses the identity:
+
+$$(A \otimes G)^{-1} = A^{-1} \otimes G^{-1}$$
+
+So instead of inverting an $nm \times nm$ matrix, we invert two smaller matrices independently.
+
+### Applying the Natural Gradient
+
+To compute the K-FAC update $F^{-1} \text{vec}(\nabla_W)$, we use another Kronecker identity. If $\text{vec}(\nabla_W) = a \otimes g$ conceptually, then:
+
+$$(A \otimes G)^{-1} \text{vec}(\nabla_W) = \text{vec}(G^{-1} \nabla_W A^{-1})$$
+
+So the natural gradient update becomes a simple matrix sandwich: $G^{-1} \nabla_W A^{-1}$.
 
 ![Kronecker factorization](../images/kronecker-factorization-visual.svg)
 
@@ -132,14 +222,6 @@ class KFACOptimizer:
     def zero_grad(self):
         self.model.zero_grad()
 ```
-
-### Why Kronecker Works
-
-The approximation $F \approx A \otimes G$ assumes:
-- Input activations and output gradients are independent
-- They're Gaussian (approximately true in practice)
-
-This is the **Kronecker factorization assumption**.
 
 ## Shampoo: Preconditioning for Arbitrary Tensors
 
