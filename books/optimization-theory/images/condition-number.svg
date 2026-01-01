@@ -1,62 +1,82 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300">
+  <style>
+    /* Light mode (default) */
+    text { fill: #000000; }
+    .label-text { fill: #666666; }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .label-text { fill: #cccccc; }
+
+      text[fill="#000"], text[fill="#000000"], text[fill="#333"], text[fill="#666"] {
+        fill: #ffffff;
+      }
+      text[fill="#fff"], text[fill="#ffffff"], text[fill="white"] {
+        fill: #ffffff;
+      }
+      text[fill="#E57373"] { fill: #ef5350; }
+      text[fill="#81C784"] { fill: #66bb6a; }
+      text[fill="#FFB74D"] { fill: #ffa726; }
+      text[fill="#4A90A4"] { fill: #4fc3f7; }
+    }
+  </style>
+
   <defs>
     <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
       <polygon points="0 0, 10 3.5, 0 7" fill="#333"/>
     </marker>
   </defs>
 
-  <!-- Background -->
-  <rect width="600" height="300" fill="#fafafa"/>
-
-  <!-- Title -->
-  <text x="300" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333">Condition Number: Well-Conditioned vs Ill-Conditioned</text>
+    <!-- Title -->
+  <text x="300" y="25" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="bold" fill="#333">Condition Number: Well-Conditioned vs Ill-Conditioned</text>
 
   <!-- Left: Well-conditioned (κ ≈ 1) -->
   <g transform="translate(150, 160)">
     <!-- Circular contours -->
-    <ellipse cx="0" cy="0" rx="80" ry="80" fill="none" stroke="#4CAF50" stroke-width="2" opacity="0.3"/>
-    <ellipse cx="0" cy="0" rx="60" ry="60" fill="none" stroke="#4CAF50" stroke-width="2" opacity="0.5"/>
-    <ellipse cx="0" cy="0" rx="40" ry="40" fill="none" stroke="#4CAF50" stroke-width="2" opacity="0.7"/>
-    <ellipse cx="0" cy="0" rx="20" ry="20" fill="none" stroke="#4CAF50" stroke-width="2"/>
+    <ellipse cx="0" cy="0" rx="80" ry="80" fill="none" stroke="#81C784" stroke-width="2" opacity="0.3"/>
+    <ellipse cx="0" cy="0" rx="60" ry="60" fill="none" stroke="#81C784" stroke-width="2" opacity="0.5"/>
+    <ellipse cx="0" cy="0" rx="40" ry="40" fill="none" stroke="#81C784" stroke-width="2" opacity="0.7"/>
+    <ellipse cx="0" cy="0" rx="20" ry="20" fill="none" stroke="#81C784" stroke-width="2"/>
 
     <!-- Minimum point -->
-    <circle cx="0" cy="0" r="4" fill="#4CAF50"/>
+    <circle cx="0" cy="0" r="4" fill="#81C784"/>
 
     <!-- Gradient arrow -->
-    <line x1="60" y1="60" x2="10" y2="10" stroke="#2196F3" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <line x1="60" y1="60" x2="10" y2="10" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
 
     <!-- Label -->
-    <text x="0" y="110" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#333">κ ≈ 1 (circular)</text>
-    <text x="0" y="128" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#666">Fast convergence</text>
+    <text x="0" y="110" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">κ ≈ 1 (circular)</text>
+    <text x="0" y="128" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#666">Fast convergence</text>
   </g>
 
   <!-- Right: Ill-conditioned (κ >> 1) -->
   <g transform="translate(450, 160)">
     <!-- Elongated ellipse contours -->
-    <ellipse cx="0" cy="0" rx="100" ry="20" fill="none" stroke="#f44336" stroke-width="2" opacity="0.3"/>
-    <ellipse cx="0" cy="0" rx="75" ry="15" fill="none" stroke="#f44336" stroke-width="2" opacity="0.5"/>
-    <ellipse cx="0" cy="0" rx="50" ry="10" fill="none" stroke="#f44336" stroke-width="2" opacity="0.7"/>
-    <ellipse cx="0" cy="0" rx="25" ry="5" fill="none" stroke="#f44336" stroke-width="2"/>
+    <ellipse cx="0" cy="0" rx="100" ry="20" fill="none" stroke="#E57373" stroke-width="2" opacity="0.3"/>
+    <ellipse cx="0" cy="0" rx="75" ry="15" fill="none" stroke="#E57373" stroke-width="2" opacity="0.5"/>
+    <ellipse cx="0" cy="0" rx="50" ry="10" fill="none" stroke="#E57373" stroke-width="2" opacity="0.7"/>
+    <ellipse cx="0" cy="0" rx="25" ry="5" fill="none" stroke="#E57373" stroke-width="2"/>
 
     <!-- Minimum point -->
-    <circle cx="0" cy="0" r="4" fill="#f44336"/>
+    <circle cx="0" cy="0" r="4" fill="#E57373"/>
 
     <!-- Gradient arrow (not pointing to minimum) -->
-    <line x1="70" y1="15" x2="30" y2="5" stroke="#2196F3" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <line x1="70" y1="15" x2="30" y2="5" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
 
     <!-- Zig-zag path -->
-    <path d="M 80 18 L 50 -12 L 30 8 L 10 -5 L 0 0" fill="none" stroke="#FF9800" stroke-width="1.5" stroke-dasharray="4,2"/>
+    <path d="M 80 18 L 50 -12 L 30 8 L 10 -5 L 0 0" fill="none" stroke="#FFB74D" stroke-width="1.5" stroke-dasharray="4,2"/>
 
     <!-- Label -->
-    <text x="0" y="110" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#333">κ >> 1 (elongated)</text>
-    <text x="0" y="128" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#666">Slow, oscillating</text>
+    <text x="0" y="110" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#333">κ >> 1 (elongated)</text>
+    <text x="0" y="128" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#666">Slow, oscillating</text>
   </g>
 
   <!-- Legend -->
   <g transform="translate(300, 275)">
-    <line x1="-80" y1="0" x2="-50" y2="0" stroke="#2196F3" stroke-width="2" marker-end="url(#arrowhead)"/>
-    <text x="-40" y="4" font-family="Arial, sans-serif" font-size="11" fill="#333">Gradient</text>
-    <line x1="20" y1="0" x2="50" y2="0" stroke="#FF9800" stroke-width="1.5" stroke-dasharray="4,2"/>
-    <text x="60" y="4" font-family="Arial, sans-serif" font-size="11" fill="#333">GD path</text>
+    <line x1="-80" y1="0" x2="-50" y2="0" stroke="#4A90A4" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <text x="-40" y="4" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Gradient</text>
+    <line x1="20" y1="0" x2="50" y2="0" stroke="#FFB74D" stroke-width="1.5" stroke-dasharray="4,2"/>
+    <text x="60" y="4" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">GD path</text>
   </g>
 </svg>

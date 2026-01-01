@@ -1,9 +1,29 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 300">
-  <!-- Background -->
-  <rect width="500" height="300" fill="#fafafa"/>
+  <style>
+    /* Light mode (default) */
+    text { fill: #000000; }
+    .label-text { fill: #666666; }
 
-  <!-- Title -->
-  <text x="250" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333">Gradient Descent vs Momentum</text>
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .label-text { fill: #cccccc; }
+
+      text[fill="#000"], text[fill="#000000"], text[fill="#333"], text[fill="#666"] {
+        fill: #ffffff;
+      }
+      text[fill="#fff"], text[fill="#ffffff"], text[fill="white"] {
+        fill: #ffffff;
+      }
+      text[fill="#E57373"] { fill: #ef5350; }
+      text[fill="#81C784"] { fill: #66bb6a; }
+      text[fill="#FFB74D"] { fill: #ffa726; }
+      text[fill="#4A90A4"] { fill: #4fc3f7; }
+    }
+  </style>
+
+    <!-- Title -->
+  <text x="250" y="25" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="bold" fill="#333">Gradient Descent vs Momentum</text>
 
   <!-- Contours -->
   <g transform="translate(250, 165)">
@@ -18,24 +38,24 @@
 
     <!-- GD trajectory (oscillating) -->
     <path d="M 160 40 L 80 -30 L 100 15 L 50 -18 L 60 8 L 25 -10 L 30 3 L 10 -4 L 12 1 L 0 0"
-          fill="none" stroke="#f44336" stroke-width="2"/>
-    <circle cx="160" cy="40" r="5" fill="#f44336"/>
-    <text x="175" y="45" font-family="Arial, sans-serif" font-size="11" fill="#f44336">start</text>
+          fill="none" stroke="#E57373" stroke-width="2"/>
+    <circle cx="160" cy="40" r="5" fill="#E57373"/>
+    <text x="175" y="45" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#E57373">start</text>
 
     <!-- Momentum trajectory (smooth) -->
     <path d="M -160 -35 Q -80 -25, -20 -10 Q 10 0, 0 0"
-          fill="none" stroke="#4CAF50" stroke-width="2.5"/>
-    <circle cx="-160" cy="-35" r="5" fill="#4CAF50"/>
-    <text x="-175" y="-40" font-family="Arial, sans-serif" font-size="11" fill="#4CAF50">start</text>
+          fill="none" stroke="#81C784" stroke-width="2.5"/>
+    <circle cx="-160" cy="-35" r="5" fill="#81C784"/>
+    <text x="-175" y="-40" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#81C784">start</text>
   </g>
 
   <!-- Legend -->
   <g transform="translate(100, 260)">
-    <line x1="0" y1="0" x2="30" y2="0" stroke="#f44336" stroke-width="2"/>
-    <text x="40" y="4" font-family="Arial, sans-serif" font-size="11" fill="#333">GD: oscillates in steep direction</text>
+    <line x1="0" y1="0" x2="30" y2="0" stroke="#E57373" stroke-width="2"/>
+    <text x="40" y="4" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">GD: oscillates in steep direction</text>
   </g>
   <g transform="translate(280, 260)">
-    <line x1="0" y1="0" x2="30" y2="0" stroke="#4CAF50" stroke-width="2.5"/>
-    <text x="40" y="4" font-family="Arial, sans-serif" font-size="11" fill="#333">Momentum: smooth convergence</text>
+    <line x1="0" y1="0" x2="30" y2="0" stroke="#81C784" stroke-width="2.5"/>
+    <text x="40" y="4" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Momentum: smooth convergence</text>
   </g>
 </svg>

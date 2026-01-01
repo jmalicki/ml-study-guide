@@ -1,13 +1,36 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 340">
+  <style>
+    /* Light mode (default) */
+    text { fill: #000000; }
+    .label-text { fill: #666666; }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .label-text { fill: #cccccc; }
+
+      text[fill="#000"], text[fill="#000000"], text[fill="#333"], text[fill="#666"] {
+        fill: #ffffff;
+      }
+      text[fill="#fff"], text[fill="#ffffff"], text[fill="white"] {
+        fill: #ffffff;
+      }
+      text[fill="#E57373"] { fill: #ef5350; }
+      text[fill="#81C784"] { fill: #66bb6a; }
+      text[fill="#FFB74D"] { fill: #ffa726; }
+      text[fill="#4A90A4"] { fill: #4fc3f7; }
+    }
+  </style>
+
   <defs>
     <marker id="arr1" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
       <polygon points="0 0, 10 3.5, 0 7" fill="#333"/>
     </marker>
     <marker id="arrBlue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-      <polygon points="0 0, 10 3.5, 0 7" fill="#2196F3"/>
+      <polygon points="0 0, 10 3.5, 0 7" fill="#4A90A4"/>
     </marker>
     <marker id="arrGreen2" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-      <polygon points="0 0, 10 3.5, 0 7" fill="#4CAF50"/>
+      <polygon points="0 0, 10 3.5, 0 7" fill="#81C784"/>
     </marker>
     <radialGradient id="sphereGrad" cx="50%" cy="50%" r="50%">
       <stop offset="0%" style="stop-color:#E3F2FD;stop-opacity:1"/>
@@ -19,16 +42,13 @@
     </radialGradient>
   </defs>
 
-  <!-- Background -->
-  <rect width="700" height="340" fill="#fafafa"/>
-
-  <!-- Title -->
-  <text x="350" y="28" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#333">Trust Region Comparison: GD vs Newton</text>
+    <!-- Title -->
+  <text x="350" y="28" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="bold" fill="#333">Trust Region Comparison: GD vs Newton</text>
 
   <!-- Left panel: Gradient Descent -->
   <g transform="translate(175, 170)">
     <!-- Panel label -->
-    <text x="0" y="-120" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#2196F3">Gradient Descent</text>
+    <text x="0" y="-120" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" fill="#4A90A4">Gradient Descent</text>
 
     <!-- Loss contours -->
     <ellipse cx="50" cy="20" rx="140" ry="38" fill="none" stroke="#ddd" stroke-width="1" transform="rotate(-20)"/>
@@ -37,27 +57,27 @@
     <ellipse cx="50" cy="20" rx="35" ry="10" fill="none" stroke="#aaa" stroke-width="1" transform="rotate(-20)"/>
 
     <!-- Spherical trust region -->
-    <circle cx="0" cy="0" r="60" fill="url(#sphereGrad)" stroke="#2196F3" stroke-width="2" stroke-dasharray="5,3"/>
+    <circle cx="0" cy="0" r="60" fill="url(#sphereGrad)" stroke="#4A90A4" stroke-width="2" stroke-dasharray="5,3"/>
 
     <!-- Minimum -->
     <circle cx="50" cy="20" r="4" fill="#333"/>
-    <text x="58" y="35" font-family="Arial, sans-serif" font-size="10" fill="#333">θ*</text>
+    <text x="58" y="35" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">θ*</text>
 
     <!-- Current point -->
-    <circle cx="0" cy="0" r="5" fill="#f44336"/>
-    <text x="-15" y="-10" font-family="Arial, sans-serif" font-size="11" fill="#333">θₜ</text>
+    <circle cx="0" cy="0" r="5" fill="#E57373"/>
+    <text x="-15" y="-10" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">θₜ</text>
 
     <!-- GD step (follows gradient, hits trust region boundary) -->
-    <line x1="0" y1="0" x2="-35" y2="-48" stroke="#2196F3" stroke-width="2.5" marker-end="url(#arrBlue)"/>
+    <line x1="0" y1="0" x2="-35" y2="-48" stroke="#4A90A4" stroke-width="2.5" marker-end="url(#arrBlue)"/>
 
     <!-- Where GD ends up -->
-    <circle cx="-35" cy="-48" r="4" fill="#2196F3" opacity="0.7"/>
+    <circle cx="-35" cy="-48" r="4" fill="#4A90A4" opacity="0.7"/>
   </g>
 
   <!-- Right panel: Newton -->
   <g transform="translate(525, 170)">
     <!-- Panel label -->
-    <text x="0" y="-120" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#4CAF50">Newton's Method</text>
+    <text x="0" y="-120" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" fill="#81C784">Newton's Method</text>
 
     <!-- Loss contours (same shape) -->
     <ellipse cx="50" cy="20" rx="140" ry="38" fill="none" stroke="#ddd" stroke-width="1" transform="rotate(-20)"/>
@@ -66,32 +86,32 @@
     <ellipse cx="50" cy="20" rx="35" ry="10" fill="none" stroke="#aaa" stroke-width="1" transform="rotate(-20)"/>
 
     <!-- Elliptical trust region (aligned with Hessian) -->
-    <ellipse cx="0" cy="0" rx="90" ry="25" fill="url(#ellipseGrad2)" stroke="#4CAF50" stroke-width="2" stroke-dasharray="5,3" transform="rotate(-20)"/>
+    <ellipse cx="0" cy="0" rx="90" ry="25" fill="url(#ellipseGrad2)" stroke="#81C784" stroke-width="2" stroke-dasharray="5,3" transform="rotate(-20)"/>
 
     <!-- Minimum -->
     <circle cx="50" cy="20" r="4" fill="#333"/>
-    <text x="58" y="35" font-family="Arial, sans-serif" font-size="10" fill="#333">θ*</text>
+    <text x="58" y="35" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">θ*</text>
 
     <!-- Current point -->
-    <circle cx="0" cy="0" r="5" fill="#f44336"/>
-    <text x="-15" y="-10" font-family="Arial, sans-serif" font-size="11" fill="#333">θₜ</text>
+    <circle cx="0" cy="0" r="5" fill="#E57373"/>
+    <text x="-15" y="-10" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">θₜ</text>
 
     <!-- Newton step (directly toward minimum) -->
-    <line x1="0" y1="0" x2="42" y2="17" stroke="#4CAF50" stroke-width="2.5" marker-end="url(#arrGreen2)"/>
+    <line x1="0" y1="0" x2="42" y2="17" stroke="#81C784" stroke-width="2.5" marker-end="url(#arrGreen2)"/>
 
     <!-- Where Newton ends up -->
-    <circle cx="42" cy="17" r="4" fill="#4CAF50" opacity="0.7"/>
+    <circle cx="42" cy="17" r="4" fill="#81C784" opacity="0.7"/>
   </g>
 
   <!-- Dividing line -->
   <line x1="350" y1="55" x2="350" y2="275" stroke="#ddd" stroke-width="1" stroke-dasharray="4,4"/>
 
   <!-- Bottom explanations -->
-  <rect x="30" y="285" width="280" height="45" fill="white" stroke="#2196F3" stroke-width="1" rx="5"/>
-  <text x="170" y="303" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#333">Spherical: ||δ|| ≤ η</text>
-  <text x="170" y="320" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#666">Same step size in all directions</text>
+  <rect x="30" y="285" width="280" height="45" fill="white" stroke="#4A90A4" stroke-width="1" rx="5"/>
+  <text x="170" y="303" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Spherical: ||δ|| ≤ η</text>
+  <text x="170" y="320" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666">Same step size in all directions</text>
 
-  <rect x="390" y="285" width="280" height="45" fill="white" stroke="#4CAF50" stroke-width="1" rx="5"/>
-  <text x="530" y="303" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#333">Elliptical: δᵀHδ ≤ 1</text>
-  <text x="530" y="320" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#666">Larger steps in flat directions</text>
+  <rect x="390" y="285" width="280" height="45" fill="white" stroke="#81C784" stroke-width="1" rx="5"/>
+  <text x="530" y="303" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Elliptical: δᵀHδ ≤ 1</text>
+  <text x="530" y="320" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666">Larger steps in flat directions</text>
 </svg>
