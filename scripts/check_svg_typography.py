@@ -8,6 +8,7 @@ Checks:
 4. Fractions should use proper layout (numerator/bar/denominator) not "/"
 5. Delimiters (parens, brackets) around fractions should scale to fraction height
 6. Sum/product symbols should scale to match fraction height
+7. Content should not extend beyond the viewBox boundaries
 
 Usage:
     python3 check_svg_typography.py [--strict] [files...]
@@ -398,6 +399,167 @@ def check_delimiter_scaling(elements: List[TextElement], fractions: List[Tuple[f
     return issues
 
 
+def parse_viewbox(root: ET.Element) -> Optional[Tuple[float, float, float, float]]:
+    """Parse viewBox attribute and return (min_x, min_y, width, height)."""
+    viewbox = root.get('viewBox')
+    if not viewbox:
+        return None
+    try:
+        parts = viewbox.split()
+        if len(parts) == 4:
+            return tuple(float(p) for p in parts)
+    except ValueError:
+        pass
+    return None
+
+
+def get_element_bounds(element: ET.Element, transform_offset: Tuple[float, float] = (0, 0)) -> Optional[Tuple[float, float, float, float]]:
+    """Get bounding box of an element (x, y, width, height) accounting for transforms."""
+    tx, ty = transform_offset
+
+    # Check for transform on this element
+    transform = element.get('transform', '')
+    if 'translate' in transform:
+        match = re.search(r'translate\(\s*([-\d.]+)\s*,\s*([-\d.]+)\s*\)', transform)
+        if match:
+            tx += float(match.group(1))
+            ty += float(match.group(2))
+
+    tag = element.tag.replace('{http://www.w3.org/2000/svg}', '')
+
+    if tag == 'rect':
+        try:
+            x = float(element.get('x', 0)) + tx
+            y = float(element.get('y', 0)) + ty
+            width = float(element.get('width', 0))
+            height = float(element.get('height', 0))
+            return (x, y, width, height)
+        except ValueError:
+            return None
+
+    elif tag == 'text':
+        try:
+            x = float(element.get('x', 0)) + tx
+            y = float(element.get('y', 0)) + ty
+            font_size = float(element.get('font-size', '12').rstrip('px'))
+            # Text y is baseline, so content extends above
+            # For width, we don't estimate - just check vertical bounds
+            # Text width estimation is too unreliable without rendering
+            return (x, y - font_size, 0, font_size * 1.2)
+        except ValueError:
+            return None
+
+    elif tag == 'line':
+        try:
+            x1 = float(element.get('x1', 0)) + tx
+            y1 = float(element.get('y1', 0)) + ty
+            x2 = float(element.get('x2', 0)) + tx
+            y2 = float(element.get('y2', 0)) + ty
+            return (min(x1, x2), min(y1, y2), abs(x2 - x1), abs(y2 - y1))
+        except ValueError:
+            return None
+
+    elif tag == 'circle':
+        try:
+            cx = float(element.get('cx', 0)) + tx
+            cy = float(element.get('cy', 0)) + ty
+            r = float(element.get('r', 0))
+            return (cx - r, cy - r, 2 * r, 2 * r)
+        except ValueError:
+            return None
+
+    elif tag == 'path':
+        # Parse path d attribute to find bounds
+        d = element.get('d', '')
+        coords = re.findall(r'[-\d.]+', d)
+        if len(coords) >= 2:
+            try:
+                numbers = [float(c) for c in coords]
+                xs = numbers[0::2]  # every other starting at 0
+                ys = numbers[1::2]  # every other starting at 1
+                if xs and ys:
+                    min_x = min(xs) + tx
+                    min_y = min(ys) + ty
+                    max_x = max(xs) + tx
+                    max_y = max(ys) + ty
+                    return (min_x, min_y, max_x - min_x, max_y - min_y)
+            except ValueError:
+                return None
+
+    return None
+
+
+def check_viewbox_bounds(root: ET.Element) -> List[str]:
+    """Check that all content fits within the viewBox."""
+    issues = []
+
+    viewbox = parse_viewbox(root)
+    if not viewbox:
+        return issues  # No viewBox to check against
+
+    vb_x, vb_y, vb_width, vb_height = viewbox
+    vb_max_x = vb_x + vb_width
+    vb_max_y = vb_y + vb_height
+
+    max_x_found = vb_x
+    max_y_found = vb_y
+    min_x_found = vb_max_x
+    min_y_found = vb_max_y
+
+    def check_element(elem: ET.Element, transform_offset: Tuple[float, float] = (0, 0)):
+        nonlocal max_x_found, max_y_found, min_x_found, min_y_found
+
+        # Check for transform on this element
+        tx, ty = transform_offset
+        transform = elem.get('transform', '')
+        if 'translate' in transform:
+            match = re.search(r'translate\(\s*([-\d.]+)\s*,\s*([-\d.]+)\s*\)', transform)
+            if match:
+                tx += float(match.group(1))
+                ty += float(match.group(2))
+
+        bounds = get_element_bounds(elem, (tx, ty))
+        if bounds:
+            x, y, w, h = bounds
+            max_x_found = max(max_x_found, x + w)
+            max_y_found = max(max_y_found, y + h)
+            min_x_found = min(min_x_found, x)
+            min_y_found = min(min_y_found, y)
+
+        # Recursively check children
+        for child in elem:
+            check_element(child, (tx, ty))
+
+    check_element(root)
+
+    # Check if content extends beyond viewBox
+    if max_x_found > vb_max_x + 5:  # 5px tolerance
+        issues.append(
+            f"  ERROR: Content extends beyond viewBox right edge: "
+            f"content reaches x={max_x_found:.0f} but viewBox ends at {vb_max_x:.0f}"
+        )
+
+    if max_y_found > vb_max_y + 5:  # 5px tolerance
+        issues.append(
+            f"  ERROR: Content extends beyond viewBox bottom edge: "
+            f"content reaches y={max_y_found:.0f} but viewBox ends at {vb_max_y:.0f}"
+        )
+
+    if min_x_found < vb_x - 5:
+        issues.append(
+            f"  ERROR: Content extends beyond viewBox left edge: "
+            f"content starts at x={min_x_found:.0f} but viewBox starts at {vb_x:.0f}"
+        )
+
+    if min_y_found < vb_y - 5:
+        issues.append(
+            f"  ERROR: Content extends beyond viewBox top edge: "
+            f"content starts at y={min_y_found:.0f} but viewBox starts at {vb_y:.0f}"
+        )
+
+    return issues
+
+
 def check_svg_file(svg_path: Path) -> List[str]:
     """Check a single SVG file for typography issues."""
     issues = []
@@ -410,6 +572,10 @@ def check_svg_file(svg_path: Path) -> List[str]:
     try:
         tree = ET.parse(svg_path)
         root = tree.getroot()
+
+        # Check viewBox bounds
+        bounds_issues = check_viewbox_bounds(root)
+        issues.extend(bounds_issues)
 
         elements = get_text_elements(root)
 
