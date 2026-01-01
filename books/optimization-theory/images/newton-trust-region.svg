@@ -60,7 +60,7 @@
 
     <!-- Newton step (directly toward minimum) -->
     <line x1="0" y1="0" x2="50" y2="22" stroke="#81C784" stroke-width="2.5" marker-end="url(#arrGreen)"/>
-    <text x="30" y="45" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#81C784">Newton step</text>
+    <text x="-10" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#81C784">Newton step</text>
 
     <!-- Annotations for axes -->
     <line x1="-90" y1="35" x2="90" y2="-35" stroke="#81C784" stroke-width="1" stroke-dasharray="2,2" opacity="0.5" transform="rotate(0)"/>

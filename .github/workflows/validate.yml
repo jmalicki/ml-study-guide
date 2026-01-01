@@ -33,3 +33,8 @@ jobs:
           echo ""
           echo "=== Checking assets/diagrams SVGs (strict) ==="
           python scripts/check_svg_contrast.py assets/diagrams/*.svg
+
+      - name: Check SVG element overlaps
+        run: |
+          echo "=== Checking optimization book SVGs for overlaps ==="
+          python scripts/check_svg_overlaps.py books/optimization-theory/images/*.svg
