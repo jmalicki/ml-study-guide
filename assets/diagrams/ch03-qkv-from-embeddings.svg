@@ -23,6 +23,10 @@
     .bg-box { fill: #f5f5f5; }
 
     /* Dark mode */
+
+    /* Background colors */
+    .bg-cream { fill: #fff9e6; }
+    .bg-indigo-light { fill: #E8EAF6; }
     @media (prefers-color-scheme: dark) {
       text { fill: #ffffff; }
       .label-text { fill: #cccccc; }
@@ -42,6 +46,8 @@
       rect[fill="#f9f9f9"] { fill: #2d2d2d; }
       rect[fill="#FFF9E6"] { fill: #3a3620; }
       rect[fill="#E8EAF6"] { fill: #3d3d4d; }
+      .bg-cream { fill: #5d4037; }
+      .bg-indigo-light { fill: #1a237e; }
     }
   </style>
 
@@ -71,7 +77,7 @@
   <!-- Token columns - showing each token's individual Q, K, V -->
   <!-- Token: The -->
   <g id="token-the">
-    <rect x="80" y="75" width="90" height="35" fill="#E8EAF6" stroke="#4A90A4" stroke-width="2" rx="5" />
+    <rect x="80" y="75" width="90" height="35" class="bg-indigo-light" stroke="#4A90A4" stroke-width="2" rx="5" />
     <text x="125" y="98" font-family="monospace" font-size="14" font-weight="bold" text-anchor="middle" fill="#333">The</text>
 
     <line x1="125" y1="110" x2="125" y2="130" stroke="#999" stroke-width="1.5" marker-end="url(#arrowhead)" />
@@ -89,7 +95,7 @@
 
   <!-- Token: quick -->
   <g id="token-quick">
-    <rect x="190" y="75" width="90" height="35" fill="#E8EAF6" stroke="#4A90A4" stroke-width="2" rx="5" />
+    <rect x="190" y="75" width="90" height="35" class="bg-indigo-light" stroke="#4A90A4" stroke-width="2" rx="5" />
     <text x="235" y="98" font-family="monospace" font-size="14" font-weight="bold" text-anchor="middle" fill="#333">quick</text>
 
     <line x1="235" y1="110" x2="235" y2="130" stroke="#999" stroke-width="1.5" marker-end="url(#arrowhead)" />
@@ -106,7 +112,7 @@
 
   <!-- Token: brown -->
   <g id="token-brown">
-    <rect x="300" y="75" width="90" height="35" fill="#E8EAF6" stroke="#4A90A4" stroke-width="2" rx="5" />
+    <rect x="300" y="75" width="90" height="35" class="bg-indigo-light" stroke="#4A90A4" stroke-width="2" rx="5" />
     <text x="345" y="98" font-family="monospace" font-size="14" font-weight="bold" text-anchor="middle" fill="#333">brown</text>
 
     <line x1="345" y1="110" x2="345" y2="130" stroke="#999" stroke-width="1.5" marker-end="url(#arrowhead)" />
@@ -123,7 +129,7 @@
 
   <!-- Token: fox (highlighted as example) -->
   <g id="token-fox">
-    <rect x="410" y="75" width="90" height="35" fill="#E8EAF6" stroke="#E57373" stroke-width="3" rx="5" />
+    <rect x="410" y="75" width="90" height="35" class="bg-indigo-light" stroke="#E57373" stroke-width="3" rx="5" />
     <text x="455" y="98" font-family="monospace" font-size="14" font-weight="bold" text-anchor="middle" fill="#333">fox</text>
     <text x="455" y="68" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#E57373">← example token</text>
 
@@ -229,7 +235,7 @@
   <text x="305" y="625" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#4A90A4">output<tspan baseline-shift="sub" font-size="8">fox</tspan></text>
 
   <!-- Key insight boxes on the right -->
-  <rect x="520" y="75" width="400" height="125" fill="#FFF9E6" stroke="#FFB74D" stroke-width="2" rx="5" />
+  <rect x="520" y="75" width="400" height="125" class="bg-cream" stroke="#FFB74D" stroke-width="2" rx="5" />
   <text x="535" y="97" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#333">The Key Insight:</text>
   <text x="545" y="117" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">Each token computes its own q, k, v vectors.</text>
   <text x="545" y="137" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">But to compute output for token i:</text>
@@ -238,7 +244,7 @@
   <text x="555" y="193" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#FFB74D">• Weighted sum of v<tspan baseline-shift="sub" font-size="8">j</tspan> for ALL tokens j</text>
 
   <!-- Analogy box -->
-  <rect x="520" y="215" width="400" height="95" fill="#E8EAF6" stroke="#4A90A4" stroke-width="2" rx="5" />
+  <rect x="520" y="215" width="400" height="95" class="bg-indigo-light" stroke="#4A90A4" stroke-width="2" rx="5" />
   <text x="535" y="237" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#4A90A4">Intuition (Database Analogy):</text>
   <text x="545" y="260" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#E57373">Q = "What am I looking for?" (the question)</text>
   <text x="545" y="280" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#81C784">K = "What do I contain?" (index/label)</text>
@@ -270,7 +276,7 @@
   <text x="545" y="393" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">q from position i; k and v from all positions j</text>
 
   <!-- Why this matters box -->
-  <rect x="520" y="415" width="400" height="90" fill="#FFF9E6" stroke="#E57373" stroke-width="2" rx="5" />
+  <rect x="520" y="415" width="400" height="90" class="bg-cream" stroke="#E57373" stroke-width="2" rx="5" />
   <text x="535" y="437" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#E57373">Why This Matters:</text>
   <text x="545" y="460" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">• "fox" asks: "who should I attend to?"</text>
   <text x="545" y="478" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#333">• Compares its q against everyone's k</text>

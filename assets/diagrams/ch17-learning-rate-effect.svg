@@ -15,6 +15,9 @@
       .optimal-marker { fill: #81C784; stroke: #333; stroke-width: 2; }
     
       /* Dark mode support */
+
+    /* Background colors */
+    .bg-white { fill: white; }
       @media (prefers-color-scheme: dark) {
         text { fill: #ffffff; }
         text[fill="#333"] { fill: #ffffff; }
@@ -38,6 +41,7 @@
 
         .grid { stroke: #444444; }
         .axis { stroke: #cccccc; }
+      .bg-white { fill: #2d2d2d; }
       }
     </style>
   </defs>
@@ -126,7 +130,7 @@
   </defs>
 
   <!-- Key insights box -->
-  <rect x="480" y="310" width="190" height="80" fill="white" stroke="#333" stroke-width="1" rx="5"/>
+  <rect x="480" y="310" width="190" height="80" class="bg-white" stroke="#333" stroke-width="1" rx="5"/>
   <text x="490" y="330" class="annotation" font-weight="600">Key Insights:</text>
   <text x="490" y="348" class="annotation">• Too low: wastes compute</text>
   <text x="490" y="365" class="annotation">• Too high: training fails</text>

@@ -14,6 +14,9 @@
       .optimal-line { stroke: #FFB74D; stroke-width: 2; stroke-dasharray: 3,3; }
     
       /* Dark mode support */
+
+    /* Background colors */
+    .bg-white { fill: white; }
       @media (prefers-color-scheme: dark) {
         text { fill: #ffffff; }
         text[fill="#333"] { fill: #ffffff; }
@@ -54,6 +57,7 @@
         /* Darken colored backgrounds for dark mode */
         rect[fill="white"] { fill: #1a1a1a; }
         rect[fill="#ffffff"] { fill: #1a1a1a; }
+      .bg-white { fill: #2d2d2d; }
       }
     </style>
   </defs>
@@ -118,7 +122,7 @@
 
   <!-- Legend -->
   <g transform="translate(450, 250)">
-    <rect x="0" y="0" width="180" height="85" fill="white" stroke="#333" stroke-width="1" rx="5"/>
+    <rect x="0" y="0" width="180" height="85" class="bg-white" stroke="#333" stroke-width="1" rx="5"/>
     <text x="10" y="20" class="annotation" font-weight="600">Metrics:</text>
 
     <line x1="10" y1="35" x2="40" y2="35" class="quality-curve"/>
@@ -145,7 +149,7 @@
   <text x="550" y="195" text-anchor="middle" class="annotation" fill="#1565C0">• Diminishing returns</text>
 
   <!-- Key insights box -->
-  <rect x="110" y="110" width="240" height="120" fill="white" stroke="#333" stroke-width="1" rx="5" opacity="0.95"/>
+  <rect x="110" y="110" width="240" height="120" class="bg-white" stroke="#333" stroke-width="1" rx="5" opacity="0.95"/>
   <text x="120" y="105" class="annotation" fill="#000" font-weight="600">Key Insights:</text>
   <text x="120" y="235" class="annotation" fill="#000">• DDPM: 1000 steps (slow, high quality)</text>
   <text x="120" y="250" class="annotation" fill="#000">• DDIM: 50 steps (fast, good quality)</text>

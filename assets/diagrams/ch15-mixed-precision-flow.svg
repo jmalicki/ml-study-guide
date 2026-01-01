@@ -11,6 +11,12 @@
     .bg-summary { fill: #F5F5F5; }
 
     /* Dark mode */
+
+    /* Background colors */
+    .bg-blue-light { fill: #E3F2FD; }
+    .bg-orange-light { fill: #FFF3E0; }
+    .bg-pink-light { fill: #FFCDD2; }
+    .bg-red-light { fill: #FFEBEE; }
     @media (prefers-color-scheme: dark) {
       text { fill: #ffffff; }
       .axis-text { fill: #ffffff; }
@@ -48,6 +54,10 @@
       text[fill="#666"] {
         fill: #ffffff;
       }
+      .bg-blue-light { fill: #1a237e; }
+      .bg-orange-light { fill: #e65100; }
+      .bg-pink-light { fill: #c62828; }
+      .bg-red-light { fill: #b71c1c; }
     }
   </style><rect width="650" height="500" class="bg-main" />
 
@@ -66,7 +76,7 @@
 
   
   <g id="input">
-    <rect x="50" y="80" width="200" height="50" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2" rx="5" />
+    <rect x="50" y="80" width="200" height="50" class="bg-blue-light" stroke="#4A90A4" stroke-width="2" rx="5" />
     <text x="150" y="102" font-family="Arial, sans-serif" font-size="13" font-weight="bold"  text-anchor="middle">
       Input Data
     </text>
@@ -80,7 +90,7 @@
 
   
   <g id="forward">
-    <rect x="50" y="160" width="200" height="60" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2" rx="5" />
+    <rect x="50" y="160" width="200" height="60" class="bg-blue-light" stroke="#4A90A4" stroke-width="2" rx="5" />
     <text x="150" y="182" font-family="Arial, sans-serif" font-size="13" font-weight="bold"  text-anchor="middle">
       Forward Pass
     </text>
@@ -97,7 +107,7 @@
 
   
   <g id="loss">
-    <rect x="50" y="250" width="200" height="50" fill="#E3F2FD" stroke="#4A90A4" stroke-width="2" rx="5" />
+    <rect x="50" y="250" width="200" height="50" class="bg-blue-light" stroke="#4A90A4" stroke-width="2" rx="5" />
     <text x="150" y="272" font-family="Arial, sans-serif" font-size="13" font-weight="bold"  text-anchor="middle">
       Loss Computation
     </text>
@@ -114,7 +124,7 @@
 
   
   <g id="scaling">
-    <rect x="400" y="250" width="200" height="50" fill="#FFF3E0" stroke="#FF9800" stroke-width="2" stroke-dasharray="5,3" rx="5" />
+    <rect x="400" y="250" width="200" height="50" class="bg-orange-light" stroke="#FF9800" stroke-width="2" stroke-dasharray="5,3" rx="5" />
     <text x="500" y="272" font-family="Arial, sans-serif" font-size="13" font-weight="bold"  text-anchor="middle">
       Loss Scaling (FP16 only)
     </text>
@@ -128,7 +138,7 @@
 
   
   <g id="backward">
-    <rect x="50" y="330" width="200" height="60" fill="#FFEBEE" stroke="#E57373" stroke-width="2" rx="5" />
+    <rect x="50" y="330" width="200" height="60" class="bg-red-light" stroke="#E57373" stroke-width="2" rx="5" />
     <text x="150" y="352" font-family="Arial, sans-serif" font-size="13" font-weight="bold"  text-anchor="middle">
       Backward Pass
     </text>
@@ -145,7 +155,7 @@
 
   
   <g id="convert">
-    <rect x="400" y="330" width="200" height="60" fill="#FFCDD2" stroke="#E57373" stroke-width="2" rx="5" />
+    <rect x="400" y="330" width="200" height="60" class="bg-pink-light" stroke="#E57373" stroke-width="2" rx="5" />
     <text x="500" y="352" font-family="Arial, sans-serif" font-size="13" font-weight="bold"  text-anchor="middle">
       Convert to FP32
     </text>

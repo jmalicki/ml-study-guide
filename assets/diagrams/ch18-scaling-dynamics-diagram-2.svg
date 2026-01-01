@@ -9,6 +9,10 @@
     line[stroke="#333"] { stroke: #333333; }
 
     /* Dark mode */
+
+    /* Background colors */
+    .bg-gray-light { fill: #f5f5f5; }
+    .bg-white { fill: white; }
     @media (prefers-color-scheme: dark) {
       text { fill: #ffffff; }
       .axis-text { fill: #ffffff; }
@@ -41,12 +45,14 @@
       text[fill="#666"] {
         fill: #ffffff;
       }
+      .bg-gray-light { fill: #424242; }
+      .bg-white { fill: #2d2d2d; }
     }
-  </style><rect width="900" height="350" fill="#f5f5f5" />
+  </style><rect width="900" height="350" class="bg-gray-light" />
 
   
   <g transform="translate(40, 30)">
-    <rect width="380" height="280" fill="white" stroke="#ddd" stroke-width="1" />
+    <rect width="380" height="280" class="bg-white" stroke="#ddd" stroke-width="1" />
     
     <line x1="50" y1="240" x2="360" y2="240" stroke="#333" stroke-width="2" />
     <line x1="50" y1="20" x2="50" y2="240" stroke="#333" stroke-width="2" />
@@ -71,7 +77,7 @@
 
   
   <g transform="translate(480, 30)">
-    <rect width="380" height="280" fill="white" stroke="#ddd" stroke-width="1" />
+    <rect width="380" height="280" class="bg-white" stroke="#ddd" stroke-width="1" />
     
     <line x1="50" y1="240" x2="360" y2="240" stroke="#333" stroke-width="2" />
     <line x1="50" y1="20" x2="50" y2="240" stroke="#333" stroke-width="2" />

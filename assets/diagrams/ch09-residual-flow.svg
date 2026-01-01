@@ -11,6 +11,9 @@
     .bg-box { fill: #f5f5f5; }
 
     /* Dark mode */
+
+    /* Background colors */
+    .bg-white { fill: #fff; }
     @media (prefers-color-scheme: dark) {
       text { fill: #ffffff; }
       .axis-text { fill: #ffffff; }
@@ -133,7 +136,7 @@
     <text x="600" y="168" font-size="12" text-anchor="middle" style="fill: #fff !important" font-weight="bold">Layer 1</text>
 
 
-    <circle cx="600" cy="215" r="15" fill="#FFF" stroke="#333" stroke-width="2" />
+    <circle cx="600" cy="215" r="15" class="bg-white" stroke="#333" stroke-width="2" />
     <text x="600" y="220" font-size="16" font-weight="bold" text-anchor="middle">+</text>
 
     <line x1="520" y1="200" x2="585" y2="215" stroke="#81C784" stroke-width="4" marker-end="url(#arrowhead-green)" />
@@ -147,7 +150,7 @@
     <text x="600" y="273" font-size="12" text-anchor="middle" style="fill: #fff !important" font-weight="bold">Layer 2</text>
 
 
-    <circle cx="600" cy="315" r="15" fill="#FFF" stroke="#333" stroke-width="2" />
+    <circle cx="600" cy="315" r="15" class="bg-white" stroke="#333" stroke-width="2" />
     <text x="600" y="320" font-size="16" font-weight="bold" text-anchor="middle">+</text>
 
     <line x1="520" y1="285" x2="585" y2="315" stroke="#81C784" stroke-width="4" marker-end="url(#arrowhead-green)" />
