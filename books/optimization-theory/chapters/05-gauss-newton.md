@@ -1,5 +1,20 @@
 # Chapter 5: Gauss-Newton and the Least-Squares Structure
 
+**How this differs from Newton (Chapter 2)**: Newton uses the exact Hessian $\nabla^2 L$. Gauss-Newton is a *specific approximation* that replaces $\nabla^2 L$ with $J^TJ$ (the Jacobian of residuals). This approximation only makes sense for least-squares losses—but when it applies, it has special properties that Newton lacks (always positive semi-definite, connects to Fisher information).
+
+**Important context**: Like Newton, Gauss-Newton is not a practical optimizer for neural networks. Computing the full Jacobian for a modern network is completely intractable—ResNet-50 would require storing 25 trillion elements. Nobody uses Gauss-Newton directly for deep learning.
+
+So why dedicate a chapter to it? Because Gauss-Newton is *foundational theory* that explains why practical methods work:
+
+- **Adam's per-parameter scaling** approximates the diagonal of $J^TJ$
+- **Natural gradient** (Chapter 15) is Gauss-Newton viewed through statistics
+- **K-FAC** (Chapter 16) makes Gauss-Newton tractable via Kronecker factorization
+- **The Fisher information matrix** equals the Gauss-Newton Hessian for Gaussian likelihoods
+
+Understanding Gauss-Newton gives you the conceptual foundation to understand *why* these practical methods are designed the way they are. It's the idealized algorithm that modern optimizers approximate.
+
+## The Core Idea
+
 Many machine learning losses have a special structure: they're sums of squared errors. Gauss-Newton exploits this structure to get a Hessian approximation that's always positive semi-definite, cheaper to compute, and often better behaved than the true Hessian.
 
 ## The Least-Squares Problem
@@ -397,80 +412,58 @@ def matrix_free_gauss_newton_step(
     return delta
 ```
 
-## Gauss-Newton for Deep Learning
+## Why This Matters for Deep Learning
 
-### When It Works
+You cannot run Gauss-Newton on a neural network—the Jacobian is astronomically large. But understanding it explains *why practical optimizers work*.
 
-Gauss-Newton is effective when:
-1. Loss is sum of squared errors
-2. Residuals are small (near solution)
-3. Model is nearly linear (locally)
+### The Gauss-Newton Intuition Behind Adam
 
-### Modifications for Neural Networks
+Consider what the diagonal of $J^TJ$ represents: it measures how much each parameter affects the residuals. Parameters with large influence get scaled down; parameters with small influence get scaled up. This is *exactly* what Adam's $v_t$ (the exponential moving average of squared gradients) approximates.
+
+When you write:
+```python
+v_t = beta2 * v_{t-1} + (1 - beta2) * g_t^2
+update = g_t / (sqrt(v_t) + eps)
+```
+
+You're approximating $\text{diag}(J^TJ)^{-1/2} g$—a diagonal Gauss-Newton step.
+
+### The Path to Practical Methods
+
+The theoretical framework of Gauss-Newton leads to practical algorithms:
+
+| Gauss-Newton Concept | Practical Approximation |
+|---------------------|------------------------|
+| Full $J^TJ$ matrix | Intractable for neural nets |
+| Diagonal of $J^TJ$ | Adam, RMSprop, Adagrad |
+| Block-diagonal $J^TJ$ | K-FAC (Chapter 16) |
+| Kronecker-factored blocks | K-FAC, Shampoo |
+| Fisher information view | Natural gradient (Chapter 15) |
+
+### What Would Be Needed
+
+If you could somehow use Gauss-Newton on neural networks, you'd need:
 
 1. **Damping**: Essential for non-convex landscapes
 2. **Block-diagonal approximation**: Treat each layer independently
-3. **Fisher sampling**: Sample y from the model to avoid true labels
+3. **Fisher sampling**: Sample from the model's output distribution
 4. **Truncation**: Use only a few CG iterations
 
-This leads to K-FAC and related methods (Chapter 16).
-
-```python
-class GaussNewtonOptimizer:
-    """
-    Gauss-Newton optimizer for neural networks.
-    Simplified version for illustration.
-    """
-    def __init__(self, params, lr=1.0, damping=1e-2):
-        self.params = list(params)
-        self.lr = lr
-        self.damping = damping
-
-    def step(self, loss_fn, inputs, targets):
-        """
-        Take a Gauss-Newton step.
-
-        Args:
-            loss_fn: Returns (loss, residuals)
-            inputs: Model inputs
-            targets: Target values
-        """
-        # Flatten parameters
-        theta = torch.cat([p.view(-1) for p in self.params])
-        theta.requires_grad_(True)
-
-        # This is a simplified version
-        # Real implementation would use efficient JVPs
-
-        loss, residuals = loss_fn(inputs, targets)
-
-        # Compute gradient
-        loss.backward()
-
-        with torch.no_grad():
-            # Simple diagonal Gauss-Newton approximation
-            for p in self.params:
-                if p.grad is not None:
-                    # Approximate: scale by inverse squared gradient magnitude
-                    # This is a crude approximation to the diagonal of J^T J
-                    denom = p.grad ** 2 + self.damping
-                    p.data -= self.lr * p.grad / denom
-                    p.grad = None
-```
+These are exactly the modifications that K-FAC and related methods use (Chapter 16).
 
 ## Key Takeaways
 
-1. **Gauss-Newton exploits least-squares structure** to get a cheap, PSD Hessian approximation
+1. **Gauss-Newton is foundational theory, not a practical algorithm** for deep learning—the Jacobian is intractably large
 
-2. **$H_{GN} = J^T J$** ignores residual second derivatives—valid near the solution
+2. **$H_{GN} = J^T J$** ignores residual second derivatives—a positive semi-definite approximation
 
-3. **Levenberg-Marquardt** interpolates between GD and Gauss-Newton adaptively
+3. **Adam approximates diagonal Gauss-Newton**—this is why per-parameter learning rates work
 
-4. **Gauss-Newton = Fisher** for Gaussian likelihood models
+4. **Gauss-Newton = Fisher** for Gaussian likelihood models—connecting optimization to statistics
 
-5. **Matrix-free implementation** via JVPs and VJPs enables scaling to neural networks
+5. **Understanding this theory** explains why K-FAC, natural gradient, and adaptive methods are designed the way they are
 
-6. **This connection is foundational** for natural gradient and K-FAC
+6. **The idealized algorithm** that practical optimizers approximate in various ways
 
 ## What's Next
 
