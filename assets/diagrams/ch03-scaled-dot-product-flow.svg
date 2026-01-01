@@ -2,6 +2,22 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 650">
   
   <style>
+    /* Load STIX Two Math font from CDN if not installed */
+    @font-face {
+      font-family: 'STIX Two Math';
+      src: local('STIX Two Math'),
+           url('https://cdn.jsdelivr.net/npm/@fontsource/stix-two-text@5.0.19/files/stix-two-text-latin-400-normal.woff2') format('woff2');
+      font-weight: normal;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'STIX Two Math';
+      src: local('STIX Two Math Italic'),
+           url('https://cdn.jsdelivr.net/npm/@fontsource/stix-two-text@5.0.19/files/stix-two-text-latin-400-italic.woff2') format('woff2');
+      font-weight: normal;
+      font-style: italic;
+    }
+
     /* Light mode (default) */
     text { fill: #000000; }
     .axis-text { fill: #000000; }
@@ -59,21 +75,27 @@
   <g id="inputs">
     
     <rect x="50" y="80" width="80" height="100" fill="#E57373" opacity="0.2" stroke="#E57373" stroke-width="2" />
-    <text x="90" y="135" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" >Q</text>
+    <text x="90" y="135" font-family="'STIX Two Math', Georgia, serif" font-size="18" font-weight="bold" text-anchor="middle" font-style="italic">Q</text>
+    <text x="102" y="140" font-family="'STIX Two Math', Georgia, serif" font-size="10" text-anchor="middle" font-style="italic">i</text>
     <text x="90" y="155" font-family="system-ui, -apple-system, sans-serif" font-size="11" text-anchor="middle" >[n, d_k]</text>
     <text x="90" y="65" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" text-anchor="middle" fill="#E57373">Query</text>
+    <text x="90" y="195" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#666">(from token i)</text>
 
 
     <rect x="180" y="80" width="80" height="100" fill="#81C784" opacity="0.2" stroke="#81C784" stroke-width="2" />
-    <text x="220" y="135" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" >K</text>
+    <text x="220" y="135" font-family="'STIX Two Math', Georgia, serif" font-size="18" font-weight="bold" text-anchor="middle" font-style="italic">K</text>
+    <text x="232" y="140" font-family="'STIX Two Math', Georgia, serif" font-size="10" text-anchor="middle" font-style="italic">j</text>
     <text x="220" y="155" font-family="system-ui, -apple-system, sans-serif" font-size="11" text-anchor="middle" >[n, d_k]</text>
     <text x="220" y="65" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" text-anchor="middle" fill="#81C784">Key</text>
+    <text x="220" y="195" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#666">(from all tokens j)</text>
 
 
     <rect x="310" y="80" width="80" height="100" fill="#FFB74D" opacity="0.2" stroke="#FFB74D" stroke-width="2" />
-    <text x="350" y="135" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" >V</text>
+    <text x="350" y="135" font-family="'STIX Two Math', Georgia, serif" font-size="18" font-weight="bold" text-anchor="middle" font-style="italic">V</text>
+    <text x="362" y="140" font-family="'STIX Two Math', Georgia, serif" font-size="10" text-anchor="middle" font-style="italic">j</text>
     <text x="350" y="155" font-family="system-ui, -apple-system, sans-serif" font-size="11" text-anchor="middle" >[n, d_v]</text>
     <text x="350" y="65" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" text-anchor="middle" fill="#FFB74D">Value</text>
+    <text x="350" y="195" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#666">(from all tokens j)</text>
   </g>
 
   
