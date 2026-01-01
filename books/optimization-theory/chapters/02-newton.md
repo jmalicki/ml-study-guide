@@ -167,6 +167,10 @@ Newton's method uses an **elliptical** trust region instead of gradient descent'
 - It's compressed along high-curvature directions
 - This matches the actual shape of the loss landscape
 
+![Trust region comparison: GD vs Newton](../images/trust-region-comparison.svg)
+
+The key insight: gradient descent asks "what's the best step within distance η?" using Euclidean distance. Newton asks the same question but measures distance in the **Hessian norm** $\|\delta\|_H = \sqrt{\delta^T H \delta}$. This automatically accounts for curvature.
+
 ```python
 def visualize_trust_regions():
     """
