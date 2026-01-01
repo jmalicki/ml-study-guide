@@ -25,7 +25,7 @@ This chapter covers the foundational approaches to positional encoding, from the
 The attention mechanism (see [Basic Attention](03-basic-attention.md)) computes relationships between tokens using queries, keys, and values:
 
 ```math
-\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
+\large \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
 ```
 
 Notice that this operation is **permutation invariant**: if we shuffle the input sequence, the attention scores remain the same (just reordered). The model has no inherent notion of token order.
@@ -88,14 +88,14 @@ A good positional encoding scheme should satisfy several properties:
 Each position should have a unique encoding:
 
 ```math
-\text{PE}(pos_i) \neq \text{PE}(pos_j) \quad \text{for } i \neq j
+\large \text{PE}(pos_i) \neq \text{PE}(pos_j) \quad \text{for } i \neq j
 ```
 
 ### 2. Bounded Values
 Encodings should have bounded magnitudes to prevent numerical instability:
 
 ```math
-\|\text{PE}(pos)\| \leq C \quad \text{for some constant } C
+\large \|\text{PE}(pos)\| \leq C \quad \text{for some constant } C
 ```
 
 ### 3. Deterministic (for some methods)
@@ -118,7 +118,7 @@ The original Transformer paper ([Vaswani et al., 2017](https://arxiv.org/abs/170
 For a position $pos$ and dimension $i$, the positional encoding is:
 
 ```math
-\begin{aligned}
+\large \begin{aligned}
 \text{PE}_{(pos, 2i)} &= \sin\left(\frac{pos}{10000^{2i/d_{model}}}\right) \\
 \text{PE}_{(pos, 2i+1)} &= \cos\left(\frac{pos}{10000^{2i/d_{model}}}\right)
 \end{aligned}
@@ -332,7 +332,7 @@ if __name__ == "__main__":
 **3. Relative Position Information**: The encoding at position $pos + k$ can be represented as a linear transformation of the encoding at position $pos$. Using the trigonometric angle addition formulas:
 
 ```math
-\begin{aligned}
+\large \begin{aligned}
 \sin(\alpha + \beta) &= \sin(\alpha)\cos(\beta) + \cos(\alpha)\sin(\beta) \\
 \cos(\alpha + \beta) &= \cos(\alpha)\cos(\beta) - \sin(\alpha)\sin(\beta)
 \end{aligned}
@@ -341,7 +341,7 @@ if __name__ == "__main__":
 We can express this relationship as a matrix transformation. For each frequency $\omega_i = 1/10000^{2i/d_{model}}$, the encoding at position $pos + k$ can be written as:
 
 ```math
-\begin{bmatrix}
+\large \begin{bmatrix}
 \text{PE}_{(pos+k, 2i)} \\
 \text{PE}_{(pos+k, 2i+1)}
 \end{bmatrix}
@@ -371,7 +371,7 @@ An alternative approach is to treat positional encodings as learnable parameters
 For each position $pos \in \{0, 1, ..., max\_len - 1\}$, learn a vector $\mathbf{p}_{pos} \in \mathbb{R}^{d_{model}}$:
 
 ```math
-\text{PE}(pos) = \mathbf{p}_{pos}
+\large \text{PE}(pos) = \mathbf{p}_{pos}
 ```
 
 The positional embeddings are stored in an embedding matrix $P \in \mathbb{R}^{max\_len \times d_{model}}$ and updated during training via backpropagation.
@@ -705,7 +705,7 @@ Relative encodings can be more robust to position shifts and better capture ling
 Relative positional encodings modify the attention mechanism to include position information:
 
 ```math
-\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T + R}{\sqrt{d_k}}\right)V
+\large \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T + R}{\sqrt{d_k}}\right)V
 ```
 
 Where $R$ is a matrix of relative position biases.
@@ -725,13 +725,13 @@ ALiBi ([Press et al., 2021](https://arxiv.org/abs/2108.12409)) provides a remark
 The attention mechanism is modified as follows:
 
 ```math
-\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}} + \text{bias}_{ij}\right)V
+\large \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}} + \text{bias}_{ij}\right)V
 ```
 
 where the bias for position pair $(i, j)$ is:
 
 ```math
-\text{bias}_{ij} = -m \cdot |i - j|
+\large \text{bias}_{ij} = -m \cdot |i - j|
 ```
 
 Here, $m$ is a head-specific slope (a constant, not learned), and $|i - j|$ is the distance between the query position $i$ and key position $j$. Different attention heads use different values of $m$, typically following a geometric sequence: $m \in \{2^{-1}, 2^{-2}, 2^{-3}, ..., 2^{-n}\}$ for $n$ heads.

@@ -84,13 +84,13 @@ The key insight is that large language models have implicitly learned to decompo
 Formally, we're changing the generation objective from:
 
 ```math
-P(a|q) \quad \text{(direct answer)}
+\large P(a|q) \quad \text{(direct answer)}
 ```
 
 to:
 
 ```math
-P(r, a|q, \text{"Let's think step by step"}) \quad \text{(reasoning + answer)}
+\large P(r, a|q, \text{"Let's think step by step"}) \quad \text{(reasoning + answer)}
 ```
 
 #### Comparison to Alternatives
@@ -257,7 +257,7 @@ print(f"Answer: {answer}")
 Chain-of-thought can be viewed as decomposing the probability distribution:
 
 ```math
-P(a|q) = \sum_{r \in \mathcal{R}} P(a|r, q) P(r|q)
+\large P(a|q) = \sum_{r \in \mathcal{R}} P(a|r, q) P(r|q)
 ```
 
 Where:
@@ -270,7 +270,7 @@ Where:
 In practice, we approximate by sampling or greedily generating a single reasoning trace $r^*$:
 
 ```math
-a^* \approx \arg\max_a P(a|r^*, q) \text{ where } r^* = \arg\max_r P(r|q)
+\large a^* \approx \arg\max_a P(a|r^*, q) \text{ where } r^* = \arg\max_r P(r|q)
 ```
 
 **References:**
@@ -305,7 +305,7 @@ Self-consistency addresses this by treating reasoning as a **stochastic process*
 Self-consistency is based on the **wisdom of crowds** principle from ensemble learning:
 
 ```math
-a^* = \text{argmax}_a \sum_{r \in \mathcal{R}} P(a|r, q) P(r|q) \approx \text{mode}\{a_1, a_2, ..., a_N\}
+\large a^* = \text{argmax}_a \sum_{r \in \mathcal{R}} P(a|r, q) P(r|q) \approx \text{mode}\{a_1, a_2, ..., a_N\}
 ```
 
 where we approximate the marginalized distribution over reasoning paths by sampling $N$ paths and taking a majority vote.
@@ -504,7 +504,7 @@ Least-to-Most explicitly structures the problem-solving process to build solutio
 This approach is inspired by **curriculum learning** and **dynamic programming**. The key idea is that complex problems can be factored into:
 
 ```math
-P(a|q) = P(a | s_n, s_{n-1}, ..., s_1, q) \prod_{i=1}^{n} P(s_i | s_{i-1}, ..., s_1, q)
+\large P(a|q) = P(a | s_n, s_{n-1}, ..., s_1, q) \prod_{i=1}^{n} P(s_i | s_{i-1}, ..., s_1, q)
 ```
 
 where $s_i$ are subproblem solutions. By solving subproblems sequentially, we:
@@ -741,7 +741,7 @@ PAL is based on the **neuro-symbolic** paradigm, combining:
 The division of labor is:
 
 ```math
-\text{LLM}: \text{Problem} \rightarrow \text{Code} \quad\quad \text{Interpreter}: \text{Code} \rightarrow \text{Answer}
+\large \text{LLM}: \text{Problem} \rightarrow \text{Code} \quad\quad \text{Interpreter}: \text{Code} \rightarrow \text{Answer}
 ```
 
 This exploits the complementary strengths of each system:

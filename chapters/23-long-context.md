@@ -59,7 +59,7 @@ Rotary Position Embeddings (RoPE) (see [Rotary Position Embeddings](08-rope.md))
 Recall that RoPE applies rotation to query and key vectors:
 
 ```math
-\mathbf{q}_m = \mathbf{R}_m \mathbf{q}, \quad \mathbf{k}_n = \mathbf{R}_n \mathbf{k}
+\large \mathbf{q}_m = \mathbf{R}_m \mathbf{q}, \quad \mathbf{k}_n = \mathbf{R}_n \mathbf{k}
 ```
 
 where $\mathbf{R}_m$ is a rotation matrix dependent on position $m$ and base frequencies $\theta_i = 10000^{-2i/d}$.
@@ -71,7 +71,7 @@ where $\mathbf{R}_m$ is a rotation matrix dependent on position $m$ and base fre
 The simplest approach: scale positions linearly.
 
 ```math
-\mathbf{R}_{m'} = \mathbf{R}_{m/s}
+\large \mathbf{R}_{m'} = \mathbf{R}_{m/s}
 ```
 
 where $s$ is the scaling factor. If trained on 2K context and want 8K, use $s = 4$.
@@ -185,7 +185,7 @@ def apply_rotary_emb(
 **Key insight**: Instead of compressing positions, expand the wavelengths of the sinusoidal functions.
 
 ```math
-\theta_{i'} = \theta_i \cdot s^{d/(d-2)} = 10000^{-2i/d} \cdot s^{d/(d-2)}
+\large \theta_{i'} = \theta_i \cdot s^{d/(d-2)} = 10000^{-2i/d} \cdot s^{d/(d-2)}
 ```
 
 where $s$ is the target scaling factor.
@@ -255,7 +255,7 @@ class NTKScalingRoPE(nn.Module):
 **Dynamic NTK** adjusts the scaling based on actual sequence length:
 
 ```math
-\alpha(L) = \begin{cases}
+\large \alpha(L) = \begin{cases}
 1 & \text{if } L \leq L_{\text{train}} \\
 \left(\frac{L}{L_{\text{train}}}\right)^{d/(d-2)} & \text{otherwise}
 \end{cases}
@@ -328,7 +328,7 @@ YaRN combines multiple techniques for optimal long-context performance:
 **Frequency-dependent scaling**:
 
 ```math
-\theta_{i'} = \begin{cases}
+\large \theta_{i'} = \begin{cases}
 \theta_i & \text{if } i \lt i_{\text{low}} \\
 \theta_i \cdot s^{(i - i_{\text{low}})/(i_{\text{high}} - i_{\text{low}})} & \text{if } i_{\text{low}} \leq i \lt i_{\text{high}} \\
 \theta_i \cdot s & \text{if } i \geq i_{\text{high}}
@@ -455,7 +455,7 @@ Used in models like Qwen, ABF adjusts the base frequency (typically from 10000 t
 **Simple formula**:
 
 ```math
-\text{base}_{\text{new}} = \text{base}_{\text{old}} \times \left(\frac{L_{\text{target}}}{L_{\text{original}}}\right)^{d/(d-2)}
+\large \text{base}_{\text{new}} = \text{base}_{\text{old}} \times \left(\frac{L_{\text{target}}}{L_{\text{original}}}\right)^{d/(d-2)}
 ```
 
 This is essentially NTK scaling with a larger base adjustment.
@@ -530,7 +530,7 @@ class ABFScalingRoPE(nn.Module):
 The position encoding is modified so that for a new maximum length $L'$, positions are mapped as:
 
 ```math
-m' = m \cdot \frac{L}{L'}
+\large m' = m \cdot \frac{L}{L'}
 ```
 
 where $L$ is the original training length and $m$ is the current position.
@@ -653,13 +653,13 @@ class PositionInterpolationRoPE(nn.Module):
 **Why?** Softmax must sum to 1. When no token is particularly relevant, attention "leaks" to early tokens, especially the first.
 
 ```math
-\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d}}\right)V
+\large \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d}}\right)V
 ```
 
 For position $i$, if all keys are equally (ir)relevant:
 
 ```math
-\text{score}_{i,j} \approx 0 \text{ for all } j \Rightarrow \text{softmax needs a "sink"}
+\large \text{score}_{i,j} \approx 0 \text{ for all } j \Rightarrow \text{softmax needs a "sink"}
 ```
 
 The first token becomes this sink.
@@ -868,7 +868,7 @@ class StreamingLLMCache:
 Instead of full attention, divide heads into groups and shift patterns:
 
 ```math
-\text{Group 1: Attend to positions } [i, i-2, i-4, \ldots] \\
+\large \text{Group 1: Attend to positions } [i, i-2, i-4, \ldots] \\
 \text{Group 2: Attend to positions } [i-1, i-3, i-5, \ldots]
 ```
 
@@ -1266,7 +1266,7 @@ At each layer:
 3. Combine both sources of information
 
 ```math
-\text{Output} = \text{Attention}(Q, K_{\text{local}}, V_{\text{local}}) + \lambda \cdot \text{kNN}(Q, \mathcal{M})
+\large \text{Output} = \text{Attention}(Q, K_{\text{local}}, V_{\text{local}}) + \lambda \cdot \text{kNN}(Q, \mathcal{M})
 ```
 
 where $\mathcal{M}$ is the external memory of past activations.
@@ -1914,7 +1914,7 @@ For 100K+ context, the KV cache becomes the memory bottleneck.
 **KV Cache Size**: For a model with $L$ layers, $h$ heads, head dimension $d$, sequence length $n$:
 
 ```math
-\text{KV Cache Size} = 2 \times L \times n \times h \times d \times \text{sizeof(dtype)}
+\large \text{KV Cache Size} = 2 \times L \times n \times h \times d \times \text{sizeof(dtype)}
 ```
 
 **Example** (Llama 2 70B):
@@ -1926,7 +1926,7 @@ For 100K+ context, the KV cache becomes the memory bottleneck.
 - Precision: FP16 (2 bytes)
 
 ```math
-\text{Size} = 2 \times 80 \times 100000 \times 8 \times 128 \times 2 = 32.8 \text{ GB}
+\large \text{Size} = 2 \times 80 \times 100000 \times 8 \times 128 \times 2 = 32.8 \text{ GB}
 ```
 
 **Just for the cache!** This is per request.

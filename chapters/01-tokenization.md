@@ -42,13 +42,13 @@ Character-level tokenization splits text into individual characters. It has the 
 Given a text string $T$ of length $n$ over an alphabet $\Sigma$:
 
 ```math
-T = c_{1}c_{2}...c_n, \quad c_i \in \Sigma
+\large T = c_{1}c_{2}...c_n, \quad c_i \in \Sigma
 ```
 
 The tokenization function $\tau: T \rightarrow \mathbb{Z}^n$ maps each character to an integer ID:
 
 ```math
-\tau(T) = [id(c_1), id(c_2), ..., id(c_n)]
+\large \tau(T) = [id(c_1), id(c_2), ..., id(c_n)]
 ```
 
 where $id: \Sigma \rightarrow \{0, 1, ..., |\Sigma|-1\}$ is a bijective mapping.
@@ -58,7 +58,7 @@ where $id: \Sigma \rightarrow \{0, 1, ..., |\Sigma|-1\}$ is a bijective mapping.
 **Training Complexity:**
 
 ```math
-O(N)
+\large O(N)
 ```
 
 where $N$ is the total number of characters in the corpus. Training simply involves collecting all unique characters.
@@ -66,7 +66,7 @@ where $N$ is the total number of characters in the corpus. Training simply invol
 **Encoding Complexity:**
 
 ```math
-O(n)
+\large O(n)
 ```
 
 where $n$ is the length of the text to encode. Each character is mapped to its ID in constant time.
@@ -74,7 +74,7 @@ where $n$ is the length of the text to encode. Each character is mapped to its I
 **Space Complexity:**
 
 ```math
-O(|\Sigma|)
+\large O(|\Sigma|)
 ```
 
 where $|\Sigma|$ is the alphabet size (typically 256-150K for Unicode).
@@ -287,19 +287,19 @@ Word-level tokenization splits text into words, typically using whitespace and p
 Given text $T$, we split it into words $w_1, w_2, ..., w_m$ where $m \leq n$ and each word $w_i$ is a sequence of characters:
 
 ```math
-T = w_1 \, w_2 \, ... \, w_m
+\large T = w_1 \, w_2 \, ... \, w_m
 ```
 
 The vocabulary $V$ is the set of all unique words in the training corpus:
 
 ```math
-V = \{w_1, w_2, ..., w_{|V|}\}
+\large V = \{w_1, w_2, ..., w_{|V|}\}
 ```
 
 Tokenization maps each word to its index in $V$:
 
 ```math
-\tau(w_i) = j \quad \text{where} \quad w_i = V[j]
+\large \tau(w_i) = j \quad \text{where} \quad w_i = V[j]
 ```
 
 ### 1.3.2 Computational Complexity
@@ -307,7 +307,7 @@ Tokenization maps each word to its index in $V$:
 **Training Complexity:**
 
 ```math
-O(N + V \log V)
+\large O(N + V \log V)
 ```
 
 where $N$ is the corpus size and $V$ is the vocabulary size. The $V \log V$ term comes from sorting words by frequency to select the most common ones.
@@ -315,7 +315,7 @@ where $N$ is the corpus size and $V$ is the vocabulary size. The $V \log V$ term
 **Encoding Complexity:**
 
 ```math
-O(n)
+\large O(n)
 ```
 
 where $n$ is the text length. Each word lookup in a hash table is $O(1)$ on average.
@@ -323,7 +323,7 @@ where $n$ is the text length. Each word lookup in a hash table is $O(1)$ on aver
 **Space Complexity:**
 
 ```math
-O(V)
+\large O(V)
 ```
 
 where $V$ is the vocabulary size (typically 50K-500K words).
@@ -354,7 +354,7 @@ Word-level tokenization faces a fundamental challenge: natural language contains
 The solution is based on **Zipf's Law**, which states that word frequency follows a power-law distribution:
 
 ```math
-f(r) \propto \frac{1}{r^\alpha}
+\large f(r) \propto \frac{1}{r^\alpha}
 ```
 
 where $f(r)$ is the frequency of the word ranked $r$-th, and $\alpha \approx 1$ for natural language.
@@ -368,7 +368,7 @@ This means:
 For words outside the vocabulary, we use the `[UNK]` token. The expected number of UNK tokens is:
 
 ```math
-E[\text{UNK}] = N \times P(w \notin V) \approx N \times (1 - \text{coverage})
+\large E[\text{UNK}] = N \times P(w \notin V) \approx N \times (1 - \text{coverage})
 ```
 
 With vocab size 50K, we typically get 95-98% coverage, meaning 2-5% of running tokens are UNK.
@@ -587,7 +587,7 @@ BPE iteratively merges the most frequent pair of consecutive tokens:
 Let $V_0$ be the initial character vocabulary. At each step $i$:
 
 ```math
-V_{i+1} = V_i \cup \{a \circ b\}
+\large V_{i+1} = V_i \cup \{a \circ b\}
 ```
 
 where $(a, b) = \arg\max_{(x,y) \in V_i \times V_i} \text{count}(xy)$ and $\circ$ denotes concatenation.
@@ -595,7 +595,7 @@ where $(a, b) = \arg\max_{(x,y) \in V_i \times V_i} \text{count}(xy)$ and $\circ
 The final vocabulary after $k$ merges:
 
 ```math
-V_k = V_0 \cup \{m_1, m_2, ..., m_k\}
+\large V_k = V_0 \cup \{m_1, m_2, ..., m_k\}
 ```
 
 where $m_i$ is the $i$-th merge operation.
@@ -605,7 +605,7 @@ where $m_i$ is the $i$-th merge operation.
 **Training Complexity:**
 
 ```math
-O(N \times M)
+\large O(N \times M)
 ```
 
 where $N$ is the corpus size and $M$ is the number of merge operations (typically $M = $ vocab\_size - charset\_size). At each merge step, we need to scan the corpus to count pairs and apply the merge.
@@ -620,7 +620,7 @@ More precisely:
 **Encoding Complexity:**
 
 ```math
-O(n \times M)
+\large O(n \times M)
 ```
 
 where $n$ is the text length and $M$ is the number of merges. For each position in the text, we may need to check multiple merge rules. With efficient implementation using a priority queue or trie, this can be reduced to $O(n \log M)$.
@@ -628,7 +628,7 @@ where $n$ is the text length and $M$ is the number of merges. For each position 
 **Space Complexity:**
 
 ```math
-O(V + M)
+\large O(V + M)
 ```
 
 where $V$ is the vocabulary size and $M$ is the number of merge rules stored.
@@ -644,7 +644,7 @@ BPE must learn which character sequences to merge to balance vocabulary size and
 BPE is a **greedy algorithm** that approximates the optimal vocabulary by iteratively selecting the merge with maximum frequency:
 
 ```math
-m_i = \arg\max_{(a,b) \in V_i \times V_i} \text{count}(ab)
+\large m_i = \arg\max_{(a,b) \in V_i \times V_i} \text{count}(ab)
 ```
 
 This greedy approach is justified by the **principle of compositionality**: common subword units appear across many words, so merging them reduces total sequence length while preserving information.
@@ -947,13 +947,13 @@ WordPiece, developed by Google and used in BERT, is similar to BPE but uses a di
 While BPE uses frequency:
 
 ```math
-\text{score}_{\text{BPE}}(a, b) = \text{count}(ab)
+\large \text{score}_{\text{BPE}}(a, b) = \text{count}(ab)
 ```
 
 WordPiece uses likelihood:
 
 ```math
-\text{score}_{\text{WordPiece}}(a, b) = \frac{P(ab)}{P(a)P(b)} = \frac{\text{count}(ab)}{\text{count}(a) \cdot \text{count}(b)}
+\large \text{score}_{\text{WordPiece}}(a, b) = \frac{P(ab)}{P(a)P(b)} = \frac{\text{count}(ab)}{\text{count}(a) \cdot \text{count}(b)}
 ```
 
 This scores pairs by how much their joint probability exceeds their independent probabilities (mutual information).
@@ -963,7 +963,7 @@ This scores pairs by how much their joint probability exceeds their independent 
 **Training Complexity:**
 
 ```math
-O(N \times M \times T)
+\large O(N \times M \times T)
 ```
 
 where $N$ is the corpus size, $M$ is the number of merge operations, and $T$ is the average number of tokens per word. WordPiece is slightly more expensive than BPE because computing the mutual information score requires counting both pairs and individual tokens.
@@ -971,7 +971,7 @@ where $N$ is the corpus size, $M$ is the number of merge operations, and $T$ is 
 **Encoding Complexity:**
 
 ```math
-O(n^2)
+\large O(n^2)
 ```
 
 This is the worst-case complexity for the greedy longest-match-first algorithm, where $n$ is the word length. For each position, we try to match the longest possible subword, which can take $O(n)$ time, and we do this for each of $n$ positions.
@@ -984,7 +984,7 @@ In practice, encoding is often faster than worst-case due to:
 **Space Complexity:**
 
 ```math
-O(V)
+\large O(V)
 ```
 
 where $V$ is the vocabulary size.
@@ -1000,7 +1000,7 @@ WordPiece improves upon BPE by selecting merges that maximize the **likelihood o
 WordPiece uses **pointwise mutual information (PMI)** as its merge criterion:
 
 ```math
-\text{PMI}(a, b) = \log \frac{P(ab)}{P(a)P(b)} = \log \frac{\text{count}(ab)}{\text{count}(a) \cdot \text{count}(b)}
+\large \text{PMI}(a, b) = \log \frac{P(ab)}{P(a)P(b)} = \log \frac{\text{count}(ab)}{\text{count}(a) \cdot \text{count}(b)}
 ```
 
 This measures how much more likely $a$ and $b$ are to appear together than would be expected if they were independent.
@@ -1024,7 +1024,7 @@ Raw frequency favors Pair 1. But PMI reveals:
 The PMI score is equivalent to:
 
 ```math
-\text{score}(a,b) = \frac{P(ab)}{P(a)P(b)}
+\large \text{score}(a,b) = \frac{P(ab)}{P(a)P(b)}
 ```
 
 Maximizing this is equivalent to maximizing the log-likelihood of the data under a unigram language model, which is why this produces better language representations.
@@ -1320,13 +1320,13 @@ SentencePiece, developed by Google, is a language-independent tokenizer that tre
 The objective is to find the tokenization that maximizes:
 
 ```math
-P(x) = \prod_{s \in S(x)} P(s)
+\large P(x) = \prod_{s \in S(x)} P(s)
 ```
 
 where $S(x)$ is the set of all possible segmentations of input $x$, and we choose:
 
 ```math
-x^* = \arg\max_{x \in S(x)} P(x)
+\large x^* = \arg\max_{x \in S(x)} P(x)
 ```
 
 Since we don't implement SentencePiece from scratch here (it's quite complex), we show how to use the library.
@@ -1347,7 +1347,7 @@ SentencePiece solves this by treating input as a **raw character stream** and le
 SentencePiece's unigram language model maximizes:
 
 ```math
-\mathcal{L} = \sum_{i=1}^{N} \log P(X_i) = \sum_{i=1}^{N} \log \left( \sum_{s \in S(X_i)} P(s) \right)
+\large \mathcal{L} = \sum_{i=1}^{N} \log P(X_i) = \sum_{i=1}^{N} \log \left( \sum_{s \in S(X_i)} P(s) \right)
 ```
 
 where $S(X_i)$ is the set of all possible segmentations of sentence $X_i$.
@@ -1355,7 +1355,7 @@ where $S(X_i)$ is the set of all possible segmentations of sentence $X_i$.
 The probability of a segmentation is:
 
 ```math
-P(s) = \prod_{j=1}^{|s|} P(t_j)
+\large P(s) = \prod_{j=1}^{|s|} P(t_j)
 ```
 
 where $t_j$ are the tokens in segmentation $s$.
@@ -1553,7 +1553,7 @@ This side-by-side comparison shows how different tokenization methods split the 
 The relationship between vocabulary size and sequence length for a corpus of size $N$ tokens:
 
 ```math
-\text{Sequence Length} \approx \frac{N}{\text{Avg Tokens per Word} \times \text{Compression Ratio}}
+\large \text{Sequence Length} \approx \frac{N}{\text{Avg Tokens per Word} \times \text{Compression Ratio}}
 ```
 
 For a fixed corpus:
@@ -1709,7 +1709,7 @@ Tokenization choices affect:
 
 
    ```math
-\text{Embedding Params} = V \times d_{model}
+\large \text{Embedding Params} = V \times d_{model}
    ```
 
    where $V$ is vocab size and $d_{model}$ is embedding dimension.
@@ -1718,7 +1718,7 @@ Tokenization choices affect:
 
 
    ```math
-\text{Attention Cost} = O(n^2 d)
+\large \text{Attention Cost} = O(n^2 d)
    ```
 
    where $n$ is sequence length.
@@ -1750,10 +1750,10 @@ Special tokens are **learned symbols** with trainable embeddings. The model lear
 For a sequence of length $n$ with padding to length $N$:
 
 ```math
-\text{attention\_mask} = [1, 1, ..., 1, 0, 0, ..., 0]
+\large \text{attention\_mask} = [1, 1, ..., 1, 0, 0, ..., 0]
 ```
 ```math
-\text{attention\_weights}_{ij} = \begin{cases} \text{softmax}(\text{score}_{ij}) & \text{if mask}_j = 1 \\ 0 & \text{if mask}_j = 0 \end{cases}
+\large \text{attention\_weights}_{ij} = \begin{cases} \text{softmax}(\text{score}_{ij}) & \text{if mask}_j = 1 \\ 0 & \text{if mask}_j = 0 \end{cases}
 ```
 
 This ensures padding doesn't affect the model's computations.
@@ -1948,13 +1948,13 @@ for example in examples:
 For embeddings $E$, the representation of "New York" is:
 
 ```math
-\text{repr}(\text{"New York"}) = f(E[\text{"New"}], E[\text{"ĠYork"}])
+\large \text{repr}(\text{"New York"}) = f(E[\text{"New"}], E[\text{"ĠYork"}])
 ```
 
 While "NewYork" gives:
 
 ```math
-\text{repr}(\text{"NewYork"}) = f(E[\text{"New"}], E[\text{"York"}])
+\large \text{repr}(\text{"NewYork"}) = f(E[\text{"New"}], E[\text{"York"}])
 ```
 
 These use different tokens (with/without space), leading to different embeddings even though they refer to the same entity.
@@ -2108,7 +2108,7 @@ for lang, text in examples.items():
 **Implications:**
 
 ```math
-\text{Compute cost} \propto \text{sequence length}^2
+\large \text{Compute cost} \propto \text{sequence length}^2
 ```
 
 For the same semantic content:

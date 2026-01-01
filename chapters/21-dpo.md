@@ -46,7 +46,7 @@ DPO makes a key observation: we can derive a closed-form expression for the opti
 Human preferences are typically modeled using the Bradley-Terry model, which states that the probability of preferring response $y_w$ (chosen/winner) over $y_l$ (rejected/loser) given prompt $x$ is:
 
 ```math
-P(y_w \succ y_l \mid x) = \frac{\exp(r(x, y_w))}{\exp(r(x, y_w)) + \exp(r(x, y_l))} = \sigma(r(x, y_w) - r(x, y_l))
+\large P(y_w \succ y_l \mid x) = \frac{\exp(r(x, y_w))}{\exp(r(x, y_w)) + \exp(r(x, y_l))} = \sigma(r(x, y_w) - r(x, y_l))
 ```
 
 where $r(x, y)$ is the reward function and $\sigma$ is the sigmoid function.
@@ -56,7 +56,7 @@ where $r(x, y)$ is the reward function and $\sigma$ is the sigmoid function.
 In RLHF, we maximize:
 
 ```math
-\max_{\pi_\theta} \mathbb{E}_{x \sim \mathcal{D}, y \sim \pi_\theta(y \mid x)} [r(x, y)] - \beta \mathbb{D}_{\text{KL}}[\pi_\theta(y \mid x) \| \pi_{\text{ref}}(y \mid x)]
+\large \max_{\pi_\theta} \mathbb{E}_{x \sim \mathcal{D}, y \sim \pi_\theta(y \mid x)} [r(x, y)] - \beta \mathbb{D}_{\text{KL}}[\pi_\theta(y \mid x) \| \pi_{\text{ref}}(y \mid x)]
 ```
 
 where:
@@ -71,7 +71,7 @@ where:
 The optimal solution to this constrained optimization problem has a closed form:
 
 ```math
-\pi^*(y \mid x) = \frac{1}{Z(x)} \pi_{\text{ref}}(y \mid x) \exp\left(\frac{1}{\beta} r(x, y)\right)
+\large \pi^*(y \mid x) = \frac{1}{Z(x)} \pi_{\text{ref}}(y \mid x) \exp\left(\frac{1}{\beta} r(x, y)\right)
 ```
 
 where $Z(x) = \sum_y \pi_{\text{ref}}(y \mid x) \exp\left(\frac{1}{\beta} r(x, y)\right)$ is the partition function.
@@ -81,13 +81,13 @@ where $Z(x) = \sum_y \pi_{\text{ref}}(y \mid x) \exp\left(\frac{1}{\beta} r(x, y
 We can rearrange the above to express the reward in terms of the optimal policy:
 
 ```math
-r(x, y) = \beta \log \frac{\pi^*(y \mid x)}{\pi_{\text{ref}}(y \mid x)} + \beta \log Z(x)
+\large r(x, y) = \beta \log \frac{\pi^*(y \mid x)}{\pi_{\text{ref}}(y \mid x)} + \beta \log Z(x)
 ```
 
 **Key insight**: The partition function $Z(x)$ depends only on $x$, not $y$. When we compute reward differences, it cancels out! This is the central mathematical insight that makes DPO possible—it transforms an intractable problem (computing $Z(x)$ requires summing over all $V^{L} \approx 10^{4,699}$ possible responses) into tractable supervised learning. See [Appendix: Partition Functions](../appendices/partition-functions.md) for a detailed explanation of why $Z(x)$ is intractable and why this cancellation is so significant.
 
 ```math
-r(x, y_w) - r(x, y_l) = \beta \log \frac{\pi^*(y_w \mid x)}{\pi_{\text{ref}}(y_w \mid x)} - \beta \log \frac{\pi^*(y_l \mid x)}{\pi_{\text{ref}}(y_l \mid x)}
+\large r(x, y_w) - r(x, y_l) = \beta \log \frac{\pi^*(y_w \mid x)}{\pi_{\text{ref}}(y_w \mid x)} - \beta \log \frac{\pi^*(y_l \mid x)}{\pi_{\text{ref}}(y_l \mid x)}
 ```
 
 ### The DPO Objective
@@ -95,19 +95,19 @@ r(x, y_w) - r(x, y_l) = \beta \log \frac{\pi^*(y_w \mid x)}{\pi_{\text{ref}}(y_w
 Substituting our reward reparameterization into the Bradley-Terry model:
 
 ```math
-P(y_w \succ y_l \mid x) = \sigma\left(\beta \log \frac{\pi_\theta(y_w \mid x)}{\pi_{\text{ref}}(y_w \mid x)} - \beta \log \frac{\pi_\theta(y_l \mid x)}{\pi_{\text{ref}}(y_l \mid x)}\right)
+\large P(y_w \succ y_l \mid x) = \sigma\left(\beta \log \frac{\pi_\theta(y_w \mid x)}{\pi_{\text{ref}}(y_w \mid x)} - \beta \log \frac{\pi_\theta(y_l \mid x)}{\pi_{\text{ref}}(y_l \mid x)}\right)
 ```
 
 The DPO loss is the negative log-likelihood of the preference data:
 
 ```math
-\mathcal{L}_{\text{DPO}}(\pi_\theta; \pi_{\text{ref}}) = -\mathbb{E}_{(x, y_w, y_l) \sim \mathcal{D}} \left[\log \sigma\left(\beta \log \frac{\pi_\theta(y_w \mid x)}{\pi_{\text{ref}}(y_w \mid x)} - \beta \log \frac{\pi_\theta(y_l \mid x)}{\pi_{\text{ref}}(y_l \mid x)}\right)\right]
+\large \mathcal{L}_{\text{DPO}}(\pi_\theta; \pi_{\text{ref}}) = -\mathbb{E}_{(x, y_w, y_l) \sim \mathcal{D}} \left[\log \sigma\left(\beta \log \frac{\pi_\theta(y_w \mid x)}{\pi_{\text{ref}}(y_w \mid x)} - \beta \log \frac{\pi_\theta(y_l \mid x)}{\pi_{\text{ref}}(y_l \mid x)}\right)\right]
 ```
 
 This can be rewritten more compactly as:
 
 ```math
-\mathcal{L}_{\text{DPO}}(\pi_\theta; \pi_{\text{ref}}) = -\mathbb{E}_{(x, y_w, y_l) \sim \mathcal{D}} \left[\log \sigma\left(\beta \left[\log \frac{\pi_\theta(y_w \mid x)}{\pi_{\text{ref}}(y_w \mid x)} - \log \frac{\pi_\theta(y_l \mid x)}{\pi_{\text{ref}}(y_l \mid x)}\right]\right)\right]
+\large \mathcal{L}_{\text{DPO}}(\pi_\theta; \pi_{\text{ref}}) = -\mathbb{E}_{(x, y_w, y_l) \sim \mathcal{D}} \left[\log \sigma\left(\beta \left[\log \frac{\pi_\theta(y_w \mid x)}{\pi_{\text{ref}}(y_w \mid x)} - \log \frac{\pi_\theta(y_l \mid x)}{\pi_{\text{ref}}(y_l \mid x)}\right]\right)\right]
 ```
 
 ![DPO Preference Learning](../assets/diagrams/ch22-preference-learning.svg)
@@ -778,7 +778,7 @@ if __name__ == "__main__":
 **Theoretical Justification:** The DPO objective aims to increase the relative probability of chosen completions over rejected ones. Mathematically, if we denote prompt tokens as $x$ and completion as $y$, we want to optimize:
 
 ```math
-\log \frac{\pi_\theta(y_w \mid x)}{\pi_\theta(y_l \mid x)}
+\large \log \frac{\pi_\theta(y_w \mid x)}{\pi_\theta(y_l \mid x)}
 ```
 
 not $\log \frac{\pi_\theta(x, y_w)}{\pi_\theta(x, y_l)}$. The prompt $x$ appears in both numerator and denominator, so its contribution should be excluded. We achieve this by masking prompt tokens with a special value (-100) that PyTorch's loss functions ignore.
@@ -910,7 +910,7 @@ class ImprovedPreferenceDataset(Dataset):
 IPO addresses a potential issue with DPO: the loss can be minimized by the model assigning very low probability to rejected responses, which can hurt generation quality. IPO replaces the sigmoid with a squared error:
 
 ```math
-\mathcal{L}_{\text{IPO}}(\pi_\theta; \pi_{\text{ref}}) = \mathbb{E}_{(x, y_w, y_l) \sim \mathcal{D}} \left[\left(\log \frac{\pi_\theta(y_w \mid x)}{\pi_{\text{ref}}(y_w \mid x)} - \log \frac{\pi_\theta(y_l \mid x)}{\pi_{\text{ref}}(y_l \mid x)} - \frac{1}{2\beta}\right)^2\right]
+\large \mathcal{L}_{\text{IPO}}(\pi_\theta; \pi_{\text{ref}}) = \mathbb{E}_{(x, y_w, y_l) \sim \mathcal{D}} \left[\left(\log \frac{\pi_\theta(y_w \mid x)}{\pi_{\text{ref}}(y_w \mid x)} - \log \frac{\pi_\theta(y_l \mid x)}{\pi_{\text{ref}}(y_l \mid x)} - \frac{1}{2\beta}\right)^2\right]
 ```
 
 **Paper**: [A General Theoretical Paradigm to Understand Learning from Human Preferences](https://arxiv.org/abs/2310.12036) (Azar et al., 2023)
@@ -961,7 +961,7 @@ def compute_ipo_loss(
 KTO is designed for scenarios where you have unpaired preference data - i.e., examples labeled as "good" or "bad" but not explicitly compared. This is useful when you have thumbs up/down feedback but not pairwise comparisons.
 
 ```math
-\mathcal{L}_{\text{KTO}}(\pi_\theta; \pi_{\text{ref}}) = \mathbb{E}_{x, y \sim \mathcal{D}} \left[w(y) \left(1 - \sigma\left(\beta \log \frac{\pi_\theta(y \mid x)}{\pi_{\text{ref}}(y \mid x)} - z_{\text{ref}}\right)\right)\right]
+\large \mathcal{L}_{\text{KTO}}(\pi_\theta; \pi_{\text{ref}}) = \mathbb{E}_{x, y \sim \mathcal{D}} \left[w(y) \left(1 - \sigma\left(\beta \log \frac{\pi_\theta(y \mid x)}{\pi_{\text{ref}}(y \mid x)} - z_{\text{ref}}\right)\right)\right]
 ```
 
 where $w(y) = \lambda_{D}$ if $y$ is desirable, $\lambda_{U}$ otherwise, and $z_{\text{ref}}$ is a reference point.
@@ -1087,7 +1087,7 @@ SimPO simplifies DPO by:
 3. Adding a target reward margin
 
 ```math
-\mathcal{L}_{\text{SimPO}} = -\mathbb{E}_{(x, y_w, y_l)} \left[\log \sigma\left(\beta \left(\frac{\log \pi_\theta(y_w \mid x)}{|y_w|} - \frac{\log \pi_\theta(y_l \mid x)}{|y_l|}\right) - \gamma\right)\right]
+\large \mathcal{L}_{\text{SimPO}} = -\mathbb{E}_{(x, y_w, y_l)} \left[\log \sigma\left(\beta \left(\frac{\log \pi_\theta(y_w \mid x)}{|y_w|} - \frac{\log \pi_\theta(y_l \mid x)}{|y_l|}\right) - \gamma\right)\right]
 ```
 
 where $|y|$ is the length of sequence $y$ and $\gamma$ is a target reward margin.
@@ -1357,7 +1357,7 @@ For a 7B parameter model with DPO:
 **Theoretical Justification:** In the original RLHF objective, $\beta$ is the coefficient on the KL penalty:
 
 ```math
-\max_\pi \mathbb{E}[r(y)] - \beta \text{KL}(\pi \| \pi_{\text{ref}})
+\large \max_\pi \mathbb{E}[r(y)] - \beta \text{KL}(\pi \| \pi_{\text{ref}})
 ```
 
 - **Large $\beta$**: Heavy penalty for deviating from reference, keeps model close to $\pi_{\text{ref}}$
@@ -2011,7 +2011,7 @@ This can improve sample efficiency and help the model explore better responses.
 Optimize for multiple objectives simultaneously (e.g., helpfulness AND harmlessness):
 
 ```math
-\mathcal{L}_{\text{multi}} = \sum_{i=1}^{k} \alpha_i \mathcal{L}_{\text{DPO}}^{(i)}
+\large \mathcal{L}_{\text{multi}} = \sum_{i=1}^{k} \alpha_i \mathcal{L}_{\text{DPO}}^{(i)}
 ```
 
 where each $\mathcal{L}_{\text{DPO}}^{(i)}$ uses preference data for objective $i$.
@@ -2021,7 +2021,7 @@ where each $\mathcal{L}_{\text{DPO}}^{(i)}$ uses preference data for objective $
 Condition the optimization on different personas or styles:
 
 ```math
-P(y_w \succ y_l \mid x, c) = \sigma\left(\beta \log \frac{\pi_\theta(y_w \mid x, c)}{\pi_{\text{ref}}(y_w \mid x, c)} - \beta \log \frac{\pi_\theta(y_l \mid x, c)}{\pi_{\text{ref}}(y_l \mid x, c)}\right)
+\large P(y_w \succ y_l \mid x, c) = \sigma\left(\beta \log \frac{\pi_\theta(y_w \mid x, c)}{\pi_{\text{ref}}(y_w \mid x, c)} - \beta \log \frac{\pi_\theta(y_l \mid x, c)}{\pi_{\text{ref}}(y_l \mid x, c)}\right)
 ```
 
 where $c$ is a conditioning variable (e.g., "be concise" vs "be detailed").
@@ -2149,35 +2149,35 @@ This is a common whiteboard question. Walk through step-by-step:
 
 
    ```math
-P(y_w \succ y_l | x) = \frac{\exp(r(x, y_w))}{\exp(r(x, y_w)) + \exp(r(x, y_l))} = \sigma(r(x, y_w) - r(x, y_l))
+\large P(y_w \succ y_l | x) = \frac{\exp(r(x, y_w))}{\exp(r(x, y_w)) + \exp(r(x, y_l))} = \sigma(r(x, y_w) - r(x, y_l))
    ```
 
 2. Substitute reward reparameterization:
 
 
    ```math
-r(x, y) = \beta \log \frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y|x)} + \beta \log Z(x)
+\large r(x, y) = \beta \log \frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y|x)} + \beta \log Z(x)
    ```
 
 3. Compute reward difference (Z cancels):
 
 
    ```math
-r(x, y_w) - r(x, y_l) = \beta \left[\log \frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \log \frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)}\right]
+\large r(x, y_w) - r(x, y_l) = \beta \left[\log \frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \log \frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)}\right]
    ```
 
 4. Substitute into Bradley-Terry:
 
 
    ```math
-P(y_w \succ y_l | x) = \sigma\left(\beta \left[\log \frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \log \frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)}\right]\right)
+\large P(y_w \succ y_l | x) = \sigma\left(\beta \left[\log \frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \log \frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)}\right]\right)
    ```
 
 5. Negative log-likelihood gives DPO loss:
 
 
    ```math
-\mathcal{L}_{\text{DPO}} = -\mathbb{E}_{(x,y_w,y_l)} \left[\log \sigma(\beta[\log \pi_\theta(y_w|x)/\pi_{\text{ref}}(y_w|x) - \log \pi_\theta(y_l|x)/\pi_{\text{ref}}(y_l|x)])\right]
+\large \mathcal{L}_{\text{DPO}} = -\mathbb{E}_{(x,y_w,y_l)} \left[\log \sigma(\beta[\log \pi_\theta(y_w|x)/\pi_{\text{ref}}(y_w|x) - \log \pi_\theta(y_l|x)/\pi_{\text{ref}}(y_l|x)])\right]
    ```
 
 **Emphasize:** The key step is recognizing that $Z(x)$ cancels in the difference.

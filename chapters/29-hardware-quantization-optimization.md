@@ -313,7 +313,7 @@ Modern LLMs require hundreds of gigabytes of memory (70B model = ~140GB in FP16)
 Neural network weights often follow a Gaussian-like distribution with most values near zero. Quantization maps continuous floating-point values to discrete integers:
 
 ```math
-q = \text{round}\left(\frac{x}{\text{scale}}\right), \quad \hat{x} = q \times \text{scale}
+\large q = \text{round}\left(\frac{x}{\text{scale}}\right), \quad \hat{x} = q \times \text{scale}
 ```
 
 The quantization error $\epsilon = x - \hat{x}$ is bounded by $\pm \frac{\text{scale}}{2}$. With appropriate scale factors (per-tensor or per-channel), this error is negligible for inference.
@@ -438,7 +438,7 @@ Post-training quantization can suffer significant accuracy degradation, especial
 QAT uses "fake quantization" - applying quantization in forward pass but using straight-through estimators (STE) in backward pass. This allows gradients to flow despite non-differentiable rounding:
 
 ```math
-\text{Forward: } \tilde{x} = \text{dequant}(\text{quant}(x)) \quad \text{Backward: } \frac{\partial L}{\partial x} \approx \frac{\partial L}{\partial \tilde{x}}
+\large \text{Forward: } \tilde{x} = \text{dequant}(\text{quant}(x)) \quad \text{Backward: } \frac{\partial L}{\partial x} \approx \frac{\partial L}{\partial \tilde{x}}
 ```
 
 The model learns to represent information within quantization constraints. Weights shift to values that minimize quantization error, and the model becomes robust to precision loss.
@@ -1397,15 +1397,15 @@ class MemoryProfiler:
 For a model with $N$ layers and $M$ memory units:
 
 ```math
-\text{Optimal checkpoints} = \sqrt{N}
+\large \text{Optimal checkpoints} = \sqrt{N}
 ```
 
 ```math
-\text{Memory savings} = \frac{N}{\sqrt{N}} = \sqrt{N}
+\large \text{Memory savings} = \frac{N}{\sqrt{N}} = \sqrt{N}
 ```
 
 ```math
-\text{Recomputation overhead} \approx \sqrt{N} - 1 \text{ forward passes}
+\large \text{Recomputation overhead} \approx \sqrt{N} - 1 \text{ forward passes}
 ```
 
 **Key Papers:**
@@ -1424,13 +1424,13 @@ During autoregressive generation, each new token attends to all previous tokens.
 The key observation is that K and V projections are deterministic given the input tokens:
 
 ```math
-K_i = W_{K} x_i, \quad V_i = W_{V} x_i
+\large K_i = W_{K} x_i, \quad V_i = W_{V} x_i
 ```
 
 Once computed, they never change. We cache them and only compute K,V for the new token:
 
 ```math
-\text{Attention}(Q_{\text{new}}, [K_1, \ldots, K_n, K_{\text{new}}], [V_1, \ldots, V_n, V_{\text{new}}])
+\large \text{Attention}(Q_{\text{new}}, [K_1, \ldots, K_n, K_{\text{new}}], [V_1, \ldots, V_n, V_{\text{new}}])
 ```
 
 This reduces computation from O(N²) to O(N) per token, but requires storing all historical K,V.
@@ -2655,13 +2655,13 @@ AdamW uses per-parameter adaptive learning rates, which is effective but computa
 Muon leverages the observation that optimal updates for weight matrices lie on the Stiefel manifold (matrices with orthonormal columns). Instead of adaptive per-parameter scaling, it finds the closest orthogonal matrix to the gradient:
 
 ```math
-G_{\text{orth}} = \arg\min_{Q: Q^{T} Q = I} \|G - Q\|_{F}
+\large G_{\text{orth}} = \arg\min_{Q: Q^{T} Q = I} \|G - Q\|_{F}
 ```
 
 This is computed efficiently via Newton-Schulz iteration:
 
 ```math
-X_{k+1} = X_k \frac{3I - X_k^T X_k}{2}
+\large X_{k+1} = X_k \frac{3I - X_k^T X_k}{2}
 ```
 
 The orthogonalized gradient provides better conditioning and faster convergence. Theoretically, this relates to natural gradient descent on the manifold of orthogonal matrices.

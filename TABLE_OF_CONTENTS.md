@@ -308,6 +308,12 @@
   - Vanishing gradient problem
   - Mathematical justification
 
+- [Partition Functions and Intractability](appendices/partition-functions.md)
+  - What is a partition function?
+  - Why Z(x) is intractable for LLMs
+  - **DPO's key insight: how Z(x) cancels in preference differences**
+  - Practical significance for alignment methods
+
 - [Data Curation and Preprocessing](appendices/data-curation.md)
   - Data collection and filtering
   - Deduplication strategies

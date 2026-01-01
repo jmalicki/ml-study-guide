@@ -60,7 +60,7 @@ The student is trained to match the teacher's probability distributions, not jus
 **Temperature-Scaled Softmax:**
 
 ```math
-p_i = \frac{\exp(z_i / T)}{\sum_j \exp(z_j / T)}
+\large p_i = \frac{\exp(z_i / T)}{\sum_j \exp(z_j / T)}
 ```
 
 where:
@@ -72,7 +72,7 @@ where:
 **Distillation Loss:**
 
 ```math
-\mathcal{L}_{\text{distill}} = \alpha \cdot \mathcal{L}_{\text{CE}}(y, p_s^{T=1}) + (1-\alpha) \cdot T^2 \cdot \mathcal{L}_{\text{KL}}(p_t^{T}, p_s^{T})
+\large \mathcal{L}_{\text{distill}} = \alpha \cdot \mathcal{L}_{\text{CE}}(y, p_s^{T=1}) + (1-\alpha) \cdot T^2 \cdot \mathcal{L}_{\text{KL}}(p_t^{T}, p_s^{T})
 ```
 
 where:
@@ -92,7 +92,7 @@ The $T^2$ factor is crucial for maintaining proper gradient magnitudes:
 
 
    ```math
-\frac{\partial \mathcal{L}_{\text{KL}}}{\partial z_i} \propto \frac{1}{T^2} \left( p_s^T - p_t^T \right)
+\large \frac{\partial \mathcal{L}_{\text{KL}}}{\partial z_i} \propto \frac{1}{T^2} \left( p_s^T - p_t^T \right)
    ```
 
 3. **Compensation**: Without the $T^2$ factor, as we increase temperature to soften the distributions, the gradient magnitude would vanish. Multiplying by $T^2$ restores the gradient magnitude to a reasonable scale.
@@ -249,7 +249,7 @@ Beyond output distributions, we can match intermediate layer representations.
 **Feature Distillation Loss:**
 
 ```math
-\mathcal{L}_{\text{feature}} = \sum_{l \in \text{layers}} \| W_l h_s^l - h_t^{f(l)} \|^2
+\large \mathcal{L}_{\text{feature}} = \sum_{l \in \text{layers}} \| W_l h_s^l - h_t^{f(l)} \|^2
 ```
 
 where:
@@ -455,7 +455,7 @@ When distilling from models trained with RLHF (Reinforcement Learning from Human
 **Preference-Aware Distillation Loss:**
 
 ```math
-\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{distill}} + \beta \cdot \mathcal{L}_{\text{pref}}
+\large \mathcal{L}_{\text{total}} = \mathcal{L}_{\text{distill}} + \beta \cdot \mathcal{L}_{\text{pref}}
 ```
 
 where:
@@ -467,7 +467,7 @@ where:
 **DPO-style Preference Loss:**
 
 ```math
-\mathcal{L}_{\text{DPO}}(p_s, \mathcal{D}_{\text{pref}}) = -\mathbb{E}_{(x, y_w, y_l) \sim \mathcal{D}} \left[ \log \sigma\left( \beta \log \frac{p_s(y_w|x)}{p_{\text{ref}}(y_w|x)} - \beta \log \frac{p_s(y_l|x)}{p_{\text{ref}}(y_l|x)} \right) \right]
+\large \mathcal{L}_{\text{DPO}}(p_s, \mathcal{D}_{\text{pref}}) = -\mathbb{E}_{(x, y_w, y_l) \sim \mathcal{D}} \left[ \log \sigma\left( \beta \log \frac{p_s(y_w|x)}{p_{\text{ref}}(y_w|x)} - \beta \log \frac{p_s(y_l|x)}{p_{\text{ref}}(y_l|x)} \right) \right]
 ```
 
 where:
@@ -834,13 +834,13 @@ The simplest merging method: average the weights element-wise.
 **Simple Averaging:**
 
 ```math
-\theta_{\text{merged}} = \frac{1}{N} \sum_{i=1}^{N} \theta_i
+\large \theta_{\text{merged}} = \frac{1}{N} \sum_{i=1}^{N} \theta_i
 ```
 
 **Weighted Averaging:**
 
 ```math
-\theta_{\text{merged}} = \sum_{i=1}^{N} w_i \theta_i, \quad \sum_{i=1}^{N} w_i = 1
+\large \theta_{\text{merged}} = \sum_{i=1}^{N} w_i \theta_i, \quad \sum_{i=1}^{N} w_i = 1
 ```
 
 ```python
@@ -941,13 +941,13 @@ The effectiveness relies on the smoothness of the loss landscape and the fact th
 **Task Vector:**
 
 ```math
-\tau_i = \theta_{\text{fine-tuned}, i} - \theta_{\text{base}}
+\large \tau_i = \theta_{\text{fine-tuned}, i} - \theta_{\text{base}}
 ```
 
 **Merging Task Vectors:**
 
 ```math
-\theta_{\text{merged}} = \theta_{\text{base}} + \sum_{i=1}^{N} \lambda_i \tau_i
+\large \theta_{\text{merged}} = \theta_{\text{base}} + \sum_{i=1}^{N} \lambda_i \tau_i
 ```
 
 where $\lambda_i$ controls the strength of task $i$.
@@ -1050,18 +1050,18 @@ TIES (TrIm, Elect Sign & Merge) addresses parameter interference in model mergin
 For task vector $\tau_i$ and parameter $p$:
 
 ```math
-\text{trim}(\tau_{i,p}) = \begin{cases}
+\large \text{trim}(\tau_{i,p}) = \begin{cases}
 \tau_{i,p} & \text{if } |\tau_{i,p}| \gt \delta \cdot \max_i |\tau_{i,p}| \\
 0 & \text{otherwise}
 \end{cases}
 ```
 
 ```math
-\text{sign}_p = \text{sign}\left(\sum_{i} \mathbb{1}[\text{trim}(\tau_{i,p}) \neq 0] \cdot \text{sign}(\tau_{i,p})\right)
+\large \text{sign}_p = \text{sign}\left(\sum_{i} \mathbb{1}[\text{trim}(\tau_{i,p}) \neq 0] \cdot \text{sign}(\tau_{i,p})\right)
 ```
 
 ```math
-\tau_{\text{merged}, p} = \frac{\sum_{i} \lambda_i \cdot \mathbb{1}[\text{sign}(\tau_{i,p}) = \text{sign}_p] \cdot \tau_{i,p}}{\sum_{i} \mathbb{1}[\text{sign}(\tau_{i,p}) = \text{sign}_p]}
+\large \tau_{\text{merged}, p} = \frac{\sum_{i} \lambda_i \cdot \mathbb{1}[\text{sign}(\tau_{i,p}) = \text{sign}_p] \cdot \tau_{i,p}}{\sum_{i} \mathbb{1}[\text{sign}(\tau_{i,p}) = \text{sign}_p]}
 ```
 
 **Key Paper:**
@@ -1176,14 +1176,14 @@ Surprisingly, dropping 90-95% of parameters often maintains performance, suggest
 **Mathematical Formulation:**
 
 ```math
-\tilde{\tau}_{i,p} = \begin{cases}
+\large \tilde{\tau}_{i,p} = \begin{cases}
 \frac{\tau_{i,p}}{1-p} & \text{with probability } 1-p \\
 0 & \text{with probability } p
 \end{cases}
 ```
 
 ```math
-\theta_{\text{merged}} = \theta_{\text{base}} + \frac{1}{N} \sum_{i=1}^{N} \tilde{\tau}_i
+\large \theta_{\text{merged}} = \theta_{\text{base}} + \frac{1}{N} \sum_{i=1}^{N} \tilde{\tau}_i
 ```
 
 **Key Paper:**
@@ -1338,13 +1338,13 @@ Unlike linear interpolation, SLERP maintains constant angular velocity, which ca
 For unit vectors $\mathbf{v}_0$ and $\mathbf{v}_1$ with angle $\Omega$ between them:
 
 ```math
-\text{slerp}(\mathbf{v}_0, \mathbf{v}_1, t) = \frac{\sin((1-t)\Omega)}{\sin(\Omega)} \mathbf{v}_0 + \frac{\sin(t\Omega)}{\sin(\Omega)} \mathbf{v}_1
+\large \text{slerp}(\mathbf{v}_0, \mathbf{v}_1, t) = \frac{\sin((1-t)\Omega)}{\sin(\Omega)} \mathbf{v}_0 + \frac{\sin(t\Omega)}{\sin(\Omega)} \mathbf{v}_1
 ```
 
 For vectors that aren't unit vectors:
 
 ```math
-\text{slerp}(\mathbf{p}_0, \mathbf{p}_1, t) = \text{slerp}\left(\frac{\mathbf{p}_0}{\|\mathbf{p}_0\|}, \frac{\mathbf{p}_1}{\|\mathbf{p}_1\|}, t\right) \cdot ((1-t)\|\mathbf{p}_0\| + t\|\mathbf{p}_1\|)
+\large \text{slerp}(\mathbf{p}_0, \mathbf{p}_1, t) = \text{slerp}\left(\frac{\mathbf{p}_0}{\|\mathbf{p}_0\|}, \frac{\mathbf{p}_1}{\|\mathbf{p}_1\|}, t\right) \cdot ((1-t)\|\mathbf{p}_0\| + t\|\mathbf{p}_1\|)
 ```
 
 ```python
@@ -1459,7 +1459,7 @@ LoRA adapters (see [Chapter 19: LoRA and Parameter-Efficient Fine-tuning](19-pef
 **LoRA Formulation Recap:**
 
 ```math
-W' = W + \alpha \cdot BA
+\large W' = W + \alpha \cdot BA
 ```
 
 where:
@@ -1476,7 +1476,7 @@ where:
 **Theoretical Justification**: LoRA decomposes weight updates as $\Delta W = BA$ where $B \in \mathbb{R}^{d \times r}$ and $A \in \mathbb{R}^{r \times k}$ are low-rank matrices. The merge operation is simply:
 
 ```math
-W' = W + \alpha \cdot BA
+\large W' = W + \alpha \cdot BA
 ```
 
 This is exact—there's no approximation error because matrix addition and multiplication are closed operations. The merged model behaves identically to the base+adapter model but with no runtime overhead.
@@ -1693,7 +1693,7 @@ Remove weights with smallest absolute values.
 **Theoretical Justification**: Magnitude pruning is based on a simple heuristic: small weights have small impact on outputs. Taylor expansion of the loss change when removing a weight:
 
 ```math
-\Delta \mathcal{L} \approx \left|\frac{\partial \mathcal{L}}{\partial w}\right| \cdot |w|
+\large \Delta \mathcal{L} \approx \left|\frac{\partial \mathcal{L}}{\partial w}\right| \cdot |w|
 ```
 
 For trained networks with small gradients, $|w|$ dominates, making magnitude a reasonable proxy for importance.
@@ -2046,7 +2046,7 @@ This is a first-order approximation to SparseGPT's Hessian-based importance. The
 **Wanda Criterion:**
 
 ```math
-S_{i,j} = |W_{i,j}| \cdot \|X_j\|_2
+\large S_{i,j} = |W_{i,j}| \cdot \|X_j\|_2
 ```
 
 where:

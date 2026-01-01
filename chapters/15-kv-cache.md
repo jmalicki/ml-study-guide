@@ -38,7 +38,7 @@ At step $t$, we process all $t$ previous tokens, resulting in $O(t^2)$ computati
 **The key insight**: In attention, the key and value representations of token $i$ don't change when we add token $i+1$.
 
 ```math
-K_i = W_{K} \cdot h_i, \quad V_i = W_{V} \cdot h_i
+\large K_i = W_{K} \cdot h_i, \quad V_i = W_{V} \cdot h_i
 ```
 
 where $h_i$ is the hidden state at position $i$. Once computed, $K_i$ and $V_i$ remain constant for all future tokens.
@@ -68,13 +68,13 @@ Total: $N$ KV computations → $O(N)$
 KV caching works because attention can be computed incrementally:
 
 ```math
-\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
+\large \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
 ```
 
 For a new query $q_{\text{new}}$ attending to cached keys and values:
 
 ```math
-\text{score} = q_{\text{new}} \cdot [K_{\text{cache}}, k_{\text{new}}]^T = [q_{\text{new}} \cdot K_{\text{cache}}^T, \; q_{\text{new}} \cdot k_{\text{new}}^T]
+\large \text{score} = q_{\text{new}} \cdot [K_{\text{cache}}, k_{\text{new}}]^T = [q_{\text{new}} \cdot K_{\text{cache}}^T, \; q_{\text{new}} \cdot k_{\text{new}}^T]
 ```
 
 The cached keys contribute independently to the attention score, allowing us to concatenate old and new keys without recomputation.
@@ -90,7 +90,7 @@ The cached keys contribute independently to the attention score, allowing us to 
 For a single layer, the KV cache stores:
 
 ```math
-\text{Memory}_{\text{layer}} = 2 \times \text{n\_kv\_heads} \times \text{seq\_len} \times \text{head\_dim} \times \text{bytes\_per\_element}
+\large \text{Memory}_{\text{layer}} = 2 \times \text{n\_kv\_heads} \times \text{seq\_len} \times \text{head\_dim} \times \text{bytes\_per\_element}
 ```
 
 where:
@@ -104,7 +104,7 @@ where:
 For the full model with $L$ layers and batch size $B$:
 
 ```math
-\text{Memory}_{\text{total}} = B \times L \times 2 \times \text{n\_kv\_heads} \times \text{seq\_len} \times \text{head\_dim} \times \text{bytes\_per\_element}
+\large \text{Memory}_{\text{total}} = B \times L \times 2 \times \text{n\_kv\_heads} \times \text{seq\_len} \times \text{head\_dim} \times \text{bytes\_per\_element}
 ```
 
 ### When Cache Exceeds Model Weights
@@ -182,7 +182,7 @@ def compare_cache_vs_weights():
 For a serving system with $U$ concurrent users:
 
 ```math
-\text{Memory}_{\text{serving}} = U \times L \times 2 \times \text{n\_kv\_heads} \times \text{avg\_seq\_len} \times \text{head\_dim} \times \text{bytes}
+\large \text{Memory}_{\text{serving}} = U \times L \times 2 \times \text{n\_kv\_heads} \times \text{avg\_seq\_len} \times \text{head\_dim} \times \text{bytes}
 ```
 
 **Example**: Serving 100 users with 7B model (32 layers, 32 heads):
@@ -419,13 +419,13 @@ See [Rotary Position Embeddings](08-rope.md) for RoPE details.
 **Key insight**: Once we rotate K at position $m$ and cache it, that rotation is "baked in":
 
 ```math
-K_m^{\text{cached}} = \mathbf{R}_m K_m
+\large K_m^{\text{cached}} = \mathbf{R}_m K_m
 ```
 
 When a new query at position $n$ attends to this cached key:
 
 ```math
-\text{score} = Q_n^T K_m = (R_n Q_n)^T (R_m K_m) = Q_n^T R_n^T R_m K_m = Q_n^T R_{m-n} K_m
+\large \text{score} = Q_n^T K_m = (R_n Q_n)^T (R_m K_m) = Q_n^T R_n^T R_m K_m = Q_n^T R_{m-n} K_m
 ```
 
 The relative position $(m-n)$ emerges naturally, which is exactly what RoPE is designed to capture!
@@ -588,7 +588,7 @@ See [Multi-Head Attention](04-multi-head-attention.md) for full details on MQA a
 Standard attention: each head has its own K, V projections.
 
 ```math
-\text{Cache}_{\text{MHA}} = 2 \times h \times \text{seq\_len} \times d_k
+\large \text{Cache}_{\text{MHA}} = 2 \times h \times \text{seq\_len} \times d_k
 ```
 
 where $h$ is the number of heads.
@@ -598,7 +598,7 @@ where $h$ is the number of heads.
 Share one set of K, V across all query heads:
 
 ```math
-\text{Cache}_{\text{MQA}} = 2 \times 1 \times \text{seq\_len} \times d_k
+\large \text{Cache}_{\text{MQA}} = 2 \times 1 \times \text{seq\_len} \times d_k
 ```
 
 **Reduction**: $h$x smaller (e.g., 32x for 32 heads)
@@ -610,7 +610,7 @@ Share one set of K, V across all query heads:
 Group query heads to share K, V. With $g$ groups:
 
 ```math
-\text{Cache}_{\text{GQA}} = 2 \times g \times \text{seq\_len} \times d_k
+\large \text{Cache}_{\text{GQA}} = 2 \times g \times \text{seq\_len} \times d_k
 ```
 
 **Reduction**: $(h/g)$x smaller
@@ -718,7 +718,7 @@ See [Hardware, Quantization, and Training Optimization](29-hardware-quantization
 Quantize FP16 → INT8 using per-tensor or per-channel scaling:
 
 ```math
-K_{\text{INT8}} = \text{round}\left(\frac{K_{\text{FP16}}}{\text{scale}}\right), \quad \text{scale} = \frac{\max(|K|)}{127}
+\large K_{\text{INT8}} = \text{round}\left(\frac{K_{\text{FP16}}}{\text{scale}}\right), \quad \text{scale} = \frac{\max(|K|)}{127}
 ```
 
 **Benefits**:
@@ -732,7 +732,7 @@ K_{\text{INT8}} = \text{round}\left(\frac{K_{\text{FP16}}}{\text{scale}}\right),
 Use 8-bit floating point (E4M3 or E5M2 format):
 
 ```math
-K_{\text{FP8}} = \text{cast}(K_{\text{FP16}}, \text{FP8})
+\large K_{\text{FP8}} = \text{cast}(K_{\text{FP16}}, \text{FP8})
 ```
 
 **Benefits**:
@@ -1053,7 +1053,7 @@ PagedAttention borrows ideas from virtual memory in operating systems:
 **Why this works for attention**: Attention computation is:
 
 ```math
-\text{Attention}(Q, K, V) = \text{softmax}(QK^T)V
+\large \text{Attention}(Q, K, V) = \text{softmax}(QK^T)V
 ```
 
 The key observation: we can gather K and V from non-contiguous blocks because matrix multiplication doesn't require contiguous memory - we're doing random access anyway!
@@ -1508,7 +1508,7 @@ Continuous:
 For a serving system with memory $M$:
 
 ```math
-M = M_{\text{weights}} + M_{\text{KV cache}} + M_{\text{activations}} + M_{\text{buffer}}
+\large M = M_{\text{weights}} + M_{\text{KV cache}} + M_{\text{activations}} + M_{\text{buffer}}
 ```
 
 Typical allocation:
@@ -1530,7 +1530,7 @@ Typical allocation:
 Given fixed memory, there's a tradeoff:
 
 ```math
-\text{batch\_size} \times \text{seq\_len} \approx \text{constant}
+\large \text{batch\_size} \times \text{seq\_len} \approx \text{constant}
 ```
 
 **Example**: 10 GB for KV cache
@@ -1554,7 +1554,7 @@ Choose based on serving pattern!
 **A**: For one layer:
 
 ```math
-2 \times \text{n\_kv\_heads} \times \text{seq\_len} \times \text{head\_dim} \times \text{bytes}
+\large 2 \times \text{n\_kv\_heads} \times \text{seq\_len} \times \text{head\_dim} \times \text{bytes}
 ```
 
 For a full model, multiply by number of layers. For LLaMA 2 70B with 100K context, this is ~260 GB in FP16!

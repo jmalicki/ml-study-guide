@@ -49,7 +49,7 @@ However, **how we choose $x_t$ from this distribution is not specified by traini
 Autoregressive models generate text token-by-token, where each token depends on all previous tokens:
 
 ```math
-P(x_1, x_2, \ldots, x_n) = \prod_{t=1}^n P(x_t | x_1, \ldots, x_{t-1})
+\large P(x_1, x_2, \ldots, x_n) = \prod_{t=1}^n P(x_t | x_1, \ldots, x_{t-1})
 ```
 
 At each step $t$, we have:
@@ -279,13 +279,13 @@ Final sequence: [[1, 2, 3, 42, 137, 501, 89, 256]]
 Greedy decoding selects the token with maximum probability at each step:
 
 ```math
-x_t = \arg\max_{v \in V} P(v | x_{\lt t})
+\large x_t = \arg\max_{v \in V} P(v | x_{\lt t})
 ```
 
 **Mathematical formulation**:
 
 ```math
-x_t = \arg\max_{v \in V} \text{softmax}(\mathbf{z}_t)_v = \arg\max_{v \in V} z_{t,v}
+\large x_t = \arg\max_{v \in V} \text{softmax}(\mathbf{z}_t)_v = \arg\max_{v \in V} z_{t,v}
 ```
 
 Since softmax is monotonic, we can skip the softmax computation and just take the argmax of logits directly.
@@ -433,7 +433,7 @@ Temperature scaling is the most fundamental and widely-used technique for contro
 Temperature modifies the logits before applying softmax:
 
 ```math
-P(x_t = v | x_{\lt t}) = \frac{\exp(z_v / T)}{\sum_{v' \in V} \exp(z_{v'} / T)}
+\large P(x_t = v | x_{\lt t}) = \frac{\exp(z_v / T)}{\sum_{v' \in V} \exp(z_{v'} / T)}
 ```
 
 where:
@@ -443,7 +443,7 @@ where:
 **Effect on distribution**:
 
 ```math
-\text{softmax}(\mathbf{z} / T) = \text{softmax}(T^{-1} \mathbf{z})
+\large \text{softmax}(\mathbf{z} / T) = \text{softmax}(T^{-1} \mathbf{z})
 ```
 
 ### Effect of Temperature on Probability Distribution
@@ -453,7 +453,7 @@ where:
 #### $T = 1$: Original distribution
 
 ```math
-P(v) = \frac{\exp(z_v)}{\sum_{v'} \exp(z_{v'})}
+\large P(v) = \frac{\exp(z_v)}{\sum_{v'} \exp(z_{v'})}
 ```
 
 No change from model's original outputs.
@@ -461,7 +461,7 @@ No change from model's original outputs.
 #### $T \lt 1$: Sharper (more confident)
 
 ```math
-P(v) = \frac{\exp(z_v / 0.5)}{\sum_{v'} \exp(z_{v'} / 0.5)} = \frac{\exp(2z_v)}{\sum_{v'} \exp(2z_{v'})}
+\large P(v) = \frac{\exp(z_v / 0.5)}{\sum_{v'} \exp(z_{v'} / 0.5)} = \frac{\exp(2z_v)}{\sum_{v'} \exp(2z_{v'})}
 ```
 
 - Exaggerates differences between logits
@@ -476,7 +476,7 @@ P(v) = \frac{\exp(z_v / 0.5)}{\sum_{v'} \exp(z_{v'} / 0.5)} = \frac{\exp(2z_v)}{
 #### $T \gt 1$: Flatter (more random)
 
 ```math
-P(v) = \frac{\exp(z_v / 2.0)}{\sum_{v'} \exp(z_{v'} / 2.0)} = \frac{\exp(0.5z_v)}{\sum_{v'} \exp(0.5z_{v'})}
+\large P(v) = \frac{\exp(z_v / 2.0)}{\sum_{v'} \exp(z_{v'} / 2.0)} = \frac{\exp(0.5z_v)}{\sum_{v'} \exp(0.5z_{v'})}
 ```
 
 - Smooths differences between logits
@@ -490,7 +490,7 @@ P(v) = \frac{\exp(z_v / 2.0)}{\sum_{v'} \exp(z_{v'} / 2.0)} = \frac{\exp(0.5z_v)
 #### $T \to 0$: Approaches greedy
 
 ```math
-\lim_{T \to 0} \text{softmax}(\mathbf{z} / T) = \text{one-hot}(\arg\max \mathbf{z})
+\large \lim_{T \to 0} \text{softmax}(\mathbf{z} / T) = \text{one-hot}(\arg\max \mathbf{z})
 ```
 
 Distribution collapses to deterministic choice.
@@ -498,7 +498,7 @@ Distribution collapses to deterministic choice.
 #### $T \to \infty$: Approaches uniform
 
 ```math
-\lim_{T \to \infty} \text{softmax}(\mathbf{z} / T) = \text{uniform}(V)
+\large \lim_{T \to \infty} \text{softmax}(\mathbf{z} / T) = \text{uniform}(V)
 ```
 
 All tokens equally likely (random sampling).
@@ -684,13 +684,13 @@ Top-k sampling restricts the sampling pool to the k most likely tokens.
 Let $V_k(x_{\lt t})$ be the set of top-k tokens:
 
 ```math
-V_k(x_{\lt t}) = \{v_1, v_2, \ldots, v_k\} \text{ where } P(v_i | x_{\lt t}) \geq P(v_{i+1} | x_{\lt t})
+\large V_k(x_{\lt t}) = \{v_1, v_2, \ldots, v_k\} \text{ where } P(v_i | x_{\lt t}) \geq P(v_{i+1} | x_{\lt t})
 ```
 
 Then:
 
 ```math
-P_{\text{top-k}}(v | x_{\lt t}) = \begin{cases}
+\large P_{\text{top-k}}(v | x_{\lt t}) = \begin{cases}
 \frac{P(v | x_{\lt t})}{\sum_{v' \in V_k} P(v' | x_{\lt t})} & \text{if } v \in V_k \\
 0 & \text{otherwise}
 \end{cases}
@@ -887,13 +887,13 @@ Instead of a fixed k, top-p chooses the **smallest set of tokens** whose cumulat
 Define the nucleus $V_p(x_{\lt t})$ as the smallest set satisfying:
 
 ```math
-V_p(x_{\lt t}) = \min \left\{ V' \subseteq V : \sum_{v \in V'} P(v | x_{\lt t}) \geq p \right\}
+\large V_p(x_{\lt t}) = \min \left\{ V' \subseteq V : \sum_{v \in V'} P(v | x_{\lt t}) \geq p \right\}
 ```
 
 The sampling distribution becomes:
 
 ```math
-P_{\text{nucleus}}(v | x_{\lt t}) = \begin{cases}
+\large P_{\text{nucleus}}(v | x_{\lt t}) = \begin{cases}
 \frac{P(v | x_{\lt t})}{\sum_{v' \in V_p} P(v' | x_{\lt t})} & \text{if } v \in V_p \\
 0 & \text{otherwise}
 \end{cases}
@@ -1293,7 +1293,7 @@ Unlike sampling methods that generate one sequence at a time, beam search keeps 
 **Sequence score** (log probability):
 
 ```math
-\text{score}(x_1, \ldots, x_t) = \sum_{i=1}^t \log P(x_i | x_{\lt i})
+\large \text{score}(x_1, \ldots, x_t) = \sum_{i=1}^t \log P(x_i | x_{\lt i})
 ```
 
 ### Beam Width and Its Tradeoffs
@@ -1315,7 +1315,7 @@ Unlike sampling methods that generate one sequence at a time, beam search keeps 
 **Solution**: Normalize by length:
 
 ```math
-\text{score}(x_1, \ldots, x_t) = \frac{1}{t^\alpha} \sum_{i=1}^t \log P(x_i | x_{\lt i})
+\large \text{score}(x_1, \ldots, x_t) = \frac{1}{t^\alpha} \sum_{i=1}^t \log P(x_i | x_{\lt i})
 ```
 
 where $\alpha \in [0, 1]$ controls the strength of length normalization:
@@ -1529,7 +1529,7 @@ Beyond the standard techniques, several advanced methods have been proposed. The
 **Formula**:
 
 ```math
-P_{\text{CD}}(x_t | x_{\lt t}) \propto \frac{P_{\text{expert}}(x_t | x_{\lt t})^\alpha}{P_{\text{amateur}}(x_t | x_{\lt t})^\beta}
+\large P_{\text{CD}}(x_t | x_{\lt t}) \propto \frac{P_{\text{expert}}(x_t | x_{\lt t})^\alpha}{P_{\text{amateur}}(x_t | x_{\lt t})^\beta}
 ```
 
 where $\alpha \gt \beta$ (typically $\alpha=1, \beta=0.5$).
@@ -1547,7 +1547,7 @@ where $\alpha \gt \beta$ (typically $\alpha=1, \beta=0.5$).
 **Method**: Sample tokens close to the conditional entropy:
 
 ```math
-\text{typicality}(v) = \left| -\log P(v | x_{\lt t}) - H(P(\cdot | x_{\lt t})) \right|
+\large \text{typicality}(v) = \left| -\log P(v | x_{\lt t}) - H(P(\cdot | x_{\lt t})) \right|
 ```
 
 Keep tokens with low typicality (close to average information content).
@@ -1641,7 +1641,7 @@ Repetition is a common problem in autoregressive generation. Repetition penaltie
 Reduce logit for each token proportional to how many times it's appeared:
 
 ```math
-\text{logit}'(v) = \text{logit}(v) - \lambda \times \text{count}(v)
+\large \text{logit}'(v) = \text{logit}(v) - \lambda \times \text{count}(v)
 ```
 
 where $\text{count}(v)$ is the number of times token $v$ appeared in generated sequence.
@@ -1653,7 +1653,7 @@ where $\text{count}(v)$ is the number of times token $v$ appeared in generated s
 Binary version: penalize any token that has appeared at least once:
 
 ```math
-\text{logit}'(v) = \text{logit}(v) - \lambda \times \mathbb{1}[v \in \text{generated}]
+\large \text{logit}'(v) = \text{logit}(v) - \lambda \times \mathbb{1}[v \in \text{generated}]
 ```
 
 **Effect**: Same penalty whether token appeared once or many times.
@@ -2185,22 +2185,22 @@ The only difference: beam search requires k separate KV caches (one per beam).
 
 **Temperature scaling**:
 ```math
-P_T(v | x_{\lt t}) = \frac{\exp(z_v / T)}{\sum_{v'} \exp(z_{v'} / T)}
+\large P_T(v | x_{\lt t}) = \frac{\exp(z_v / T)}{\sum_{v'} \exp(z_{v'} / T)}
 ```
 
 **Top-p (nucleus)**:
 ```math
-V_p = \min \left\{ V' : \sum_{v \in V'} P(v | x_{\lt t}) \geq p \right\}
+\large V_p = \min \left\{ V' : \sum_{v \in V'} P(v | x_{\lt t}) \geq p \right\}
 ```
 
 **Beam search score**:
 ```math
-\text{score}(x_{1:t}) = \frac{1}{t^\alpha} \sum_{i=1}^t \log P(x_i | x_{\lt i})
+\large \text{score}(x_{1:t}) = \frac{1}{t^\alpha} \sum_{i=1}^t \log P(x_i | x_{\lt i})
 ```
 
 **Repetition penalty**:
 ```math
-\text{logit}'(v) = \text{logit}(v) - \lambda_f \cdot \text{count}(v) - \lambda_p \cdot \mathbb{1}[v \in \text{generated}]
+\large \text{logit}'(v) = \text{logit}(v) - \lambda_f \cdot \text{count}(v) - \lambda_p \cdot \mathbb{1}[v \in \text{generated}]
 ```
 
 ### Connection to Other Chapters

@@ -73,15 +73,15 @@ The Kaplan scaling laws identify three primary factors affecting model performan
 The test loss $L$ follows power laws:
 
 ```math
-L(N) = \left(\frac{N_c}{N}\right)^{\alpha_N}
+\large L(N) = \left(\frac{N_c}{N}\right)^{\alpha_N}
 ```
 
 ```math
-L(D) = \left(\frac{D_c}{D}\right)^{\alpha_D}
+\large L(D) = \left(\frac{D_c}{D}\right)^{\alpha_D}
 ```
 
 ```math
-L(C) = \left(\frac{C_c}{C}\right)^{\alpha_C}
+\large L(C) = \left(\frac{C_c}{C}\right)^{\alpha_C}
 ```
 
 where $N_c$, $D_c$, $C_c$ are constants and $\alpha_{N} \approx 0.076$, $\alpha_{D} \approx 0.095$, $\alpha_{C} \approx 0.050$.
@@ -114,13 +114,13 @@ In 2022, DeepMind published revised scaling laws that challenged Kaplan's conclu
 **Chinchilla's Law:** For compute-optimal training:
 
 ```math
-N_{opt} \propto C^{0.5}, \quad D_{opt} \propto C^{0.5}
+\large N_{opt} \propto C^{0.5}, \quad D_{opt} \propto C^{0.5}
 ```
 
 More specifically:
 
 ```math
-N_{opt} \approx \left(\frac{C}{6}\right)^{0.49}, \quad D_{opt} \approx 20 \times N_{opt}
+\large N_{opt} \approx \left(\frac{C}{6}\right)^{0.49}, \quad D_{opt} \approx 20 \times N_{opt}
 ```
 
 **Rule of thumb:** Use approximately **20 tokens per parameter**.
@@ -141,7 +141,7 @@ The paper's namesake model, Chinchilla:
 **Theoretical Justification:** Chinchilla's key insight is that the loss function has approximately equal sensitivity to model parameters and training tokens. Mathematically, if we model loss as:
 
 ```math
-L(N, D) = \frac{a}{N^\alpha} + \frac{b}{D^\beta} + L_\infty
+\large L(N, D) = \frac{a}{N^\alpha} + \frac{b}{D^\beta} + L_\infty
 ```
 
 Optimizing this under the compute constraint $C = 6ND$ shows that $N_{opt}$ and $D_{opt}$ should both scale as $C^{0.5}$, rather than prioritizing one over the other. This is derived by:
@@ -209,7 +209,7 @@ Computing optimal model size and training duration for a given compute budget.
 The total compute $C$ for training a transformer model is approximately:
 
 ```math
-C \approx 6ND
+\large C \approx 6ND
 ```
 
 where:
@@ -354,7 +354,7 @@ Several mechanisms have been proposed to explain grokking:
 - During the plateau, weight decay slowly shifts the model from complex → simple
 
 ```math
-L_{\text{total}} = L_{\text{train}} + \lambda \|\theta\|^2
+\large L_{\text{total}} = L_{\text{train}} + \lambda \|\theta\|^2
 ```
 
 Even when $L_{\text{train}} = 0$, the weight decay term keeps driving updates.
@@ -379,7 +379,7 @@ Even when $L_{\text{train}} = 0$, the weight decay term keeps driving updates.
 For modular arithmetic, the final solution often uses Fourier features:
 
 ```math
-\text{Embedding}(x) = [\cos(2\pi kx/p), \sin(2\pi kx/p)]_{k=1}^{K}
+\large \text{Embedding}(x) = [\cos(2\pi kx/p), \sin(2\pi kx/p)]_{k=1}^{K}
 ```
 
 ### Implementation
@@ -1087,7 +1087,7 @@ Emergent capabilities often show **phase transition** behavior:
 **Smooth scaling:** Loss decreases smoothly with model size (predictable)
 
 ```math
-L(N) = a N^{-b} + c
+\large L(N) = a N^{-b} + c
 ```
 
 **Sharp transition:** Capability appears suddenly (unpredictable from smaller scales)
@@ -1171,7 +1171,7 @@ Beyond specific capabilities, several general phenomena characterize neural scal
 **Chinchilla scaling law for loss:**
 
 ```math
-L(N, D) = \frac{A}{N^\alpha} + \frac{B}{D^\beta} + L_\infty
+\large L(N, D) = \frac{A}{N^\alpha} + \frac{B}{D^\beta} + L_\infty
 ```
 
 - Predicts loss for any (N, D) combination

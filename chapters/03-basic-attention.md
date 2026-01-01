@@ -137,7 +137,7 @@ Given:
 **Step 1: Compute attention scores**
 
 ```math
-\text{score}(\mathbf{q}, \mathbf{k}_i) = \mathbf{q}^T \mathbf{k}_i
+\large \text{score}(\mathbf{q}, \mathbf{k}_i) = \mathbf{q}^T \mathbf{k}_i
 ```
 
 The dot product measures similarity: higher values indicate more similar (aligned) vectors.
@@ -145,13 +145,13 @@ The dot product measures similarity: higher values indicate more similar (aligne
 **Step 2: Normalize scores to probabilities**
 
 ```math
-\alpha_i = \frac{\exp(\mathbf{q}^T \mathbf{k}_i)}{\sum_{j=1}^n \exp(\mathbf{q}^T \mathbf{k}_j)} = \text{softmax}(\mathbf{q}^T \mathbf{k}_i)
+\large \alpha_i = \frac{\exp(\mathbf{q}^T \mathbf{k}_i)}{\sum_{j=1}^n \exp(\mathbf{q}^T \mathbf{k}_j)} = \text{softmax}(\mathbf{q}^T \mathbf{k}_i)
 ```
 
 **Step 3: Compute weighted sum of values**
 
 ```math
-\text{output} = \sum_{i=1}^n \alpha_i \mathbf{v}_i
+\large \text{output} = \sum_{i=1}^n \alpha_i \mathbf{v}_i
 ```
 
 ### Matrix Form
@@ -159,7 +159,7 @@ The dot product measures similarity: higher values indicate more similar (aligne
 For efficiency, we batch multiple queries together:
 
 ```math
-\text{Attention}(Q, K, V) = \text{softmax}(QK^T)V
+\large \text{Attention}(Q, K, V) = \text{softmax}(QK^T)V
 ```
 
 Where:
@@ -288,11 +288,11 @@ When the dimension $d_k$ is large, the dot products grow large in magnitude. Thi
 **Analysis**: If $\mathbf{q}$ and $\mathbf{k}$ have independent components with mean 0 and variance 1:
 
 ```math
-\mathbb{E}[\mathbf{q}^T \mathbf{k}] = 0
+\large \mathbb{E}[\mathbf{q}^T \mathbf{k}] = 0
 ```
 
 ```math
-\text{Var}(\mathbf{q}^T \mathbf{k}) = \text{Var}\left(\sum_{i=1}^{d_k} q_i k_i\right) = d_k
+\large \text{Var}(\mathbf{q}^T \mathbf{k}) = \text{Var}\left(\sum_{i=1}^{d_k} q_i k_i\right) = d_k
 ```
 
 As $d_k$ increases, the variance of the dot product increases linearly. Large values saturate the softmax.
@@ -302,13 +302,13 @@ As $d_k$ increases, the variance of the dot product increases linearly. Large va
 To counteract this, we scale by $\sqrt{d_k}$:
 
 ```math
-\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
+\large \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
 ```
 
 This ensures the variance of $\frac{\mathbf{q}^T \mathbf{k}}{\sqrt{d_k}}$ is approximately 1, regardless of $d_k$:
 
 ```math
-\text{Var}\left(\frac{\mathbf{q}^T \mathbf{k}}{\sqrt{d_k}}\right) = \frac{\text{Var}(\mathbf{q}^T \mathbf{k})}{d_k} = \frac{d_k}{d_k} = 1
+\large \text{Var}\left(\frac{\mathbf{q}^T \mathbf{k}}{\sqrt{d_k}}\right) = \frac{\text{Var}(\mathbf{q}^T \mathbf{k})}{d_k} = \frac{d_k}{d_k} = 1
 ```
 
 ### Empirical Comparison
@@ -396,7 +396,7 @@ Notice how unscaled attention becomes increasingly "sharp" (one weight close to 
 While $\sqrt{d_k}$ is the standard scaling factor, attention can be controlled more generally with a **temperature parameter** $T$:
 
 ```math
-\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{T}\right)V
+\large \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{T}\right)V
 ```
 
 ![Temperature Effects on Attention Distribution](../assets/diagrams/ch03-temperature-effects.svg)
@@ -1479,7 +1479,7 @@ scores = scores.masked_fill(mask == 0, float('-inf'))
 ### Mathematical Summary
 
 ```math
-\begin{align*}
+\large \begin{align*}
 \text{Attention}(Q, K, V) &= \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V \\
 \text{where } Q &\in \mathbb{R}^{n_q \times d_k} \\
 K &\in \mathbb{R}^{n_k \times d_k} \\
@@ -1596,7 +1596,7 @@ assert torch.allclose(my_output, pt_output, atol=1e-5)
 
 
    ```math
-\text{score}(\mathbf{q}, \mathbf{k}) = \mathbf{v}^T \tanh(W_q \mathbf{q} + W_k \mathbf{k})
+\large \text{score}(\mathbf{q}, \mathbf{k}) = \mathbf{v}^T \tanh(W_q \mathbf{q} + W_k \mathbf{k})
    ```
 
    Compare it with dot-product attention. Which is faster? Why?

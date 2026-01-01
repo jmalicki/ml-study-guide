@@ -83,7 +83,7 @@ class LearnedPositionalEmbedding(nn.Module):
 The original Transformer (Vaswani et al., 2017) uses sinusoidal encodings:
 
 ```math
-\begin{align}
+\large \begin{align}
 \text{PE}(pos, 2i) &= \sin\left(\frac{pos}{10000^{2i/d}}\right) \\
 \text{PE}(pos, 2i+1) &= \cos\left(\frac{pos}{10000^{2i/d}}\right)
 \end{align}
@@ -117,7 +117,7 @@ Consider two 2D vectors $\mathbf{q}$ and $\mathbf{k}$ at positions $m$ and $n$:
 The rotation matrix for angle $\theta$ in 2D is:
 
 ```math
-\mathbf{R}(\theta) = \begin{pmatrix}
+\large \mathbf{R}(\theta) = \begin{pmatrix}
 \cos\theta & -\sin\theta \\
 \sin\theta & \cos\theta
 \end{pmatrix}
@@ -126,7 +126,7 @@ The rotation matrix for angle $\theta$ in 2D is:
 **Key property**: The attention score between positions $m$ and $n$ only depends on the relative position $m - n$:
 
 ```math
-(\mathbf{R}(m\theta)\mathbf{q})^T (\mathbf{R}(n\theta)\mathbf{k}) = \mathbf{q}^T \mathbf{R}^T(m\theta) \mathbf{R}(n\theta) \mathbf{k} = \mathbf{q}^T \mathbf{R}((n-m)\theta) \mathbf{k}
+\large (\mathbf{R}(m\theta)\mathbf{q})^T (\mathbf{R}(n\theta)\mathbf{k}) = \mathbf{q}^T \mathbf{R}^T(m\theta) \mathbf{R}(n\theta) \mathbf{k} = \mathbf{q}^T \mathbf{R}((n-m)\theta) \mathbf{k}
 ```
 
 This is because rotation matrices satisfy: $\mathbf{R}^T(\alpha)\mathbf{R}(\beta) = \mathbf{R}(\beta - \alpha)$
@@ -140,19 +140,19 @@ This is because rotation matrices satisfy: $\mathbf{R}^T(\alpha)\mathbf{R}(\beta
 RoPE uses complex numbers to elegantly represent 2D rotations. A 2D vector $\mathbf{x} = (x_0, x_1)$ can be represented as a complex number:
 
 ```math
-z = x_0 + ix_1
+\large z = x_0 + ix_1
 ```
 
 Rotating by angle $\theta$ is simply multiplication by $e^{i\theta}$:
 
 ```math
-z' = e^{i\theta} \cdot z = (\cos\theta + i\sin\theta)(x_0 + ix_1)
+\large z' = e^{i\theta} \cdot z = (\cos\theta + i\sin\theta)(x_0 + ix_1)
 ```
 
 Expanding:
 
 ```math
-z' = (x_0\cos\theta - x_1\sin\theta) + i(x_0\sin\theta + x_1\cos\theta)
+\large z' = (x_0\cos\theta - x_1\sin\theta) + i(x_0\sin\theta + x_1\cos\theta)
 ```
 
 This matches the 2D rotation matrix!
@@ -164,13 +164,13 @@ For a $d$-dimensional vector (where $d$ is even), we split it into $d/2$ pairs a
 Given query vector $\mathbf{q} \in \mathbb{R}^d$ at position $m$, the RoPE transformation is:
 
 ```math
-\mathbf{f}_{\mathbf{q}}(\mathbf{q}, m) = \mathbf{R}_{\Theta,m}^d \mathbf{q}
+\large \mathbf{f}_{\mathbf{q}}(\mathbf{q}, m) = \mathbf{R}_{\Theta,m}^d \mathbf{q}
 ```
 
 where $\mathbf{R}_{\Theta,m}^d$ is a block-diagonal rotation matrix:
 
 ```math
-\mathbf{R}_{\Theta,m}^d = \begin{pmatrix}
+\large \mathbf{R}_{\Theta,m}^d = \begin{pmatrix}
 \cos(m\theta_0) & -\sin(m\theta_0) & 0 & 0 & \cdots & 0 & 0 \\
 \sin(m\theta_0) & \cos(m\theta_0) & 0 & 0 & \cdots & 0 & 0 \\
 0 & 0 & \cos(m\theta_1) & -\sin(m\theta_1) & \cdots & 0 & 0 \\
@@ -184,7 +184,7 @@ where $\mathbf{R}_{\Theta,m}^d$ is a block-diagonal rotation matrix:
 The rotation frequencies $\{\theta_i\}$ decrease geometrically:
 
 ```math
-\theta_i = 10000^{-2i/d}, \quad i = 0, 1, \ldots, d/2-1
+\large \theta_i = 10000^{-2i/d}, \quad i = 0, 1, \ldots, d/2-1
 ```
 
 This gives lower dimensions faster rotation (capturing fine-grained position) and higher dimensions slower rotation (capturing coarse-grained position).
@@ -203,7 +203,7 @@ This multi-scale representation allows RoPE to capture both local and global pos
 In multi-head attention (see [Multi-Head Attention](04-multi-head-attention.md)), we apply RoPE to queries and keys before computing attention scores:
 
 ```math
-\begin{align}
+\large \begin{align}
 \mathbf{q}_{m'} &= \mathbf{R}_{\Theta,m}^d \mathbf{q}_m \\
 \mathbf{k}_{n'} &= \mathbf{R}_{\Theta,n}^d \mathbf{k}_n \\
 \text{score}(m, n) &= \frac{(\mathbf{q}_{m'})^T \mathbf{k}_{n'}}{\sqrt{d_k}}
@@ -213,7 +213,7 @@ In multi-head attention (see [Multi-Head Attention](04-multi-head-attention.md))
 The attention score becomes:
 
 ```math
-\text{score}(m, n) = \frac{\mathbf{q}_m^T \mathbf{R}_{\Theta, m}^T \mathbf{R}_{\Theta, n} \mathbf{k}_n}{\sqrt{d_k}} = \frac{\mathbf{q}_m^T \mathbf{R}_{\Theta, n-m}^d \mathbf{k}_n}{\sqrt{d_k}}
+\large \text{score}(m, n) = \frac{\mathbf{q}_m^T \mathbf{R}_{\Theta, m}^T \mathbf{R}_{\Theta, n} \mathbf{k}_n}{\sqrt{d_k}} = \frac{\mathbf{q}_m^T \mathbf{R}_{\Theta, n-m}^d \mathbf{k}_n}{\sqrt{d_k}}
 ```
 
 **Key insight**: The score only depends on the relative position $n - m$, not the absolute positions!
@@ -690,7 +690,7 @@ def generate_with_rope_cache(model, prompt_ids, max_new_tokens=100):
 RoPE naturally encodes relative positions through rotation angles. The attention score between positions $m$ and $n$ only depends on $m - n$:
 
 ```math
-\text{score}(m, n) \propto \mathbf{q}_m^T \mathbf{R}_{\Theta, n-m} \mathbf{k}_n
+\large \text{score}(m, n) \propto \mathbf{q}_m^T \mathbf{R}_{\Theta, n-m} \mathbf{k}_n
 ```
 
 This is superior to absolute positional encodings where position 10 and 11 have no inherent relationship.
@@ -914,7 +914,7 @@ benchmark_memory_usage()
 For any shift $\Delta$:
 
 ```math
-\text{score}(m + \Delta, n + \Delta) = \text{score}(m, n)
+\large \text{score}(m + \Delta, n + \Delta) = \text{score}(m, n)
 ```
 
 The model treats "word 5 attending to word 3" the same as "word 105 attending to word 103".
@@ -1011,7 +1011,7 @@ When trained on sequences of length $L$ and tested on length $L' \gt L$:
 **Idea**: Instead of extrapolating to unseen angles, interpolate within seen angles by scaling down position indices.
 
 ```math
-\theta'_m = \theta_{m \cdot L / L'}
+\large \theta'_m = \theta_{m \cdot L / L'}
 ```
 
 Effectively, we slow down the rotation to fit longer sequences into the trained range.
@@ -1084,7 +1084,7 @@ class InterpolatedRoPE(nn.Module):
 **Neural Tangent Kernel (NTK)-aware scaling** adjusts base frequencies instead of positions:
 
 ```math
-\theta_{i'} = \text{base}'^{-2i/d}, \quad \text{base}' = \text{base} \times \alpha^{d/(d-2)}
+\large \theta_{i'} = \text{base}'^{-2i/d}, \quad \text{base}' = \text{base} \times \alpha^{d/(d-2)}
 ```
 
 where $\alpha$ is the extension ratio $L'/L$.

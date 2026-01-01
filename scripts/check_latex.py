@@ -33,10 +33,11 @@ class LatexError:
 
 
 class LatexValidator:
-    def __init__(self, root_dir: Path):
+    def __init__(self, root_dir: Path, require_large: bool = True):
         self.root_dir = root_dir
         self.errors: List[LatexError] = []
         self.warnings: List[LatexError] = []
+        self.require_large = require_large  # Require \large in math blocks for readability
 
     def extract_math_blocks(self, content: str, file_path: Path) -> List[Tuple[int, str, str]]:
         """
@@ -746,6 +747,25 @@ class LatexValidator:
                 latex_snippet=latex[:100]
             ))
 
+    def check_large_in_block(self, latex: str, file_path: Path, line_num: int) -> None:
+        r"""
+        Check that math blocks start with \large for readability.
+        Subscripts and superscripts are too small without it.
+        """
+        if not self.require_large:
+            return
+
+        # Check if the block starts with \large (with optional whitespace)
+        stripped = latex.lstrip()
+        if not stripped.startswith('\\large'):
+            self.errors.append(LatexError(
+                file_path=file_path,
+                line_num=line_num,
+                error_type="Missing \\large",
+                message="Math block should start with \\large for readable subscripts/superscripts",
+                latex_snippet=latex[:80]
+            ))
+
     def validate_file(self, file_path: Path) -> None:
         """Validate all LaTeX expressions in a markdown file."""
         try:
@@ -762,6 +782,9 @@ class LatexValidator:
 
         for line_num, math_type, latex_code in math_expressions:
             self.validate_latex(latex_code, file_path, line_num, math_type)
+            # Check for \large in block math only (not inline)
+            if math_type == 'block':
+                self.check_large_in_block(latex_code, file_path, line_num)
 
     def validate_all_markdown(self) -> None:
         """Validate LaTeX in all markdown files."""
@@ -831,6 +854,13 @@ class LatexValidator:
 
 def main():
     """Main entry point."""
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Validate LaTeX syntax in markdown files')
+    parser.add_argument('--no-require-large', action='store_true',
+                        help='Disable check for \\large in math blocks')
+    args = parser.parse_args()
+
     # Find the root directory
     current_dir = Path.cwd()
     if current_dir.name == "scripts":
@@ -838,7 +868,8 @@ def main():
     else:
         root_dir = current_dir
 
-    validator = LatexValidator(root_dir)
+    require_large = not args.no_require_large
+    validator = LatexValidator(root_dir, require_large=require_large)
     exit_code = validator.run()
     sys.exit(exit_code)
 

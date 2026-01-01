@@ -197,7 +197,7 @@ prompt = few_shot_prompt(examples, "It was fine, I guess.")
 The relationship between number of examples and performance typically follows a **logarithmic curve**:
 
 ```math
-\text{Performance} \approx \alpha + \beta \log(N + 1)
+\large \text{Performance} \approx \alpha + \beta \log(N + 1)
 ```
 
 where $N$ is the number of examples, and $\alpha, \beta$ are task-dependent constants.
@@ -313,19 +313,19 @@ The circuit works through **composition of attention heads**:
 
 **Step 1** (Previous-token head at layer $\ell$):
 ```math
-\text{Attn}_{\text{prev}}[i] \approx \text{embed}[i-1]
+\large \text{Attn}_{\text{prev}}[i] \approx \text{embed}[i-1]
 ```
 
 Copies the embedding from the previous token position.
 
 **Step 2** (Induction head at layer $\ell + 1$):
 ```math
-\text{Attn}_{\text{ind}}[i] = \text{softmax}\left(\frac{Q_i K^T}{\sqrt{d}}\right) V
+\large \text{Attn}_{\text{ind}}[i] = \text{softmax}\left(\frac{Q_i K^T}{\sqrt{d}}\right) V
 ```
 
 Where the key $K_j$ includes the previous-token information:
 ```math
-K_j = W_{K} (\text{embed}[j] + \text{Attn}_{\text{prev}}[j])
+\large K_j = W_{K} (\text{embed}[j] + \text{Attn}_{\text{prev}}[j])
 ```
 
 This allows the induction head to match based on "what came before this token" rather than just the token itself.
@@ -428,7 +428,7 @@ Another mechanism for ICL involves **task vectors** - directions in activation s
 When a model processes few-shot examples, it forms an internal representation of the task in its activation space. This "task vector" then influences how it processes the query.
 
 ```math
-h_{\text{query}} = h_{\text{base}} + \alpha \cdot v_{\text{task}}
+\large h_{\text{query}} = h_{\text{base}} + \alpha \cdot v_{\text{task}}
 ```
 
 where:
@@ -567,7 +567,7 @@ Several theoretical perspectives help explain why and how ICL works:
 From a meta-learning perspective, pre-training is optimizing:
 
 ```math
-\min_{\theta} \mathbb{E}_{p(\mathcal{T})} \left[ \mathbb{E}_{(x,y) \sim \mathcal{T}} \left[ \mathcal{L}(f_{\theta}(x | \text{context}_{\mathcal{T}}), y) \right] \right]
+\large \min_{\theta} \mathbb{E}_{p(\mathcal{T})} \left[ \mathbb{E}_{(x,y) \sim \mathcal{T}} \left[ \mathcal{L}(f_{\theta}(x | \text{context}_{\mathcal{T}}), y) \right] \right]
 ```
 
 where:
@@ -590,7 +590,7 @@ where:
 The model implicitly performs:
 
 ```math
-p(y | x, \text{examples}) = \int p(y | x, \theta) p(\theta | \text{examples}) d\theta
+\large p(y | x, \text{examples}) = \int p(y | x, \theta) p(\theta | \text{examples}) d\theta
 ```
 
 where $\theta$ represents task parameters (e.g., classification weights).
@@ -600,13 +600,13 @@ where $\theta$ represents task parameters (e.g., classification weights).
 Given examples $\mathcal{D} = \{(x_1, y_1), ..., (x_k, y_k)\}$ and a new input $x$:
 
 ```math
-p(y | x, \mathcal{D}) = \int p(y | x, \theta) p(\theta | \mathcal{D}) d\theta
+\large p(y | x, \mathcal{D}) = \int p(y | x, \theta) p(\theta | \mathcal{D}) d\theta
 ```
 
 The posterior over task parameters updates via Bayes' rule:
 
 ```math
-p(\theta | \mathcal{D}) \propto p(\mathcal{D} | \theta) p(\theta)
+\large p(\theta | \mathcal{D}) \propto p(\mathcal{D} | \theta) p(\theta)
 ```
 
 **Connection to transformers**:
@@ -626,14 +626,14 @@ Von Oswald et al. (2023) and others showed that transformer attention can implem
 
 **Standard gradient descent** (fine-tuning):
 ```math
-\theta_{t+1} = \theta_t - \eta \nabla_{\theta} \mathcal{L}(y_t | x_t, \theta_t)
+\large \theta_{t+1} = \theta_t - \eta \nabla_{\theta} \mathcal{L}(y_t | x_t, \theta_t)
 ```
 
 **ICL as implicit gradient descent**:
 
 The transformer's forward pass computes something equivalent to:
 ```math
-f_{\text{ICL}}(x | \mathcal{D}) \approx f(x; \theta - \eta \sum_{(x_i, y_i) \in \mathcal{D}} \nabla_{\theta} \mathcal{L}(y_i | x_i, \theta))
+\large f_{\text{ICL}}(x | \mathcal{D}) \approx f(x; \theta - \eta \sum_{(x_i, y_i) \in \mathcal{D}} \nabla_{\theta} \mathcal{L}(y_i | x_i, \theta))
 ```
 
 where $\theta$ is the pre-trained parameters, but **the gradient update happens implicitly in activations** rather than explicitly updating weights.
@@ -649,12 +649,12 @@ A single attention layer can implement one step of gradient descent on a linear 
 
 **Gradient descent solution**:
 ```math
-w^* = \arg\min_w \sum_{i=1}^k (y_i - w^T x_i)^2 = (X^T X)^{-1} X^T y
+\large w^* = \arg\min_w \sum_{i=1}^k (y_i - w^T x_i)^2 = (X^T X)^{-1} X^T y
 ```
 
 **Attention computation**:
 ```math
-\text{Attn}(x, \{x_i, y_i\}) = \sum_{i=1}^k \frac{\exp(x^T x_i)}{\sum_j \exp(x^T x_j)} y_i
+\large \text{Attn}(x, \{x_i, y_i\}) = \sum_{i=1}^k \frac{\exp(x^T x_i)}{\sum_j \exp(x^T x_j)} y_i
 ```
 
 With appropriate parameterization, this is exactly gradient descent on squared loss!
@@ -747,12 +747,12 @@ This perspective views ICL as:
 
 1. **Encoding**: Map examples to a task embedding $z_{\text{task}}$
    ```math
-   z_{\text{task}} = \text{Encoder}(\{(x_i, y_i)\}_{i=1}^k)
+\large    z_{\text{task}} = \text{Encoder}(\{(x_i, y_i)\}_{i=1}^k)
    ```
 
 2. **Conditioning**: Use task embedding to process query
    ```math
-   y = \text{Decoder}(x | z_{\text{task}})
+\large    y = \text{Decoder}(x | z_{\text{task}})
    ```
 
 **Implementation**:
@@ -782,7 +782,7 @@ ICL is an **emergent capability** that appears during pre-training when models r
 **Why scale matters**:
 
 ```math
-\text{ICL capability} \propto f(\text{model size}, \text{data diversity}, \text{training compute})
+\large \text{ICL capability} \propto f(\text{model size}, \text{data diversity}, \text{training compute})
 ```
 
 Possible explanations:
@@ -1098,7 +1098,7 @@ def test_verbalizations(model, tokenizer, examples, query, verbalizations):
 There's a tradeoff between number of examples and context length:
 
 ```math
-\text{Optimal k} = \arg\max_k \left[ \text{ICL benefit}(k) - \text{Context cost}(k) \right]
+\large \text{Optimal k} = \arg\max_k \left[ \text{ICL benefit}(k) - \text{Context cost}(k) \right]
 ```
 
 **Considerations**:

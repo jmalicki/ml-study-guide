@@ -60,7 +60,7 @@ Layer normalization normalizes activations across the feature dimension for each
 For input $\mathbf{x} \in \mathbb{R}^d$:
 
 ```math
-\text{LayerNorm}(\mathbf{x}) = \gamma \odot \frac{\mathbf{x} - \mu}{\sqrt{\sigma^2 + \epsilon}} + \beta
+\large \text{LayerNorm}(\mathbf{x}) = \gamma \odot \frac{\mathbf{x} - \mu}{\sqrt{\sigma^2 + \epsilon}} + \beta
 ```
 
 where:
@@ -81,13 +81,13 @@ where:
 **Root Mean Square Normalization** from [Zhang & Sennrich, 2019](https://arxiv.org/abs/1910.07467), used in modern LLMs (LLaMA, GPT-4, etc.):
 
 ```math
-\text{RMSNorm}(\mathbf{x}) = \gamma \odot \frac{\mathbf{x}}{\text{RMS}(\mathbf{x})}
+\large \text{RMSNorm}(\mathbf{x}) = \gamma \odot \frac{\mathbf{x}}{\text{RMS}(\mathbf{x})}
 ```
 
 where:
 
 ```math
-\text{RMS}(\mathbf{x}) = \sqrt{\frac{1}{d}\sum_{i=1}^d x_i^2 + \epsilon}
+\large \text{RMS}(\mathbf{x}) = \sqrt{\frac{1}{d}\sum_{i=1}^d x_i^2 + \epsilon}
 ```
 
 **Differences from LayerNorm:**
@@ -302,7 +302,7 @@ The feed-forward network (FFN) processes each position independently with the sa
 Standard FFN consists of two linear transformations with a non-linear activation:
 
 ```math
-\text{FFN}(\mathbf{x}) = \mathbf{W}_2 \cdot \sigma(\mathbf{W}_1 \mathbf{x} + \mathbf{b}_1) + \mathbf{b}_2
+\large \text{FFN}(\mathbf{x}) = \mathbf{W}_2 \cdot \sigma(\mathbf{W}_1 \mathbf{x} + \mathbf{b}_1) + \mathbf{b}_2
 ```
 
 where:
@@ -439,7 +439,7 @@ if __name__ == "__main__":
 Residual connections (skip connections) add the input of a sub-layer to its output:
 
 ```math
-\mathbf{y} = \mathbf{x} + \text{SubLayer}(\mathbf{x})
+\large \mathbf{y} = \mathbf{x} + \text{SubLayer}(\mathbf{x})
 ```
 
 ![Residual Connection Example](../assets/diagrams/ch09-residual-connection-example.svg)
@@ -468,7 +468,7 @@ x → [Self-Attention] → [Add & Norm] → [FFN] → [Add & Norm] → output
 Mathematically:
 
 ```math
-\begin{align}
+\large \begin{align}
 \mathbf{y}_1 &= \text{LayerNorm}(\mathbf{x} + \text{Attention}(\mathbf{x})) \\
 \mathbf{y}_2 &= \text{LayerNorm}(\mathbf{y}_1 + \text{FFN}(\mathbf{y}_1))
 \end{align}
@@ -492,7 +492,7 @@ x → [Norm] → [Self-Attention] → [Add] → [Norm] → [FFN] → [Add] → o
 Mathematically:
 
 ```math
-\begin{align}
+\large \begin{align}
 \mathbf{y}_1 &= \mathbf{x} + \text{Attention}(\text{LayerNorm}(\mathbf{x})) \\
 \mathbf{y}_2 &= \mathbf{y}_1 + \text{FFN}(\text{LayerNorm}(\mathbf{y}_1))
 \end{align}
@@ -789,7 +789,7 @@ Attention masks implement two critical constraints:
 
 
    ```math
-P(x_i | x_1, ..., x_{i-1}, x_{i+1}, ..., x_n) = P(x_i | x_1, ..., x_{i-1})
+\large P(x_i | x_1, ..., x_{i-1}, x_{i+1}, ..., x_n) = P(x_i | x_1, ..., x_{i-1})
    ```
 
    Violating this makes training and inference inconsistent—the model trains with future information but can't access it during generation.
@@ -798,7 +798,7 @@ P(x_i | x_1, ..., x_{i-1}, x_{i+1}, ..., x_n) = P(x_i | x_1, ..., x_{i-1})
 
 
    ```math
-\text{Attention}(\mathbf{q}_i, \mathbf{k}_p, \mathbf{v}_p) = 0
+\large \text{Attention}(\mathbf{q}_i, \mathbf{k}_p, \mathbf{v}_p) = 0
    ```
 
 **Relationship to Alternatives:**
@@ -1026,7 +1026,7 @@ Good initialization maintains signal propagation through both forward and backwa
 **Xavier/Glorot initialization** assumes linear activations and derives the variance:
 
 ```math
-\text{Var}(W_{ij}) = \frac{2}{d_{in} + d_{out}}
+\large \text{Var}(W_{ij}) = \frac{2}{d_{in} + d_{out}}
 ```
 
 This ensures that variance of activations and gradients remains roughly constant across layers. The symmetric form considers both forward (depends on $d_{in}$) and backward (depends on $d_{out}$) passes.
@@ -1034,13 +1034,13 @@ This ensures that variance of activations and gradients remains roughly constant
 **Kaiming/He initialization** accounts for ReLU activations which zero out half the neurons:
 
 ```math
-\text{Var}(W_{ij}) = \frac{2}{d_{in}}
+\large \text{Var}(W_{ij}) = \frac{2}{d_{in}}
 ```
 
 For very deep transformers, **scaled initialization** prevents residual path signals from growing:
 
 ```math
-W \gets W \cdot \frac{1}{\sqrt{2L}}
+\large W \gets W \cdot \frac{1}{\sqrt{2L}}
 ```
 
 where $L$ is the number of layers. This is based on the analysis that with $L$ residual blocks, variance grows by a factor of $L$.
@@ -1250,7 +1250,7 @@ if __name__ == "__main__":
 
 
      ```math
-W \sim U\left[-\sqrt{\frac{6}{d_{\text{in}} + d_{\text{out}}}}, \sqrt{\frac{6}{d_{\text{in}} + d_{\text{out}}}}\right]
+\large W \sim U\left[-\sqrt{\frac{6}{d_{\text{in}} + d_{\text{out}}}}, \sqrt{\frac{6}{d_{\text{in}} + d_{\text{out}}}}\right]
      ```
 
 
@@ -1258,7 +1258,7 @@ W \sim U\left[-\sqrt{\frac{6}{d_{\text{in}} + d_{\text{out}}}}, \sqrt{\frac{6}{d
 
 
      ```math
-W \sim U\left[-\sqrt{\frac{6}{d_{\text{in}}}}, \sqrt{\frac{6}{d_{\text{in}}}}\right]
+\large W \sim U\left[-\sqrt{\frac{6}{d_{\text{in}}}}, \sqrt{\frac{6}{d_{\text{in}}}}\right]
      ```
 
 
@@ -1266,7 +1266,7 @@ W \sim U\left[-\sqrt{\frac{6}{d_{\text{in}}}}, \sqrt{\frac{6}{d_{\text{in}}}}\ri
 
 
      ```math
-W \gets W / \sqrt{2L}
+\large W \gets W / \sqrt{2L}
      ```
 
      where $L$ is the number of layers
@@ -1500,7 +1500,7 @@ The parallel architecture is based on several observations:
 
 
    ```math
-\begin{align}
+\large \begin{align}
    \text{Sequential: } & \mathbf{y} = \mathbf{x} + \text{FFN}(\mathbf{x} + \text{Attn}(\mathbf{x})) \\
    \text{Parallel: } & \mathbf{y} = \mathbf{x} + \text{Attn}(\mathbf{x}) + \text{FFN}(\mathbf{x})
    \end{align}
@@ -1710,7 +1710,7 @@ Grouped Query Attention balances between MHA and MQA:
 **Standard MHA**: Each query head $i$ attends using its own keys and values:
 
 ```math
-\text{head}_i = \text{Attention}(Q_i, K_i, V_i)
+\large \text{head}_i = \text{Attention}(Q_i, K_i, V_i)
 ```
 
 
@@ -1720,7 +1720,7 @@ Grouped Query Attention balances between MHA and MQA:
 **Multi-Query Attention (MQA)**: All query heads share a single KV head:
 
 ```math
-\text{head}_i = \text{Attention}(Q_i, K_{\text{shared}}, V_{\text{shared}})
+\large \text{head}_i = \text{Attention}(Q_i, K_{\text{shared}}, V_{\text{shared}})
 ```
 
 
@@ -1730,7 +1730,7 @@ Grouped Query Attention balances between MHA and MQA:
 **GQA**: Groups of query heads share KV heads:
 
 ```math
-\text{head}_i = \text{Attention}(Q_i, K_{\lfloor i / g \rfloor}, V_{\lfloor i / g \rfloor})
+\large \text{head}_i = \text{Attention}(Q_i, K_{\lfloor i / g \rfloor}, V_{\lfloor i / g \rfloor})
 ```
 
 
@@ -2047,7 +2047,7 @@ Pre-norm provides better training stability for deep transformers:
 **Mathematical insight:**
 
 ```math
-\frac{\partial L}{\partial x} = \frac{\partial L}{\partial \text{output}} \cdot \left(\mathbf{I} + \frac{\partial F(x)}{\partial x}\right)
+\large \frac{\partial L}{\partial x} = \frac{\partial L}{\partial \text{output}} \cdot \left(\mathbf{I} + \frac{\partial F(x)}{\partial x}\right)
 ```
 
 The identity term $\mathbf{I}$ ensures gradients don't vanish, even if $\frac{\partial F(x)}{\partial x}$ is small.
@@ -2072,13 +2072,13 @@ RMSNorm offers similar performance with better efficiency:
 LayerNorm:
 
 ```math
-\text{LN}(x) = \gamma \odot \frac{x - \mu}{\sqrt{\sigma^2 + \epsilon}} + \beta
+\large \text{LN}(x) = \gamma \odot \frac{x - \mu}{\sqrt{\sigma^2 + \epsilon}} + \beta
 ```
 
 RMSNorm:
 
 ```math
-\text{RMS}(x) = \gamma \odot \frac{x}{\sqrt{\frac{1}{d}\sum x_i^2 + \epsilon}}
+\large \text{RMS}(x) = \gamma \odot \frac{x}{\sqrt{\frac{1}{d}\sum x_i^2 + \epsilon}}
 ```
 
 **Key insight**: Re-centering (mean subtraction) contributes little to training stability; scale normalization is the critical factor.
@@ -2103,7 +2103,7 @@ Residual connections solve the vanishing gradient and degradation problems:
 Without residuals:
 
 ```math
-\frac{\partial L}{\partial x_0} = \frac{\partial L}{\partial x_{L}} \prod_{i=0}^{L-1} \frac{\partial x_{i+1}}{\partial x_i}
+\large \frac{\partial L}{\partial x_0} = \frac{\partial L}{\partial x_{L}} \prod_{i=0}^{L-1} \frac{\partial x_{i+1}}{\partial x_i}
 ```
 
 If any Jacobian $\frac{\partial x_{i+1}}{\partial x_i}$ has norm \lt 1, gradients vanish exponentially.
@@ -2111,7 +2111,7 @@ If any Jacobian $\frac{\partial x_{i+1}}{\partial x_i}$ has norm \lt 1, gradient
 With residuals ($x_{i+1} = x_i + F_i(x_i)$):
 
 ```math
-\frac{\partial x_{i+1}}{\partial x_i} = \mathbf{I} + \frac{\partial F_i(x_i)}{\partial x_i}
+\large \frac{\partial x_{i+1}}{\partial x_i} = \mathbf{I} + \frac{\partial F_i(x_i)}{\partial x_i}
 ```
 
 The identity ensures the derivative is always at least $\mathbf{I}$, preventing vanishing.

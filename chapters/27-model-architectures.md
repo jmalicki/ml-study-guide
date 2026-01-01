@@ -113,7 +113,7 @@ Mixture of Experts (MoE) architectures solve this trade-off by:
 The routing mechanism learns to assign tokens to appropriate experts based on their content. This is formalized as:
 
 ```math
-y = \sum_{i=1}^{n} G(x)_i \cdot E_i(x)
+\large y = \sum_{i=1}^{n} G(x)_i \cdot E_i(x)
 ```
 
 where:
@@ -301,14 +301,14 @@ The GPT-2 architecture establishes several key principles:
 
 
    ```math
-\text{mask}[i,j] = \begin{cases} 0 & \text{if } j \gt i \\ 1 & \text{if } j \leq i \end{cases}
+\large \text{mask}[i,j] = \begin{cases} 0 & \text{if } j \gt i \\ 1 & \text{if } j \leq i \end{cases}
    ```
 
 3. **GELU Activation**: The Gaussian Error Linear Unit provides smoother gradients than ReLU:
 
 
    ```math
-\text{GELU}(x) = x \cdot \Phi(x) = x \cdot \frac{1}{2}\left[1 + \text{erf}\left(\frac{x}{\sqrt{2}}\right)\right]
+\large \text{GELU}(x) = x \cdot \Phi(x) = x \cdot \frac{1}{2}\left[1 + \text{erf}\left(\frac{x}{\sqrt{2}}\right)\right]
    ```
 
    This approximates $x \cdot P(X \leq x)$ where $X \sim \mathcal{N}(0,1)$, providing a probabilistic interpretation.
@@ -441,7 +441,7 @@ Constitutional AI is based on two key phases:
 The objective function combines:
 
 ```math
-\mathcal{L} = \mathcal{L}_{\text{SFT}} + \beta \mathcal{L}_{\text{RL}}
+\large \mathcal{L} = \mathcal{L}_{\text{SFT}} + \beta \mathcal{L}_{\text{RL}}
 ```
 
 where:
@@ -629,7 +629,7 @@ class RMSNorm(nn.Module):
     In LaTeX notation:
     """
 ```math
-\text{RMSNorm}(\mathbf{x}) = \frac{\mathbf{x}}{\sqrt{\frac{1}{d}\sum_{i=1}^d x_i^2 + \epsilon}} \odot \boldsymbol{\gamma}
+\large \text{RMSNorm}(\mathbf{x}) = \frac{\mathbf{x}}{\sqrt{\frac{1}{d}\sum_{i=1}^d x_i^2 + \epsilon}} \odot \boldsymbol{\gamma}
 ```
 
 ```python
@@ -675,17 +675,17 @@ class SwiGLU(nn.Module):
     In LaTeX notation:
     """
 ```math
-\text{SwiGLU}(\mathbf{x}, \mathbf{W}, \mathbf{V}, \mathbf{b}, \mathbf{c}) = \text{Swish}(\mathbf{x}\mathbf{W} + \mathbf{b}) \odot (\mathbf{x}\mathbf{V} + \mathbf{c})
+\large \text{SwiGLU}(\mathbf{x}, \mathbf{W}, \mathbf{V}, \mathbf{b}, \mathbf{c}) = \text{Swish}(\mathbf{x}\mathbf{W} + \mathbf{b}) \odot (\mathbf{x}\mathbf{V} + \mathbf{c})
 ```
 
 ```math
-\text{Swish}(\mathbf{x}) = \mathbf{x} \odot \sigma(\mathbf{x})
+\large \text{Swish}(\mathbf{x}) = \mathbf{x} \odot \sigma(\mathbf{x})
 ```
 
 Complete FFN architecture:
 
 ```math
-\text{FFN}_{\text{SwiGLU}}(\mathbf{x}) = (\text{Swish}(\mathbf{x}\mathbf{W}_1) \odot \mathbf{x}\mathbf{W}_3)\mathbf{W}_2
+\large \text{FFN}_{\text{SwiGLU}}(\mathbf{x}) = (\text{Swish}(\mathbf{x}\mathbf{W}_1) \odot \mathbf{x}\mathbf{W}_3)\mathbf{W}_2
 ```
 
 ```python
@@ -741,13 +741,13 @@ Large language models face a critical memory bottleneck during inference: the KV
 GQA groups query heads to share KV heads, providing a tunable trade-off:
 
 ```math
-\text{GQA}(Q, K, V) = \text{Concat}(\text{head}_1, ..., \text{head}_h)W^{O}
+\large \text{GQA}(Q, K, V) = \text{Concat}(\text{head}_1, ..., \text{head}_h)W^{O}
 ```
 
 where each head is computed as:
 
 ```math
-\text{head}_i = \text{Attention}(Q_i, K_{\lfloor i/G \rfloor}, V_{\lfloor i/G \rfloor})
+\large \text{head}_i = \text{Attention}(Q_i, K_{\lfloor i/G \rfloor}, V_{\lfloor i/G \rfloor})
 ```
 
 Here $G = n_{\text{heads}} / n_{\text{kv\_heads}}$ is the group size. This reduces KV cache by a factor of $G$ while maintaining multiple KV heads for better representation.
@@ -755,7 +755,7 @@ Here $G = n_{\text{heads}} / n_{\text{kv\_heads}}$ is the group size. This reduc
 The memory reduction is:
 
 ```math
-\text{Memory}_{\text{GQA}} = \frac{n_{\text{kv\_heads}}}{n_{\text{heads}}} \times \text{Memory}_{\text{MHA}}
+\large \text{Memory}_{\text{GQA}} = \frac{n_{\text{kv\_heads}}}{n_{\text{heads}}} \times \text{Memory}_{\text{MHA}}
 ```
 
 For LLaMA 2 70B with 64 query heads and 8 KV heads: $\text{reduction} = 8/64 = 8\times$
@@ -791,13 +791,13 @@ class GroupedQueryAttention(nn.Module):
     For standard MHA:
     """
 ```math
-\text{head}_i = \text{Attention}(\mathbf{Q}_i, \mathbf{K}_i, \mathbf{V}_i)
+\large \text{head}_i = \text{Attention}(\mathbf{Q}_i, \mathbf{K}_i, \mathbf{V}_i)
 ```
 
 For GQA with G query heads per KV head:
 
 ```math
-\text{head}_i = \text{Attention}(\mathbf{Q}_i, \mathbf{K}_{\lfloor i/G \rfloor}, \mathbf{V}_{\lfloor i/G \rfloor})
+\large \text{head}_i = \text{Attention}(\mathbf{Q}_i, \mathbf{K}_{\lfloor i/G \rfloor}, \mathbf{V}_{\lfloor i/G \rfloor})
 ```
 
 ```python
@@ -811,7 +811,7 @@ For GQA with G query heads per KV head:
     KV Cache Reduction Ratio:
     """
 ```math
-r = \frac{n_{\text{heads}}}{n_{\text{kv\_heads}}}
+\large r = \frac{n_{\text{heads}}}{n_{\text{kv\_heads}}}
 ```
 
 ```python
@@ -974,25 +974,25 @@ QK-Norm applies normalization to query and key vectors before computing attentio
 Standard attention computes:
 
 ```math
-\text{scores} = \frac{QK^T}{\sqrt{d_k}}
+\large \text{scores} = \frac{QK^T}{\sqrt{d_k}}
 ```
 
 With QK-Norm:
 
 ```math
-\text{scores} = \frac{\text{Norm}(Q) \cdot \text{Norm}(K)^T}{\sqrt{d_k}}
+\large \text{scores} = \frac{\text{Norm}(Q) \cdot \text{Norm}(K)^T}{\sqrt{d_k}}
 ```
 
 where $\text{Norm}$ is typically RMSNorm applied per-head. This ensures:
 
 ```math
-\|Q_i\| \approx \|K_j\| \approx \sqrt{d_k}
+\large \|Q_i\| \approx \|K_j\| \approx \sqrt{d_k}
 ```
 
 Therefore, the dot products are bounded:
 
 ```math
-|Q_i \cdot K_j| \leq \|Q_i\| \|K_j\| \approx d_k
+\large |Q_i \cdot K_j| \leq \|Q_i\| \|K_j\| \approx d_k
 ```
 
 This prevents attention logits from exploding regardless of the input distribution.
@@ -1058,7 +1058,7 @@ Standard attention has $O(n^2)$ memory and compute complexity with sequence leng
 Sliding window attention restricts each token to attend only to the previous $w$ tokens (the window size):
 
 ```math
-\text{Attention}(Q, K, V)_{ij} = \begin{cases}
+\large \text{Attention}(Q, K, V)_{ij} = \begin{cases}
 \text{softmax}(QK^T / \sqrt{d_k})_{ij} V & \text{if } i - w \lt j \leq i \\
 0 & \text{otherwise}
 \end{cases}
@@ -1069,13 +1069,13 @@ This reduces memory from $O(n^2)$ to $O(n \cdot w)$, where $w$ is the fixed wind
 **Key insight - Stacked receptive fields**: While each layer has a window of $w$, stacking $L$ layers gives an effective receptive field of:
 
 ```math
-\text{receptive\_field} = w + (L-1) \times (w-1) \approx L \times w
+\large \text{receptive\_field} = w + (L-1) \times (w-1) \approx L \times w
 ```
 
 For Mistral 7B with $w = 4096$ and $L = 32$ layers:
 
 ```math
-\text{effective\_field} \approx 32 \times 4096 = 131,072 \text{ tokens}
+\large \text{effective\_field} \approx 32 \times 4096 = 131,072 \text{ tokens}
 ```
 
 This means information can flow across the entire long context through the layer stack, even though each individual layer only attends locally.
@@ -1182,13 +1182,13 @@ Scaling dense models linearly increases both training and inference costs. A 47B
 Sparse MoE replaces dense FFN layers with multiple expert networks and a learned router:
 
 ```math
-\text{MoE}(x) = \sum_{i=1}^{n} G(x)_i \cdot E_i(x)
+\large \text{MoE}(x) = \sum_{i=1}^{n} G(x)_i \cdot E_i(x)
 ```
 
 where the gating function $G(x)$ selects top-k experts:
 
 ```math
-G(x) = \text{TopK}(\text{softmax}(x \cdot W_g), k)
+\large G(x) = \text{TopK}(\text{softmax}(x \cdot W_g), k)
 ```
 
 For Mixtral with 8 experts and top-2 routing:
@@ -1201,7 +1201,7 @@ For Mixtral with 8 experts and top-2 routing:
 The routing weights are normalized:
 
 ```math
-w_i = \frac{e^{s_i}}{\sum_{j \in \text{TopK}} e^{s_j}}
+\large w_i = \frac{e^{s_i}}{\sum_{j \in \text{TopK}} e^{s_j}}
 ```
 
 where $s_i$ are the router logits for the selected experts.
@@ -1317,13 +1317,13 @@ class MultiHeadLatentAttention(nn.Module):
     Compression phase:
     """
 ```math
-\mathbf{c}_t = \mathbf{W}_c \mathbf{x}_t
+\large \mathbf{c}_t = \mathbf{W}_c \mathbf{x}_t
 ```
 
 Decompression phase:
 
 ```math
-\mathbf{K}_t = \mathbf{W}_k \mathbf{c}_t, \quad \mathbf{V}_t = \mathbf{W}_v \mathbf{c}_t
+\large \mathbf{K}_t = \mathbf{W}_k \mathbf{c}_t, \quad \mathbf{V}_t = \mathbf{W}_v \mathbf{c}_t
 ```
 
 ```python
@@ -1338,7 +1338,7 @@ Decompression phase:
     Compression ratio:
     """
 ```math
-\rho = \frac{2 \cdot n_h \cdot d_h}{d_c}
+\large \rho = \frac{2 \cdot n_h \cdot d_h}{d_c}
 ```
 
 ```python
@@ -1427,13 +1427,13 @@ The key insight is to decouple routing decisions from the training signal:
 1. **Routing phase**: Use biased logits to select experts
 
    ```math
-\text{routing\_logits} = W_g x + b_{\text{expert}}
+\large \text{routing\_logits} = W_g x + b_{\text{expert}}
    ```
 
 2. **Weight computation**: Use unbiased logits for the actual output weights
 
    ```math
-\text{weights} = \text{softmax}(W_g x)
+\large \text{weights} = \text{softmax}(W_g x)
    ```
 
 The bias terms $b_{\text{expert}}$ are learned to balance load:
@@ -1445,10 +1445,10 @@ The bias terms $b_{\text{expert}}$ are learned to balance load:
 This is formalized as:
 
 ```math
-\text{selected\_experts} = \text{TopK}(s + b, k)
+\large \text{selected\_experts} = \text{TopK}(s + b, k)
 ```
 ```math
-\text{output} = \sum_{i \in \text{selected}} \frac{e^{s_i}}{\sum_{j \in \text{selected}} e^{s_j}} E_i(x)
+\large \text{output} = \sum_{i \in \text{selected}} \frac{e^{s_i}}{\sum_{j \in \text{selected}} e^{s_j}} E_i(x)
 ```
 
 where $s = W_g x$ (unbiased logits) and $b$ are the learned biases.
@@ -1529,13 +1529,13 @@ Interleaving local and global attention layers combines their strengths:
 - **Local layers** (odd): Sliding window of 4K tokens
 
   ```math
-\text{Attention}_{\text{local}}(Q, K, V) \text{ with mask } M_{ij} = \begin{cases} 1 & \text{if } i - 4096 \lt j \leq i \\ 0 & \text{otherwise} \end{cases}
+\large \text{Attention}_{\text{local}}(Q, K, V) \text{ with mask } M_{ij} = \begin{cases} 1 & \text{if } i - 4096 \lt j \leq i \\ 0 & \text{otherwise} \end{cases}
   ```
 
 - **Global layers** (even): Full causal attention over 8K tokens
 
   ```math
-\text{Attention}_{\text{global}}(Q, K, V) \text{ with mask } M_{ij} = \begin{cases} 1 & \text{if } j \leq i \\ 0 & \text{otherwise} \end{cases}
+\large \text{Attention}_{\text{global}}(Q, K, V) \text{ with mask } M_{ij} = \begin{cases} 1 & \text{if } j \leq i \\ 0 & \text{otherwise} \end{cases}
   ```
 
 **Analysis of receptive field:**
@@ -1611,7 +1611,7 @@ Hard clipping (e.g., `logits = torch.clamp(logits, -cap, cap)`) creates disconti
 Soft-capping uses a smooth, bounded function to limit logit magnitude:
 
 ```math
-\text{soft-cap}(x, c) = c \cdot \tanh(x / c)
+\large \text{soft-cap}(x, c) = c \cdot \tanh(x / c)
 ```
 
 This has several key properties:
@@ -1623,7 +1623,7 @@ This has several key properties:
 3. **Gradient behavior**:
 
    ```math
-\frac{d}{dx}\text{soft-cap}(x, c) = \text{sech}^2(x/c) = 1 - \tanh^2(x/c)
+\large \frac{d}{dx}\text{soft-cap}(x, c) = \text{sech}^2(x/c) = 1 - \tanh^2(x/c)
    ```
 
    - For small $|x|$: gradient $\approx 1$ (near-identity, doesn't interfere with learning)
@@ -1632,7 +1632,7 @@ This has several key properties:
 4. **Linear region**: For $|x| \ll c$, we have $\tanh(x/c) \approx x/c$, so:
 
    ```math
-\text{soft-cap}(x, c) \approx c \cdot (x/c) = x
+\large \text{soft-cap}(x, c) \approx c \cdot (x/c) = x
    ```
 
 **Comparison to Alternatives:**
@@ -1651,7 +1651,7 @@ This has several key properties:
 5. **Tunable**: Cap value $c$ can be adjusted based on model scale
 
 ```math
-\text{soft-cap}(x, c) = c \cdot \tanh(x / c)
+\large \text{soft-cap}(x, c) = c \cdot \tanh(x / c)
 ```
 
 ```python
@@ -1719,20 +1719,20 @@ WeDLM adapts diffusion to work with causal attention:
 - Forward: Gradually add noise/masks to clean sequence
 
   ```math
-q(x_t | x_0) = \text{Mask}(x_0, t)
+\large q(x_t | x_0) = \text{Mask}(x_0, t)
   ```
 
 - Reverse: Iteratively denoise to recover clean sequence
 
   ```math
-p_\theta(x_{t-1} | x_t) = \text{Model}(x_t, t)
+\large p_\theta(x_{t-1} | x_t) = \text{Model}(x_t, t)
   ```
 
 **WeDLM innovation - Causal constraint:**
 Instead of bidirectional attention which allows $x_i$ to attend to all positions, WeDLM uses causal masking:
 
 ```math
-\text{Attention}(Q, K, V)_{ij} = 0 \text{ for } j \gt i
+\large \text{Attention}(Q, K, V)_{ij} = 0 \text{ for } j \gt i
 ```
 
 This means:
@@ -2062,7 +2062,7 @@ With caching: Each new token only requires new K,V projections → $O(t)$ total 
 For a single layer, the KV cache memory is:
 
 ```math
-M_{\text{layer}} = 2 \times b \times s \times n_{\text{kv}} \times d_h \times \text{bytes}
+\large M_{\text{layer}} = 2 \times b \times s \times n_{\text{kv}} \times d_h \times \text{bytes}
 ```
 
 where:
@@ -2077,7 +2077,7 @@ where:
 For all layers:
 
 ```math
-M_{\text{total}} = 2 \times b \times s \times L \times n_{\text{kv}} \times d_h \times \text{bytes}
+\large M_{\text{total}} = 2 \times b \times s \times L \times n_{\text{kv}} \times d_h \times \text{bytes}
 ```
 
 where $L$ is the number of layers.
@@ -2095,17 +2095,17 @@ Configuration:
 For sequence length $s = 4096$ and batch size $b = 1$:
 
 ```math
-M_{\text{total}} = 2 \times 1 \times 4096 \times 80 \times 8 \times 128 \times 2
+\large M_{\text{total}} = 2 \times 1 \times 4096 \times 80 \times 8 \times 128 \times 2
 ```
 ```math
-M_{\text{total}} = 1,342,177,280 \text{ bytes} = 1.25 \text{ GB}
+\large M_{\text{total}} = 1,342,177,280 \text{ bytes} = 1.25 \text{ GB}
 ```
 
 **Comparison with MHA:**
 If using MHA (64 KV heads instead of 8):
 
 ```math
-M_{\text{MHA}} = 2 \times 1 \times 4096 \times 80 \times 64 \times 128 \times 2 = 10 \text{ GB}
+\large M_{\text{MHA}} = 2 \times 1 \times 4096 \times 80 \times 64 \times 128 \times 2 = 10 \text{ GB}
 ```
 
 **Memory savings from GQA: 8x reduction**
@@ -2201,7 +2201,7 @@ Total GPU memory = Model weights + KV cache + Activations + Optimizer states (tr
 **Model Weights:**
 
 ```math
-M_{\text{weights}} = P \times \text{bytes}
+\large M_{\text{weights}} = P \times \text{bytes}
 ```
 
 where $P$ is total parameters.

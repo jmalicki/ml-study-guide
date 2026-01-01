@@ -79,7 +79,7 @@ Adam maintains two moving averages for each parameter:
 The update equations are:
 
 ```math
-\begin{align}
+\large \begin{align}
 m_t &= \beta_1 m_{t-1} + (1 - \beta_1) g_t \\
 v_t &= \beta_2 v_{t-1} + (1 - \beta_2) g_t^2 \\
 \hat{m}_t &= \frac{m_t}{1 - \beta_1^t} \quad \text{(bias correction)} \\
@@ -124,7 +124,7 @@ AdamW (Adam with decoupled Weight decay) is the standard optimizer for LLM train
 Standard Adam implements weight decay as L2 regularization by adding the penalty to the gradient:
 
 ```math
-g_t \leftarrow g_t + \lambda \theta_{t-1}
+\large g_t \leftarrow g_t + \lambda \theta_{t-1}
 ```
 
 This creates a problem: **the weight decay gets scaled by the adaptive learning rate** $\frac{1}{\sqrt{\hat{v}_t}}$. For parameters with large historical gradients (large $\hat{v}_t$), weight decay is effectively weakened, while for parameters with small gradients, it's strengthened. This makes regularization inconsistent and less effective.
@@ -140,7 +140,7 @@ This creates a problem: **the weight decay gets scaled by the adaptive learning 
 AdamW fixes this by applying weight decay **directly to the parameters**, separate from the gradient-based update:
 
 ```math
-\theta_t = \theta_{t-1} - \eta \left( \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon} \right) - \eta \lambda \theta_{t-1}
+\large \theta_t = \theta_{t-1} - \eta \left( \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon} \right) - \eta \lambda \theta_{t-1}
 ```
 
 Now weight decay strength depends only on the learning rate $\eta$ and decay coefficient $\lambda$, not on gradient history. Every parameter gets consistent regularization.
@@ -153,7 +153,7 @@ AdamW uses the same moment estimates as Adam:
 - $v_t$: Second moment (exponential moving average of squared gradients)
 
 ```math
-\begin{align}
+\large \begin{align}
 m_t &= \beta_1 m_{t-1} + (1 - \beta_1) g_t \\
 v_t &= \beta_2 v_{t-1} + (1 - \beta_2) g_t^2 \\
 \hat{m}_t &= \frac{m_t}{1 - \beta_1^t} \\
@@ -181,7 +181,7 @@ The key difference from Adam is that weight decay ($\lambda \theta_{t-1}$) is ap
 The issue with standard Adam is that it applies weight decay as:
 
 ```math
-g_t \leftarrow g_t + \lambda \theta_{t-1}
+\large g_t \leftarrow g_t + \lambda \theta_{t-1}
 ```
 
 This means weight decay gets scaled by the adaptive learning rate adjustment $\frac{1}{\sqrt{\hat{v}_t}}$, making it inconsistent across parameters with different gradient magnitudes.
@@ -189,7 +189,7 @@ This means weight decay gets scaled by the adaptive learning rate adjustment $\f
 AdamW fixes this by **decoupling** weight decay from the gradient:
 
 ```math
-\theta_t \leftarrow \theta_{t-1} - \eta \left( \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon} \right) - \eta \lambda \theta_{t-1}
+\large \theta_t \leftarrow \theta_{t-1} - \eta \left( \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon} \right) - \eta \lambda \theta_{t-1}
 ```
 
 This ensures weight decay operates directly on parameters with strength proportional only to the learning rate $\eta$, not to gradient statistics.
@@ -400,7 +400,7 @@ Weight decay controls the bias-variance trade-off in LLM training. Too little (Î
 Learning rate should generally decrease as model size increases. A common empirical formula:
 
 ```math
-\eta \approx \frac{0.003}{\sqrt{N / 125\text{M}}}
+\large \eta \approx \frac{0.003}{\sqrt{N / 125\text{M}}}
 ```
 
 where $N$ is the number of parameters. This gives:
@@ -584,7 +584,7 @@ The learning rate schedule dramatically affects both training stability and fina
 **Warmup phase:** Linearly increase learning rate from 0 (or small value) to maximum over initial steps.
 
 ```math
-\eta(t) = \eta_{\max} \cdot \min\left(1, \frac{t}{T_{\text{warmup}}}\right) \quad \text{for } t \leq T_{\text{warmup}}
+\large \eta(t) = \eta_{\max} \cdot \min\left(1, \frac{t}{T_{\text{warmup}}}\right) \quad \text{for } t \leq T_{\text{warmup}}
 ```
 
 **Typical warmup duration:**
@@ -696,7 +696,7 @@ The cosine schedule is the most common choice for LLM pretraining. It smoothly d
 **Formula:** After warmup, learning rate follows:
 
 ```math
-\eta(t) = \eta_{\min} + \frac{1}{2}(\eta_{\max} - \eta_{\min})\left(1 + \cos\left(\frac{t - T_{\text{warmup}}}{T_{\text{total}} - T_{\text{warmup}}} \pi\right)\right)
+\large \eta(t) = \eta_{\min} + \frac{1}{2}(\eta_{\max} - \eta_{\min})\left(1 + \cos\left(\frac{t - T_{\text{warmup}}}{T_{\text{total}} - T_{\text{warmup}}} \pi\right)\right)
 ```
 
 where:
@@ -732,7 +732,7 @@ The schedule can be viewed as an **annealing strategy**: we start with large ste
 **Why not linear decay?** Linear schedules decay too aggressively early and not enough late:
 
 ```math
-\text{Linear: } \eta(t) = \eta_{\max}(1 - t/T) \text{ vs. Cosine: } \eta(t) \propto \frac{1}{2}(1 + \cos(\pi t/T))
+\large \text{Linear: } \eta(t) = \eta_{\max}(1 - t/T) \text{ vs. Cosine: } \eta(t) \propto \frac{1}{2}(1 + \cos(\pi t/T))
 ```
 
 At $t = 0.5T$, linear is at 50% of max LR, while cosine is at ~50%. But early on (t = 0.1T), linear is at 90% while cosine is at ~97%, preserving exploration longer.
@@ -1095,7 +1095,7 @@ The most common approach: scale gradients if total norm exceeds threshold.
 **Algorithm:**
 
 ```math
-\text{if } \|\mathbf{g}\| \gt \tau: \quad \mathbf{g} \leftarrow \frac{\tau \mathbf{g}}{\|\mathbf{g}\|}
+\large \text{if } \|\mathbf{g}\| \gt \tau: \quad \mathbf{g} \leftarrow \frac{\tau \mathbf{g}}{\|\mathbf{g}\|}
 ```
 
 where:
@@ -1274,7 +1274,7 @@ Batch size affects both training speed and model quality. Finding the right bala
 The **effective batch size** is the total number of examples used per optimizer step:
 
 ```math
-B_{\text{eff}} = B_{\text{micro}} \times N_{\text{acc}} \times N_{\text{devices}}
+\large B_{\text{eff}} = B_{\text{micro}} \times N_{\text{acc}} \times N_{\text{devices}}
 ```
 
 where:
@@ -1309,7 +1309,7 @@ The visualization shows the multi-dimensional trade-offs of batch size selection
 From McCandlish et al. (2018), the critical batch size can be estimated as:
 
 ```math
-B_{\text{crit}} \approx \left(\frac{G_{\text{noise}}}{\eta}\right)^2
+\large B_{\text{crit}} \approx \left(\frac{G_{\text{noise}}}{\eta}\right)^2
 ```
 
 where:
@@ -1320,7 +1320,7 @@ where:
 **Gradient noise scale** measures how noisy gradients are:
 
 ```math
-G_{\text{noise}} = \frac{\|\mathbb{E}[\mathbf{g}]\|^2}{\text{Var}[\mathbf{g}]}
+\large G_{\text{noise}} = \frac{\|\mathbb{E}[\mathbf{g}]\|^2}{\text{Var}[\mathbf{g}]}
 ```
 
 **Practical implications:**
@@ -1342,19 +1342,19 @@ The critical batch size concept comes from analyzing the **noise in stochastic g
 2. **Batch size effect**: Larger batches reduce noise by $1/\sqrt{B}$ (Central Limit Theorem), so:
 
 ```math
-\text{Effective noise} \propto \frac{\text{Var}[\mathbf{g}]}{B}
+\large \text{Effective noise} \propto \frac{\text{Var}[\mathbf{g}]}{B}
 ```
 
 3. **Learning rate interaction**: Higher LR amplifies both signal and noise. The critical batch size occurs when:
 
 ```math
-\frac{\eta^2 \text{Var}[\mathbf{g}]}{B} \approx \|\mathbb{E}[\mathbf{g}]\|^2
+\large \frac{\eta^2 \text{Var}[\mathbf{g}]}{B} \approx \|\mathbb{E}[\mathbf{g}]\|^2
 ```
 
 Solving for $B$:
 
 ```math
-B_{\text{crit}} \approx \frac{\eta^2 \text{Var}[\mathbf{g}]}{\|\mathbb{E}[\mathbf{g}]\|^2} = \left(\frac{G_{\text{noise}}}{\eta}\right)^2
+\large B_{\text{crit}} \approx \frac{\eta^2 \text{Var}[\mathbf{g}]}{\|\mathbb{E}[\mathbf{g}]\|^2} = \left(\frac{G_{\text{noise}}}{\eta}\right)^2
 ```
 
 **What happens at different batch sizes?**
@@ -1922,7 +1922,7 @@ The LR range test (also called "LR finder") works by observing how loss responds
 The test finds the **sweet spot** where:
 
 ```math
-\frac{d L}{d \eta} \text{ is minimized (most negative)}
+\large \frac{d L}{d \eta} \text{ is minimized (most negative)}
 ```
 
 This corresponds to the learning rate that provides the steepest descent in loss per training step.

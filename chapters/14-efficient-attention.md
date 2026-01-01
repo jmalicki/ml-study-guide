@@ -32,7 +32,7 @@ Standard multi-head attention (see [Multi-Head Attention](04-multi-head-attentio
 For sequence length $n$ and hidden dimension $d$:
 
 ```math
-\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
+\large \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
 ```
 
 The $QK^T$ computation creates an $n \times n$ attention matrix, requiring $O(n^2 d)$ operations.
@@ -42,7 +42,7 @@ The $QK^T$ computation creates an $n \times n$ attention matrix, requiring $O(n^
 During autoregressive generation, we cache key and value tensors for all previous tokens:
 
 ```math
-\text{Memory}_{\text{KV cache}} = 2 \times \text{layers} \times \text{heads} \times \text{seq\_len} \times \text{head\_dim} \times \text{bytes}
+\large \text{Memory}_{\text{KV cache}} = 2 \times \text{layers} \times \text{heads} \times \text{seq\_len} \times \text{head\_dim} \times \text{bytes}
 ```
 
 For a 70B model with 100K context:
@@ -123,7 +123,7 @@ Linear attention approximates the softmax operation to achieve $O(nd^2)$ complex
 Standard attention can be viewed as:
 
 ```math
-\text{Attention}(Q, K, V)_i = \frac{\sum_{j=1}^n \text{sim}(q_i, k_j) v_j}{\sum_{j=1}^n \text{sim}(q_i, k_j)}
+\large \text{Attention}(Q, K, V)_i = \frac{\sum_{j=1}^n \text{sim}(q_i, k_j) v_j}{\sum_{j=1}^n \text{sim}(q_i, k_j)}
 ```
 
 where $\text{sim}(q, k) = \exp(q^T k / \sqrt{d})$.
@@ -131,7 +131,7 @@ where $\text{sim}(q, k) = \exp(q^T k / \sqrt{d})$.
 If we can approximate $\text{sim}(q, k) \approx \phi(q)^T \phi(k)$ for some feature map $\phi$, then:
 
 ```math
-\text{Attention}(Q, K, V)_i = \frac{\phi(q_i)^T \sum_{j=1}^n \phi(k_j) v_j^T}{\phi(q_i)^T \sum_{j=1}^n \phi(k_j)}
+\large \text{Attention}(Q, K, V)_i = \frac{\phi(q_i)^T \sum_{j=1}^n \phi(k_j) v_j^T}{\phi(q_i)^T \sum_{j=1}^n \phi(k_j)}
 ```
 
 The sums $\sum_j \phi(k_j) v_j^T$ and $\sum_j \phi(k_j)$ can be computed once in $O(nd^2)$ time!
@@ -280,7 +280,7 @@ def compare_linear_vs_standard():
 Any shift-invariant kernel $k(x-y)$ can be expressed as:
 
 ```math
-k(x-y) = \mathbb{E}_{\omega}[\phi_{\omega}(x)^* \phi_{\omega}(y)]
+\large k(x-y) = \mathbb{E}_{\omega}[\phi_{\omega}(x)^* \phi_{\omega}(y)]
 ```
 
 where $\phi_{\omega}(x) = e^{i\omega^T x}$ and $\omega$ is drawn from the Fourier transform of $k$.
