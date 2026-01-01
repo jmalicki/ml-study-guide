@@ -178,6 +178,8 @@ $$F(\theta) = -\mathbb{E}_{x \sim p_\theta}\left[\nabla_\theta^2 \log p_\theta(x
 
 $$D_{KL}(p_\theta \| p_{\theta + d\theta}) \approx \frac{1}{2} d\theta^T F(\theta) d\theta$$
 
+> For a comprehensive treatment including the score function, Cramér-Rao bound, Fisher for common distributions, and connections to neural network optimization, see [Appendix: Fisher Information In Depth](21-appendix-fisher.md).
+
 ## F. Probability Distributions
 
 ### Gaussian Distribution

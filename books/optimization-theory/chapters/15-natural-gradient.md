@@ -80,6 +80,8 @@ $$F(\theta) = \mathbb{E}_{p(y|x;\theta)}\left[ \nabla_\theta \log p(y|x;\theta) 
 
 This measures how much the distribution changes when parameters change.
 
+> **Deep Dive**: The Fisher information is one of the most profound concepts in statistics, connecting estimation theory, information geometry, and optimization. See [Appendix: Fisher Information In Depth](21-appendix-fisher.md) for the full treatment, including the Cramér-Rao bound, sufficiency, and why Fisher determines the fundamental limits of learning.
+
 ```python
 def compute_fisher_information(
     model: torch.nn.Module,
@@ -365,6 +367,7 @@ def compare_fisher_estimates():
 
 - **Chapter 16**: K-FAC, Shampoo, SOAP—practical second-order methods
 - These use Kronecker structure to make Fisher tractable
+- **Appendix: Fisher Information In Depth**: Full treatment of Fisher information, including statistical foundations most ML practitioners haven't seen
 
 ## Exercises
 
