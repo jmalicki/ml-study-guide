@@ -291,14 +291,12 @@ For an input sequence $X = (x_1, x_2, \ldots, x_n)$:
 1. **Embedding**: $E = \text{Embed}(X) + \text{PosEnc}(X)$
 2. **Decoder layers** (repeated $L$ times):
 
-
    ```math
-\begin{align}
+   \begin{align}
    H' &= \text{LayerNorm}(E + \text{MaskedMultiHeadAttn}(E, E, E)) \\
    H &= \text{LayerNorm}(H' + \text{FFN}(H'))
    \end{align}
-```
-
+   ```
 
 3. **Language modeling head**: $\text{Logits} = H W_\text{vocab}^T$
 
