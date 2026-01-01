@@ -32,6 +32,8 @@ $$F \approx \text{block-diag}(F_{11}, F_{22}, \ldots, F_{LL})$$
 
 This is reasonable because most of the curvature information for each layer is contained in its own block.
 
+![Fisher block structure](../images/fisher-block-structure.svg)
+
 ### Deriving the Kronecker Structure
 
 Now consider a single fully-connected layer: $y = Wa$ where $a \in \mathbb{R}^m$ is the input activation and $y \in \mathbb{R}^n$ is the pre-activation output. The weight matrix $W \in \mathbb{R}^{n \times m}$ has $nm$ parameters.
