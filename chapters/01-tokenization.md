@@ -1326,7 +1326,7 @@ The objective is to find the tokenization that maximizes:
 where $S(x)$ is the set of all possible segmentations of input $x$, and we choose:
 
 ```math
-\large x^* = \arg\max_{x \in S(x)} P(x)
+\large x^\ast = \arg\max_{x \in S(x)} P(x)
 ```
 
 Since we don't implement SentencePiece from scratch here (it's quite complex), we show how to use the library.

@@ -10,7 +10,7 @@ $$f(\theta + \delta) \approx f(\theta) + \nabla f(\theta)^T \delta + \frac{1}{2}
 
 Minimizing this quadratic gives the **Newton step**:
 
-$$\delta^* = -[\nabla^2 f(\theta)]^{-1} \nabla f(\theta)$$
+$$\delta^\ast = -[\nabla^2 f(\theta)]^{-1} \nabla f(\theta)$$
 
 The update is:
 
@@ -80,14 +80,14 @@ def newton_method(
 
 ### What Quadratic Convergence Means
 
-Near a minimum $\theta^*$, Newton's method satisfies:
+Near a minimum $\theta^\ast$, Newton's method satisfies:
 
-$$\|\theta_{t+1} - \theta^*\| \leq C \|\theta_t - \theta^*\|^2$$
+$$\|\theta_{t+1} - \theta^\ast\| \leq C \|\theta_t - \theta^\ast\|^2$$
 
 The error **squares** at each iteration. If you're at distance 0.1, next step you're at distance 0.01, then 0.0001, then 0.00000001.
 
 Compare to gradient descent's linear convergence:
-$$\|\theta_{t+1} - \theta^*\| \leq \rho \|\theta_t - \theta^*\|$$
+$$\|\theta_{t+1} - \theta^\ast\| \leq \rho \|\theta_t - \theta^\ast\|$$
 
 where $\rho = 1 - 1/\kappa$.
 
@@ -261,7 +261,7 @@ for name, params in [("MLP", 1_000_000), ("BERT", 110_000_000), ("GPT-2", 1_500_
 For non-convex functions (like neural network losses), the Hessian can have negative eigenvalues.
 
 If $H$ has a negative eigenvalue with eigenvector $v$:
-- $v^T H v < 0$: This direction curves downward
+- $v^T H v \lt 0$: This direction curves downward
 - Newton step: $-H^{-1}g$ might move **uphill** in this direction
 
 Newton's method can converge to **saddle points** rather than minima.
@@ -414,8 +414,8 @@ $$\lambda(\theta) = \sqrt{\nabla f(\theta)^T [H(\theta)]^{-1} \nabla f(\theta)}$
 This measures how far we are from the optimum in the local Hessian metric.
 
 Properties:
-- $\lambda(\theta^*) = 0$ at the optimum
-- For $\lambda(\theta) < 1$, Newton converges quadratically
+- $\lambda(\theta^\ast) = 0$ at the optimum
+- For $\lambda(\theta) \lt 1$, Newton converges quadratically
 - The decrease in $f$ per Newton step is approximately $\lambda^2/2$
 
 ```python
@@ -442,9 +442,9 @@ def newton_decrement(
     return decrement.item()
 ```
 
-## Summary: The Newton Ideal
+## Summary: Newton as a Benchmark
 
-Newton's method is the **theoretically optimal** optimizer:
+Newton's method provides a useful benchmark for optimization—not because it's theoretically optimal (higher-order methods using derivative tensors could converge faster), but because second-order is the practical frontier:
 
 | Property | Gradient Descent | Newton |
 |----------|-----------------|--------|
@@ -454,11 +454,19 @@ Newton's method is the **theoretically optimal** optimizer:
 | Memory | $O(n)$ | $O(n^2)$ |
 | Saddle points | Escapes slowly | Can converge to them |
 
-**The entire field of optimization is about approximating Newton efficiently.**
+Newton sets a theoretical benchmark, but the $O(n^3)$ per-step cost and $O(n^2)$ memory make it impractical for deep learning where $n$ can exceed $10^9$.
 
-Every optimizer we'll study can be understood as:
-1. Approximating the Hessian (or its inverse)
-2. Trading off accuracy vs. computational cost
+**Many optimizers approximate Newton's curvature awareness:**
+- Quasi-Newton (BFGS, L-BFGS): Low-rank Hessian inverse approximations
+- K-FAC, Shampoo: Block-diagonal Fisher approximations
+- Natural gradient: Fisher information instead of Hessian
+
+**But successful first-order methods take different approaches entirely:**
+- Momentum: Accelerates through gradient history, not curvature
+- Adam: Adaptive per-parameter learning rates from gradient statistics
+- Muon: Orthogonalization via operator geometry (Chapter 17)
+
+The lesson isn't that we must approximate Newton—it's that vanilla gradient descent leaves performance on the table, and there are multiple paths to improvement.
 
 ## What's Next
 
@@ -471,7 +479,7 @@ The computational impossibility of Newton leads to:
 
 ## Exercises
 
-1. **Quadratic convergence proof**: Show that for $f$ with Lipschitz Hessian, Newton satisfies $\|\theta_{t+1} - \theta^*\| \leq C\|\theta_t - \theta^*\|^2$.
+1. **Quadratic convergence proof**: Show that for $f$ with Lipschitz Hessian, Newton satisfies $\|\theta_{t+1} - \theta^\ast\| \leq C\|\theta_t - \theta^\ast\|^2$.
 
 2. **Newton for logistic regression**: Implement Newton's method for logistic regression. Compare iterations needed vs. gradient descent.
 

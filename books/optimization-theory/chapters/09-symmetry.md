@@ -113,7 +113,7 @@ Architecture | Log₁₀(symmetries)
 ### Problem 1: It's Measure Zero
 
 The permutation symmetry creates a **discrete** set of equivalent points:
-- For each minimum $\theta^*$, there are $\prod_l h_l!$ equivalent points
+- For each minimum $\theta^\ast$, there are $\prod_l h_l!$ equivalent points
 - These are isolated points in parameter space
 - The set of all equivalent points has **measure zero**
 

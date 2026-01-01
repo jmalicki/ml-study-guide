@@ -71,7 +71,7 @@ where:
 The optimal solution to this constrained optimization problem has a closed form:
 
 ```math
-\large \pi^*(y \mid x) = \frac{1}{Z(x)} \pi_{\text{ref}}(y \mid x) \exp\left(\frac{1}{\beta} r(x, y)\right)
+\large \pi^\ast(y \mid x) = \frac{1}{Z(x)} \pi_{\text{ref}}(y \mid x) \exp\left(\frac{1}{\beta} r(x, y)\right)
 ```
 
 where $Z(x) = \sum_y \pi_{\text{ref}}(y \mid x) \exp\left(\frac{1}{\beta} r(x, y)\right)$ is the partition function.
@@ -81,13 +81,13 @@ where $Z(x) = \sum_y \pi_{\text{ref}}(y \mid x) \exp\left(\frac{1}{\beta} r(x, y
 We can rearrange the above to express the reward in terms of the optimal policy:
 
 ```math
-\large r(x, y) = \beta \log \frac{\pi^*(y \mid x)}{\pi_{\text{ref}}(y \mid x)} + \beta \log Z(x)
+\large r(x, y) = \beta \log \frac{\pi^\ast(y \mid x)}{\pi_{\text{ref}}(y \mid x)} + \beta \log Z(x)
 ```
 
 **Key insight**: The partition function $Z(x)$ depends only on $x$, not $y$. When we compute reward differences, it cancels out! This is the central mathematical insight that makes DPO possible—it transforms an intractable problem (computing $Z(x)$ requires summing over all $V^{L} \approx 10^{4,699}$ possible responses) into tractable supervised learning. See [Appendix: Partition Functions](../appendices/partition-functions.md) for a detailed explanation of why $Z(x)$ is intractable and why this cancellation is so significant.
 
 ```math
-\large r(x, y_w) - r(x, y_l) = \beta \log \frac{\pi^*(y_w \mid x)}{\pi_{\text{ref}}(y_w \mid x)} - \beta \log \frac{\pi^*(y_l \mid x)}{\pi_{\text{ref}}(y_l \mid x)}
+\large r(x, y_w) - r(x, y_l) = \beta \log \frac{\pi^\ast(y_w \mid x)}{\pi_{\text{ref}}(y_w \mid x)} - \beta \log \frac{\pi^\ast(y_l \mid x)}{\pi_{\text{ref}}(y_l \mid x)}
 ```
 
 ### The DPO Objective
@@ -2046,8 +2046,8 @@ When interviewing for ML/LLM positions, DPO is a hot topic. Here are common ques
 DPO works by reparameterizing the reward function in terms of the policy itself. The key insight is:
 
 1. In RLHF, we optimize: $\max_\pi \mathbb{E}[r(x,y)] - \beta \text{KL}(\pi \| \pi_{\text{ref}})$
-2. This has a closed-form optimal solution: $\pi^*(y|x) \propto \pi_{\text{ref}}(y|x) \exp(r(x,y)/\beta)$
-3. Rearranging: $r(x,y) = \beta \log \frac{\pi^*(y|x)}{\pi_{\text{ref}}(y|x)} + \beta \log Z(x)$
+2. This has a closed-form optimal solution: $\pi^\ast(y|x) \propto \pi_{\text{ref}}(y|x) \exp(r(x,y)/\beta)$
+3. Rearranging: $r(x,y) = \beta \log \frac{\pi^\ast(y|x)}{\pi_{\text{ref}}(y|x)} + \beta \log Z(x)$
 4. When computing reward differences (for Bradley-Terry model), the partition function $Z(x)$ cancels out
 5. Therefore, we can express preferences directly in terms of policy log probabilities
 

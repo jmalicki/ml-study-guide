@@ -16,7 +16,6 @@ Parameter-Efficient Fine-Tuning (PEFT) methods enable adapting large language mo
 5. [Adapters](#adapters)
 6. [Other PEFT Methods](#other-peft-methods)
    - [IA³ (Infused Adapter by Inhibiting and Amplifying)](#ia3)
-   - [(IA)³](#ia3-squared)
 7. [When to Use PEFT vs Full Fine-tuning](#when-to-use-peft-vs-full-fine-tuning)
 8. [Performance Benchmarks and Comparisons](#performance-benchmarks-and-comparisons)
    - [Empirical Performance Results](#empirical-performance-results)
@@ -25,7 +24,7 @@ Parameter-Efficient Fine-Tuning (PEFT) methods enable adapting large language mo
    - [Failure Modes and Limitations](#failure-modes-and-limitations)
 9. [Advanced LoRA Techniques](#advanced-lora-techniques)
    - [DoRA (Weight-Decomposed Low-Rank Adaptation)](#dora)
-   - [LoRA+](#lora-plus)
+   - [LoRA+](#loraplus)
    - [Multi-LoRA Serving](#multi-lora-serving)
 10. [Putting It All Together](#putting-it-all-together)
 
@@ -1651,6 +1650,8 @@ class ParallelAdapter(nn.Module):
 
 ## Other PEFT Methods
 
+<a id="ia3"></a>
+
 ### IA³
 
 IA³ (Infused Adapter by Inhibiting and Amplifying Inner Activations) uses learned vectors to rescale activations.
@@ -2716,6 +2717,8 @@ def dora_vs_lora_comparison():
     print(f"DoRA (r={rank}): {dora_params:,} parameters")
     print(f"Overhead: {(dora_params - lora_params) / lora_params * 100:.1f}%")
 ```
+
+<a id="loraplus"></a>
 
 ### LoRA+
 

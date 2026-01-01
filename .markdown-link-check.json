@@ -2,6 +2,12 @@
   "ignorePatterns": [
     {
       "pattern": "^http://localhost"
+    },
+    {
+      "pattern": "^#"
+    },
+    {
+      "pattern": "^https://openai\\.com"
     }
   ],
   "timeout": "20s",

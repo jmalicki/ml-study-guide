@@ -8,7 +8,7 @@ Given an objective function $f: \mathbb{R}^n \to \mathbb{R}$, gradient descent i
 
 $$\theta_{t+1} = \theta_t - \eta \nabla f(\theta_t)$$
 
-where $\eta > 0$ is the learning rate (step size).
+where $\eta \gt 0$ is the learning rate (step size).
 
 **Why negative gradient?** The gradient $\nabla f(\theta)$ points in the direction of steepest *increase*. We want to minimize, so we go opposite.
 
@@ -69,7 +69,7 @@ This bounds how fast the gradient can change. Equivalently, the Hessian eigenval
 
 For an L-smooth function, gradient descent with $\eta = 1/L$ satisfies:
 
-$$f(\theta_T) - f(\theta^*) \leq \frac{L \|\theta_0 - \theta^*\|^2}{2T}$$
+$$f(\theta_T) - f(\theta^\ast) \leq \frac{L \|\theta_0 - \theta^\ast\|^2}{2T}$$
 
 This is **$O(1/T)$** convergence—sublinear. To halve the error, you need twice as many iterations.
 
@@ -127,7 +127,7 @@ This is the ratio of the largest to smallest eigenvalue of $A$.
 
 For strongly convex functions with condition number $\kappa$:
 
-$$f(\theta_T) - f(\theta^*) \leq \left(1 - \frac{1}{\kappa}\right)^T (f(\theta_0) - f(\theta^*))$$
+$$f(\theta_T) - f(\theta^\ast) \leq \left(1 - \frac{1}{\kappa}\right)^T (f(\theta_0) - f(\theta^\ast))$$
 
 To reduce error by factor $e$, you need $T \approx \kappa$ iterations.
 
@@ -235,11 +235,11 @@ def visualize_gd_trajectory():
 
 For gradient descent to converge, we need:
 
-$$\eta < \frac{2}{L}$$
+$$\eta \lt \frac{2}{L}$$
 
 where $L$ is the Lipschitz constant of the gradient (largest Hessian eigenvalue).
 
-If $\eta > 2/L$, gradient descent diverges—steps overshoot and amplify.
+If $\eta \gt 2/L$, gradient descent diverges—steps overshoot and amplify.
 
 ```python
 def demonstrate_learning_rate_stability():

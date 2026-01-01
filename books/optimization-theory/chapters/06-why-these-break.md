@@ -155,7 +155,7 @@ The curvature estimate becomes dominated by noise.
 
 Neural network loss surfaces have many **saddle points**—critical points where the Hessian has both positive and negative eigenvalues.
 
-At a saddle point with eigenvalue $\lambda < 0$:
+At a saddle point with eigenvalue $\lambda \lt 0$:
 
 $$H^{-1}g \text{ points } \textbf{toward} \text{ the saddle, not away!}$$
 

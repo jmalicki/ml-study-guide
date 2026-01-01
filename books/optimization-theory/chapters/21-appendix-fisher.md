@@ -18,7 +18,7 @@ Before diving into Fisher information, we need to understand the problem it solv
 
 ### The Fundamental Problem
 
-We observe data $X = (X_1, \ldots, X_n)$ generated from some distribution $p(x; \theta^*)$ where $\theta^*$ is the **true but unknown** parameter. Our goal: estimate $\theta^*$ from the data.
+We observe data $X = (X_1, \ldots, X_n)$ generated from some distribution $p(x; \theta^\ast)$ where $\theta^\ast$ is the **true but unknown** parameter. Our goal: estimate $\theta^\ast$ from the data.
 
 **Example**: Coin flips
 - Data: $X_1, \ldots, X_n \in \{0, 1\}$ (outcomes of $n$ flips)
@@ -156,10 +156,10 @@ $$\hat{\theta}_{MLE} = \arg\max_\theta \prod_{i=1}^n p(X_i; \theta) = \arg\max_\
 
 **Why MLE is special**:
 
-1. **Consistency**: $\hat{\theta}_{MLE} \xrightarrow{P} \theta^*$ as $n \to \infty$
+1. **Consistency**: $\hat{\theta}_{MLE} \xrightarrow{P} \theta^\ast$ as $n \to \infty$
 
 2. **Asymptotic normality**:
-$$\sqrt{n}(\hat{\theta}_{MLE} - \theta^*) \xrightarrow{d} \mathcal{N}(0, I(\theta^*)^{-1})$$
+$$\sqrt{n}(\hat{\theta}_{MLE} - \theta^\ast) \xrightarrow{d} \mathcal{N}(0, I(\theta^\ast)^{-1})$$
 
 3. **Asymptotic efficiency**: MLE achieves the Cramér-Rao bound asymptotically
 

@@ -3266,7 +3266,7 @@ Where:
 **Loss Function:**
 
 ```math
-\large \mathcal{L}_{\text{grounding}} = \lambda_1 \mathcal{L}_{\text{L1}}(B, B^*) + \lambda_2 \mathcal{L}_{\text{GIoU}}(B, B^*)
+\large \mathcal{L}_{\text{grounding}} = \lambda_1 \mathcal{L}_{\text{L1}}(B, B^\ast) + \lambda_2 \mathcal{L}_{\text{GIoU}}(B, B^\ast)
 ```
 
 Where:

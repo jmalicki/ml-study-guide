@@ -496,7 +496,7 @@ where $\mathcal{P}$ is the space of prompts, $M$ is the target model, and $\text
 **Gradient-based attacks** (like GCG) optimize directly in embedding space:
 
 ```math
-\large p^* = \arg\max_p \log P_M(y_{\text{harmful}} | p)
+\large p^\ast = \arg\max_p \log P_M(y_{\text{harmful}} | p)
 ```
 
 where $y_{\text{harmful}}$ is a known harmful completion. The attack finds a prompt that maximizes the probability of generating harmful content.
@@ -1713,13 +1713,13 @@ Let's formalize reward hacking. The true utility we care about is $U(y|x)$, but 
 where $\alpha$ is a scaling factor. During RL training, we optimize:
 
 ```math
-\large \pi^* = \arg\max_\pi \mathbb{E}_{x,y \sim \pi}[R(y|x)]
+\large \pi^\ast = \arg\max_\pi \mathbb{E}_{x,y \sim \pi}[R(y|x)]
 ```
 
 But what we actually want is:
 
 ```math
-\large \pi^*_{\text{true}} = \arg\max_\pi \mathbb{E}_{x,y \sim \pi}[U(y|x)]
+\large \pi^\ast_{\text{true}} = \arg\max_\pi \mathbb{E}_{x,y \sim \pi}[U(y|x)]
 ```
 
 As optimization pressure increases (more RL training), the model finds edge cases where $R$ and $U$ diverge:
@@ -2480,7 +2480,7 @@ The reward model's accuracy directly impacts RL performance. If the reward model
 **Propagation to Policy**: Errors accumulate during RL. A policy optimized for a noisy reward will be suboptimal:
 
 ```math
-\large \mathbb{E}[R_{\text{true}}(\pi_{\text{trained}})] \leq \mathbb{E}[R_{\text{true}}(\pi^*)] - O(\epsilon \cdot T)
+\large \mathbb{E}[R_{\text{true}}(\pi_{\text{trained}})] \leq \mathbb{E}[R_{\text{true}}(\pi^\ast)] - O(\epsilon \cdot T)
 ```
 
 where $T$ is the number of RL steps.
@@ -4164,7 +4164,7 @@ For production safety systems like Claude's, see [Architecture Comparison: Moder
 ### Additional Resources
 
 - [Anthropic's Constitutional AI Blog Post](https://www.anthropic.com/index/constitutional-ai-harmlessness-from-ai-feedback)
-- [OpenAI's Alignment Research Overview](https://openai.com/research/alignment)
+- [OpenAI's Alignment Research Blog](https://alignment.openai.com/)
 - [DeepMind's Scalable AI Safety](https://www.deepmind.com/safety-and-ethics)
 
 ---

@@ -345,9 +345,9 @@ def eigenvalue_dynamics():
 
 For momentum to be stable, the learning rate must satisfy:
 
-$$\eta < \frac{(1 + \beta)^2}{\lambda_{max}}$$
+$$\eta \lt \frac{(1 + \beta)^2}{\lambda_{max}}$$
 
-This is more restrictive than GD ($\eta < 2/\lambda_{\max}$) when $\beta > 0$.
+This is more restrictive than GD ($\eta \lt 2/\lambda_{\max}$) when $\beta \gt 0$.
 
 ## Momentum and Noise
 

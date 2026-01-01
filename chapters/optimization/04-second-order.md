@@ -39,7 +39,7 @@ To find the minimum, set the gradient of this approximation to zero:
 Solving for $\delta$:
 
 ```math
-\large \delta^* = -H^{-1} \nabla L
+\large \delta^\ast = -H^{-1} \nabla L
 ```
 
 This gives the **Newton update**:
@@ -53,7 +53,7 @@ This gives the **Newton update**:
 **Quadratic convergence near optimum**: If we're close to a local minimum where $H$ is positive definite, the error squares each iteration:
 
 ```math
-\large \|\theta_{t+1} - \theta^*\| \leq C \|\theta_t - \theta^*\|^2
+\large \|\theta_{t+1} - \theta^\ast\| \leq C \|\theta_t - \theta^\ast\|^2
 ```
 
 For example, if the initial error is 0.1, after one step it's ~0.01, then ~0.0001, then ~10^{-8}. Convergence is extremely fast once we're close.

@@ -333,7 +333,7 @@ class SOAPOptimizer:
 | Shampoo | $O(n + \Sigma d_i^3)$ | $O(n + \Sigma d_i^2)$ |
 | SOAP | $O(n + \Sigma d_i^3/k)$ | $O(n + \Sigma d_i^2)$ |
 
-Where d_i are layer dimensions and k is precondition frequency.
+Where $d_i$ are layer dimensions and $k$ is precondition frequency.
 
 ### When to Use What
 

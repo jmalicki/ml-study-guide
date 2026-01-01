@@ -649,7 +649,7 @@ A single attention layer can implement one step of gradient descent on a linear 
 
 **Gradient descent solution**:
 ```math
-\large w^* = \arg\min_w \sum_{i=1}^k (y_i - w^T x_i)^2 = (X^T X)^{-1} X^T y
+\large w^\ast = \arg\min_w \sum_{i=1}^k (y_i - w^T x_i)^2 = (X^T X)^{-1} X^T y
 ```
 
 **Attention computation**:

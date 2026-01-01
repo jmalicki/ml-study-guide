@@ -462,7 +462,7 @@ class GaussNewtonOptimizer:
 
 1. **Gauss-Newton exploits least-squares structure** to get a cheap, PSD Hessian approximation
 
-2. **H_GN = J^T J** ignores residual second derivatives—valid near the solution
+2. **$H_{GN} = J^T J$** ignores residual second derivatives—valid near the solution
 
 3. **Levenberg-Marquardt** interpolates between GD and Gauss-Newton adaptively
 

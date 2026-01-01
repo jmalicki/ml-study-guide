@@ -18,7 +18,7 @@ where:
 **Properties**:
 - All eigenvalues are real for symmetric matrices
 - Eigenvectors are orthogonal
-- $A$ is positive definite iff all $\lambda_i > 0$
+- $A$ is positive definite iff all $\lambda_i \gt 0$
 
 ### Singular Value Decomposition (SVD)
 
@@ -162,6 +162,197 @@ $$J = \frac{\partial f}{\partial x} = \begin{bmatrix} \frac{\partial f_1}{\parti
 
 The Jacobian generalizes the gradient to vector-valued functions.
 
+### Directional Derivatives
+
+The **directional derivative** measures the rate of change of $f$ along a direction $v$:
+
+$$D_v f(x) = \lim_{t \to 0} \frac{f(x + tv) - f(x)}{t} = \nabla f(x)^T v$$
+
+For vector-valued functions, the directional derivative gives the **Jacobian-vector product (JVP)**:
+
+$$D_v f(x) = Jv$$
+
+This is the "forward mode" of automatic differentiation.
+
+**Hessian-vector products** are directional derivatives of the gradient:
+
+$$Hv = D_v(\nabla f)(x) = \lim_{t \to 0} \frac{\nabla f(x + tv) - \nabla f(x)}{t}$$
+
+This identity is central to Hessian-free optimization (Chapter 14).
+
+### Finite Difference Approximation
+
+When analytic derivatives aren't available (or as a simple implementation), we can approximate directional derivatives using **finite differences**:
+
+**Forward difference**:
+$$D_v f(x) \approx \frac{f(x + \epsilon v) - f(x)}{\epsilon}$$
+
+**Central difference** (more accurate, costs 2 evaluations):
+$$D_v f(x) \approx \frac{f(x + \epsilon v) - f(x - \epsilon v)}{2\epsilon}$$
+
+**Choosing $\epsilon$**: There's a tradeoff:
+- Too large: Truncation error dominates (approximation is inaccurate)
+- Too small: Floating-point rounding error dominates
+
+For float32, $\epsilon \approx 10^{-4}$ is often reasonable. For float64, $\epsilon \approx 10^{-7}$ works better.
+
+**Error analysis** for forward difference:
+$$\frac{f(x + \epsilon v) - f(x)}{\epsilon} = D_v f(x) + O(\epsilon)$$
+
+For central difference:
+$$\frac{f(x + \epsilon v) - f(x - \epsilon v)}{2\epsilon} = D_v f(x) + O(\epsilon^2)$$
+
+**Example: Finite difference Hessian-vector product**
+
+```python
+def hvp_finite_diff(f, x, v, eps=1e-4):
+    """
+    Approximate Hv using finite differences.
+
+    Hv = (∇f(x + εv) - ∇f(x)) / ε
+
+    Args:
+        f: Scalar function
+        x: Point at which to evaluate
+        v: Direction vector
+        eps: Finite difference step size
+
+    Returns:
+        Approximate Hessian-vector product
+    """
+    grad_plus = gradient(f, x + eps * v)
+    grad_x = gradient(f, x)
+    return (grad_plus - grad_x) / eps
+```
+
+In practice, automatic differentiation (using `torch.autograd.grad` with `create_graph=True`) is preferred over finite differences because:
+1. It's exact (no truncation error)
+2. It's numerically stable
+3. It can be more efficient for high-dimensional problems
+
+However, finite differences remain useful for:
+- Gradient checking / debugging
+- When automatic differentiation isn't available
+- Understanding what automatic differentiation is computing
+
+### Forward vs Reverse Mode Automatic Differentiation
+
+**Automatic differentiation** computes exact derivatives by applying the chain rule systematically. There are two modes, corresponding to the two ways of parenthesizing a chain of matrix multiplications.
+
+**Setup**: Consider a composition $f = f_n \circ f_{n-1} \circ \cdots \circ f_1$ where input $x \in \mathbb{R}^m$ and output $y \in \mathbb{R}^k$. The Jacobian is:
+
+$$J = J_n J_{n-1} \cdots J_1 \in \mathbb{R}^{k \times m}$$
+
+where $J_i$ is the Jacobian of layer $i$.
+
+**Forward Mode (JVP - Jacobian-Vector Product)**
+
+Computes $Jv$ for a given vector $v \in \mathbb{R}^m$:
+
+$$Jv = J_n(J_{n-1}(\cdots(J_1 v)))$$
+
+- Propagates a "tangent" $v$ forward through the computation
+- Each layer computes: $v_{i+1} = J_i v_i$
+- Cost: One forward pass, computing derivatives alongside values
+- Efficient when: $m \ll k$ (few inputs, many outputs)
+
+```python
+# PyTorch forward-mode AD (requires torch >= 2.0)
+import torch
+from torch.func import jvp
+
+def f(x):
+    return x ** 2 + torch.sin(x)
+
+x = torch.randn(3)
+v = torch.randn(3)  # Tangent vector
+
+# Compute f(x) and Jv simultaneously
+y, Jv = jvp(f, (x,), (v,))
+```
+
+**Reverse Mode (VJP - Vector-Jacobian Product)**
+
+Computes $u^T J$ for a given vector $u \in \mathbb{R}^k$:
+
+$$u^T J = (((u^T J_n) J_{n-1}) \cdots) J_1$$
+
+- Propagates a "cotangent" $u$ backward through the computation
+- Each layer computes: $u_i = u_{i+1}^T J_i$ (equivalently $u_i = J_i^T u_{i+1}$)
+- Cost: One forward pass (to save activations) + one backward pass
+- Efficient when: $k \ll m$ (few outputs, many inputs)
+
+```python
+# PyTorch reverse-mode AD (standard backprop)
+import torch
+
+x = torch.randn(3, requires_grad=True)
+y = (x ** 2 + torch.sin(x)).sum()  # Scalar output
+
+y.backward()  # Computes gradient = J^T · 1
+print(x.grad)  # The gradient
+
+# For non-scalar outputs, use grad with vector:
+x = torch.randn(3, requires_grad=True)
+y = x ** 2 + torch.sin(x)  # Vector output
+u = torch.randn(3)  # Cotangent vector
+
+# VJP: compute u^T J
+uTJ = torch.autograd.grad(y, x, grad_outputs=u)[0]
+```
+
+**Why Deep Learning Uses Reverse Mode**
+
+For a neural network with loss $L: \mathbb{R}^n \to \mathbb{R}$:
+- Input dimension: $n$ (millions to billions of parameters)
+- Output dimension: 1 (scalar loss)
+
+| Mode | Computes | Cost |
+|------|----------|------|
+| Forward | $Jv$ (one directional derivative) | $O(n)$ per direction |
+| Reverse | $\nabla L = J^T \cdot 1$ (full gradient) | $O(n)$ total |
+
+To get the full gradient with forward mode, we'd need $n$ passes (one per parameter). Reverse mode gets it in one pass. This is why backpropagation (reverse mode) is universal in deep learning.
+
+**Hessian-Vector Products: Combining Both Modes**
+
+For HVP $Hv = \nabla^2 f \cdot v$, we can use either:
+
+1. **Forward-over-reverse**: Compute directional derivative of gradient
+   ```python
+   from torch.func import jvp, grad
+
+   def hvp_forward_over_reverse(f, x, v):
+       # grad(f) gives a function that computes gradient
+       # jvp of that function gives Hv
+       _, Hv = jvp(grad(f), (x,), (v,))
+       return Hv
+   ```
+
+2. **Reverse-over-reverse**: Differentiate through the backward pass
+   ```python
+   def hvp_reverse_over_reverse(f, x, v):
+       # Standard approach: differentiate g^T v where g = ∇f
+       x = x.requires_grad_(True)
+       y = f(x)
+       g, = torch.autograd.grad(y, x, create_graph=True)
+       gv = (g * v).sum()
+       Hv, = torch.autograd.grad(gv, x)
+       return Hv
+   ```
+
+Both give the same result; the choice depends on framework support and memory tradeoffs.
+
+**Summary Table**
+
+| Aspect | Forward Mode | Reverse Mode |
+|--------|--------------|--------------|
+| Computes | $Jv$ (JVP) | $u^T J$ (VJP) |
+| Direction | Input → Output | Output → Input |
+| Memory | O(1) extra | O(depth) for activations |
+| Best when | Few inputs | Few outputs |
+| Deep learning | Rare | Standard (backprop) |
+
 ## D. Convexity and Smoothness
 
 ### Convexity
@@ -219,17 +410,17 @@ where $L$ is the Lipschitz constant of the gradient and $\mu$ is the strong conv
 
 **For L-smooth convex functions** with $\eta = 1/L$:
 
-$$f(x_T) - f(x^*) \leq \frac{L \|x_0 - x^*\|^2}{2T}$$
+$$f(x_T) - f(x^\ast) \leq \frac{L \|x_0 - x^\ast\|^2}{2T}$$
 
 **For L-smooth, μ-strongly convex functions** with $\eta = 1/L$:
 
-$$\|x_T - x^*\|^2 \leq \left(1 - \frac{\mu}{L}\right)^T \|x_0 - x^*\|^2$$
+$$\|x_T - x^\ast\|^2 \leq \left(1 - \frac{\mu}{L}\right)^T \|x_0 - x^\ast\|^2$$
 
 ### Newton Convergence
 
 For functions with Lipschitz Hessian, near the optimum:
 
-$$\|x_{t+1} - x^*\| \leq C \|x_t - x^*\|^2$$
+$$\|x_{t+1} - x^\ast\| \leq C \|x_t - x^\ast\|^2$$
 
 This is **quadratic convergence**—the error squares each step.
 
@@ -237,7 +428,7 @@ This is **quadratic convergence**—the error squares each step.
 
 For L-smooth, μ-strongly convex functions with optimal momentum:
 
-$$f(x_T) - f(x^*) \leq \left(1 - \frac{1}{\sqrt{\kappa}}\right)^T (f(x_0) - f(x^*))$$
+$$f(x_T) - f(x^\ast) \leq \left(1 - \frac{1}{\sqrt{\kappa}}\right)^T (f(x_0) - f(x^\ast))$$
 
 This is the **optimal rate** for first-order methods.
 
