@@ -30,7 +30,7 @@ Inference and generation strategies are critical for controlling how autoregress
 Training a language model produces a probability distribution over the vocabulary at each step:
 
 ```math
-P(x_t | x_{\lt t}) = \text{softmax}(f_\theta(x_{\lt t}))
+\large P(x_t | x_{\lt t}) = \text{softmax}(f_\theta(x_{\lt t}))
 ```
 
 where $f_\theta(x_{\lt t})$ are the logits (raw model outputs) for the next token given previous context.
