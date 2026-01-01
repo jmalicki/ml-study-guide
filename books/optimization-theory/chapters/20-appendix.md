@@ -49,7 +49,93 @@ $$A \otimes B = \begin{bmatrix} a_{11}B & \cdots & a_{1n}B \\ \vdots & \ddots & 
 
 The last property is why Kronecker structure appears in K-FAC.
 
-## B. Calculus Review
+## B. Newton-Schulz Iteration: Why the Coefficient is 3
+
+The Newton-Schulz iteration for orthogonalization is:
+
+$$X_{k+1} = X_k \cdot \frac{(3I - X_k^T X_k)}{2}$$
+
+The coefficient 3 may seem arbitrary, but it emerges naturally from two perspectives: fixed-point analysis and Newton's method for computing matrix inverse square roots.
+
+![Newton-Schulz fixed point analysis](../images/newton-schulz-fixed-point.svg)
+
+### Fixed Point Analysis
+
+At convergence, we want $X^T X = I$ (orthogonality). For this to be a stable fixed point, we need the iteration to preserve $X$ when $X^T X = I$.
+
+**For general coefficient $c$:** If $X^T X = I$:
+$$X_{k+1} = X_k \cdot \frac{(cI - I)}{2} = X_k \cdot \frac{(c-1)}{2} I = \frac{c-1}{2} X_k$$
+
+For $X$ to be preserved exactly, we need:
+$$\frac{c-1}{2} = 1 \implies c = 3$$
+
+**What happens with other values?**
+
+| Coefficient | Multiplier | Behavior |
+|-------------|------------|----------|
+| $c = 2$ | $\frac{1}{2}$ | $X$ shrinks by half each iteration |
+| $c = 3$ | $1$ | $X$ preserved (correct fixed point) |
+| $c = 4$ | $\frac{3}{2}$ | $X$ grows by 50% each iteration |
+
+Only $c = 3$ creates a stable fixed point at orthogonal matrices.
+
+### Derivation from Newton's Method
+
+The deeper reason for the 3 comes from Newton's method for computing matrix functions.
+
+![Newton-Schulz derivation](../images/newton-schulz-derivation.svg)
+
+**Goal:** Find the orthogonal polar factor $Q$ of a matrix $G$:
+$$Q = G \cdot (G^T G)^{-1/2}$$
+
+This requires computing $Y = (G^T G)^{-1/2}$, the inverse square root.
+
+**Newton's method for $Y^2 = A^{-1}$:**
+
+Define $f(Y) = Y^{-1} - AY = 0$, whose solution is $Y = A^{-1/2}$.
+
+Applying Newton's method to this equation (with appropriate matrix calculus) yields:
+$$Y_{k+1} = \frac{1}{2}Y_k(3I - AY_k^2)$$
+
+The 3 arises from the specific form of Newton's method applied to the inverse square root problem.
+
+**Transforming to Newton-Schulz:**
+
+Let $A = G^T G$ (the Gram matrix) and define $X_k = G Y_k$. Then:
+- $X_k^T X_k = Y_k^T G^T G Y_k = Y_k^T A Y_k$
+- If $Y_k \to A^{-1/2}$, then $X_k \to G A^{-1/2}$, the orthogonal polar factor
+
+Substituting into the Newton iteration:
+$$X_{k+1} = G Y_{k+1} = G \cdot \frac{1}{2}Y_k(3I - AY_k^2) = \frac{1}{2}X_k(3I - X_k^T X_k)$$
+
+This is exactly the Newton-Schulz iteration!
+
+### Cubic Convergence
+
+A key property of Newton-Schulz is **cubic convergence**: the error cubes at each step.
+
+Let $E_k = X_k^T X_k - I$ measure the deviation from orthogonality. One can show:
+$$\|E_{k+1}\| \leq C \|E_k\|^3$$
+
+for some constant $C$ when $\|E_0\|$ is small enough.
+
+**Why cubic instead of quadratic?** Standard Newton's method has quadratic convergence. The extra power comes from the symmetry of the problem—we're finding a matrix that satisfies $X^T X = I$, a symmetric constraint.
+
+**Practical implication:** Starting from $X_0 = G/\|G\|_F$ (Frobenius-normalized), typically 5 iterations suffice:
+
+| Iteration | Typical $\|E_k\|$ |
+|-----------|-------------------|
+| 0 | ~1 |
+| 1 | ~0.1 |
+| 2 | ~0.001 |
+| 3 | ~10⁻⁹ |
+| 4 | ~10⁻²⁷ |
+
+### The Schulz Iteration (Historical Note)
+
+The iteration is named after Günther Schulz, who in 1933 discovered this method for computing matrix inverses. The variant for orthogonalization—sometimes called the "Newton-Schulz" iteration—was developed later and is now widely used in numerical linear algebra and, more recently, in machine learning optimizers like Muon.
+
+## C. Calculus Review
 
 ### Gradient
 
@@ -76,7 +162,7 @@ $$J = \frac{\partial f}{\partial x} = \begin{bmatrix} \frac{\partial f_1}{\parti
 
 The Jacobian generalizes the gradient to vector-valued functions.
 
-## C. Convexity and Smoothness
+## D. Convexity and Smoothness
 
 ### Convexity
 
@@ -127,7 +213,7 @@ where $L$ is the Lipschitz constant of the gradient and $\mu$ is the strong conv
 
 **Geometric interpretation**: The condition number measures the eccentricity of the quadratic approximation. High condition number means the function has vastly different curvatures in different directions—steep in some directions, flat in others.
 
-## D. Convergence Theory
+## E. Convergence Theory
 
 ### Gradient Descent Convergence
 
@@ -155,7 +241,7 @@ $$f(x_T) - f(x^*) \leq \left(1 - \frac{1}{\sqrt{\kappa}}\right)^T (f(x_0) - f(x^
 
 This is the **optimal rate** for first-order methods.
 
-## E. Information Theory
+## F. Information Theory
 
 ### KL Divergence
 
@@ -180,7 +266,7 @@ $$D_{KL}(p_\theta \| p_{\theta + d\theta}) \approx \frac{1}{2} d\theta^T F(\thet
 
 > For a comprehensive treatment including the score function, Cramér-Rao bound, Fisher for common distributions, and connections to neural network optimization, see [Appendix: Fisher Information In Depth](21-appendix-fisher.md).
 
-## F. Probability Distributions
+## G. Probability Distributions
 
 ### Gaussian Distribution
 
@@ -198,7 +284,7 @@ $$\log p(y = k) = \log \pi_k$$
 
 **Softmax parameterization**: $\pi_k = \frac{\exp(\theta_k)}{\sum_j \exp(\theta_j)}$
 
-## G. Key Identities
+## H. Key Identities
 
 ### Matrix Calculus
 
@@ -222,7 +308,7 @@ $$(A + uv^T)^{-1} = A^{-1} - \frac{A^{-1}uv^TA^{-1}}{1 + v^TA^{-1}u}$$
 
 Special case of Woodbury for rank-1 updates.
 
-## H. Numerical Stability
+## I. Numerical Stability
 
 ### Floating-Point Precision
 
@@ -247,7 +333,7 @@ $$g'_i = \text{clip}(g_i, -c, c)$$
 
 Global norm is generally preferred—preserves relative magnitudes.
 
-## I. Notation Reference
+## J. Notation Reference
 
 | Symbol | Meaning |
 |--------|---------|
