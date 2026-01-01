@@ -2265,9 +2265,9 @@ The only difference: beam search requires k separate KV caches (one per beam).
 
 ### Production Documentation
 
-10. **OpenAI Text Generation Guide**
+10. **OpenAI Cookbook: Text Generation**
     - Temperature, top_p, frequency_penalty, presence_penalty parameters
-    - https://platform.openai.com/docs/guides/text-generation
+    - https://github.com/openai/openai-cookbook
 
 11. **Hugging Face Generation Guide**
     - Comprehensive guide to generation parameters
