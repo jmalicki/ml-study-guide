@@ -1,4 +1,4 @@
-# Chapter 11: Why SGD Works
+# Chapter 10: Why SGD Works
 
 We've established: the loss landscape is non-convex, full of saddle points, and high-dimensional. Classical optimization theory says this should be impossible. Yet SGD works remarkably well. This chapter explains why.
 
@@ -29,7 +29,7 @@ Classical optimization tells us:
 
 #### Escaping Saddle Points
 
-SGD's stochastic noise helps escape saddle points (Chapter 8).
+SGD's stochastic noise helps escape saddle points (Chapter 7).
 
 At a saddle with gradient ~0:
 - True gradient gives no escape direction
@@ -224,14 +224,14 @@ In this regime:
 
 #### Saddle Points Are Easy to Escape
 
-As shown in Chapter 8:
+As shown in Chapter 7:
 - High-loss critical points have high index (many escape directions)
 - Low-loss critical points have low index (nearly minima)
 - SGD naturally flows toward low-loss regions
 
 #### Mode Connectivity
 
-As shown in Chapter 10:
+As shown in Chapter 9:
 - Good solutions are connected
 - There aren't isolated bad local minima
 - SGD stays in the good basin once it finds it
@@ -438,8 +438,8 @@ Each phase has different dynamics and benefits from different learning rates.
 ## What's Next
 
 Part III applies these insights to practical optimizers:
-- **Chapter 12**: Momentum and acceleration
-- **Chapter 13**: Adaptive learning rates (Adam)
+- **Chapter 11**: Momentum and acceleration
+- **Chapter 12**: Adaptive learning rates (Adam)
 - **Chapters 14-17**: Second-order approximations
 
 ## Key Takeaways

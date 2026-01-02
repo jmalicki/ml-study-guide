@@ -515,9 +515,9 @@ def check_curvature_condition():
 
 ## What's Next
 
-- **Chapter 5 (Gauss-Newton)**: A different Hessian approximation for least-squares
-- **Chapter 6 (Why These Break)**: Understanding the deep learning scaling wall
-- **Chapter 14 (Hessian-Free)**: Combining CG with curvature for deep learning
+- **Chapter 2 Addendum (Gauss-Newton)**: A different Hessian approximation for least-squares
+- **Chapter 5 (Why These Break)**: Understanding the deep learning scaling wall
+- **Chapter 13 (Hessian-Free)**: Combining CG with curvature for deep learning
 
 ## Exercises
 

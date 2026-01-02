@@ -796,19 +796,310 @@ class FisherComparison:
         return fisher
 ```
 
-### Connection to Hessian and Gauss-Newton
+## The Trinity: Fisher, Hessian, and Gauss-Newton
 
-For negative log-likelihood loss $L(\theta) = -\log p(y|x;\theta)$:
+Three matrices appear repeatedly in optimization theory. Understanding when they're equivalent—and when they differ—is crucial for building intuition about second-order methods.
 
-$$\nabla^2 L = -\nabla^2 \log p = \underbrace{\mathbb{E}[\nabla \log p \cdot \nabla \log p^T]}_{\text{Fisher}} + \underbrace{\text{(residual terms)}}_{\to 0 \text{ at optimum}}$$
+| Matrix | Definition | Always PSD? |
+|--------|-----------|-------------|
+| **Fisher** $F$ | $\mathbb{E}[\nabla \log p \cdot (\nabla \log p)^T]$ | Yes |
+| **Hessian** $H$ | $\nabla^2 L(\theta)$ | No (non-convex) |
+| **Gauss-Newton** $G$ | $J^T J$ (for least-squares) | Yes |
 
-At the optimum (where residuals are small):
-$$\text{Hessian} \approx \text{Fisher}$$
+### Theorem 1: Fisher Equals Expected Negative Hessian
 
-For Gaussian likelihoods:
-$$\text{Fisher} = \text{Gauss-Newton matrix}$$
+**Bartlett's Second Identity**: Under regularity conditions (interchange of differentiation and integration):
 
-This connects three seemingly different concepts!
+$$F(\theta) = -\mathbb{E}_{x \sim p_\theta}\left[\nabla^2_\theta \log p(x; \theta)\right]$$
+
+**Proof**: The [score function](https://en.wikipedia.org/wiki/Score_(statistics)) is the gradient of the log-likelihood: $s(x;\theta) = \nabla_\theta \log p(x;\theta)$. It measures how sensitive the log-probability is to parameter changes. (See the [Score Function section](#the-score-function) earlier in this appendix for details.)
+
+Start with the key property that the score has zero mean:
+$$\mathbb{E}[\nabla \log p] = \int p(x;\theta) \frac{\nabla p(x;\theta)}{p(x;\theta)} dx = \nabla \int p(x;\theta) dx = \nabla 1 = 0$$
+
+Differentiate again:
+$$0 = \nabla_\theta \mathbb{E}[\nabla \log p] = \mathbb{E}[\nabla^2 \log p] + \mathbb{E}[\nabla \log p \cdot (\nabla \log p)^T]$$
+
+Rearranging:
+$$F = \mathbb{E}[\nabla \log p \cdot (\nabla \log p)^T] = -\mathbb{E}[\nabla^2 \log p]$$
+
+**Implication**: The Fisher information equals the expected curvature of the negative log-likelihood.
+
+```python
+def verify_bartlett_identity():
+    """Verify Fisher = -E[Hessian of log p] for Gaussian."""
+    torch.manual_seed(42)
+
+    mu_true, sigma = 2.0, 1.5
+    n_samples = 100000
+
+    x = torch.randn(n_samples) * sigma + mu_true
+
+    # Fisher via score variance: E[(∂log p/∂μ)²]
+    score = (x - mu_true) / sigma**2
+    fisher_score = (score ** 2).mean()
+
+    # Fisher via negative Hessian: -E[∂²log p/∂μ²]
+    # For Gaussian: ∂²log p/∂μ² = -1/σ²
+    neg_hessian = 1 / sigma**2  # Constant for Gaussian
+
+    print("Bartlett's Second Identity Verification:")
+    print(f"  Fisher (score variance):    {fisher_score:.6f}")
+    print(f"  Fisher (-E[Hessian]):       {neg_hessian:.6f}")
+    print(f"  Theoretical (1/σ²):         {1/sigma**2:.6f}")
+```
+
+### Theorem 2: Fisher Equals Gauss-Newton for Gaussian Likelihoods
+
+For a model $y = f(x; \theta) + \epsilon$ where $\epsilon \sim \mathcal{N}(0, \sigma^2 I)$:
+
+**The Fisher information matrix equals the Gauss-Newton approximation (scaled by noise variance).**
+
+$$F(\theta) = \frac{1}{\sigma^2} J^T J$$
+
+where $J = \frac{\partial f}{\partial \theta}$ is the Jacobian of the model output.
+
+**Proof**: The negative log-likelihood is:
+$$L(\theta) = \frac{1}{2\sigma^2}\|y - f(x;\theta)\|^2 + \text{const}$$
+
+The score is:
+$$\nabla_\theta \log p(y|x;\theta) = \frac{1}{\sigma^2}(y - f(x;\theta))^T J = \frac{1}{\sigma^2} r^T J$$
+
+where $r = y - f(x;\theta)$ is the residual.
+
+The Fisher information:
+$$F = \mathbb{E}[\nabla \log p \cdot (\nabla \log p)^T] = \frac{1}{\sigma^4} \mathbb{E}[J^T r r^T J]$$
+
+Since $\mathbb{E}[r r^T] = \sigma^2 I$ (residuals are Gaussian noise):
+$$F = \frac{1}{\sigma^4} J^T (\sigma^2 I) J = \frac{1}{\sigma^2} J^T J$$
+
+```python
+def fisher_equals_gauss_newton():
+    """Demonstrate Fisher = (1/σ²) J^T J for Gaussian likelihood."""
+    torch.manual_seed(42)
+
+    # Simple nonlinear model: f(x; a, b) = a * sin(b * x)
+    n_data = 50
+    sigma = 0.5  # Noise std
+
+    x = torch.linspace(0, 2 * np.pi, n_data)
+    a_true, b_true = 2.0, 1.0
+    y = a_true * torch.sin(b_true * x) + sigma * torch.randn(n_data)
+
+    # Current parameters
+    a = torch.tensor(1.8, requires_grad=True)
+    b = torch.tensor(1.1, requires_grad=True)
+
+    # Compute Jacobian: J[i, :] = ∂f(x_i)/∂(a, b)
+    f = a * torch.sin(b * x)
+
+    # ∂f/∂a = sin(bx), ∂f/∂b = a*x*cos(bx)
+    J_a = torch.sin(b * x)
+    J_b = a * x * torch.cos(b * x)
+    J = torch.stack([J_a, J_b], dim=1)  # (n_data, 2)
+
+    # Gauss-Newton matrix
+    G = J.T @ J
+
+    # Fisher = (1/σ²) * G
+    Fisher_theory = G / sigma**2
+
+    # Empirical Fisher via gradient outer products
+    n_samples = 10000
+    Fisher_empirical = torch.zeros(2, 2)
+
+    for _ in range(n_samples):
+        # Sample y from model's distribution (add fresh noise)
+        y_sample = a * torch.sin(b * x) + sigma * torch.randn(n_data)
+        residual = y_sample - a * torch.sin(b * x)
+
+        # Score = (1/σ²) * J^T * r
+        score = (J.T @ residual) / sigma**2
+        Fisher_empirical += torch.outer(score, score)
+
+    Fisher_empirical /= n_samples
+
+    print("Fisher = (1/σ²) J^T J for Gaussian likelihood:")
+    print(f"\nGauss-Newton G = J^T J:")
+    print(f"  [[{G[0,0]:.2f}, {G[0,1]:.2f}],")
+    print(f"   [{G[1,0]:.2f}, {G[1,1]:.2f}]]")
+    print(f"\nFisher (theory) = G/σ²:")
+    print(f"  [[{Fisher_theory[0,0]:.2f}, {Fisher_theory[0,1]:.2f}],")
+    print(f"   [{Fisher_theory[1,0]:.2f}, {Fisher_theory[1,1]:.2f}]]")
+    print(f"\nFisher (empirical):")
+    print(f"  [[{Fisher_empirical[0,0]:.2f}, {Fisher_empirical[0,1]:.2f}],")
+    print(f"   [{Fisher_empirical[1,0]:.2f}, {Fisher_empirical[1,1]:.2f}]]")
+```
+
+### Theorem 3: Fisher Approximates Hessian at the Optimum
+
+The exact Hessian of negative log-likelihood for least squares is:
+
+$$H = \nabla^2 L = \underbrace{J^T J}_{\text{Gauss-Newton}} + \underbrace{\sum_i r_i \nabla^2 f_i}_{\text{Residual curvature}}$$
+
+**At the optimum** (when residuals $r_i$ are small or have zero mean):
+$$H \approx J^T J = \sigma^2 F$$
+
+**When does this approximation hold?**
+
+| Condition | Fisher ≈ Hessian? | Reason |
+|-----------|-------------------|--------|
+| At optimum with small residuals | ✓ | Second term vanishes |
+| Model is well-specified | ✓ | Residuals are mean-zero noise |
+| Far from optimum | ✗ | Large residuals amplify curvature terms |
+| Model misspecification | ✗ | Residuals have structure |
+| Highly nonlinear model | ✗ | $\nabla^2 f_i$ terms large |
+
+```python
+def hessian_vs_fisher_comparison():
+    """Compare Hessian to Fisher at and away from optimum."""
+    torch.manual_seed(42)
+
+    # Quadratic model: f(x; a) = a * x^2
+    n_data = 100
+    sigma = 0.3
+    x = torch.randn(n_data)
+    a_true = 2.0
+    y = a_true * x**2 + sigma * torch.randn(n_data)
+
+    def compute_hessian_and_fisher(a_val):
+        a = torch.tensor(a_val, requires_grad=True)
+
+        # Forward pass
+        f = a * x**2
+        r = y - f
+
+        # Loss and its derivatives
+        loss = 0.5 * (r**2).sum()
+
+        # Gradient
+        grad = torch.autograd.grad(loss, a, create_graph=True)[0]
+
+        # Hessian (scalar case)
+        hess = torch.autograd.grad(grad, a)[0]
+
+        # Jacobian: ∂f/∂a = x²
+        J = x**2
+
+        # Gauss-Newton = J^T J
+        gauss_newton = (J**2).sum()
+
+        # Fisher = (1/σ²) * GN
+        fisher = gauss_newton / sigma**2
+
+        # Residual curvature term: Σ r_i * ∂²f_i/∂a² = 0 (linear in a)
+        # For this model, the residual curvature is zero!
+
+        return hess.item(), fisher.item(), gauss_newton.item()
+
+    print("Hessian vs Fisher comparison:")
+    print("=" * 55)
+
+    for a_val in [0.5, 1.0, 1.5, 2.0, 2.5]:
+        H, F, G = compute_hessian_and_fisher(a_val)
+        print(f"a = {a_val:.1f}: Hessian = {H:.1f}, σ²·Fisher = {G:.1f}, "
+              f"Ratio = {H/G:.3f}")
+
+    print("\nNote: For this linear-in-parameter model, Hessian = GN exactly.")
+    print("For nonlinear models, they differ away from optimum.")
+```
+
+### When the Three Matrices Differ
+
+Understanding the differences is crucial for choosing approximations:
+
+**1. Fisher vs Empirical Fisher** (using actual labels vs model samples):
+
+$$F_{\text{true}} = \mathbb{E}_{y \sim p(y|x;\theta)}[\nabla \log p \cdot (\nabla \log p)^T]$$
+$$F_{\text{empirical}} = \mathbb{E}_{(x,y) \sim \text{data}}[\nabla \log p \cdot (\nabla \log p)^T]$$
+
+At convergence on training data, these differ because:
+- True Fisher: samples from model → gradients are isotropic
+- Empirical Fisher: uses real labels → gradients point toward data
+
+**2. Fisher vs Hessian**:
+- Fisher is always PSD; Hessian can be indefinite (saddle points)
+- Fisher uses expected curvature; Hessian is actual curvature at a point
+- For exponential families: Fisher = expected Hessian exactly
+
+**3. Gauss-Newton vs Hessian** (covered in Chapter 2 Addendum):
+- Gauss-Newton drops second-order residual terms
+- Valid approximation when residuals are small (near optimum)
+
+```python
+def demonstrate_fisher_hessian_difference():
+    """
+    Show where Fisher and Hessian diverge.
+
+    At a saddle point: Hessian has negative eigenvalues, Fisher doesn't.
+    """
+    torch.manual_seed(42)
+
+    # Simple 2D example where we can compute both exactly
+    # Model: p(y|x; θ) = softmax(θ₁·x₁ + θ₂·x₂)
+
+    n_samples = 1000
+    x = torch.randn(n_samples, 2)
+
+    # At θ = 0, we're at a saddle point for cross-entropy
+    theta = torch.zeros(2, requires_grad=True)
+
+    # Compute empirical Fisher
+    fisher = torch.zeros(2, 2)
+    hessian_samples = torch.zeros(2, 2)
+
+    for i in range(n_samples):
+        xi = x[i:i+1]
+        logit = (theta * xi).sum()
+        prob = torch.sigmoid(logit)
+
+        # True Fisher: sample from model
+        y_sample = (torch.rand(1) < prob).float()
+
+        log_prob = y_sample * torch.log(prob + 1e-8) + \
+                   (1-y_sample) * torch.log(1-prob + 1e-8)
+
+        grad = torch.autograd.grad(log_prob, theta, create_graph=True)[0]
+        fisher += torch.outer(grad, grad).detach()
+
+        # Hessian contribution
+        for j in range(2):
+            hess_row = torch.autograd.grad(
+                grad[j], theta, retain_graph=True
+            )[0]
+            hessian_samples[j] += hess_row.detach()
+
+    fisher /= n_samples
+    hessian = -hessian_samples / n_samples  # Negative for NLL
+
+    print("Fisher vs Hessian at θ = 0:")
+    print(f"\nFisher eigenvalues: {torch.linalg.eigvalsh(fisher).tolist()}")
+    print(f"Hessian eigenvalues: {torch.linalg.eigvalsh(hessian).tolist()}")
+    print("\nFisher is always PSD; Hessian may not be.")
+```
+
+### Practical Implications
+
+| If you want... | Use... | Because... |
+|----------------|--------|------------|
+| Guaranteed descent direction | Fisher or Gauss-Newton | Always PSD |
+| Exact local curvature | Hessian | Accounts for residual curvature |
+| Cheap approximation | Empirical Fisher (diag) | One backward pass |
+| Reparameterization invariance | Fisher | Measures distribution change |
+| Near-optimum acceleration | Any of the three | They're approximately equal |
+
+### Summary of Equivalences
+
+$$\boxed{
+\begin{aligned}
+&\text{Always: } & F &= -\mathbb{E}[\nabla^2 \log p] & &\text{(Bartlett)} \\
+&\text{Gaussian likelihood: } & F &= \frac{1}{\sigma^2} J^T J & &\text{(Fisher = GN)} \\
+&\text{At optimum: } & H &\approx J^T J \approx \sigma^2 F & &\text{(all three equal)} \\
+&\text{Exponential family: } & F &= \nabla^2 A(\eta) & &\text{(Hessian of log-partition)}
+\end{aligned}
+}$$
+
+These equivalences explain why methods like Adam (diagonal Fisher), K-FAC (block Fisher), and Gauss-Newton optimization all work—they're approximating the same underlying curvature structure.
 
 ### Why Fisher Matters for Optimization
 

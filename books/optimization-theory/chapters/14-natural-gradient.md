@@ -1,4 +1,4 @@
-# Chapter 15: Natural Gradient and Fisher Information
+# Chapter 14: Natural Gradient and Fisher Information
 
 The natural gradient takes a radically different view: optimize in **function space**, not parameter space. This leads to the Fisher information matrix and deep connections between optimization and statistics.
 
@@ -158,7 +158,7 @@ $$F = \frac{1}{\sigma^2} J^T J$$
 
 where $J$ is the Jacobian of $f$ with respect to $\theta$.
 
-**This is the Gauss-Newton matrix from Chapter 5!**
+**This is the Gauss-Newton matrix from Chapter 2 Addendum!**
 
 ```python
 def fisher_equals_gauss_newton():
@@ -365,7 +365,7 @@ def compare_fisher_estimates():
 
 ## What's Next
 
-- **Chapter 16**: K-FAC, Shampoo, SOAP—practical second-order methods
+- **Chapter 15**: K-FAC, Shampoo, SOAP—practical second-order methods
 - These use Kronecker structure to make Fisher tractable
 - **Appendix: Fisher Information In Depth**: Full treatment of Fisher information, including statistical foundations most ML practitioners haven't seen
 

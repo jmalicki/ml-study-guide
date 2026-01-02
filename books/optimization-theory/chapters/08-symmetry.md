@@ -1,4 +1,4 @@
-# Chapter 9: Symmetry and Equivalent Minima
+# Chapter 8: Symmetry and Equivalent Minima
 
 A popular argument claims: "Neural networks have many local minima, but they're all equivalent due to symmetry." This chapter explains this argument in detail, then explains why it's incomplete and what it actually tells us.
 
@@ -277,7 +277,7 @@ def relu_breaks_sign_symmetry():
 
 Many different parameter vectors correspond to the same function. The "function space" is much smaller than parameter space.
 
-This suggests we should think about optimization in function space, not parameter space → natural gradient (Chapter 15).
+This suggests we should think about optimization in function space, not parameter space → natural gradient (Chapter 14).
 
 ### 2. The Loss Surface Has Structure
 
@@ -336,7 +336,7 @@ Different minima found by SGD are connected by **paths of low loss**.
 
 Not through permutation symmetry, but through actual smooth paths in parameter space!
 
-This is much stronger than discrete equivalence. See Chapter 10 for details.
+This is much stronger than discrete equivalence. See Chapter 9 for details.
 
 ### The Corrected Understanding
 
@@ -365,8 +365,8 @@ This is much stronger than discrete equivalence. See Chapter 10 for details.
 
 ## What's Next
 
-- **Chapter 10**: Mode connectivity—the paths that actually connect solutions
-- **Chapter 11**: Why SGD finds good minima in the first place
+- **Chapter 9**: Mode connectivity—the paths that actually connect solutions
+- **Chapter 10**: Why SGD finds good minima in the first place
 
 ## Exercises
 

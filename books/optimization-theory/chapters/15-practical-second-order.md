@@ -1,4 +1,4 @@
-# Chapter 16: Practical Second-Order Methods
+# Chapter 15: Practical Second-Order Methods
 
 K-FAC, Shampoo, and SOAP represent the state-of-the-art in tractable second-order optimization for deep learning. They exploit the structure of neural networks to approximate curvature efficiently.
 
@@ -6,7 +6,7 @@ K-FAC, Shampoo, and SOAP represent the state-of-the-art in tractable second-orde
 
 ### From Natural Gradient to K-FAC
 
-Recall from [Chapter 15](15-natural-gradient.md) that the natural gradient update is:
+Recall from [Chapter 14](14-natural-gradient.md) that the natural gradient update is:
 
 $$\theta_{t+1} = \theta_t - \eta F^{-1} \nabla_\theta \mathcal{L}$$
 
@@ -480,7 +480,7 @@ Combine the direction from one optimizer with the magnitude from another:
 
 ## What's Next
 
-- **Chapter 17**: Muon—a different geometric approach using operator norms
+- **Chapter 16**: Muon—a different geometric approach using operator norms
 
 ## Exercises
 

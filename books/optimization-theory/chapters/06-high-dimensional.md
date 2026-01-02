@@ -1,4 +1,4 @@
-# Chapter 7: High-Dimensional Geometry
+# Chapter 6: High-Dimensional Geometry
 
 Our intuitions about optimization come from 2D and 3D visualizations. These intuitions are catastrophically wrong in high dimensions. This chapter rebuilds intuition for the geometry of neural network optimization.
 
@@ -424,10 +424,10 @@ def overparameterization_helps():
 
 ## What's Next
 
-- **Chapter 8**: Saddle points and critical point geometry
-- **Chapter 9**: Symmetries and why local minima are equivalent
-- **Chapter 10**: Mode connectivity—paths between solutions
-- **Chapter 11**: Why SGD finds good solutions
+- **Chapter 7**: Saddle points and critical point geometry
+- **Chapter 8**: Symmetries and why local minima are equivalent
+- **Chapter 9**: Mode connectivity—paths between solutions
+- **Chapter 10**: Why SGD finds good solutions
 
 ## Exercises
 

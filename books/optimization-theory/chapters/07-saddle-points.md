@@ -1,4 +1,4 @@
-# Chapter 8: Saddle Points and Critical Point Theory
+# Chapter 7: Saddle Points and Critical Point Theory
 
 The conventional wisdom was that neural network optimization is hard because of "local minima." This is wrong. The real story involves saddle points, random matrix theory, and a surprising connection to statistical physics.
 
@@ -401,9 +401,9 @@ def learning_rate_and_saddle_escape():
 
 ## What's Next
 
-- **Chapter 9**: Symmetries and why equivalent minima exist
-- **Chapter 10**: Mode connectivity and paths between solutions
-- **Chapter 11**: The complete picture of why SGD works
+- **Chapter 8**: Symmetries and why equivalent minima exist
+- **Chapter 9**: Mode connectivity and paths between solutions
+- **Chapter 10**: The complete picture of why SGD works
 
 ## Exercises
 

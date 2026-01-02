@@ -178,7 +178,7 @@ This is the "forward mode" of automatic differentiation.
 
 $$Hv = D_v(\nabla f)(x) = \lim_{t \to 0} \frac{\nabla f(x + tv) - \nabla f(x)}{t}$$
 
-This identity is central to Hessian-free optimization (Chapter 14).
+This identity is central to Hessian-free optimization (Chapter 13).
 
 ### Finite Difference Approximation
 

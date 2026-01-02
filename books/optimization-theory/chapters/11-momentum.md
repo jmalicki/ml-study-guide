@@ -1,4 +1,4 @@
-# Chapter 12: Momentum and Acceleration
+# Chapter 11: Momentum and Acceleration
 
 With the theoretical foundations in place, we now turn to practical methods. Momentum is the first major improvement over vanilla gradient descent—a simple idea with deep consequences.
 
@@ -386,7 +386,7 @@ Solutions:
 
 ## What's Next
 
-- **Chapter 13**: Adaptive learning rates—per-parameter scaling
+- **Chapter 12**: Adaptive learning rates—per-parameter scaling
 - This builds toward Adam, which combines momentum with adaptivity
 
 ## Exercises
