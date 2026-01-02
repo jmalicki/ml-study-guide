@@ -812,7 +812,9 @@ Three matrices appear repeatedly in optimization theory. Understanding when they
 
 $$F(\theta) = -\mathbb{E}_{x \sim p_\theta}\left[\nabla^2_\theta \log p(x; \theta)\right]$$
 
-**Proof**: Start with the score having zero mean:
+**Proof**: The [score function](https://en.wikipedia.org/wiki/Score_(statistics)) is the gradient of the log-likelihood: $s(x;\theta) = \nabla_\theta \log p(x;\theta)$. It measures how sensitive the log-probability is to parameter changes. (See the [Score Function section](#the-score-function) earlier in this appendix for details.)
+
+Start with the key property that the score has zero mean:
 $$\mathbb{E}[\nabla \log p] = \int p(x;\theta) \frac{\nabla p(x;\theta)}{p(x;\theta)} dx = \nabla \int p(x;\theta) dx = \nabla 1 = 0$$
 
 Differentiate again:
