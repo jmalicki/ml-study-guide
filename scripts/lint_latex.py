@@ -45,9 +45,64 @@ class LintError:
     severity: str  # 'error' or 'warning'
 
 
+@dataclass
+class MarkdownFormatError:
+    """A markdown formatting error (not LaTeX-specific)."""
+    file_path: Path
+    line_num: int
+    error_code: str
+    message: str
+    context: str
+
+
 def check_chktex_installed() -> bool:
     """Check if ChkTeX is installed and available."""
     return shutil.which('chktex') is not None
+
+
+def check_double_blank_before_math(content: str, file_path: Path) -> List[MarkdownFormatError]:
+    """
+    Check for double blank lines before math blocks.
+
+    This breaks markdown list formatting - a list item followed by two blank lines
+    before a math block causes the math block to not be properly associated with
+    the list item.
+
+    Pattern detected:
+    - Any non-blank line
+    - Two or more consecutive blank lines
+    - A line containing ```math or starting with $$
+    """
+    errors = []
+    lines = content.split('\n')
+
+    i = 0
+    while i < len(lines):
+        # Look for ```math or $$ lines
+        line = lines[i]
+        stripped = line.strip()
+
+        if stripped.startswith('```math') or (stripped.startswith('$$') and not stripped.endswith('$$')):
+            # Count blank lines before this
+            blank_count = 0
+            j = i - 1
+            while j >= 0 and lines[j].strip() == '':
+                blank_count += 1
+                j -= 1
+
+            if blank_count >= 2:
+                # Find the last non-blank line for context
+                context_line = lines[j] if j >= 0 else ""
+                errors.append(MarkdownFormatError(
+                    file_path=file_path,
+                    line_num=i + 1,  # 1-indexed
+                    error_code="MD001",
+                    message=f"Double blank line before math block (found {blank_count} blank lines). This breaks list formatting.",
+                    context=context_line[:80] if context_line else "(start of file)"
+                ))
+        i += 1
+
+    return errors
 
 
 def extract_latex_from_markdown(content: str, file_path: Path) -> List[LatexFragment]:
@@ -242,20 +297,22 @@ def lint_markdown_files(
     root_dir: Path,
     chktex_config: Optional[Path] = None,
     verbose: bool = False
-) -> List[LintError]:
+) -> Tuple[List[LintError], List[MarkdownFormatError]]:
     """
     Lint LaTeX in all markdown files.
 
-    Returns list of LintError objects.
+    Returns tuple of (LintError list, MarkdownFormatError list).
     """
     all_fragments = []
+    all_md_files = []  # Track all markdown files for format checks
 
     # Collect fragments from chapters/
     chapters_dir = root_dir / "chapters"
     if chapters_dir.exists():
-        for md_file in sorted(chapters_dir.glob("*.md")):
+        for md_file in sorted(chapters_dir.glob("**/*.md")):
             try:
                 content = md_file.read_text(encoding='utf-8')
+                all_md_files.append((md_file, content))
                 fragments = extract_latex_from_markdown(content, md_file)
                 all_fragments.extend(fragments)
                 if verbose:
@@ -269,6 +326,21 @@ def lint_markdown_files(
         for md_file in sorted(review_dir.glob("*.md")):
             try:
                 content = md_file.read_text(encoding='utf-8')
+                all_md_files.append((md_file, content))
+                fragments = extract_latex_from_markdown(content, md_file)
+                all_fragments.extend(fragments)
+                if verbose:
+                    print(f"  Found {len(fragments)} LaTeX fragments in {md_file.name}")
+            except Exception as e:
+                print(f"Error reading {md_file}: {e}", file=sys.stderr)
+
+    # Collect from appendices/
+    appendices_dir = root_dir / "appendices"
+    if appendices_dir.exists():
+        for md_file in sorted(appendices_dir.glob("*.md")):
+            try:
+                content = md_file.read_text(encoding='utf-8')
+                all_md_files.append((md_file, content))
                 fragments = extract_latex_from_markdown(content, md_file)
                 all_fragments.extend(fragments)
                 if verbose:
@@ -281,6 +353,7 @@ def lint_markdown_files(
         if "test" not in md_file.name.lower():
             try:
                 content = md_file.read_text(encoding='utf-8')
+                all_md_files.append((md_file, content))
                 fragments = extract_latex_from_markdown(content, md_file)
                 all_fragments.extend(fragments)
                 if verbose and fragments:
@@ -288,8 +361,16 @@ def lint_markdown_files(
             except Exception as e:
                 print(f"Error reading {md_file}: {e}", file=sys.stderr)
 
+    # Check for markdown format errors
+    md_format_errors = []
+    for md_file, content in all_md_files:
+        md_format_errors.extend(check_double_blank_before_math(content, md_file))
+
+    if verbose and md_format_errors:
+        print(f"\nFound {len(md_format_errors)} markdown format issues")
+
     if not all_fragments:
-        return []
+        return [], md_format_errors
 
     if verbose:
         print(f"\nTotal: {len(all_fragments)} LaTeX fragments")
@@ -318,7 +399,7 @@ def lint_markdown_files(
                 severity='warning' if error_code.startswith('W') else 'error'
             ))
 
-    return lint_errors
+    return lint_errors, md_format_errors
 
 
 def main():
@@ -388,7 +469,7 @@ def main():
             config_path = default_config
 
     # Run linting
-    errors = lint_markdown_files(
+    latex_errors, md_format_errors = lint_markdown_files(
         root_dir,
         chktex_config=config_path,
         verbose=args.verbose
@@ -400,38 +481,64 @@ def main():
     print("=" * 70)
     print()
 
-    if not errors:
+    has_issues = False
+
+    # Print markdown format errors first
+    if md_format_errors:
+        has_issues = True
+        print("Markdown Format Errors:")
+        print("-" * 40)
+        md_errors_by_file = {}
+        for error in md_format_errors:
+            rel_path = error.file_path.relative_to(root_dir)
+            if rel_path not in md_errors_by_file:
+                md_errors_by_file[rel_path] = []
+            md_errors_by_file[rel_path].append(error)
+
+        for file_path in sorted(md_errors_by_file.keys()):
+            print(f"{file_path}:")
+            for error in sorted(md_errors_by_file[file_path], key=lambda e: e.line_num):
+                print(f"  Line {error.line_num}: [{error.error_code}] {error.message}")
+                if args.verbose:
+                    print(f"    Context: {error.context}")
+            print()
+
+    if not latex_errors and not md_format_errors:
         print("No issues found!")
         sys.exit(0)
 
-    # Separate errors and warnings
-    actual_errors = [e for e in errors if e.severity == 'error']
-    warnings = [e for e in errors if e.severity == 'warning']
+    # Separate LaTeX errors and warnings
+    actual_errors = [e for e in latex_errors if e.severity == 'error']
+    warnings = [e for e in latex_errors if e.severity == 'warning']
 
-    # Group by file
-    errors_by_file = {}
-    for error in errors:
-        rel_path = error.file_path.relative_to(root_dir)
-        if rel_path not in errors_by_file:
-            errors_by_file[rel_path] = []
-        errors_by_file[rel_path].append(error)
+    if latex_errors:
+        has_issues = True
+        print("LaTeX Errors:")
+        print("-" * 40)
+        # Group by file
+        errors_by_file = {}
+        for error in latex_errors:
+            rel_path = error.file_path.relative_to(root_dir)
+            if rel_path not in errors_by_file:
+                errors_by_file[rel_path] = []
+            errors_by_file[rel_path].append(error)
 
-    # Print results
-    for file_path in sorted(errors_by_file.keys()):
-        print(f"{file_path}:")
-        for error in sorted(errors_by_file[file_path], key=lambda e: e.line_num):
-            severity_marker = "ERROR" if error.severity == 'error' else "warning"
-            print(f"  Line {error.line_num}: [{error.error_code}] {severity_marker}: {error.message}")
-            if args.verbose:
-                print(f"    LaTeX: {error.latex_snippet}")
-        print()
+        # Print results
+        for file_path in sorted(errors_by_file.keys()):
+            print(f"{file_path}:")
+            for error in sorted(errors_by_file[file_path], key=lambda e: e.line_num):
+                severity_marker = "ERROR" if error.severity == 'error' else "warning"
+                print(f"  Line {error.line_num}: [{error.error_code}] {severity_marker}: {error.message}")
+                if args.verbose:
+                    print(f"    LaTeX: {error.latex_snippet}")
+            print()
 
     # Summary
-    print(f"Summary: {len(actual_errors)} error(s), {len(warnings)} warning(s)")
+    print(f"Summary: {len(md_format_errors)} markdown format error(s), {len(actual_errors)} LaTeX error(s), {len(warnings)} LaTeX warning(s)")
     print()
 
-    # Exit code
-    if actual_errors or (args.warnings_as_errors and warnings):
+    # Exit code - markdown format errors are always errors
+    if md_format_errors or actual_errors or (args.warnings_as_errors and warnings):
         print("Linting FAILED")
         sys.exit(1)
     else:

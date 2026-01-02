@@ -787,19 +787,13 @@ Attention masks implement two critical constraints:
 
 1. **Causality (autoregressive property)**: For language modeling, the probability of token $i$ must depend only on tokens $1, ..., i-1$:
 
-
-   ```math
-\large P(x_i | x_1, ..., x_{i-1}, x_{i+1}, ..., x_n) = P(x_i | x_1, ..., x_{i-1})
-   ```
+   $$\large P(x_i | x_1, ..., x_{i-1}, x_{i+1}, ..., x_n) = P(x_i | x_1, ..., x_{i-1})$$
 
    Violating this makes training and inference inconsistent—the model trains with future information but can't access it during generation.
 
 2. **Padding invariance**: Padding tokens should not influence the representation of real tokens. Mathematically, for any padding position $p$:
 
-
-   ```math
-\large \text{Attention}(\mathbf{q}_i, \mathbf{k}_p, \mathbf{v}_p) = 0
-   ```
+   $$\large \text{Attention}(\mathbf{q}_i, \mathbf{k}_p, \mathbf{v}_p) = 0$$
 
 **Relationship to Alternatives:**
 
@@ -1248,7 +1242,6 @@ if __name__ == "__main__":
 2. **Linear layers**:
    - **Xavier/Glorot**: Standard for transformers
 
-
      ```math
 \large W \sim U\left[-\sqrt{\frac{6}{d_{\text{in}} + d_{\text{out}}}}, \sqrt{\frac{6}{d_{\text{in}} + d_{\text{out}}}}\right]
      ```
@@ -1256,14 +1249,12 @@ if __name__ == "__main__":
 
    - **Kaiming/He**: Better for ReLU activations
 
-
      ```math
 \large W \sim U\left[-\sqrt{\frac{6}{d_{\text{in}}}}, \sqrt{\frac{6}{d_{\text{in}}}}\right]
      ```
 
 
    - **Scaled initialization**: For very deep models (>24 layers)
-
 
      ```math
 \large W \gets W / \sqrt{2L}
@@ -1497,7 +1488,6 @@ The parallel architecture is based on several observations:
 
 1. **Independence of operations**: Attention captures token relationships; FFN processes individual positions. These operations are conceptually independent and both take the same input
 2. **Additive combination**: Since both paths connect via residual additions, we can mathematically regroup:
-
 
    ```math
 \large \begin{align}

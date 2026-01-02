@@ -299,13 +299,11 @@ The GPT-2 architecture establishes several key principles:
 
 2. **Causality**: The causal attention mask ensures each position can only attend to previous positions, making the model suitable for autoregressive generation:
 
-
    ```math
 \large \text{mask}[i,j] = \begin{cases} 0 & \text{if } j \gt i \\ 1 & \text{if } j \leq i \end{cases}
    ```
 
 3. **GELU Activation**: The Gaussian Error Linear Unit provides smoother gradients than ReLU:
-
 
    ```math
 \large \text{GELU}(x) = x \cdot \Phi(x) = x \cdot \frac{1}{2}\left[1 + \text{erf}\left(\frac{x}{\sqrt{2}}\right)\right]
