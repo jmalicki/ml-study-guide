@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 450">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 460">
   <style>
     /* Light mode (default) */
     text { fill: #000000; }
@@ -100,8 +100,8 @@
     <!-- Y-axis label -->
     <text x="-10" y="50" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666" transform="rotate(-90, -10, 50)">||X^T X - I||</text>
 
-    <!-- X-axis label -->
-    <text x="130" y="120" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">Iteration k</text>
+    <!-- X-axis label (moved down to avoid overlapping tick marks) -->
+    <text x="130" y="130" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">Iteration k</text>
 
     <!-- Tick marks -->
     <text x="0" y="112" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="9" fill="#666">0</text>

@@ -14,7 +14,7 @@ Hessian-free ([Martens, 2010](https://www.cs.toronto.edu/~jmartens/docs/Deep_Hes
 
 $$Hv = \frac{\partial}{\partial t}[\nabla f(\theta + tv)]_{t=0} = \lim_{t \to 0} \frac{\nabla f(\theta + tv) - \nabla f(\theta)}{t}$$
 
-This is the **directional derivative** of the gradient along direction $v$. See [Appendix C](20-appendix.md#directional-derivatives) for background on directional derivatives, finite differences, and [forward vs reverse mode autodiff](20-appendix.md#forward-vs-reverse-mode-automatic-differentiation).
+This is the **directional derivative** of the gradient along direction $v$. See [Appendix C](19-appendix.md#directional-derivatives) for background on directional derivatives, finite differences, and [forward vs reverse mode autodiff](19-appendix.md#forward-vs-reverse-mode-automatic-differentiation).
 
 ```python
 import torch

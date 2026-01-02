@@ -94,7 +94,7 @@ Given a matrix $G$ (gradient), we want to find the closest orthogonal matrix $Q$
 
 $$X_{k+1} = X_k \cdot (3I - X_k^T X_k) / 2$$
 
-> **Why the coefficient 3?** The constant 3 isn't arbitrary—it's the unique value that creates a stable fixed point at orthogonal matrices. With coefficient 2, the iteration would shrink $X$ to zero; with coefficient 4, it would diverge. The 3 also emerges naturally from Newton's method for computing matrix inverse square roots. For a complete derivation with illustrations, see [Appendix B: Newton-Schulz Iteration](20-appendix.md#b-newton-schulz-iteration-why-the-coefficient-is-3).
+> **Why the coefficient 3?** The constant 3 isn't arbitrary—it's the unique value that creates a stable fixed point at orthogonal matrices. With coefficient 2, the iteration would shrink $X$ to zero; with coefficient 4, it would diverge. The 3 also emerges naturally from Newton's method for computing matrix inverse square roots. For a complete derivation with illustrations, see [Appendix B: Newton-Schulz Iteration](19-appendix.md#b-newton-schulz-iteration-why-the-coefficient-is-3).
 
 Starting from $X_0 = G / \|G\|$, this converges to:
 - An **orthogonal matrix** (if $G$ is square)
