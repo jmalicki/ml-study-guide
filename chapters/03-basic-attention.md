@@ -136,31 +136,35 @@ Given:
 
 **Step 1: Compute attention scores**
 
-```math
-\large \text{score}(\mathbf{q}, \mathbf{k}_i) = \mathbf{q}^T \mathbf{k}_i
-```
+$$
+\large
+\text{score}(\mathbf{q}, \mathbf{k}_i) = \mathbf{q}^T \mathbf{k}_i
+$$
 
 The dot product measures similarity: higher values indicate more similar (aligned) vectors.
 
 **Step 2: Normalize scores to probabilities**
 
-```math
-\large \alpha_i = \frac{\exp(\mathbf{q}^T \mathbf{k}_i)}{\sum_{j=1}^n \exp(\mathbf{q}^T \mathbf{k}_j)} = \text{softmax}(\mathbf{q}^T \mathbf{k}_i)
-```
+$$
+\large
+\alpha_i = \frac{\exp(\mathbf{q}^T \mathbf{k}_i)}{\sum_{j=1}^n \exp(\mathbf{q}^T \mathbf{k}_j)} = \text{softmax}(\mathbf{q}^T \mathbf{k}_i)
+$$
 
 **Step 3: Compute weighted sum of values**
 
-```math
-\large \text{output} = \sum_{i=1}^n \alpha_i \mathbf{v}_i
-```
+$$
+\large
+\text{output} = \sum_{i=1}^n \alpha_i \mathbf{v}_i
+$$
 
 ### Matrix Form
 
 For efficiency, we batch multiple queries together:
 
-```math
-\large \text{Attention}(Q, K, V) = \text{softmax}(QK^T)V
-```
+$$
+\large
+\text{Attention}(Q, K, V) = \text{softmax}(QK^T)V
+$$
 
 Where:
 
@@ -287,13 +291,15 @@ When the dimension $d_k$ is large, the dot products grow large in magnitude. Thi
 
 **Analysis**: If $\mathbf{q}$ and $\mathbf{k}$ have independent components with mean 0 and variance 1:
 
-```math
-\large \mathbb{E}[\mathbf{q}^T \mathbf{k}] = 0
-```
+$$
+\large
+\mathbb{E}[\mathbf{q}^T \mathbf{k}] = 0
+$$
 
-```math
-\large \text{Var}(\mathbf{q}^T \mathbf{k}) = \text{Var}\left(\sum_{i=1}^{d_k} q_i k_i\right) = d_k
-```
+$$
+\large
+\text{Var}(\mathbf{q}^T \mathbf{k}) = \text{Var}\left(\sum_{i=1}^{d_k} q_i k_i\right) = d_k
+$$
 
 As $d_k$ increases, the variance of the dot product increases linearly. Large values saturate the softmax.
 
@@ -301,15 +307,17 @@ As $d_k$ increases, the variance of the dot product increases linearly. Large va
 
 To counteract this, we scale by $\sqrt{d_k}$:
 
-```math
-\large \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
-```
+$$
+\large
+\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
+$$
 
 This ensures the variance of $\frac{\mathbf{q}^T \mathbf{k}}{\sqrt{d_k}}$ is approximately 1, regardless of $d_k$:
 
-```math
-\large \text{Var}\left(\frac{\mathbf{q}^T \mathbf{k}}{\sqrt{d_k}}\right) = \frac{\text{Var}(\mathbf{q}^T \mathbf{k})}{d_k} = \frac{d_k}{d_k} = 1
-```
+$$
+\large
+\text{Var}\left(\frac{\mathbf{q}^T \mathbf{k}}{\sqrt{d_k}}\right) = \frac{\text{Var}(\mathbf{q}^T \mathbf{k})}{d_k} = \frac{d_k}{d_k} = 1
+$$
 
 ### Empirical Comparison
 
@@ -395,19 +403,20 @@ Notice how unscaled attention becomes increasingly "sharp" (one weight close to 
 
 While $\sqrt{d_k}$ is the standard scaling factor, attention can be controlled more generally with a **temperature parameter** $T$:
 
-```math
-\large \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{T}\right)V
-```
+$$
+\large
+\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{T}\right)V
+$$
 
 ![Temperature Effects on Attention Distribution](../assets/diagrams/ch03-temperature-effects.svg)
 
 The temperature controls the "sharpness" of the attention distribution:
 
-- **$T \lt 1$**: "Sharper" attention (more peaked distribution)
+- **$T < 1$**: "Sharper" attention (more peaked distribution)
   - Model focuses more strongly on highest-scoring positions
   - Useful for controllable generation (greedy behavior)
 
-- **$T \gt 1$**: "Softer" attention (more uniform distribution)
+- **$T > 1$**: "Softer" attention (more uniform distribution)
   - Model distributes attention more evenly
   - Useful for exploration or sampling diverse outputs
 
@@ -488,7 +497,7 @@ def demonstrate_temperature():
 **Key Implementation Insights**:
 
 1. **Dropout on weights, not output**: Applying dropout to attention weights (not the final output) is more effective because it forces the model to not rely on single attention connections
-2. **Training mode matters**: We only apply dropout during training (`if dropout_p \gt 0.0`), not inference
+2. **Training mode matters**: We only apply dropout during training (`if dropout_p > 0.0`), not inference
 3. **Modularity**: Returning both output and weights separates computation from visualization/analysis
 
 ```python
@@ -533,7 +542,7 @@ def scaled_dot_product_attention(
     attention_weights = F.softmax(scores, dim=-1)
 
     # Apply dropout (for regularization during training)
-    if dropout_p \gt 0.0:
+    if dropout_p > 0.0:
         attention_weights = F.dropout(attention_weights, p=dropout_p)
 
     # Weighted sum of values
@@ -583,7 +592,7 @@ class ScaledDotProductAttention(torch.nn.Module):
         # Attention weights
         attn = F.softmax(scores, dim=-1)
 
-        if self.training and self.dropout \gt 0:
+        if self.training and self.dropout > 0:
             attn = F.dropout(attn, p=self.dropout)
 
         # Output
@@ -826,7 +835,7 @@ def create_padding_mask(seq_len: torch.Tensor, max_len: int) -> torch.Tensor:
     batch_size = seq_len.size(0)
 
     # Create mask: [batch, max_len]
-    mask = torch.arange(max_len, device=seq_len.device)[None, :] \lt seq_len[:, None]
+    mask = torch.arange(max_len, device=seq_len.device)[None, :] < seq_len[:, None]
 
     # Expand for attention: [batch, max_len, max_len]
     # Each query position can attend to all valid key positions
@@ -1478,15 +1487,16 @@ scores = scores.masked_fill(mask == 0, float('-inf'))
 
 ### Mathematical Summary
 
-```math
-\large \begin{align*}
+$$
+\large
+\begin{align*}
 \text{Attention}(Q, K, V) &= \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V \\
 \text{where } Q &\in \mathbb{R}^{n_q \times d_k} \\
 K &\in \mathbb{R}^{n_k \times d_k} \\
 V &\in \mathbb{R}^{n_k \times d_v} \\
 \text{Output} &\in \mathbb{R}^{n_q \times d_v}
 \end{align*}
-```
+$$
 
 ### Connection to Other Chapters
 
@@ -1594,9 +1604,10 @@ assert torch.allclose(my_output, pt_output, atol=1e-5)
 
 9. **Additive Attention**: Implement additive attention (Bahdanau-style):
 
-   ```math
-\large \text{score}(\mathbf{q}, \mathbf{k}) = \mathbf{v}^T \tanh(W_q \mathbf{q} + W_k \mathbf{k})
-   ```
+   $$
+\large
+\text{score}(\mathbf{q}, \mathbf{k}) = \mathbf{v}^T \tanh(W_q \mathbf{q} + W_k \mathbf{k})
+   $$
 
    Compare it with dot-product attention. Which is faster? Why?
 

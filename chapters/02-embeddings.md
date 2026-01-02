@@ -109,15 +109,17 @@ Word2Vec (Mikolov et al., 2013) introduced two efficient methods for learning wo
 
 **Objective**: Given a center word $w_t$, maximize the probability of observing context words $w_{t-k}, \ldots, w_{t-1}, w_{t+1}, \ldots, w_{t+k}$:
 
-```math
-\large \mathcal{L} = \frac{1}{T} \sum_{t=1}^{T} \sum_{-k \leq j \leq k, j \neq 0} \log p(w_{t+j} | w_t)
-```
+$$
+\large
+\mathcal{L} = \frac{1}{T} \sum_{t=1}^{T} \sum_{-k \leq j \leq k, j \neq 0} \log p(w_{t+j} | w_t)
+$$
 
 where the probability is modeled as:
 
-```math
-\large p(w_{O} | w_{I}) = \frac{\exp(\mathbf{v}_{w_{O}}^\top \mathbf{v}_{w_{I}})}{\sum_{w=1}^{V} \exp(\mathbf{v}_w^\top \mathbf{v}_{w_{I}})}
-```
+$$
+\large
+p(w_{O} | w_{I}) = \frac{\exp(\mathbf{v}_{w_{O}}^\top \mathbf{v}_{w_{I}})}{\sum_{w=1}^{V} \exp(\mathbf{v}_w^\top \mathbf{v}_{w_{I}})}
+$$
 
 **Key Insight**: Words that appear in similar contexts have similar embeddings.
 
@@ -127,9 +129,10 @@ where the probability is modeled as:
 
 **Objective**: Given context words, predict the center word:
 
-```math
-\large \mathcal{L} = \frac{1}{T} \sum_{t=1}^{T} \log p(w_t | w_{t-k}, \ldots, w_{t-1}, w_{t+1}, \ldots, w_{t+k})
-```
+$$
+\large
+\mathcal{L} = \frac{1}{T} \sum_{t=1}^{T} \log p(w_t | w_{t-k}, \ldots, w_{t-1}, w_{t+1}, \ldots, w_{t+k})
+$$
 
 #### Implementation Considerations
 
@@ -137,9 +140,10 @@ where the probability is modeled as:
 
 Both Skip-Gram and CBOW face the same fundamental problem: the softmax normalization requires summing over the entire vocabulary. For a vocabulary of 50,000 words, computing:
 
-```math
-\large p(w_{O} | w_{I}) = \frac{\exp(\mathbf{v}_{w_{O}}^\top \mathbf{v}_{w_{I}})}{\sum_{w=1}^{50000} \exp(\mathbf{v}_w^\top \mathbf{v}_{w_{I}})}
-```
+$$
+\large
+p(w_{O} | w_{I}) = \frac{\exp(\mathbf{v}_{w_{O}}^\top \mathbf{v}_{w_{I}})}{\sum_{w=1}^{50000} \exp(\mathbf{v}_w^\top \mathbf{v}_{w_{I}})}
+$$
 
 is prohibitively expensive when repeated millions of times during training.
 
@@ -252,9 +256,10 @@ print(f"Embedding for word {word_id}: {embedding[:5]}")  # First 5 dimensions
 
 **Negative Sampling**: Instead of computing the full softmax over all vocabulary (expensive), sample a few negative examples:
 
-```math
-\large \log \sigma(\mathbf{v}_{w_O}^\top \mathbf{v}_{w_I}) + \sum_{i=1}^{k} \mathbb{E}_{w_i \sim P_n(w)} \left[\log \sigma(-\mathbf{v}_{w_i}^\top \mathbf{v}_{w_I})\right]
-```
+$$
+\large
+\log \sigma(\mathbf{v}_{w_O}^\top \mathbf{v}_{w_I}) + \sum_{i=1}^{k} \mathbb{E}_{w_i \sim P_n(w)} \left[\log \sigma(-\mathbf{v}_{w_i}^\top \mathbf{v}_{w_I})\right]
+$$
 
 ### GloVe
 
@@ -271,26 +276,29 @@ GloVe (Global Vectors, Pennington et al., 2014) takes a different approach: dire
 
 **Objective**: Learn embeddings such that their dot product approximates log co-occurrence:
 
-```math
-\large \mathbf{w}_i^\top \tilde{\mathbf{w}}_j + b_i + \tilde{b}_j = \log X_{ij}
-```
+$$
+\large
+\mathbf{w}_i^\top \tilde{\mathbf{w}}_j + b_i + \tilde{b}_j = \log X_{ij}
+$$
 
 where $X_{ij}$ is the number of times word $j$ appears in the context of word $i$.
 
 **Full Objective with Weighting**:
 
-```math
-\large J = \sum_{i,j=1}^{V} f(X_{ij}) \left(\mathbf{w}_i^\top \tilde{\mathbf{w}}_j + b_i + \tilde{b}_j - \log X_{ij}\right)^2
-```
+$$
+\large
+J = \sum_{i,j=1}^{V} f(X_{ij}) \left(\mathbf{w}_i^\top \tilde{\mathbf{w}}_j + b_i + \tilde{b}_j - \log X_{ij}\right)^2
+$$
 
 where $f(x)$ is a weighting function that prevents rare and very frequent co-occurrences from dominating:
 
-```math
-\large f(x) = \begin{cases}
-(x/x_{\max})^{0.75} & \text{if } x \lt x_{\max} \\
+$$
+\large
+f(x) = \begin{cases}
+(x/x_{\max})^{0.75} & \text{if } x < x_{\max} \\
 1 & \text{otherwise}
 \end{cases}
-```
+$$
 
 #### Why GloVe Differs from Word2Vec
 
@@ -310,17 +318,20 @@ Word2Vec's local training windows may miss global patterns. For example:
 
 The ratio of co-occurrence probabilities reveals semantic relationships:
 
-```math
-\large \frac{P(\text{solid} | \text{ice})}{P(\text{solid} | \text{steam})} \gg 1 \quad \text{(ice is solid, steam is not)}
-```
+$$
+\large
+\frac{P(\text{solid} | \text{ice})}{P(\text{solid} | \text{steam})} \gg 1 \quad \text{(ice is solid, steam is not)}
+$$
 
-```math
-\large \frac{P(\text{gas} | \text{ice})}{P(\text{gas} | \text{steam})} \ll 1 \quad \text{(steam is gas, ice is not)}
-```
+$$
+\large
+\frac{P(\text{gas} | \text{ice})}{P(\text{gas} | \text{steam})} \ll 1 \quad \text{(steam is gas, ice is not)}
+$$
 
-```math
-\large \frac{P(\text{water} | \text{ice})}{P(\text{water} | \text{steam})} \approx 1 \quad \text{(both are water)}
-```
+$$
+\large
+\frac{P(\text{water} | \text{ice})}{P(\text{water} | \text{steam})} \approx 1 \quad \text{(both are water)}
+$$
 
 GloVe embeddings are designed so that their dot product captures these ratios, making analogies like "king - man + woman = queen" emerge naturally.
 
@@ -438,9 +449,10 @@ When embeddings are trained on co-occurrence data, they learn to encode relation
 
 Mathematically, if we denote the embedding of word $w$ as $\mathbf{e}_w$:
 
-```math
-\large \mathbf{e}_{\text{queen}} - \mathbf{e}_{\text{king}} \approx \mathbf{e}_{\text{woman}} - \mathbf{e}_{\text{man}}
-```
+$$
+\large
+\mathbf{e}_{\text{queen}} - \mathbf{e}_{\text{king}} \approx \mathbf{e}_{\text{woman}} - \mathbf{e}_{\text{man}}
+$$
 
 Both sides capture the same semantic relationship (female → male), just anchored at different base concepts (royalty vs common people).
 
@@ -526,9 +538,10 @@ In modern deep learning, embeddings are learned end-to-end as part of the model.
 
 An embedding layer is simply a **lookup table**:
 
-```math
-\large \text{Embedding}: \mathbb{N} \rightarrow \mathbb{R}^d
-```
+$$
+\large
+\text{Embedding}: \mathbb{N} \rightarrow \mathbb{R}^d
+$$
 
 where:
 
@@ -537,17 +550,19 @@ where:
 
 **Mathematically**, it's a matrix multiplication with one-hot vectors:
 
-```math
-\large \mathbf{e}_t = \mathbf{E} \cdot \text{one\_hot}(t)
-```
+$$
+\large
+\mathbf{e}_t = \mathbf{E} \cdot \text{one\_hot}(t)
+$$
 
 where $\mathbf{E} \in \mathbb{R}^{V \times d}$ is the embedding matrix.
 
 **In practice**, we just index into the matrix (much more efficient):
 
-```math
-\large \mathbf{e}_t = \mathbf{E}[t, :]
-```
+$$
+\large
+\mathbf{e}_t = \mathbf{E}[t, :]
+$$
 
 ### Training Embeddings
 
@@ -566,15 +581,17 @@ Unlike typical neural network layers where all parameters receive gradients in e
 
 Mathematically, an embedding lookup can be viewed as:
 
-```math
-\large \mathbf{e}_t = \mathbf{E} \cdot \text{one\_hot}(t)
-```
+$$
+\large
+\mathbf{e}_t = \mathbf{E} \cdot \text{one\_hot}(t)
+$$
 
 where $\mathbf{E} \in \mathbb{R}^{V \times d}$ is the embedding matrix. The gradient with respect to $\mathbf{E}$ is:
 
-```math
-\large \frac{\partial \mathcal{L}}{\partial \mathbf{E}} = \text{one\_hot}(t) \cdot \frac{\partial \mathcal{L}}{\partial \mathbf{e}_t}^\top
-```
+$$
+\large
+\frac{\partial \mathcal{L}}{\partial \mathbf{E}} = \text{one\_hot}(t) \cdot \frac{\partial \mathcal{L}}{\partial \mathbf{e}_t}^\top
+$$
 
 Since one-hot encoding is zero everywhere except position $t$, gradients only flow to row $t$ of the embedding matrix. All other embeddings receive zero gradient.
 
@@ -626,7 +643,7 @@ loss.backward()
 
 # Check which embeddings got gradients
 print(f"Gradient shape: {embedding.weight.grad.shape}")  # (vocab_size, embedding_dim)
-print(f"Non-zero gradient rows: {(embedding.weight.grad.abs().sum(dim=1) \gt 0).sum()}")
+print(f"Non-zero gradient rows: {(embedding.weight.grad.abs().sum(dim=1) > 0).sum()}")
 # Only embeddings for tokens in token_ids have non-zero gradients
 unique_tokens = token_ids.unique()
 print(f"Unique tokens in batch: {len(unique_tokens)}")
@@ -702,9 +719,10 @@ Poor initialization can lead to:
 
 For stable training, we want initial embeddings to have appropriate variance. Consider a simple linear layer after embedding:
 
-```math
-\large \mathbf{h} = \mathbf{W}\mathbf{e}
-```
+$$
+\large
+\mathbf{h} = \mathbf{W}\mathbf{e}
+$$
 
 If $\mathbf{e}$ has variance $\sigma_e^2$ and $\mathbf{W}$ has variance $\sigma_w^2$, then $\mathbf{h}$ has variance approximately $d \cdot \sigma_e^2 \cdot \sigma_w^2$ where $d$ is embedding dimension. For variance to remain stable through the network, we need careful initialization.
 
@@ -1067,9 +1085,10 @@ Some modern models like BLOOM use **ALiBi** (Attention with Linear Biases), whic
 
 **Key Idea**: Add a linearly decreasing bias to attention scores based on key-query distance:
 
-```math
-\large \text{attention\_score}(q_i, k_j) = q_i^\top k_j - m \cdot |i - j|
-```
+$$
+\large
+\text{attention\_score}(q_i, k_j) = q_i^\top k_j - m \cdot |i - j|
+$$
 
 where $m$ is a head-specific slope.
 
@@ -1615,9 +1634,9 @@ def estimate_embedding_memory(
     total_bytes = total_params * bytes_per_param
 
     # Convert to appropriate unit
-    if total_bytes \lt 1024**2:
+    if total_bytes < 1024**2:
         size_str = f"{total_bytes / 1024:.2f} KB"
-    elif total_bytes \lt 1024**3:
+    elif total_bytes < 1024**3:
         size_str = f"{total_bytes / 1024**2:.2f} MB"
     else:
         size_str = f"{total_bytes / 1024**3:.2f} GB"
@@ -1644,9 +1663,10 @@ print(estimate_embedding_memory(128256, 4096, torch.float16))
 
 Decompose embedding matrix $\mathbf{E} \in \mathbb{R}^{V \times d}$ into two smaller matrices:
 
-```math
-\large \mathbf{E} \approx \mathbf{A} \mathbf{B}
-```
+$$
+\large
+\mathbf{E} \approx \mathbf{A} \mathbf{B}
+$$
 
 where $\mathbf{A} \in \mathbb{R}^{V \times r}$ and $\mathbf{B} \in \mathbb{R}^{r \times d}$ with $r \ll \min(V, d)$.
 
@@ -1664,15 +1684,17 @@ The key insight is that embedding matrices often have **low intrinsic dimensiona
 
 Mathematically, if we perform SVD on the embedding matrix:
 
-```math
-\large \mathbf{E} = \mathbf{U} \mathbf{\Sigma} \mathbf{V}^\top
-```
+$$
+\large
+\mathbf{E} = \mathbf{U} \mathbf{\Sigma} \mathbf{V}^\top
+$$
 
 We often find that the singular values decay rapidly, meaning we can approximate $\mathbf{E}$ with only the top $r$ singular values:
 
-```math
-\large \mathbf{E} \approx \mathbf{U}_{:r} \mathbf{\Sigma}_{r} \mathbf{V}_{:r}^\top
-```
+$$
+\large
+\mathbf{E} \approx \mathbf{U}_{:r} \mathbf{\Sigma}_{r} \mathbf{V}_{:r}^\top
+$$
 
 Setting $\mathbf{A} = \mathbf{U}_{:r} \mathbf{\Sigma}_{r}^{1/2}$ and $\mathbf{B} = \mathbf{\Sigma}_{r}^{1/2} \mathbf{V}_{:r}^\top$ gives the factorization.
 
@@ -1728,7 +1750,7 @@ class FactorizedEmbedding(nn.Module):
         """
         super().__init__()
 
-        assert rank \lt min(vocab_size, embedding_dim), \
+        assert rank < min(vocab_size, embedding_dim), \
             "Rank should be smaller than vocab_size and embedding_dim"
 
         self.vocab_size = vocab_size
@@ -1805,9 +1827,10 @@ Most neural network weights don't require full 32-bit precision. Quantization ma
 
 Quantization maps floating-point values to integers via:
 
-```math
-\large q = \text{round}\left(\frac{x - z}{s}\right)
-```
+$$
+\large
+q = \text{round}\left(\frac{x - z}{s}\right)
+$$
 
 where:
 
@@ -1818,9 +1841,10 @@ where:
 
 Dequantization recovers approximate values:
 
-```math
-\large \hat{x} = s \cdot q + z
-```
+$$
+\large
+\hat{x} = s \cdot q + z
+$$
 
 **Quantization Schemes**:
 
@@ -2044,9 +2068,10 @@ Consider vocabulary of 1M tokens, hash to 100K buckets:
 
 Use multiple hash functions and average their embeddings:
 
-```math
-\large \mathbf{e}_t = \frac{1}{k} \sum_{i=1}^{k} \mathbf{E}^{(i)}[h_i(t)]
-```
+$$
+\large
+\mathbf{e}_t = \frac{1}{k} \sum_{i=1}^{k} \mathbf{E}^{(i)}[h_i(t)]
+$$
 
 where $h_i$ is the $i$-th hash function and $\mathbf{E}^{(i)}$ is the $i$-th embedding table.
 
@@ -2108,7 +2133,7 @@ class HashEmbedding(nn.Module):
     """
     Hash embedding using the hashing trick.
 
-    Instead of storing V embeddings, store K \lt V embeddings.
+    Instead of storing V embeddings, store K < V embeddings.
     Multiple tokens hash to same embedding (collision).
 
     Useful for very large vocabularies where rare tokens can share embeddings.
@@ -2125,7 +2150,7 @@ class HashEmbedding(nn.Module):
         Args:
             vocab_size: Original vocabulary size
             embedding_dim: Embedding dimension
-            num_buckets: Number of hash buckets (K \lt V)
+            num_buckets: Number of hash buckets (K < V)
             num_hashes: Number of hash functions (ensemble)
         """
         super().__init__()
@@ -2681,9 +2706,10 @@ d_llama = 4096  # 524M parameters just for embeddings!
 
 Skip-gram maximizes:
 
-```math
-\large \mathcal{L} = \sum_{t=1}^{T} \sum_{-k \leq j \leq k, j \neq 0} \log p(w_{t+j} | w_t)
-```
+$$
+\large
+\mathcal{L} = \sum_{t=1}^{T} \sum_{-k \leq j \leq k, j \neq 0} \log p(w_{t+j} | w_t)
+$$
 
 where $p(w_{O} | w_{I}) = \frac{\exp(\mathbf{v}_{w_{O}}^\top \mathbf{v}_{w_{I}})}{\sum_{w} \exp(\mathbf{v}_w^\top \mathbf{v}_{w_{I}})}$
 

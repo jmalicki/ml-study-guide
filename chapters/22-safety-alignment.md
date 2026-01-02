@@ -107,17 +107,19 @@ Given a prompt $p$ and initial response $r_0$, the critique-revision process can
 
 **Critique Step:**
 
-```math
-\large c = \text{Model}(p, r_0, \text{principle}_i)
-```
+$$
+\large
+c = \text{Model}(p, r_0, \text{principle}_i)
+$$
 
 where $c$ is a critique identifying issues with $r_0$ according to principle $i$.
 
 **Revision Step:**
 
-```math
-\large r_1 = \text{Model}(p, r_0, c, \text{"revise the response"})
-```
+$$
+\large
+r_1 = \text{Model}(p, r_0, c, \text{"revise the response"})
+$$
 
 The model learns to generate $r_1$ that addresses the critique $c$.
 
@@ -147,9 +149,10 @@ Instead of having humans write the "correct" response, we can have the model:
 
 Mathematically, this creates a trajectory of improving responses:
 
-```math
-\large r_0 \xrightarrow{\text{critique}_{p_1}} r_1 \xrightarrow{\text{critique}_{p_2}} r_2 \xrightarrow{\text{critique}_{p_3}} \ldots \xrightarrow{\text{critique}_{p_n}} r_n
-```
+$$
+\large
+r_0 \xrightarrow{\text{critique}_{p_1}} r_1 \xrightarrow{\text{critique}_{p_2}} r_2 \xrightarrow{\text{critique}_{p_3}} \ldots \xrightarrow{\text{critique}_{p_n}} r_n
+$$
 
 where each $p_i$ is a constitutional principle, and $r_n$ is more aligned than $r_0$.
 
@@ -319,7 +322,7 @@ Revised Response:"""
                 critique = self.critique_response(prompt, response, principle)
 
                 # If critique identifies issues, revise
-                if len(critique) \gt 10:  # Simple heuristic
+                if len(critique) > 10:  # Simple heuristic
                     response = self.revise_response(prompt, response, critique)
                     history.append(f"Revision {i+1} ({principle[:30]}...): {response}")
 
@@ -397,7 +400,7 @@ Answer:"""
                         votes_a += 1
 
                 # Determine chosen and rejected
-                if votes_a \gt len(self.constitution) / 2:
+                if votes_a > len(self.constitution) / 2:
                     chosen, rejected = response_a, response_b
                 else:
                     chosen, rejected = response_b, response_a
@@ -487,17 +490,19 @@ Automated red teaming frames safety testing as an **adversarial game** between:
 
 This can be formalized as an optimization problem:
 
-```math
-\large \max_{p \in \mathcal{P}} \mathbb{P}(\text{Harmful}(M(p)))
-```
+$$
+\large
+\max_{p \in \mathcal{P}} \mathbb{P}(\text{Harmful}(M(p)))
+$$
 
 where $\mathcal{P}$ is the space of prompts, $M$ is the target model, and $\text{Harmful}(\cdot)$ is an evaluation function.
 
 **Gradient-based attacks** (like GCG) optimize directly in embedding space:
 
-```math
-\large p^\ast = \arg\max_p \log P_M(y_{\text{harmful}} | p)
-```
+$$
+\large
+p^* = \arg\max_p \log P_M(y_{\text{harmful}} | p)
+$$
 
 where $y_{\text{harmful}}$ is a known harmful completion. The attack finds a prompt that maximizes the probability of generating harmful content.
 
@@ -679,8 +684,8 @@ class RedTeamingSystem:
                 category_results['responses'].append(response)
                 category_results['toxicity_scores'].append(toxicity)
 
-                # Count as failure if toxicity \gt threshold
-                if toxicity \gt 0.5:
+                # Count as failure if toxicity > threshold
+                if toxicity > 0.5:
                     category_results['failures'] += 1
 
             # Compute statistics
@@ -822,9 +827,10 @@ Harmlessness training focuses on preventing the model from generating harmful co
 
 The probability that a model generates harmful content depends on its exposure during training:
 
-```math
-\large P(\text{harmful output}) \propto \int_{\text{harmful examples}} P(\text{data}) \, d\text{data}
-```
+$$
+\large
+P(\text{harmful output}) \propto \int_{\text{harmful examples}} P(\text{data}) \, d\text{data}
+$$
 
 By filtering harmful examples, we reduce this integral, lowering the base rate of harmful outputs.
 
@@ -884,7 +890,7 @@ class HarmfulContentFilter:
         for i, text in enumerate(texts):
             # Check toxicity score if provided
             if toxicity_scores is not None:
-                if toxicity_scores[i] \gt self.min_toxicity_threshold:
+                if toxicity_scores[i] > self.min_toxicity_threshold:
                     continue
 
             # Check keyword filter
@@ -965,9 +971,10 @@ def generate_response(model, tokenizer, prompt, temperature=0.7):
 
 We want to optimize for multiple, potentially conflicting objectives. The standard approach is a weighted combination:
 
-```math
-\large R_{\text{harmless}}(x, y) = \alpha R_{\text{helpful}}(x, y) - \beta R_{\text{harmful}}(x, y)
-```
+$$
+\large
+R_{\text{harmless}}(x, y) = \alpha R_{\text{helpful}}(x, y) - \beta R_{\text{harmful}}(x, y)
+$$
 
 where:
 
@@ -985,15 +992,15 @@ where:
 
 **vs. Single Reward Model**: A single reward model may conflate helpfulness and safety, making it unclear why certain responses are preferred.
 
-**vs. Constraint-based Methods**: Instead of $R = \alpha R_h - \beta R_{\text{harm}}$, we could use constraints like "maximize $R_h$ subject to $R_{\text{harm}} \lt \tau$". The weighted approach is simpler to optimize but constraint methods provide hard safety guarantees.
+**vs. Constraint-based Methods**: Instead of $R = \alpha R_h - \beta R_{\text{harm}}$, we could use constraints like "maximize $R_h$ subject to $R_{\text{harm}} < \tau$". The weighted approach is simpler to optimize but constraint methods provide hard safety guarantees.
 
 **vs. Sequential Training**: We could first train for helpfulness, then for safety. Multi-objective training jointly optimizes both, avoiding destructive updates.
 
 **Pareto Optimality**: The weights $\alpha, \beta$ trace out different points on the Pareto frontier between helpfulness and safety. In practice:
 
-- $\beta \gt \alpha$: Prioritize safety (typical for consumer applications)
+- $\beta > \alpha$: Prioritize safety (typical for consumer applications)
 - $\beta = \alpha$: Balanced (typical for research assistants)
-- $\beta \lt \alpha$: Prioritize capability (rare; only for specialized applications with guardrails)
+- $\beta < \alpha$: Prioritize capability (rare; only for specialized applications with guardrails)
 
 ```python
 class HarmlessnessRewardModel(nn.Module):
@@ -1126,7 +1133,7 @@ class RefusalDataset:
         """
         pairs = []
 
-        # Refusal examples: proper refusal \gt harmful response
+        # Refusal examples: proper refusal > harmful response
         for example in self.refusal_examples:
             pairs.append((
                 example["prompt"],
@@ -1134,7 +1141,7 @@ class RefusalDataset:
                 "Here's how to do that..."  # Rejected: harmful compliance
             ))
 
-        # Helpful examples: helpful \gt over-refusal
+        # Helpful examples: helpful > over-refusal
         for example in self.helpful_examples:
             pairs.append((
                 example["prompt"],
@@ -1166,12 +1173,13 @@ Jailbreaks exploit the gap between the model's **semantic understanding** and **
 
 Mathematically, a jailbreak $p_{\text{jail}}$ satisfies:
 
-```math
-\large \begin{align}
-P(M(p_{\text{jail}}) = \text{harmful}) &\gt \tau \\
-\text{Safety-Classifier}(p_{\text{jail}}) &\lt \epsilon
+$$
+\large
+\begin{align}
+P(M(p_{\text{jail}}) = \text{harmful}) &> \tau \\
+\text{Safety-Classifier}(p_{\text{jail}}) &< \epsilon
 \end{align}
-```
+$$
 
 The jailbreak elicits harmful output while appearing safe to naive classifiers.
 
@@ -1250,7 +1258,7 @@ class JailbreakDetector:
             if re.search(pattern, prompt):
                 matches.append(pattern)
 
-        is_jailbreak = len(matches) \gt 0
+        is_jailbreak = len(matches) > 0
         return is_jailbreak, matches
 
     def get_safe_response(self, prompt: str) -> str:
@@ -1362,9 +1370,10 @@ The "alignment tax" refers to the potential degradation in model capabilities th
 
 ### The Tradeoff
 
-```math
-\large \text{Deployed Model Quality} = \text{Capability} - \text{Alignment Tax}
-```
+$$
+\large
+\text{Deployed Model Quality} = \text{Capability} - \text{Alignment Tax}
+$$
 
 Safety training can negatively impact:
 
@@ -1387,9 +1396,10 @@ Safety training can negatively impact:
 
 Define the alignment tax as the relative performance degradation:
 
-```math
-\large \text{Tax} = \frac{\text{Capability}_{\text{base}} - \text{Capability}_{\text{aligned}}}{\text{Capability}_{\text{base}}}
-```
+$$
+\large
+\text{Tax} = \frac{\text{Capability}_{\text{base}} - \text{Capability}_{\text{aligned}}}{\text{Capability}_{\text{base}}}
+$$
 
 This measures the fraction of performance lost due to alignment.
 
@@ -1402,14 +1412,15 @@ This measures the fraction of performance lost due to alignment.
 
 **Multi-dimensional Evaluation**:
 
-```math
-\large \text{Tax} = \begin{bmatrix}
+$$
+\large
+\text{Tax} = \begin{bmatrix}
 \tau_{\text{accuracy}} \\
 \tau_{\text{creativity}} \\
 \tau_{\text{helpfulness}} \\
 \tau_{\text{refusal-rate}}
 \end{bmatrix}
-```
+$$
 
 Different applications care about different dimensions.
 
@@ -1425,9 +1436,10 @@ Different applications care about different dimensions.
 
 Over-refusal is particularly problematic:
 
-```math
-\large \text{Over-refusal Rate} = \frac{\text{Refused Safe Queries}}{\text{Total Safe Queries}}
-```
+$$
+\large
+\text{Over-refusal Rate} = \frac{\text{Refused Safe Queries}}{\text{Total Safe Queries}}
+$$
 
 High over-refusal indicates the model is too conservative, harming user experience.
 
@@ -1515,7 +1527,7 @@ class AlignmentTaxEvaluator:
             aligned_score = self.evaluate_benchmark(dataset, "aligned")
 
             # Alignment tax is the relative degradation
-            tax = (base_score - aligned_score) / base_score if base_score \gt 0 else 0
+            tax = (base_score - aligned_score) / base_score if base_score > 0 else 0
 
             results[name] = {
                 "base_accuracy": base_score,
@@ -1644,9 +1656,10 @@ One of the most challenging problems in alignment is **reward hacking** (also ca
 
 In the context of LLM alignment:
 
-```math
-\large \text{Optimizing } R_{\text{proxy}}(x, y) \neq \text{Optimizing } R_{\text{true}}(x, y)
-```
+$$
+\large
+\text{Optimizing } R_{\text{proxy}}(x, y) \neq \text{Optimizing } R_{\text{true}}(x, y)
+$$
 
 The proxy reward $R_{\text{proxy}}$ (what we can measure) diverges from the true reward $R_{\text{true}}$ (what we actually want) when the model is optimized too aggressively.
 
@@ -1706,27 +1719,31 @@ Let's formalize reward hacking. The true utility we care about is $U(y|x)$, but 
 
 **Reward Misspecification Gap:**
 
-```math
-\large \Delta(y|x) = U(y|x) - \alpha R(y|x)
-```
+$$
+\large
+\Delta(y|x) = U(y|x) - \alpha R(y|x)
+$$
 
 where $\alpha$ is a scaling factor. During RL training, we optimize:
 
-```math
-\large \pi^\ast = \arg\max_\pi \mathbb{E}_{x,y \sim \pi}[R(y|x)]
-```
+$$
+\large
+\pi^* = \arg\max_\pi \mathbb{E}_{x,y \sim \pi}[R(y|x)]
+$$
 
 But what we actually want is:
 
-```math
-\large \pi^\ast_{\text{true}} = \arg\max_\pi \mathbb{E}_{x,y \sim \pi}[U(y|x)]
-```
+$$
+\large
+\pi^*_{\text{true}} = \arg\max_\pi \mathbb{E}_{x,y \sim \pi}[U(y|x)]
+$$
 
 As optimization pressure increases (more RL training), the model finds edge cases where $R$ and $U$ diverge:
 
-```math
-\large \lim_{t \to \infty} \mathbb{E}[\Delta(y_t|x)] \to \max_{y} \Delta(y|x)
-```
+$$
+\large
+\lim_{t \to \infty} \mathbb{E}[\Delta(y_t|x)] \to \max_{y} \Delta(y|x)
+$$
 
 The model exploits the largest gaps between proxy and true reward.
 
@@ -1856,7 +1873,7 @@ class RewardHackingDetector:
         words = len(response.split())
         agreement_rate = agreement_count / max(words / 50, 1)  # Per 50 words
 
-        is_sycophantic = agreement_rate \gt 0.3
+        is_sycophantic = agreement_rate > 0.3
         confidence = min(agreement_rate / 0.5, 1.0)
 
         return is_sycophantic, confidence
@@ -1903,8 +1920,8 @@ class RewardHackingDetector:
         # 2. Low unique sentence ratio (< 0.7)
         # 3. Low compression (< 4 bytes/word suggests fluff)
         is_verbose_hack = (
-            length_ratio \gt 2.0 and
-            unique_sentence_ratio \lt 0.7
+            length_ratio > 2.0 and
+            unique_sentence_ratio < 0.7
         )
 
         return is_verbose_hack, metrics
@@ -1951,7 +1968,7 @@ class RewardHackingDetector:
         # Divergence: proxy says good, gold says bad
         divergence = proxy_reward - gold_reward
 
-        is_divergent = divergence \gt threshold
+        is_divergent = divergence > threshold
 
         return is_divergent, divergence
 
@@ -2124,9 +2141,10 @@ def create_anti_hacking_dataset() -> List[Tuple[str, str, str]]:
 
 Instead of a single proxy $R(x,y)$, use multiple rewards measuring different aspects:
 
-```math
-\large R_{\text{total}}(x,y) = \sum_{i} w_i R_i(x,y)
-```
+$$
+\large
+R_{\text{total}}(x,y) = \sum_{i} w_i R_i(x,y)
+$$
 
 where $R_i$ measures different objectives (helpfulness, honesty, conciseness, etc.).
 
@@ -2140,9 +2158,10 @@ For example:
 
 Mathematically, we want:
 
-```math
-\large \text{Corr}(R_i, R_j) \approx 0 \text{ for } i \neq j
-```
+$$
+\large
+\text{Corr}(R_i, R_j) \approx 0 \text{ for } i \neq j
+$$
 
 **Why this reduces hacking**: To maximize the combined reward, the model must find responses that score well on ALL metrics. Hacks typically exploit one metric at the expense of others:
 
@@ -2243,9 +2262,10 @@ class MultiMetricRewardModel(nn.Module):
 
 The KL divergence penalty in PPO helps prevent extreme optimization:
 
-```math
-\large \beta \mathbb{D}_{\text{KL}}(\pi_\theta \| \pi_{\text{ref}})
-```
+$$
+\large
+\beta \mathbb{D}_{\text{KL}}(\pi_\theta \| \pi_{\text{ref}})
+$$
 
 This keeps the policy close to the reference, limiting how much it can exploit reward model weaknesses.
 
@@ -2253,15 +2273,17 @@ This keeps the policy close to the reference, limiting how much it can exploit r
 
 Use ensembles or Bayesian reward models to estimate uncertainty:
 
-```math
-\large \text{Uncertainty}(x,y) = \text{Var}_{i \in \text{ensemble}}[R_i(x,y)]
-```
+$$
+\large
+\text{Uncertainty}(x,y) = \text{Var}_{i \in \text{ensemble}}[R_i(x,y)]
+$$
 
 Penalize actions with high reward but high uncertainty:
 
-```math
-\large R_{\text{robust}}(x,y) = \mathbb{E}[R(x,y)] - \lambda \sqrt{\text{Var}[R(x,y)]}
-```
+$$
+\large
+R_{\text{robust}}(x,y) = \mathbb{E}[R(x,y)] - \lambda \sqrt{\text{Var}[R(x,y)]}
+$$
 
 ### Key Takeaways
 
@@ -2302,21 +2324,24 @@ RLAIF follows the same RL framework as RLHF (see [RLHF](20-rlhf.md)), but the re
 
 1. **AI Preference Generation**:
 
-   ```math
-\large P(y_1 \succ y_2 | x) = \text{AI-Evaluator}(x, y_1, y_2, \text{constitution})
-   ```
+   $$
+\large
+P(y_1 \succ y_2 | x) = \text{AI-Evaluator}(x, y_1, y_2, \text{constitution})
+   $$
 
 2. **Reward Model Training**:
 
-   ```math
-\large \mathcal{L}_R(\phi) = -\mathbb{E}_{(x,y_w,y_l) \sim \mathcal{D}_{\text{AI}}} \left[ \log \sigma(R_\phi(x,y_w) - R_\phi(x,y_l)) \right]
-   ```
+   $$
+\large
+\mathcal{L}_R(\phi) = -\mathbb{E}_{(x,y_w,y_l) \sim \mathcal{D}_{\text{AI}}} \left[ \log \sigma(R_\phi(x,y_w) - R_\phi(x,y_l)) \right]
+   $$
 
 3. **Policy Optimization** (same as RLHF):
 
-   ```math
-\large \max_\theta \mathbb{E}_{x \sim \mathcal{D}, y \sim \pi_\theta} \left[ R_\phi(x,y) - \beta \log \frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y|x)} \right]
-   ```
+   $$
+\large
+\max_\theta \mathbb{E}_{x \sim \mathcal{D}, y \sim \pi_\theta} \left[ R_\phi(x,y) - \beta \log \frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y|x)} \right]
+   $$
 
 ### Bradley-Terry Model: Mathematical Derivation
 
@@ -2330,9 +2355,10 @@ Given two responses $y_1$ and $y_2$ to prompt $x$, we want to model the probabil
 
 **Assumption 2**: The probability of preferring $y_1$ depends only on the difference in quality:
 
-```math
-\large P(y_1 \succ y_2 | x) = f(r_1 - r_2)
-```
+$$
+\large
+P(y_1 \succ y_2 | x) = f(r_1 - r_2)
+$$
 
 where $f$ is a monotonically increasing function.
 
@@ -2344,9 +2370,10 @@ where $f$ is a monotonically increasing function.
 
 The **logistic function** (sigmoid) satisfies all these properties:
 
-```math
-\large P(y_1 \succ y_2 | x) = \sigma(r_1 - r_2) = \frac{1}{1 + e^{-(r_1 - r_2)}}
-```
+$$
+\large
+P(y_1 \succ y_2 | x) = \sigma(r_1 - r_2) = \frac{1}{1 + e^{-(r_1 - r_2)}}
+$$
 
 This is the **Bradley-Terry model**.
 
@@ -2354,21 +2381,24 @@ This is the **Bradley-Terry model**.
 
 We can also derive this from rational choice theory. Assume preferences follow the **Luce choice axiom**: the probability of choosing option $i$ from a set is proportional to its "value" $v_i$:
 
-```math
-\large P(\text{choose } i) = \frac{v_i}{\sum_j v_j}
-```
+$$
+\large
+P(\text{choose } i) = \frac{v_i}{\sum_j v_j}
+$$
 
 For binary choice between $y_1$ and $y_2$:
 
-```math
-\large P(y_1 \succ y_2) = \frac{v_1}{v_1 + v_2}
-```
+$$
+\large
+P(y_1 \succ y_2) = \frac{v_1}{v_1 + v_2}
+$$
 
 If we parameterize value as $v_i = e^{r_i}$ (exponential relationship between reward and value):
 
-```math
-\large P(y_1 \succ y_2) = \frac{e^{r_1}}{e^{r_1} + e^{r_2}} = \frac{1}{1 + e^{r_2 - r_1}} = \sigma(r_1 - r_2)
-```
+$$
+\large
+P(y_1 \succ y_2) = \frac{e^{r_1}}{e^{r_1} + e^{r_2}} = \frac{1}{1 + e^{r_2 - r_1}} = \sigma(r_1 - r_2)
+$$
 
 We recover the Bradley-Terry model!
 
@@ -2376,27 +2406,31 @@ We recover the Bradley-Terry model!
 
 Given preference data $\mathcal{D} = \{(x_i, y^w_i, y^l_i)\}$ where $y^w$ is preferred ("win") and $y^l$ is rejected ("loss"), we want to find parameters $\phi$ that maximize the likelihood:
 
-```math
-\large \mathcal{L}(\phi) = \prod_{i=1}^{N} P(y^w_i \succ y^l_i | x_{i}; \phi)
-```
+$$
+\large
+\mathcal{L}(\phi) = \prod_{i=1}^{N} P(y^w_i \succ y^l_i | x_{i}; \phi)
+$$
 
 Using the Bradley-Terry model:
 
-```math
-\large \mathcal{L}(\phi) = \prod_{i=1}^{N} \sigma(R_\phi(x_i, y^w_i) - R_\phi(x_i, y^l_i))
-```
+$$
+\large
+\mathcal{L}(\phi) = \prod_{i=1}^{N} \sigma(R_\phi(x_i, y^w_i) - R_\phi(x_i, y^l_i))
+$$
 
 Taking the log (for numerical stability):
 
-```math
-\large \log \mathcal{L}(\phi) = \sum_{i=1}^{N} \log \sigma(R_\phi(x_i, y^w_i) - R_\phi(x_i, y^l_i))
-```
+$$
+\large
+\log \mathcal{L}(\phi) = \sum_{i=1}^{N} \log \sigma(R_\phi(x_i, y^w_i) - R_\phi(x_i, y^l_i))
+$$
 
 For minimization (standard in deep learning), we negate:
 
-```math
-\large \mathcal{L}_{\text{BT}}(\phi) = -\frac{1}{N} \sum_{i=1}^{N} \log \sigma(R_\phi(x_i, y^w_i) - R_\phi(x_i, y^l_i))
-```
+$$
+\large
+\mathcal{L}_{\text{BT}}(\phi) = -\frac{1}{N} \sum_{i=1}^{N} \log \sigma(R_\phi(x_i, y^w_i) - R_\phi(x_i, y^l_i))
+$$
 
 This is the **Bradley-Terry loss** used in RLHF and RLAIF.
 
@@ -2406,9 +2440,10 @@ This is the **Bradley-Terry loss** used in RLHF and RLAIF.
 
 The Bradley-Terry model depends only on reward *differences*:
 
-```math
-\large R(x,y) + c \equiv R(x,y)
-```
+$$
+\large
+R(x,y) + c \equiv R(x,y)
+$$
 
 Adding a constant $c$ to all rewards doesn't change preferences. This means rewards are only meaningful in comparison.
 
@@ -2420,9 +2455,10 @@ If we have preferences $y_1 \succ y_2$ and $y_2 \succ y_3$, the model implies $y
 
 The model predicts that if $r_1 - r_2 = 2$, then:
 
-```math
-\large P(y_1 \succ y_2) = \sigma(2) \approx 0.88
-```
+$$
+\large
+P(y_1 \succ y_2) = \sigma(2) \approx 0.88
+$$
 
 We can check if this matches actual preference rates in validation data (calibration plot).
 
@@ -2430,9 +2466,10 @@ We can check if this matches actual preference rates in validation data (calibra
 
 The Bradley-Terry model is more confident when $|r_1 - r_2|$ is large. We can quantify uncertainty as:
 
-```math
-\large H = -P \log P - (1-P) \log(1-P)
-```
+$$
+\large
+H = -P \log P - (1-P) \log(1-P)
+$$
 
 where $P = \sigma(r_1 - r_2)$ is the predicted preference probability. High entropy $H$ means high uncertainty.
 
@@ -2442,19 +2479,21 @@ where $P = \sigma(r_1 - r_2)$ is the predicted preference probability. High entr
 
 If annotators can express indifference:
 
-```math
-\large P(y_1 \sim y_2) = f(|r_1 - r_2|, \tau)
-```
+$$
+\large
+P(y_1 \sim y_2) = f(|r_1 - r_2|, \tau)
+$$
 
 where $\tau$ is a threshold for considering responses equivalent.
 
 **2. Multi-Alternative Bradley-Terry**
 
-For ranking $K \gt 2$ responses:
+For ranking $K > 2$ responses:
 
-```math
-\large P(y_i \text{ is best}) = \frac{e^{r_i}}{\sum_{j=1}^{K} e^{r_j}}
-```
+$$
+\large
+P(y_i \text{ is best}) = \frac{e^{r_i}}{\sum_{j=1}^{K} e^{r_j}}
+$$
 
 This becomes a softmax over rewards.
 
@@ -2462,9 +2501,10 @@ This becomes a softmax over rewards.
 
 Preferences may depend on context (user, task type, etc.):
 
-```math
-\large P(y_1 \succ y_2 | x, c) = \sigma(R_\phi(x, y_1, c) - R_\phi(x, y_2, c))
-```
+$$
+\large
+P(y_1 \succ y_2 | x, c) = \sigma(R_\phi(x, y_1, c) - R_\phi(x, y_2, c))
+$$
 
 where $c$ is context.
 
@@ -2474,17 +2514,19 @@ The reward model's accuracy directly impacts RL performance. If the reward model
 
 **Propagation to Policy**: Errors accumulate during RL. A policy optimized for a noisy reward will be suboptimal:
 
-```math
-\large \mathbb{E}[R_{\text{true}}(\pi_{\text{trained}})] \leq \mathbb{E}[R_{\text{true}}(\pi^\ast)] - O(\epsilon \cdot T)
-```
+$$
+\large
+\mathbb{E}[R_{\text{true}}(\pi_{\text{trained}})] \leq \mathbb{E}[R_{\text{true}}(\pi^*)] - O(\epsilon \cdot T)
+$$
 
 where $T$ is the number of RL steps.
 
 **Overoptimization**: As we optimize more aggressively, the policy exploits reward model errors:
 
-```math
-\large \text{True Quality}(y) \text{ decreases while } R_{\text{model}}(y) \text{ increases}
-```
+$$
+\large
+\text{True Quality}(y) \text{ decreases while } R_{\text{model}}(y) \text{ increases}
+$$
 
 This is another form of reward hacking (Goodhart's law).
 
@@ -2582,8 +2624,8 @@ class BradleyTerryRewardModel(nn.Module):
         Returns:
             Loss scalar
         """
-        # P(chosen \gt rejected) = sigmoid(r_chosen - r_rejected)
-        # Loss = -log P(chosen \gt rejected)
+        # P(chosen > rejected) = sigmoid(r_chosen - r_rejected)
+        # Loss = -log P(chosen > rejected)
         loss = -F.logsigmoid(r_chosen - r_rejected).mean()
         return loss
 
@@ -2592,7 +2634,7 @@ class BradleyTerryRewardModel(nn.Module):
         r1: torch.Tensor,
         r2: torch.Tensor
     ) -> torch.Tensor:
-        """Compute P(response1 \gt response2).
+        """Compute P(response1 > response2).
 
         Args:
             r1: Reward for first response
@@ -2646,8 +2688,8 @@ class BradleyTerryRewardModel(nn.Module):
 
         calibration_errors = []
         for i in range(n_bins):
-            mask = (predicted_probs >= bins[i]) & (predicted_probs \lt bins[i+1])
-            if mask.sum() \gt 0:
+            mask = (predicted_probs >= bins[i]) & (predicted_probs < bins[i+1])
+            if mask.sum() > 0:
                 avg_pred = predicted_probs[mask].mean()
                 avg_actual = actual_preferences[mask].float().mean()
                 calibration_errors.append(abs(avg_pred - avg_actual).item())
@@ -2655,7 +2697,7 @@ class BradleyTerryRewardModel(nn.Module):
         return {
             'mean_calibration_error': sum(calibration_errors) / len(calibration_errors) if calibration_errors else 0,
             'brier_score': F.mse_loss(predicted_probs, actual_preferences.float()).item(),
-            'accuracy': ((predicted_probs \gt 0.5) == actual_preferences).float().mean().item()
+            'accuracy': ((predicted_probs > 0.5) == actual_preferences).float().mean().item()
         }
 
 
@@ -2694,7 +2736,7 @@ def demo_bradley_terry():
 
     # Compute preference probabilities
     probs = model.preference_probability(r_chosen, r_rejected)
-    print(f"\nPreference Probabilities (chosen \gt rejected):")
+    print(f"\nPreference Probabilities (chosen > rejected):")
     for i, (p, c, r) in enumerate(preferences):
         print(f"  {i+1}. P(chosen>rejected) = {probs[i].item():.3f}")
 
@@ -2755,9 +2797,10 @@ RLAIF uses the model's own (or another AI's) judgment to evaluate responses. The
 
 Mathematically, we want:
 
-```math
-\large P_{\text{AI}}(y_1 \succ y_2 | x, \text{principle}) \approx P_{\text{Human}}(y_1 \succ y_2 | x)
-```
+$$
+\large
+P_{\text{AI}}(y_1 \succ y_2 | x, \text{principle}) \approx P_{\text{Human}}(y_1 \succ y_2 | x)
+$$
 
 This holds when:
 
@@ -2945,7 +2988,7 @@ Answer:"""
                 for _ in range(responses_per_prompt)
             ]
 
-            if len(responses) \lt 2:
+            if len(responses) < 2:
                 continue
 
             response_a, response_b = responses[0], responses[1]
@@ -3196,17 +3239,19 @@ if __name__ == "__main__":
 
 Each safety layer has some false negative rate (miss rate) $\epsilon_i$. With $n$ independent layers:
 
-```math
-\large P(\text{all layers fail}) = \prod_{i=1}^n \epsilon_i
-```
+$$
+\large
+P(\text{all layers fail}) = \prod_{i=1}^n \epsilon_i
+$$
 
 For example, with 3 layers each with 10% miss rate: $0.1 \times 0.1 \times 0.1 = 0.001$ (0.1% combined miss rate).
 
 However, layers are often **not independent** - they may fail on the same adversarial examples. The practical miss rate is higher than the theoretical minimum:
 
-```math
-\large P(\text{all fail}) \gt \prod_i \epsilon_i
-```
+$$
+\large
+P(\text{all fail}) > \prod_i \epsilon_i
+$$
 
 Best practice: Use diverse detection methods (pattern matching, ML classifiers, LLM evaluation) to increase independence.
 
@@ -3317,7 +3362,7 @@ class SafetyPipeline:
         toxicity = self._compute_toxicity(response)
         result["metadata"]["toxicity"] = toxicity
 
-        if toxicity \gt self.toxicity_threshold:
+        if toxicity > self.toxicity_threshold:
             result["is_safe"] = False
             result["safety_issues"].append("toxic_output")
             result["response"] = self._get_refusal_message()
@@ -3441,9 +3486,10 @@ if __name__ == "__main__":
 
 Production toxicity classifiers are typically **multi-label classifiers** trained on human-annotated datasets:
 
-```math
-\large P(\text{toxic}_i | x) = \sigma(f_i(x))
-```
+$$
+\large
+P(\text{toxic}_i | x) = \sigma(f_i(x))
+$$
 
 where $i$ indexes different toxicity types (overall toxicity, threat, insult, identity attack, etc.).
 
@@ -3566,10 +3612,10 @@ class DetoxifyToxicityClassifier:
 
         if check_all_dimensions:
             # Toxic if ANY dimension exceeds threshold
-            is_toxic = any(score \gt threshold for score in scores.values())
+            is_toxic = any(score > threshold for score in scores.values())
         else:
             # Only check overall toxicity
-            is_toxic = scores['toxicity'] \gt threshold
+            is_toxic = scores['toxicity'] > threshold
 
         return is_toxic, scores
 
@@ -3608,7 +3654,7 @@ def demo_detoxify():
         print(f"Is Toxic: {is_toxic}")
         print(f"Scores:")
         for dimension, score in scores.items():
-            indicator = "⚠️" if score \gt 0.5 else "✓"
+            indicator = "⚠️" if score > 0.5 else "✓"
             print(f"  {indicator} {dimension}: {score:.3f}")
 
         # Get maximum toxicity dimension
@@ -3762,7 +3808,7 @@ class PerspectiveAPIToxicityClassifier:
         report = {
             'text': text,
             'overall_toxicity': scores.get('TOXICITY', 0),
-            'is_toxic': scores.get('TOXICITY', 0) \gt 0.7,
+            'is_toxic': scores.get('TOXICITY', 0) > 0.7,
             'dimensions': scores,
             'max_toxicity': max(scores.items(), key=lambda x: x[1]) if scores else ('NONE', 0)
         }
@@ -3903,7 +3949,7 @@ class HuggingFaceToxicityClassifier:
         # Check for toxic labels
         toxic_labels = ['toxic', 'LABEL_1', 'toxicity']  # Different models use different labels
         is_toxic = any(
-            scores.get(label, 0) \gt threshold
+            scores.get(label, 0) > threshold
             for label in toxic_labels
         )
 
@@ -4029,7 +4075,7 @@ def demo_production_safety_pipeline():
                 detailed = pipeline._get_detailed_toxicity(prompt)
                 print(f"Detailed Scores:")
                 for dim, score in detailed.items():
-                    if score \gt 0.3:  # Only show elevated scores
+                    if score > 0.3:  # Only show elevated scores
                         print(f"  {dim}: {score:.3f}")
 
     # Print safety report
@@ -4059,11 +4105,11 @@ if __name__ == "__main__":
 
 
    ```python
-   if toxicity \gt 0.9:
+   if toxicity > 0.9:
        action = "block"
-   elif toxicity \gt 0.7:
+   elif toxicity > 0.7:
        action = "flag_for_review"
-   elif toxicity \gt 0.5:
+   elif toxicity > 0.5:
        action = "log_and_monitor"
    ```
 

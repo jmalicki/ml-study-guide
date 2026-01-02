@@ -83,15 +83,17 @@ The key insight is that large language models have implicitly learned to decompo
 
 Formally, we're changing the generation objective from:
 
-```math
-\large P(a|q) \quad \text{(direct answer)}
-```
+$$
+\large
+P(a|q) \quad \text{(direct answer)}
+$$
 
 to:
 
-```math
-\large P(r, a|q, \text{"Let's think step by step"}) \quad \text{(reasoning + answer)}
-```
+$$
+\large
+P(r, a|q, \text{"Let's think step by step"}) \quad \text{(reasoning + answer)}
+$$
 
 #### Comparison to Alternatives
 
@@ -256,9 +258,10 @@ print(f"Answer: {answer}")
 
 Chain-of-thought can be viewed as decomposing the probability distribution:
 
-```math
-\large P(a|q) = \sum_{r \in \mathcal{R}} P(a|r, q) P(r|q)
-```
+$$
+\large
+P(a|q) = \sum_{r \in \mathcal{R}} P(a|r, q) P(r|q)
+$$
 
 Where:
 
@@ -267,11 +270,12 @@ Where:
 - $r$ is the reasoning trace
 - $\mathcal{R}$ is the space of all possible reasoning traces
 
-In practice, we approximate by sampling or greedily generating a single reasoning trace $r^\ast$:
+In practice, we approximate by sampling or greedily generating a single reasoning trace $r^*$:
 
-```math
-\large a^\ast \approx \arg\max_a P(a|r^\ast, q) \text{ where } r^\ast = \arg\max_r P(r|q)
-```
+$$
+\large
+a^* \approx \arg\max_a P(a|r^*, q) \text{ where } r^* = \arg\max_r P(r|q)
+$$
 
 **References:**
 
@@ -304,9 +308,10 @@ Self-consistency addresses this by treating reasoning as a **stochastic process*
 
 Self-consistency is based on the **wisdom of crowds** principle from ensemble learning:
 
-```math
-\large a^\ast = \text{argmax}_a \sum_{r \in \mathcal{R}} P(a|r, q) P(r|q) \approx \text{mode}\{a_1, a_2, ..., a_N\}
-```
+$$
+\large
+a^* = \text{argmax}_a \sum_{r \in \mathcal{R}} P(a|r, q) P(r|q) \approx \text{mode}\{a_1, a_2, ..., a_N\}
+$$
 
 where we approximate the marginalized distribution over reasoning paths by sampling $N$ paths and taking a majority vote.
 
@@ -503,9 +508,10 @@ Least-to-Most explicitly structures the problem-solving process to build solutio
 
 This approach is inspired by **curriculum learning** and **dynamic programming**. The key idea is that complex problems can be factored into:
 
-```math
-\large P(a|q) = P(a | s_n, s_{n-1}, ..., s_1, q) \prod_{i=1}^{n} P(s_i | s_{i-1}, ..., s_1, q)
-```
+$$
+\large
+P(a|q) = P(a | s_n, s_{n-1}, ..., s_1, q) \prod_{i=1}^{n} P(s_i | s_{i-1}, ..., s_1, q)
+$$
 
 where $s_i$ are subproblem solutions. By solving subproblems sequentially, we:
 
@@ -740,9 +746,10 @@ PAL is based on the **neuro-symbolic** paradigm, combining:
 
 The division of labor is:
 
-```math
-\large \text{LLM}: \text{Problem} \rightarrow \text{Code} \quad\quad \text{Interpreter}: \text{Code} \rightarrow \text{Answer}
-```
+$$
+\large
+\text{LLM}: \text{Problem} \rightarrow \text{Code} \quad\quad \text{Interpreter}: \text{Code} \rightarrow \text{Answer}
+$$
 
 This exploits the complementary strengths of each system:
 
@@ -1561,7 +1568,7 @@ class ThoughtNode:
 
     def __lt__(self, other):
         # For heap operations (higher score = better)
-        return self.score \gt other.score
+        return self.score > other.score
 
     def get_path(self) -> List[str]:
         """Get the path from root to this node."""
@@ -1795,7 +1802,7 @@ Only rewards correct final answers, regardless of reasoning quality.
 **Process Reward Model (PRM):**
 
 $$
-r_{\text{process}}(q, r, a) = \sum_{i=1}^{n} w_i \cdot \text{score}(r_i | r_{\lt i}, q)
+r_{\text{process}}(q, r, a) = \sum_{i=1}^{n} w_i \cdot \text{score}(r_i | r_{< i}, q)
 $$
 
 Rewards correct reasoning at each step $r_i$.
@@ -1824,10 +1831,10 @@ This leads to models that learn shortcuts and fail to generalize. PRMs solve thi
 The key insight comes from **reinforcement learning theory**. The value of a reasoning path can be decomposed:
 
 $$
-V(r) = \sum_{i=1}^{n} V(r_i | r_{\lt i})
+V(r) = \sum_{i=1}^{n} V(r_i | r_{< i})
 $$
 
-where $V(r_i | r_{\lt i})$ is the value of step $i$ given previous steps.
+where $V(r_i | r_{< i})$ is the value of step $i$ given previous steps.
 
 This is analogous to **temporal difference learning** in RL:
 
@@ -1838,7 +1845,7 @@ This is analogous to **temporal difference learning** in RL:
 The advantage of step-level rewards is better **credit assignment**:
 
 $$
-\nabla_\theta \mathbb{E}[\text{reward}] = \sum_{i=1}^{n} \nabla_\theta \log P_\theta(r_i | r_{\lt i}) \cdot V(r_i)
+\nabla_\theta \mathbb{E}[\text{reward}] = \sum_{i=1}^{n} \nabla_\theta \log P_\theta(r_i | r_{< i}) \cdot V(r_i)
 $$
 
 Each step gets its own gradient signal, enabling faster and more accurate learning.
@@ -2288,7 +2295,7 @@ Solution:"""
     if text_answer and code_answer:
         try:
             text_val = float(text_answer)
-            verified = abs(text_val - code_answer) \lt 0.01
+            verified = abs(text_val - code_answer) < 0.01
         except ValueError:
             verified = False
     else:
@@ -2631,7 +2638,7 @@ def compute_optimal_n(model, tokenizer, question,
 
     # Try different values of N
     for n in [1, 2, 4, 8, 16, 32, max_n]:
-        if n \gt max_n:
+        if n > max_n:
             break
 
         # Estimate accuracy (in practice, use validation set)
@@ -2813,7 +2820,7 @@ def estimate_reasoning_cost(
         "forward_passes": stats["passes"],
         "estimated_accuracy": stats["accuracy"],
         "cost_per_query": cost,
-        "cost_per_correct_answer": cost / stats["accuracy"] if stats["accuracy"] \gt 0 else float('inf'),
+        "cost_per_correct_answer": cost / stats["accuracy"] if stats["accuracy"] > 0 else float('inf'),
     }
 
 
@@ -2893,12 +2900,12 @@ def adaptive_reasoning(question: str, difficulty: str, budget: float) -> Reasoni
     Returns:
         Appropriate ReasoningConfig
     """
-    if difficulty == "easy" or budget \lt 0.001:
+    if difficulty == "easy" or budget < 0.001:
         return ReasoningConfig(
             strategy=ReasoningStrategy.ZERO_SHOT_COT,
             temperature=0.3,
         )
-    elif difficulty == "medium" or budget \lt 0.01:
+    elif difficulty == "medium" or budget < 0.01:
         return ReasoningConfig(
             strategy=ReasoningStrategy.SELF_CONSISTENCY,
             num_samples=5,
@@ -3020,7 +3027,7 @@ def detect_circular_reasoning(reasoning_history: List[str], window=3) -> bool:
     Returns:
         True if circular reasoning detected
     """
-    if len(reasoning_history) \lt window:
+    if len(reasoning_history) < window:
         return False
 
     recent = reasoning_history[-window:]
@@ -3030,7 +3037,7 @@ def detect_circular_reasoning(reasoning_history: List[str], window=3) -> bool:
         for j in range(i + 1, len(recent)):
             # Compute similarity (simple substring check)
             if recent[i] in recent[j] or recent[j] in recent[i]:
-                if len(recent[i]) \gt 20:  # Don't flag short common phrases
+                if len(recent[i]) > 20:  # Don't flag short common phrases
                     return True
 
     return False
@@ -3095,14 +3102,14 @@ def calibrate_confidence(reasoning_system, questions_with_answers):
     calibration_map = {}
 
     for i in range(len(bins) - 1):
-        mask = (np.array(confidences) >= bins[i]) & (np.array(confidences) \lt bins[i+1])
-        if mask.sum() \gt 0:
+        mask = (np.array(confidences) >= bins[i]) & (np.array(confidences) < bins[i+1])
+        if mask.sum() > 0:
             actual_accuracy = np.array(correctness)[mask].mean()
             calibration_map[(bins[i], bins[i+1])] = actual_accuracy
 
     def calibrated_confidence(raw_confidence):
         for (low, high), accuracy in calibration_map.items():
-            if low <= raw_confidence \lt high:
+            if low <= raw_confidence < high:
                 return accuracy
         return raw_confidence
 
@@ -3177,7 +3184,7 @@ class ReasoningFailureDetector:
 
     def check_circular_reasoning(self, history):
         """Check for circular reasoning patterns."""
-        if len(history) \lt 3:
+        if len(history) < 3:
             return None
 
         recent_thoughts = [h.get('thought', '') for h in history[-3:]]
@@ -3185,7 +3192,7 @@ class ReasoningFailureDetector:
         overlaps = 0
         for i in range(len(recent_thoughts)-1):
             for j in range(i+1, len(recent_thoughts)):
-                if len(set(recent_thoughts[i].split()) & set(recent_thoughts[j].split())) \gt 5:
+                if len(set(recent_thoughts[i].split()) & set(recent_thoughts[j].split())) > 5:
                     overlaps += 1
 
         if overlaps >= 2:
@@ -3201,7 +3208,7 @@ class ReasoningFailureDetector:
 
         # Check overlap
         overlap = len(question_terms & reasoning_terms)
-        if overlap \lt len(question_terms) * 0.3:  # Less than 30% overlap
+        if overlap < len(question_terms) * 0.3:  # Less than 30% overlap
             return "off_topic"
         return None
 
@@ -3415,7 +3422,7 @@ Science questions requiring reasoning.
 1. **Consistency matters**: Self-consistency gives 10-20% improvement across all benchmarks
 2. **Harder tasks benefit more**: PRMs and test-time compute show bigger gains on MATH than GSM8K
 3. **Domain matters**: Code tasks benefit from code-specialized models
-4. **Technique \gt size**: CoT with 175B can outperform direct prompting with 540B
+4. **Technique > size**: CoT with 175B can outperform direct prompting with 540B
 5. **Ceiling effects**: On easier benchmarks (GSM8K), gains plateau around 95%
 
 ### Reproducing Benchmark Results
@@ -3451,7 +3458,7 @@ def benchmark_reasoning_system(
 
     # Sample subset
     import random
-    if num_samples \lt len(dataset):
+    if num_samples < len(dataset):
         indices = random.sample(range(len(dataset)), num_samples)
         dataset = dataset.select(indices)
 
@@ -3829,7 +3836,7 @@ for i, question in enumerate(questions, 1):
 
     print(f"\nReasoning excerpt:")
     reasoning_text = result['reasoning']
-    print(reasoning_text[:300] + "..." if len(reasoning_text) \gt 300 else reasoning_text)
+    print(reasoning_text[:300] + "..." if len(reasoning_text) > 300 else reasoning_text)
     print()
 
 ```text

@@ -78,15 +78,16 @@ Adam maintains two moving averages for each parameter:
 
 The update equations are:
 
-```math
-\large \begin{align}
+$$
+\large
+\begin{align}
 m_t &= \beta_1 m_{t-1} + (1 - \beta_1) g_t \\
 v_t &= \beta_2 v_{t-1} + (1 - \beta_2) g_t^2 \\
 \hat{m}_t &= \frac{m_t}{1 - \beta_1^t} \quad \text{(bias correction)} \\
 \hat{v}_t &= \frac{v_t}{1 - \beta_2^t} \quad \text{(bias correction)} \\
 \theta_t &= \theta_{t-1} - \eta \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon}
 \end{align}
-```
+$$
 
 where:
 
@@ -123,9 +124,10 @@ AdamW (Adam with decoupled Weight decay) is the standard optimizer for LLM train
 
 Standard Adam implements weight decay as L2 regularization by adding the penalty to the gradient:
 
-```math
-\large g_t \leftarrow g_t + \lambda \theta_{t-1}
-```
+$$
+\large
+g_t \leftarrow g_t + \lambda \theta_{t-1}
+$$
 
 This creates a problem: **the weight decay gets scaled by the adaptive learning rate** $\frac{1}{\sqrt{\hat{v}_t}}$. For parameters with large historical gradients (large $\hat{v}_t$), weight decay is effectively weakened, while for parameters with small gradients, it's strengthened. This makes regularization inconsistent and less effective.
 
@@ -139,9 +141,10 @@ This creates a problem: **the weight decay gets scaled by the adaptive learning 
 
 AdamW fixes this by applying weight decay **directly to the parameters**, separate from the gradient-based update:
 
-```math
-\large \theta_t = \theta_{t-1} - \eta \left( \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon} \right) - \eta \lambda \theta_{t-1}
-```
+$$
+\large
+\theta_t = \theta_{t-1} - \eta \left( \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon} \right) - \eta \lambda \theta_{t-1}
+$$
 
 Now weight decay strength depends only on the learning rate $\eta$ and decay coefficient $\lambda$, not on gradient history. Every parameter gets consistent regularization.
 
@@ -152,15 +155,16 @@ AdamW uses the same moment estimates as Adam:
 - $m_t$: First moment (exponential moving average of gradients)
 - $v_t$: Second moment (exponential moving average of squared gradients)
 
-```math
-\large \begin{align}
+$$
+\large
+\begin{align}
 m_t &= \beta_1 m_{t-1} + (1 - \beta_1) g_t \\
 v_t &= \beta_2 v_{t-1} + (1 - \beta_2) g_t^2 \\
 \hat{m}_t &= \frac{m_t}{1 - \beta_1^t} \\
 \hat{v}_t &= \frac{v_t}{1 - \beta_2^t} \\
 \theta_t &= \theta_{t-1} - \eta \left( \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon} + \lambda \theta_{t-1} \right)
 \end{align}
-```
+$$
 
 where:
 
@@ -180,17 +184,19 @@ The key difference from Adam is that weight decay ($\lambda \theta_{t-1}$) is ap
 
 The issue with standard Adam is that it applies weight decay as:
 
-```math
-\large g_t \leftarrow g_t + \lambda \theta_{t-1}
-```
+$$
+\large
+g_t \leftarrow g_t + \lambda \theta_{t-1}
+$$
 
 This means weight decay gets scaled by the adaptive learning rate adjustment $\frac{1}{\sqrt{\hat{v}_t}}$, making it inconsistent across parameters with different gradient magnitudes.
 
 AdamW fixes this by **decoupling** weight decay from the gradient:
 
-```math
-\large \theta_t \leftarrow \theta_{t-1} - \eta \left( \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon} \right) - \eta \lambda \theta_{t-1}
-```
+$$
+\large
+\theta_t \leftarrow \theta_{t-1} - \eta \left( \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon} \right) - \eta \lambda \theta_{t-1}
+$$
 
 This ensures weight decay operates directly on parameters with strength proportional only to the learning rate $\eta$, not to gradient statistics.
 
@@ -240,11 +246,11 @@ class AdamW(Optimizer):
             weight_decay: Weight decay coefficient (λ)
             amsgrad: Whether to use AMSGrad variant
         """
-        if lr \lt 0.0:
+        if lr < 0.0:
             raise ValueError(f"Invalid learning rate: {lr}")
-        if not 0.0 <= betas[0] \lt 1.0:
+        if not 0.0 <= betas[0] < 1.0:
             raise ValueError(f"Invalid beta1: {betas[0]}")
-        if not 0.0 <= betas[1] \lt 1.0:
+        if not 0.0 <= betas[1] < 1.0:
             raise ValueError(f"Invalid beta2: {betas[1]}")
         if not 0.0 <= eps:
             raise ValueError(f"Invalid epsilon: {eps}")
@@ -393,15 +399,16 @@ Choosing the right hyperparameters for AdamW is crucial for LLM training.
 
 ![Weight Decay Bias-Variance Trade-off](../assets/diagrams/ch17-weight-decay-tradeoff.svg)
 
-Weight decay controls the bias-variance trade-off in LLM training. Too little (λ ≈ 0) allows overfitting with high variance; too much (λ \gt 0.5) causes underfitting with high bias. The optimal value (typically λ ≈ 0.1 for LLMs) balances regularization strength to minimize total error.
+Weight decay controls the bias-variance trade-off in LLM training. Too little (λ ≈ 0) allows overfitting with high variance; too much (λ > 0.5) causes underfitting with high bias. The optimal value (typically λ ≈ 0.1 for LLMs) balances regularization strength to minimize total error.
 
 #### Learning Rate Scaling with Model Size
 
 Learning rate should generally decrease as model size increases. A common empirical formula:
 
-```math
-\large \eta \approx \frac{0.003}{\sqrt{N / 125\text{M}}}
-```
+$$
+\large
+\eta \approx \frac{0.003}{\sqrt{N / 125\text{M}}}
+$$
 
 where $N$ is the number of parameters. This gives:
 
@@ -561,7 +568,7 @@ For full implementation details and empirical comparisons, see Chapter 27.
 |-----------|---------------|---------------|-------------|
 | **AdamW** | Stable, proven, works everywhere | Memory overhead, baseline efficiency | **Default choice - use unless you have a specific reason not to** |
 | **Muon** | 2× efficiency, lower memory | Less tested, complex implementation | Cutting-edge research, efficiency critical |
-| **Shampoo** | Better conditioning, faster convergence | Very high memory cost, expensive | When quality \gt cost, small-scale experiments |
+| **Shampoo** | Better conditioning, faster convergence | Very high memory cost, expensive | When quality > cost, small-scale experiments |
 | **SOAP** | Improved stability at large scale | Newer, less proven | Very large scale (>100B params) |
 | **SGD + Momentum** | Minimal memory overhead | Requires extensive tuning, slower convergence | Extreme memory constraints |
 
@@ -583,9 +590,10 @@ The learning rate schedule dramatically affects both training stability and fina
 
 **Warmup phase:** Linearly increase learning rate from 0 (or small value) to maximum over initial steps.
 
-```math
-\large \eta(t) = \eta_{\max} \cdot \min\left(1, \frac{t}{T_{\text{warmup}}}\right) \quad \text{for } t \leq T_{\text{warmup}}
-```
+$$
+\large
+\eta(t) = \eta_{\max} \cdot \min\left(1, \frac{t}{T_{\text{warmup}}}\right) \quad \text{for } t \leq T_{\text{warmup}}
+$$
 
 **Typical warmup duration:**
 
@@ -659,7 +667,7 @@ class WarmupSchedule:
 
     def get_lr(self, step: int) -> float:
         """Get learning rate at given step."""
-        if step \lt self.warmup_steps:
+        if step < self.warmup_steps:
             # Linear warmup
             return self.max_lr * step / self.warmup_steps
         return self.max_lr
@@ -695,9 +703,10 @@ The cosine schedule is the most common choice for LLM pretraining. It smoothly d
 
 **Formula:** After warmup, learning rate follows:
 
-```math
-\large \eta(t) = \eta_{\min} + \frac{1}{2}(\eta_{\max} - \eta_{\min})\left(1 + \cos\left(\frac{t - T_{\text{warmup}}}{T_{\text{total}} - T_{\text{warmup}}} \pi\right)\right)
-```
+$$
+\large
+\eta(t) = \eta_{\min} + \frac{1}{2}(\eta_{\max} - \eta_{\min})\left(1 + \cos\left(\frac{t - T_{\text{warmup}}}{T_{\text{total}} - T_{\text{warmup}}} \pi\right)\right)
+$$
 
 where:
 
@@ -731,9 +740,10 @@ The schedule can be viewed as an **annealing strategy**: we start with large ste
 
 **Why not linear decay?** Linear schedules decay too aggressively early and not enough late:
 
-```math
-\large \text{Linear: } \eta(t) = \eta_{\max}(1 - t/T) \text{ vs. Cosine: } \eta(t) \propto \frac{1}{2}(1 + \cos(\pi t/T))
-```
+$$
+\large
+\text{Linear: } \eta(t) = \eta_{\max}(1 - t/T) \text{ vs. Cosine: } \eta(t) \propto \frac{1}{2}(1 + \cos(\pi t/T))
+$$
 
 At $t = 0.5T$, linear is at 50% of max LR, while cosine is at ~50%. But early on (t = 0.1T), linear is at 90% while cosine is at ~97%, preserving exploration longer.
 
@@ -777,11 +787,11 @@ class CosineDecaySchedule:
         self.total_steps = total_steps
 
         if warmup_steps >= total_steps:
-            raise ValueError("warmup_steps must be \lt total_steps")
+            raise ValueError("warmup_steps must be < total_steps")
 
     def get_lr(self, step: int) -> float:
         """Get learning rate at given step."""
-        if step \lt self.warmup_steps:
+        if step < self.warmup_steps:
             # Linear warmup
             return self.max_lr * step / self.warmup_steps
 
@@ -843,7 +853,7 @@ def get_cosine_schedule_with_warmup(
     from torch.optim.lr_scheduler import LambdaLR
 
     def lr_lambda(current_step: int):
-        if current_step \lt num_warmup_steps:
+        if current_step < num_warmup_steps:
             # Warmup
             return float(current_step) / float(max(1, num_warmup_steps))
 
@@ -965,11 +975,11 @@ class WSDSchedule:
 
     def get_lr(self, step: int) -> float:
         """Get learning rate at given step."""
-        if step \lt self.warmup_steps:
+        if step < self.warmup_steps:
             # Warmup phase
             return self.max_lr * step / self.warmup_steps
 
-        if step \lt self.stable_end:
+        if step < self.stable_end:
             # Stable phase
             return self.max_lr
 
@@ -991,7 +1001,7 @@ class WSDSchedule:
     def can_extend_training(self, current_step: int) -> bool:
         """Check if training can be extended without penalty."""
         # Can extend anytime during stable phase
-        return self.warmup_steps <= current_step \lt self.stable_end
+        return self.warmup_steps <= current_step < self.stable_end
 
 
 def plot_wsd_schedule():
@@ -1094,9 +1104,10 @@ The most common approach: scale gradients if total norm exceeds threshold.
 
 **Algorithm:**
 
-```math
-\large \text{if } \|\mathbf{g}\| \gt \tau: \quad \mathbf{g} \leftarrow \frac{\tau \mathbf{g}}{\|\mathbf{g}\|}
-```
+$$
+\large
+\text{if } \|\mathbf{g}\| > \tau: \quad \mathbf{g} \leftarrow \frac{\tau \mathbf{g}}{\|\mathbf{g}\|}
+$$
 
 where:
 
@@ -1189,7 +1200,7 @@ def clip_grad_norm(
 
     # Clip
     clip_coef = max_norm / (total_norm + 1e-6)
-    if clip_coef \lt 1:
+    if clip_coef < 1:
         for p in parameters:
             p.grad.data.mul_(clip_coef)
 
@@ -1231,11 +1242,11 @@ class GradientMonitor:
     def update(self, grad_norm: float, max_norm: float):
         """Update statistics."""
         self.norms.append(grad_norm)
-        if len(self.norms) \gt self.window_size:
+        if len(self.norms) > self.window_size:
             self.norms.pop(0)
 
         self.total_count += 1
-        if grad_norm \gt max_norm:
+        if grad_norm > max_norm:
             self.clipped_count += 1
 
     def get_stats(self) -> dict:
@@ -1273,9 +1284,10 @@ Batch size affects both training speed and model quality. Finding the right bala
 
 The **effective batch size** is the total number of examples used per optimizer step:
 
-```math
-\large B_{\text{eff}} = B_{\text{micro}} \times N_{\text{acc}} \times N_{\text{devices}}
-```
+$$
+\large
+B_{\text{eff}} = B_{\text{micro}} \times N_{\text{acc}} \times N_{\text{devices}}
+$$
 
 where:
 
@@ -1308,9 +1320,10 @@ The visualization shows the multi-dimensional trade-offs of batch size selection
 
 From McCandlish et al. (2018), the critical batch size can be estimated as:
 
-```math
-\large B_{\text{crit}} \approx \left(\frac{G_{\text{noise}}}{\eta}\right)^2
-```
+$$
+\large
+B_{\text{crit}} \approx \left(\frac{G_{\text{noise}}}{\eta}\right)^2
+$$
 
 where:
 
@@ -1319,9 +1332,10 @@ where:
 
 **Gradient noise scale** measures how noisy gradients are:
 
-```math
-\large G_{\text{noise}} = \frac{\|\mathbb{E}[\mathbf{g}]\|^2}{\text{Var}[\mathbf{g}]}
-```
+$$
+\large
+G_{\text{noise}} = \frac{\|\mathbb{E}[\mathbf{g}]\|^2}{\text{Var}[\mathbf{g}]}
+$$
 
 **Practical implications:**
 
@@ -1341,27 +1355,30 @@ The critical batch size concept comes from analyzing the **noise in stochastic g
 
 2. **Batch size effect**: Larger batches reduce noise by $1/\sqrt{B}$ (Central Limit Theorem), so:
 
-```math
-\large \text{Effective noise} \propto \frac{\text{Var}[\mathbf{g}]}{B}
-```
+$$
+\large
+\text{Effective noise} \propto \frac{\text{Var}[\mathbf{g}]}{B}
+$$
 
 3. **Learning rate interaction**: Higher LR amplifies both signal and noise. The critical batch size occurs when:
 
-```math
-\large \frac{\eta^2 \text{Var}[\mathbf{g}]}{B} \approx \|\mathbb{E}[\mathbf{g}]\|^2
-```
+$$
+\large
+\frac{\eta^2 \text{Var}[\mathbf{g}]}{B} \approx \|\mathbb{E}[\mathbf{g}]\|^2
+$$
 
 Solving for $B$:
 
-```math
-\large B_{\text{crit}} \approx \frac{\eta^2 \text{Var}[\mathbf{g}]}{\|\mathbb{E}[\mathbf{g}]\|^2} = \left(\frac{G_{\text{noise}}}{\eta}\right)^2
-```
+$$
+\large
+B_{\text{crit}} \approx \frac{\eta^2 \text{Var}[\mathbf{g}]}{\|\mathbb{E}[\mathbf{g}]\|^2} = \left(\frac{G_{\text{noise}}}{\eta}\right)^2
+$$
 
 **What happens at different batch sizes?**
 
-- **$B \lt B_{\text{crit}}$**: Gradient noise dominates, can't increase LR safely, leaving performance on table
+- **$B < B_{\text{crit}}$**: Gradient noise dominates, can't increase LR safely, leaving performance on table
 - **$B = B_{\text{crit}}$**: Optimal trade-off between noise reduction and parallelism
-- **$B \gt B_{\text{crit}}$**: Noise is already small enough; larger batches don't help convergence (just waste compute)
+- **$B > B_{\text{crit}}$**: Noise is already small enough; larger batches don't help convergence (just waste compute)
 
 **How This Relates to Alternatives:**
 
@@ -1574,9 +1591,9 @@ def print_batch_configurations():
         calc = BatchSizeCalculator(gpu_mem, params, seq_len)
 
         # Estimate micro batch size (simplified)
-        if params \lt 1e9:
+        if params < 1e9:
             micro_batch = 8
-        elif params \lt 10e9:
+        elif params < 10e9:
             micro_batch = 4
         else:
             micro_batch = 1
@@ -1838,14 +1855,14 @@ grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm)
 
 stats = {
     'grad_norm': grad_norm.item(),
-    'clip_rate': 1.0 if grad_norm \gt max_norm else 0.0,
+    'clip_rate': 1.0 if grad_norm > max_norm else 0.0,
     'param_norm': sum(p.norm().item() ** 2 for p in model.parameters()) ** 0.5
 }
 
 # Red flags:
-# - grad_norm \gt 100: LR too high or data issue
-# - grad_norm \lt 0.01: LR too low or vanishing gradients
-# - clip_rate \gt 0.8: Too much clipping, increase max_norm or reduce LR
+# - grad_norm > 100: LR too high or data issue
+# - grad_norm < 0.01: LR too low or vanishing gradients
+# - clip_rate > 0.8: Too much clipping, increase max_norm or reduce LR
 # - param_norm growing exponentially: Instability, reduce LR
 ```
 
@@ -1861,12 +1878,12 @@ def check_batch_health(batch):
 
     # Check for duplicates (can cause spikes)
     unique_ratio = len(torch.unique(batch)) / batch.numel()
-    if unique_ratio \lt 0.01:
+    if unique_ratio < 0.01:
         return "Highly repetitive data"
 
     # Check token distribution
     token_counts = torch.bincount(batch.flatten())
-    if (token_counts.max() / token_counts.sum()) \gt 0.5:
+    if (token_counts.max() / token_counts.sum()) > 0.5:
         return "Single token dominates batch"
 
     return "OK"
@@ -1897,9 +1914,9 @@ new_lr = current_lr * 1.5
 
 ```python
 # Adjust clipping
-if clip_rate \gt 0.8:
+if clip_rate > 0.8:
     max_grad_norm *= 1.5  # Less aggressive clipping
-elif clip_rate \lt 0.1:
+elif clip_rate < 0.1:
     max_grad_norm *= 0.7  # More aggressive clipping
 ```
 
@@ -1921,9 +1938,10 @@ The LR range test (also called "LR finder") works by observing how loss responds
 
 The test finds the **sweet spot** where:
 
-```math
-\large \frac{d L}{d \eta} \text{ is minimized (most negative)}
-```
+$$
+\large
+\frac{d L}{d \eta} \text{ is minimized (most negative)}
+$$
 
 This corresponds to the learning rate that provides the steepest descent in loss per training step.
 
@@ -1983,7 +2001,7 @@ def lr_sweep(model, data_loader, lr_range=(1e-6, 1e-3), num_steps=1000):
             param_group['lr'] = current_lr
 
         # Stop if diverged
-        if loss.item() \gt losses[0] * 4:
+        if loss.item() > losses[0] * 4:
             print(f"Diverged at LR={current_lr:.2e}")
             break
 
@@ -2055,7 +2073,7 @@ def should_restart(current_step, total_steps, loss_history, spike_severity):
     progress = current_step / total_steps
 
     # Early training (<10%): restart on any major issue
-    if progress \lt 0.1 and spike_severity \gt 2.0:
+    if progress < 0.1 and spike_severity > 2.0:
         return True
 
     # NaN/Inf: always restart
@@ -2063,7 +2081,7 @@ def should_restart(current_step, total_steps, loss_history, spike_severity):
         return True
 
     # Severe spike (>5× normal) mid-training: restart from checkpoint
-    if spike_severity \gt 5.0:
+    if spike_severity > 5.0:
         return True
 
     # Otherwise: try to recover
@@ -2100,9 +2118,9 @@ metrics = {
 
 # Alert if:
 # - loss_ma increasing over 1K steps
-# - grad_norm \gt 100 for >10 consecutive steps
-# - clip_rate \gt 0.9 for >100 steps
-# - param_update_ratio \gt 0.1 (too aggressive) or \lt 1e-5 (too conservative)
+# - grad_norm > 100 for >10 consecutive steps
+# - clip_rate > 0.9 for >100 steps
+# - param_update_ratio > 0.1 (too aggressive) or < 1e-5 (too conservative)
 ```
 
 ---

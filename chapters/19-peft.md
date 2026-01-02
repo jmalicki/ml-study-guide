@@ -92,9 +92,10 @@ print(f"  Total: {memory['total_gb']:.1f} GB")
 
 PEFT methods freeze the base model weights and train only a small number of additional parameters:
 
-```math
-\large \text{Trainable parameters} = \frac{\text{PEFT params}}{\text{Total params}} \times 100\%
-```
+$$
+\large
+\text{Trainable parameters} = \frac{\text{PEFT params}}{\text{Total params}} \times 100\%
+$$
 
 Typical values: 0.01% - 1% of total parameters.
 
@@ -119,9 +120,10 @@ LoRA is the most popular PEFT method, introduced by Microsoft in 2021. The key i
 
 For a pretrained weight matrix $W_0 \in \mathbb{R}^{d \times k}$, LoRA represents the update as:
 
-```math
-\large W = W_0 + \Delta W = W_0 + BA
-```
+$$
+\large
+W = W_0 + \Delta W = W_0 + BA
+$$
 
 where:
 
@@ -131,15 +133,17 @@ where:
 
 The forward pass becomes:
 
-```math
-\large h = W_0 x + \Delta W x = W_0 x + BAx
-```
+$$
+\large
+h = W_0 x + \Delta W x = W_0 x + BAx
+$$
 
 **Scaling factor**: LoRA includes a scaling factor $\alpha$ to control the magnitude of updates:
 
-```math
-\large h = W_0 x + \frac{\alpha}{r} BAx
-```
+$$
+\large
+h = W_0 x + \frac{\alpha}{r} BAx
+$$
 
 The ratio $\frac{\alpha}{r}$ acts as a learning rate multiplier for the adapter.
 
@@ -631,15 +635,17 @@ QLoRA introduces:
 
 For a random variable $W \sim \mathcal{N}(0, 1)$, optimal k-bit quantization divides the distribution into $2^k$ bins such that:
 
-```math
-\large P(W \in \text{bin}_i) = \frac{1}{2^k} \quad \forall i
-```
+$$
+\large
+P(W \in \text{bin}_i) = \frac{1}{2^k} \quad \forall i
+$$
 
 For NF4 ($k=4$, 16 bins), the quantization levels are:
 
-```math
-\large q_i = \Phi^{-1}\left(\frac{i}{16}\right) \quad \text{for } i = 0, 1, \ldots, 15
-```
+$$
+\large
+q_i = \Phi^{-1}\left(\frac{i}{16}\right) \quad \text{for } i = 0, 1, \ldots, 15
+$$
 
 where $\Phi^{-1}$ is the inverse CDF (quantile function) of $\mathcal{N}(0,1)$.
 
@@ -1037,12 +1043,13 @@ def compare_qlora_memory():
 
 Double quantization applies quantization to the quantization constants (scales):
 
-```math
-\large \begin{align}
+$$
+\large
+\begin{align}
 \text{First level:} \quad W &= \text{scale}_1 \cdot W_{\text{4bit}} \\
 \text{Second level:} \quad \text{scale}_1 &= \text{scale}_2 \cdot \text{scale}_{1,\text{8bit}}
 \end{align}
-```
+$$
 
 This provides an additional ~3% memory reduction with negligible quality loss.
 
@@ -1066,15 +1073,17 @@ Prefix tuning prepends trainable vectors to the input sequence, while prompt tun
 
 For standard attention:
 
-```math
-\large \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
-```
+$$
+\large
+\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
+$$
 
 With prefix tuning, we augment K and V:
 
-```math
-\large \text{Attention}(Q, [P_{K}; K], [P_{V}; V])
-```
+$$
+\large
+\text{Attention}(Q, [P_{K}; K], [P_{V}; V])
+$$
 
 where $P_{K} \in \mathbb{R}^{L_p \times d_k}$ and $P_{V} \in \mathbb{R}^{L_p \times d_v}$ are learned prefix parameters of length $L_p$.
 
@@ -1270,9 +1279,10 @@ Prompt tuning is simpler - only add trainable tokens to the input embedding:
 
 Given input token embeddings $E \in \mathbb{R}^{L \times d}$, we prepend learned soft prompts:
 
-```math
-\large E' = [P; E]
-```
+$$
+\large
+E' = [P; E]
+$$
 
 where $P \in \mathbb{R}^{L_p \times d}$ are trainable prompt embeddings. The rest of the model processes $E'$ normally, with prompts influencing computation through attention.
 
@@ -1400,15 +1410,17 @@ Adapters insert small bottleneck layers within transformer blocks.
 
 An adapter is a bottleneck module applied after a transformer sublayer:
 
-```math
-\large h' = h + \text{Adapter}(h)
-```
+$$
+\large
+h' = h + \text{Adapter}(h)
+$$
 
 where the adapter function is:
 
-```math
-\large \text{Adapter}(h) = W_{\text{up}} \cdot \sigma(W_{\text{down}} \cdot h + b_{\text{down}}) + b_{\text{up}}
-```
+$$
+\large
+\text{Adapter}(h) = W_{\text{up}} \cdot \sigma(W_{\text{down}} \cdot h + b_{\text{down}}) + b_{\text{up}}
+$$
 
 Here:
 
@@ -1664,15 +1676,17 @@ IA³ (Infused Adapter by Inhibiting and Amplifying Inner Activations) uses learn
 
 For attention mechanism, IA³ applies learned scaling vectors:
 
-```math
-\large K' = K \odot \ell_k, \quad V' = V \odot \ell_v
-```
+$$
+\large
+K' = K \odot \ell_k, \quad V' = V \odot \ell_v
+$$
 
 For feedforward layers:
 
-```math
-\large \text{FFN}'(x) = \text{FFN}(x) \odot \ell_{ff}
-```
+$$
+\large
+\text{FFN}'(x) = \text{FFN}(x) \odot \ell_{ff}
+$$
 
 where $\ell_k, \ell_v, \ell_{ff} \in \mathbb{R}^d$ are learned scaling vectors (initialized to ones), and $\odot$ denotes element-wise multiplication.
 
@@ -2548,15 +2562,17 @@ By separating these, DoRA can better approximate the learning dynamics of full f
 
 Standard LoRA updates:
 
-```math
-\large W' = W_0 + \Delta W = W_0 + BA
-```
+$$
+\large
+W' = W_0 + \Delta W = W_0 + BA
+$$
 
 DoRA decomposes the updated weight into magnitude and direction:
 
-```math
-\large W' = m \frac{W_0 + BA}{\|W_0 + BA\|_{\text{col}}}
-```
+$$
+\large
+W' = m \frac{W_0 + BA}{\|W_0 + BA\|_{\text{col}}}
+$$
 
 where:
 
@@ -2738,15 +2754,17 @@ This asymmetry means that $A$ and $B$ naturally learn at different effective rat
 
 Standard LoRA optimization:
 
-```math
-\large A_{t+1} = A_t - \eta \nabla_{A} L, \quad B_{t+1} = B_t - \eta \nabla_{B} L
-```
+$$
+\large
+A_{t+1} = A_t - \eta \nabla_{A} L, \quad B_{t+1} = B_t - \eta \nabla_{B} L
+$$
 
 LoRA+ uses different learning rates:
 
-```math
-\large A_{t+1} = A_t - \eta \nabla_{A} L, \quad B_{t+1} = B_t - \lambda \eta \nabla_{B} L
-```
+$$
+\large
+A_{t+1} = A_t - \eta \nabla_{A} L, \quad B_{t+1} = B_t - \lambda \eta \nabla_{B} L
+$$
 
 where $\lambda \gt 1$ (typically $\lambda = 16$) is the learning rate ratio.
 
@@ -2916,9 +2934,10 @@ Serve multiple LoRA adapters efficiently by batching requests.
 
 For a batch with requests using different LoRA adapters, compute:
 
-```math
-\large y_i = W_0 x_i + B_i A_i x_i
-```
+$$
+\large
+y_i = W_0 x_i + B_i A_i x_i
+$$
 
 where adapter index $i$ varies per sample. The challenge is that standard batching requires all samples to use the same weights.
 

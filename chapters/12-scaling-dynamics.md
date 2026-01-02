@@ -72,17 +72,20 @@ The Kaplan scaling laws identify three primary factors affecting model performan
 
 The test loss $L$ follows power laws:
 
-```math
-\large L(N) = \left(\frac{N_c}{N}\right)^{\alpha_N}
-```
+$$
+\large
+L(N) = \left(\frac{N_c}{N}\right)^{\alpha_N}
+$$
 
-```math
-\large L(D) = \left(\frac{D_c}{D}\right)^{\alpha_D}
-```
+$$
+\large
+L(D) = \left(\frac{D_c}{D}\right)^{\alpha_D}
+$$
 
-```math
-\large L(C) = \left(\frac{C_c}{C}\right)^{\alpha_C}
-```
+$$
+\large
+L(C) = \left(\frac{C_c}{C}\right)^{\alpha_C}
+$$
 
 where $N_c$, $D_c$, $C_c$ are constants and $\alpha_{N} \approx 0.076$, $\alpha_{D} \approx 0.095$, $\alpha_{C} \approx 0.050$.
 
@@ -113,15 +116,17 @@ In 2022, DeepMind published revised scaling laws that challenged Kaplan's conclu
 
 **Chinchilla's Law:** For compute-optimal training:
 
-```math
-\large N_{opt} \propto C^{0.5}, \quad D_{opt} \propto C^{0.5}
-```
+$$
+\large
+N_{opt} \propto C^{0.5}, \quad D_{opt} \propto C^{0.5}
+$$
 
 More specifically:
 
-```math
-\large N_{opt} \approx \left(\frac{C}{6}\right)^{0.49}, \quad D_{opt} \approx 20 \times N_{opt}
-```
+$$
+\large
+N_{opt} \approx \left(\frac{C}{6}\right)^{0.49}, \quad D_{opt} \approx 20 \times N_{opt}
+$$
 
 **Rule of thumb:** Use approximately **20 tokens per parameter**.
 
@@ -140,9 +145,10 @@ The paper's namesake model, Chinchilla:
 
 **Theoretical Justification:** Chinchilla's key insight is that the loss function has approximately equal sensitivity to model parameters and training tokens. Mathematically, if we model loss as:
 
-```math
-\large L(N, D) = \frac{a}{N^\alpha} + \frac{b}{D^\beta} + L_\infty
-```
+$$
+\large
+L(N, D) = \frac{a}{N^\alpha} + \frac{b}{D^\beta} + L_\infty
+$$
 
 Optimizing this under the compute constraint $C = 6ND$ shows that $N_{opt}$ and $D_{opt}$ should both scale as $C^{0.5}$, rather than prioritizing one over the other. This is derived by:
 
@@ -208,9 +214,10 @@ Computing optimal model size and training duration for a given compute budget.
 
 The total compute $C$ for training a transformer model is approximately:
 
-```math
-\large C \approx 6ND
-```
+$$
+\large
+C \approx 6ND
+$$
 
 where:
 
@@ -353,9 +360,10 @@ Several mechanisms have been proposed to explain grokking:
 - Weight decay provides gradient toward simpler solutions
 - During the plateau, weight decay slowly shifts the model from complex → simple
 
-```math
-\large L_{\text{total}} = L_{\text{train}} + \lambda \|\theta\|^2
-```
+$$
+\large
+L_{\text{total}} = L_{\text{train}} + \lambda \|\theta\|^2
+$$
 
 Even when $L_{\text{train}} = 0$, the weight decay term keeps driving updates.
 
@@ -378,9 +386,10 @@ Even when $L_{\text{train}} = 0$, the weight decay term keeps driving updates.
 
 For modular arithmetic, the final solution often uses Fourier features:
 
-```math
-\large \text{Embedding}(x) = [\cos(2\pi kx/p), \sin(2\pi kx/p)]_{k=1}^{K}
-```
+$$
+\large
+\text{Embedding}(x) = [\cos(2\pi kx/p), \sin(2\pi kx/p)]_{k=1}^{K}
+$$
 
 ### Implementation
 
@@ -487,7 +496,7 @@ class ModularMLP(nn.Module):
             layers.extend([
                 nn.Linear(d_model, d_model),
                 nn.ReLU(),
-                nn.Dropout(dropout) if dropout \gt 0 else nn.Identity()
+                nn.Dropout(dropout) if dropout > 0 else nn.Identity()
             ])
         self.layers = nn.Sequential(*layers)
         
@@ -619,7 +628,7 @@ def train_grokking_demo(
         val_losses.append(val_loss)
         
         # Log progress
-        if epoch % 100 == 0 or epoch \lt 10:
+        if epoch % 100 == 0 or epoch < 10:
             print(f"Epoch {epoch:5d} | Train: {train_acc:.3f} ({train_loss:.4f}) | "
                   f"Val: {val_acc:.3f} ({val_loss:.4f})")
     
@@ -780,9 +789,9 @@ When $N \gg n$, the model has many degrees of freedom. SGD's implicit bias towar
 
 **Connection to linear algebra:**
 
-- $N \lt n$: Underdetermined system, can't fit all data
+- $N < n$: Underdetermined system, can't fit all data
 - $N = n$: Exactly determined, unique solution (often high-norm, poor generalization)
-- $N \gt n$: Overdetermined, infinitely many interpolating solutions (SGD finds good ones)
+- $N > n$: Overdetermined, infinitely many interpolating solutions (SGD finds good ones)
 
 ### Implementation
 
@@ -1086,9 +1095,10 @@ Emergent capabilities often show **phase transition** behavior:
 
 **Smooth scaling:** Loss decreases smoothly with model size (predictable)
 
-```math
-\large L(N) = a N^{-b} + c
-```
+$$
+\large
+L(N) = a N^{-b} + c
+$$
 
 **Sharp transition:** Capability appears suddenly (unpredictable from smaller scales)
 
@@ -1170,9 +1180,10 @@ Beyond specific capabilities, several general phenomena characterize neural scal
 
 **Chinchilla scaling law for loss:**
 
-```math
-\large L(N, D) = \frac{A}{N^\alpha} + \frac{B}{D^\beta} + L_\infty
-```
+$$
+\large
+L(N, D) = \frac{A}{N^\alpha} + \frac{B}{D^\beta} + L_\infty
+$$
 
 - Predicts loss for any (N, D) combination
 - Accurate across 3+ orders of magnitude
@@ -1370,7 +1381,7 @@ For practical training techniques (optimizers, learning rates, etc.), see [Chapt
    - Is there a sweet spot?
 
 10. **Interpolation Threshold Analysis**
-    - For a given dataset size n, create models with N \lt n, N ≈ n, and N \gt n parameters
+    - For a given dataset size n, create models with N < n, N ≈ n, and N > n parameters
     - Train all models to convergence
     - Measure train and test error for each
     - Verify the double descent peak at N ≈ n

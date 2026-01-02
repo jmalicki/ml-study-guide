@@ -58,9 +58,10 @@ Rotary Position Embeddings (RoPE) (see [Rotary Position Embeddings](08-rope.md))
 
 Recall that RoPE applies rotation to query and key vectors:
 
-```math
-\large \mathbf{q}_m = \mathbf{R}_m \mathbf{q}, \quad \mathbf{k}_n = \mathbf{R}_n \mathbf{k}
-```
+$$
+\large
+\mathbf{q}_m = \mathbf{R}_m \mathbf{q}, \quad \mathbf{k}_n = \mathbf{R}_n \mathbf{k}
+$$
 
 where $\mathbf{R}_m$ is a rotation matrix dependent on position $m$ and base frequencies $\theta_i = 10000^{-2i/d}$.
 
@@ -70,9 +71,10 @@ where $\mathbf{R}_m$ is a rotation matrix dependent on position $m$ and base fre
 
 The simplest approach: scale positions linearly.
 
-```math
-\large \mathbf{R}_{m'} = \mathbf{R}_{m/s}
-```
+$$
+\large
+\mathbf{R}_{m'} = \mathbf{R}_{m/s}
+$$
 
 where $s$ is the scaling factor. If trained on 2K context and want 8K, use $s = 4$.
 
@@ -184,9 +186,10 @@ def apply_rotary_emb(
 
 **Key insight**: Instead of compressing positions, expand the wavelengths of the sinusoidal functions.
 
-```math
-\large \theta_{i'} = \theta_i \cdot s^{d/(d-2)} = 10000^{-2i/d} \cdot s^{d/(d-2)}
-```
+$$
+\large
+\theta_{i'} = \theta_i \cdot s^{d/(d-2)} = 10000^{-2i/d} \cdot s^{d/(d-2)}
+$$
 
 where $s$ is the target scaling factor.
 
@@ -254,12 +257,13 @@ class NTKScalingRoPE(nn.Module):
 
 **Dynamic NTK** adjusts the scaling based on actual sequence length:
 
-```math
-\large \alpha(L) = \begin{cases}
+$$
+\large
+\alpha(L) = \begin{cases}
 1 & \text{if } L \leq L_{\text{train}} \\
 \left(\frac{L}{L_{\text{train}}}\right)^{d/(d-2)} & \text{otherwise}
 \end{cases}
-```
+$$
 
 Then use base frequency: $\theta_{i'} = \theta_i \cdot \alpha(L)$
 
@@ -303,7 +307,7 @@ class DynamicNTKScalingRoPE(nn.Module):
 
     def forward(self, x: torch.Tensor, seq_len: int) -> tuple[torch.Tensor, torch.Tensor]:
         # Compute dynamic scaling factor
-        if seq_len \gt self.max_position_embeddings:
+        if seq_len > self.max_position_embeddings:
             scale = (seq_len / self.max_position_embeddings) ** (self.dim / (self.dim - 2))
             inv_freq = self.inv_freq_base / scale
         else:
@@ -327,13 +331,14 @@ YaRN combines multiple techniques for optimal long-context performance:
 
 **Frequency-dependent scaling**:
 
-```math
-\large \theta_{i'} = \begin{cases}
-\theta_i & \text{if } i \lt i_{\text{low}} \\
-\theta_i \cdot s^{(i - i_{\text{low}})/(i_{\text{high}} - i_{\text{low}})} & \text{if } i_{\text{low}} \leq i \lt i_{\text{high}} \\
+$$
+\large
+\theta_{i'} = \begin{cases}
+\theta_i & \text{if } i < i_{\text{low}} \\
+\theta_i \cdot s^{(i - i_{\text{low}})/(i_{\text{high}} - i_{\text{low}})} & \text{if } i_{\text{low}} \leq i < i_{\text{high}} \\
 \theta_i \cdot s & \text{if } i \geq i_{\text{high}}
 \end{cases}
-```
+$$
 
 where:
 
@@ -408,10 +413,10 @@ class YaRNScalingRoPE(nn.Module):
         # Determine scaling per frequency
         freq_scales = torch.ones_like(inv_freq)
         for i, wavelength in enumerate(wavelengths):
-            if wavelength \lt beta_fast:
+            if wavelength < beta_fast:
                 # High frequency (short wavelength): no scaling
                 freq_scales[i] = 1.0
-            elif wavelength \gt beta_slow * scaling_factor:
+            elif wavelength > beta_slow * scaling_factor:
                 # Low frequency (long wavelength): full scaling
                 freq_scales[i] = scaling_factor
             else:
@@ -454,9 +459,10 @@ Used in models like Qwen, ABF adjusts the base frequency (typically from 10000 t
 
 **Simple formula**:
 
-```math
-\large \text{base}_{\text{new}} = \text{base}_{\text{old}} \times \left(\frac{L_{\text{target}}}{L_{\text{original}}}\right)^{d/(d-2)}
-```
+$$
+\large
+\text{base}_{\text{new}} = \text{base}_{\text{old}} \times \left(\frac{L_{\text{target}}}{L_{\text{original}}}\right)^{d/(d-2)}
+$$
 
 This is essentially NTK scaling with a larger base adjustment.
 
@@ -529,9 +535,10 @@ class ABFScalingRoPE(nn.Module):
 
 The position encoding is modified so that for a new maximum length $L'$, positions are mapped as:
 
-```math
-\large m' = m \cdot \frac{L}{L'}
-```
+$$
+\large
+m' = m \cdot \frac{L}{L'}
+$$
 
 where $L$ is the original training length and $m$ is the current position.
 
@@ -652,15 +659,17 @@ class PositionInterpolationRoPE(nn.Module):
 
 **Why?** Softmax must sum to 1. When no token is particularly relevant, attention "leaks" to early tokens, especially the first.
 
-```math
-\large \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d}}\right)V
-```
+$$
+\large
+\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d}}\right)V
+$$
 
 For position $i$, if all keys are equally (ir)relevant:
 
-```math
-\large \text{score}_{i,j} \approx 0 \text{ for all } j \Rightarrow \text{softmax needs a "sink"}
-```
+$$
+\large
+\text{score}_{i,j} \approx 0 \text{ for all } j \Rightarrow \text{softmax needs a "sink"}
+$$
 
 The first token becomes this sink.
 
@@ -777,7 +786,7 @@ class StreamingLLMCache:
         for i in range(seq_len):
             pos = self.n_seen + i
 
-            if pos \lt self.n_sink_tokens:
+            if pos < self.n_sink_tokens:
                 # Store in sink cache
                 self.sink_k[layer_idx][:, pos] = k[:, i]
                 self.sink_v[layer_idx][:, pos] = v[:, i]
@@ -867,10 +876,11 @@ class StreamingLLMCache:
 
 Instead of full attention, divide heads into groups and shift patterns:
 
-```math
-\large \text{Group 1: Attend to positions } [i, i-2, i-4, \ldots] \\
+$$
+\large
+\text{Group 1: Attend to positions } [i, i-2, i-4, \ldots] \\
 \text{Group 2: Attend to positions } [i-1, i-3, i-5, \ldots]
-```
+$$
 
 By shifting different heads, we maintain some cross-position communication while keeping computation sparse.
 
@@ -959,7 +969,7 @@ class ShiftedSparseAttention(nn.Module):
 
         # Pad and shift
         padding = torch.zeros(batch, abs(shift), n_heads, head_dim, device=x.device, dtype=x.dtype)
-        if shift \gt 0:
+        if shift > 0:
             x = torch.cat([padding, x[:, :-shift]], dim=1)
         else:
             x = torch.cat([x[:, -shift:], padding], dim=1)
@@ -1265,9 +1275,10 @@ At each layer:
 2. kNN retrieval from long-term memory of past (key, value) pairs
 3. Combine both sources of information
 
-```math
-\large \text{Output} = \text{Attention}(Q, K_{\text{local}}, V_{\text{local}}) + \lambda \cdot \text{kNN}(Q, \mathcal{M})
-```
+$$
+\large
+\text{Output} = \text{Attention}(Q, K_{\text{local}}, V_{\text{local}}) + \lambda \cdot \text{kNN}(Q, \mathcal{M})
+$$
 
 where $\mathcal{M}$ is the external memory of past activations.
 
@@ -1416,7 +1427,7 @@ class MemorizingAttention(nn.Module):
         local_out = local_out.transpose(1, 2).contiguous().view(batch, seq_len, self.dim)
 
         # Memory retrieval (kNN)
-        if use_memory and self.memory_position \gt 0:
+        if use_memory and self.memory_position > 0:
             memory_out = self.knn_lookup(q)
 
             # Gate: balance local vs memory
@@ -1757,7 +1768,7 @@ class RingAttention(nn.Module):
             # For causal attention, mask future positions
             # Position offset: which absolute positions is this block?
             block_start_pos = ((self.rank + step) % self.world_size) * local_seq_len
-            if block_start_pos \gt self.rank * local_seq_len:
+            if block_start_pos > self.rank * local_seq_len:
                 # This block is in the future, mask entirely
                 scores.fill_(float('-inf'))
 
@@ -1913,9 +1924,10 @@ For 100K+ context, the KV cache becomes the memory bottleneck.
 
 **KV Cache Size**: For a model with $L$ layers, $h$ heads, head dimension $d$, sequence length $n$:
 
-```math
-\large \text{KV Cache Size} = 2 \times L \times n \times h \times d \times \text{sizeof(dtype)}
-```
+$$
+\large
+\text{KV Cache Size} = 2 \times L \times n \times h \times d \times \text{sizeof(dtype)}
+$$
 
 **Example** (Llama 2 70B):
 
@@ -1925,9 +1937,10 @@ For 100K+ context, the KV cache becomes the memory bottleneck.
 - Sequence: 100,000
 - Precision: FP16 (2 bytes)
 
-```math
-\large \text{Size} = 2 \times 80 \times 100000 \times 8 \times 128 \times 2 = 32.8 \text{ GB}
-```
+$$
+\large
+\text{Size} = 2 \times 80 \times 100000 \times 8 \times 128 \times 2 = 32.8 \text{ GB}
+$$
 
 **Just for the cache!** This is per request.
 
@@ -2046,7 +2059,7 @@ class QuantizedKVCache:
         scale = x_max / 127.0
 
         # Avoid division by zero
-        scale = torch.where(scale \gt 0, scale, torch.ones_like(scale))
+        scale = torch.where(scale > 0, scale, torch.ones_like(scale))
 
         # Quantize
         x_quantized = (x / scale).round().clamp(-128, 127).to(torch.int8)
@@ -2383,7 +2396,7 @@ class PagedKVCache:
         """
         n_blocks_needed = (estimated_length + self.block_size - 1) // self.block_size
 
-        if len(self.free_blocks) \lt n_blocks_needed:
+        if len(self.free_blocks) < n_blocks_needed:
             raise RuntimeError("Out of KV cache memory! Consider eviction or larger pool.")
 
         # Allocate blocks
@@ -2460,7 +2473,7 @@ class PagedKVCache:
             physical_block = page_table[block_num]
 
             # How many tokens to read from this block?
-            if block_num \lt n_blocks - 1:
+            if block_num < n_blocks - 1:
                 tokens_in_block = self.block_size
             else:
                 tokens_in_block = length - block_num * self.block_size
@@ -2734,7 +2747,7 @@ def evaluate_perplexity_vs_context(
             tokens = tokenizer.encode(doc)
 
             # Skip documents shorter than context length
-            if len(tokens) \lt ctx_len + 256:
+            if len(tokens) < ctx_len + 256:
                 continue
 
             # Use ctx_len tokens as context, predict next 256

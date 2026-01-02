@@ -29,9 +29,10 @@ Activation functions serve several critical purposes in neural networks:
 
 In the context of LLMs, activation functions are primarily used in the feed-forward network (FFN) within each transformer block (see [The Transformer Block](09-transformer-block.md)). The FFN typically looks like:
 
-```math
-\large \text{FFN}(x) = \text{Activation}(xW_1 + b_1)W_2 + b_2
-```
+$$
+\large
+\text{FFN}(x) = \text{Activation}(xW_1 + b_1)W_2 + b_2
+$$
 
 where $W_1$ projects from model dimension $d_{\text{model}}$ to a larger dimension $d_{\text{ff}}$ (typically $4 \times d_{\text{model}}$), and $W_2$ projects back down.
 
@@ -50,7 +51,7 @@ This visualization shows how different activation functions transform inputs. No
 The smooth, non-monotonic nature of GELU and SiLU is why they perform better than ReLU in modern transformers. Key observations:
 
 - **Non-monotonic behavior**: Both GELU and SiLU have a characteristic "dip" - they become slightly negative for moderately negative inputs (around $x = -1$ to $-2$) before approaching zero. This is visible as a shallow minimum in their curves.
-- **Better gradient flow**: Unlike ReLU's zero gradient for all $x \lt 0$, GELU and SiLU maintain non-zero gradients everywhere, preventing "dying neurons"
+- **Better gradient flow**: Unlike ReLU's zero gradient for all $x < 0$, GELU and SiLU maintain non-zero gradients everywhere, preventing "dying neurons"
 - **Smooth transitions**: The absence of sharp corners (like ReLU's kink at $x=0$) provides more stable optimization
 - **Self-gating property**: These functions naturally weight inputs by their magnitude, creating adaptive, context-dependent transformations
 
@@ -62,21 +63,23 @@ The smooth, non-monotonic nature of GELU and SiLU is why they perform better tha
 
 The Rectified Linear Unit (ReLU) is one of the simplest activation functions:
 
-```math
-\large \text{ReLU}(x) = \max(0, x) = \begin{cases}
-x & \text{if } x \gt 0 \\
+$$
+\large
+\text{ReLU}(x) = \max(0, x) = \begin{cases}
+x & \text{if } x > 0 \\
 0 & \text{if } x \leq 0
 \end{cases}
-```
+$$
 
 **Derivative:**
 
-```math
-\large \frac{d}{dx}\text{ReLU}(x) = \begin{cases}
-1 & \text{if } x \gt 0 \\
+$$
+\large
+\frac{d}{dx}\text{ReLU}(x) = \begin{cases}
+1 & \text{if } x > 0 \\
 0 & \text{if } x \leq 0
 \end{cases}
-```
+$$
 
 ### Advantages
 
@@ -154,27 +157,31 @@ GELU (Gaussian Error Linear Unit) is a smooth activation function that weights i
 
 **Exact formulation:**
 
-```math
-\large \text{GELU}(x) = x \cdot \Phi(x)
-```
+$$
+\large
+\text{GELU}(x) = x \cdot \Phi(x)
+$$
 
 where $\Phi(x)$ is the cumulative distribution function of the standard Gaussian distribution:
 
-```math
-\large \Phi(x) = P(X \leq x) \text{ where } X \sim \mathcal{N}(0, 1) = \frac{1}{2}\left[1 + \text{erf}\left(\frac{x}{\sqrt{2}}\right)\right]
-```
+$$
+\large
+\Phi(x) = P(X \leq x) \text{ where } X \sim \mathcal{N}(0, 1) = \frac{1}{2}\left[1 + \text{erf}\left(\frac{x}{\sqrt{2}}\right)\right]
+$$
 
 **Approximation** (commonly used for efficiency):
 
-```math
-\large \text{GELU}(x) \approx x \cdot \sigma(1.702x)
-```
+$$
+\large
+\text{GELU}(x) \approx x \cdot \sigma(1.702x)
+$$
 
 or the more accurate approximation:
 
-```math
-\large \text{GELU}(x) \approx 0.5x\left(1 + \tanh\left[\sqrt{\frac{2}{\pi}}\left(x + 0.044715x^3\right)\right]\right)
-```
+$$
+\large
+\text{GELU}(x) \approx 0.5x\left(1 + \tanh\left[\sqrt{\frac{2}{\pi}}\left(x + 0.044715x^3\right)\right]\right)
+$$
 
 ### Intuition
 
@@ -210,9 +217,10 @@ A distinctive feature of GELU is that it's **non-monotonic**: for moderately neg
 
 ### Derivative
 
-```math
-\large \frac{d}{dx}\text{GELU}(x) = \Phi(x) + x \cdot \phi(x)
-```
+$$
+\large
+\frac{d}{dx}\text{GELU}(x) = \Phi(x) + x \cdot \phi(x)
+$$
 
 where $\phi(x) = \frac{1}{\sqrt{2\pi}}e^{-x^2/2}$ is the Gaussian probability density function.
 
@@ -336,17 +344,19 @@ print(f"Sigmoid approximation max error: {sigmoid_error:.6f}")  # ~ 0.027
 
 SiLU (Sigmoid Linear Unit), also known as Swish, is another smooth activation function:
 
-```math
-\large \text{SiLU}(x) = x \cdot \sigma(x) = \frac{x}{1 + e^{-x}}
-```
+$$
+\large
+\text{SiLU}(x) = x \cdot \sigma(x) = \frac{x}{1 + e^{-x}}
+$$
 
 where $\sigma(x)$ is the sigmoid function.
 
 ### Derivative
 
-```math
-\large \frac{d}{dx}\text{SiLU}(x) = \sigma(x) + x \cdot \sigma(x)(1 - \sigma(x)) = \sigma(x)(1 + x(1 - \sigma(x)))
-```
+$$
+\large
+\frac{d}{dx}\text{SiLU}(x) = \sigma(x) + x \cdot \sigma(x)(1 - \sigma(x)) = \sigma(x)(1 + x(1 - \sigma(x)))
+$$
 
 ### Properties
 
@@ -368,7 +378,7 @@ Like GELU, SiLU exhibits a characteristic **non-monotonic** behavior where it di
 
 2. **Why this is beneficial**:
    - **Self-gating mechanism**: The input directly controls how much of itself passes through via the sigmoid. Large positive inputs pass through nearly unchanged ($\sigma(x) \approx 1$), while negative inputs are suppressed but not killed entirely
-   - **Gradient flow**: Unlike ReLU's hard zero gradient for $x \lt 0$, SiLU maintains non-zero gradients everywhere, preventing the "dying neuron" problem
+   - **Gradient flow**: Unlike ReLU's hard zero gradient for $x < 0$, SiLU maintains non-zero gradients everywhere, preventing the "dying neuron" problem
    - **Smoothness**: The continuous, differentiable nature everywhere (no kink at $x=0$) provides more stable optimization landscapes
    - **Implicit regularization**: The shallow negative region creates a soft penalty for moderately negative activations, similar to a learned form of regularization
 
@@ -487,17 +497,19 @@ plt.show()
 
 Gated Linear Units (GLU) introduced the concept of using one projection to gate another:
 
-```math
-\large \text{GLU}(x) = (xW + b) \otimes \sigma(xV + c)
-```
+$$
+\large
+\text{GLU}(x) = (xW + b) \otimes \sigma(xV + c)
+$$
 
 where $\otimes$ denotes element-wise multiplication, and $\sigma$ is the sigmoid function.
 
 In the context of feed-forward networks, this means splitting the intermediate dimension:
 
-```math
-\large \text{GLU}(x) = \sigma(xW_g) \otimes (xW)
-```
+$$
+\large
+\text{GLU}(x) = \sigma(xW_g) \otimes (xW)
+$$
 
 ### Key Insight
 
@@ -515,9 +527,10 @@ The GLU paper and subsequent work by Shazeer (2020) introduced several variants 
 
 General form:
 
-```math
-\large \text{ActivationGLU}(x) = \text{Activation}(xW_g) \otimes (xW)
-```
+$$
+\large
+\text{ActivationGLU}(x) = \text{Activation}(xW_g) \otimes (xW)
+$$
 
 ### Architecture Impact
 
@@ -549,15 +562,17 @@ This requires **twice the parameters** in the first projection (or equivalently,
 
 SwiGLU (Swish-Gated Linear Unit) uses the SiLU/Swish activation for gating:
 
-```math
-\large \text{SwiGLU}(x, W, V, b, c) = \text{SiLU}(xW + b) \otimes (xV + c)
-```
+$$
+\large
+\text{SwiGLU}(x, W, V, b, c) = \text{SiLU}(xW + b) \otimes (xV + c)
+$$
 
 Simplified notation (without biases, which are often omitted in transformers):
 
-```math
-\large \text{SwiGLU}(x) = \text{SiLU}(xW) \otimes (xV)
-```
+$$
+\large
+\text{SwiGLU}(x) = \text{SiLU}(xW) \otimes (xV)
+$$
 
 where:
 
@@ -723,9 +738,10 @@ The FLOPs are approximately equal when maintaining similar parameter counts, but
 
 GeGLU (GELU-Gated Linear Unit) uses GELU activation for gating:
 
-```math
-\large \text{GeGLU}(x) = \text{GELU}(xW) \otimes (xV)
-```
+$$
+\large
+\text{GeGLU}(x) = \text{GELU}(xW) \otimes (xV)
+$$
 
 ### Properties
 
@@ -1153,9 +1169,10 @@ The implementation handles two fundamentally different architectures:
 
 **Non-gated (ReLU, GELU, SiLU):**
 
-```math
-\large \text{FFN}(x) = W_2 \cdot \text{Activation}(W_1 x)
-```
+$$
+\large
+\text{FFN}(x) = W_2 \cdot \text{Activation}(W_1 x)
+$$
 
 
 - Parameters: $2 \times d_{\text{model}} \times d_{\text{ff}}$
@@ -1163,9 +1180,10 @@ The implementation handles two fundamentally different architectures:
 
 **Gated (SwiGLU, GeGLU, etc.):**
 
-```math
-\large \text{FFN}(x) = W_2 \cdot (\text{Activation}(W_1 x) \otimes W_3 x)
-```
+$$
+\large
+\text{FFN}(x) = W_2 \cdot (\text{Activation}(W_1 x) \otimes W_3 x)
+$$
 
 
 - Parameters: $d_{\text{model}} \times d_{\text{ff}} \times 3$ (three weight matrices)
@@ -1577,8 +1595,8 @@ def test_activation_implementation():
     print(f"GELU max error: {gelu_error:.6f}")
     print(f"SiLU max error: {silu_error:.6f}")
 
-    assert gelu_error \lt 1e-5, "GELU implementation is incorrect"
-    assert silu_error \lt 1e-5, "SiLU implementation is incorrect"
+    assert gelu_error < 1e-5, "GELU implementation is incorrect"
+    assert silu_error < 1e-5, "SiLU implementation is incorrect"
 
     print("All tests passed!")
 

@@ -196,9 +196,10 @@ prompt = few_shot_prompt(examples, "It was fine, I guess.")
 
 The relationship between number of examples and performance typically follows a **logarithmic curve**:
 
-```math
-\large \text{Performance} \approx \alpha + \beta \log(N + 1)
-```
+$$
+\large
+\text{Performance} \approx \alpha + \beta \log(N + 1)
+$$
 
 where $N$ is the number of examples, and $\alpha, \beta$ are task-dependent constants.
 
@@ -312,21 +313,24 @@ Induction head predicts: "sat" (completing the repeated pattern)
 The circuit works through **composition of attention heads**:
 
 **Step 1** (Previous-token head at layer $\ell$):
-```math
-\large \text{Attn}_{\text{prev}}[i] \approx \text{embed}[i-1]
-```
+$$
+\large
+\text{Attn}_{\text{prev}}[i] \approx \text{embed}[i-1]
+$$
 
 Copies the embedding from the previous token position.
 
 **Step 2** (Induction head at layer $\ell + 1$):
-```math
-\large \text{Attn}_{\text{ind}}[i] = \text{softmax}\left(\frac{Q_i K^T}{\sqrt{d}}\right) V
-```
+$$
+\large
+\text{Attn}_{\text{ind}}[i] = \text{softmax}\left(\frac{Q_i K^T}{\sqrt{d}}\right) V
+$$
 
 Where the key $K_j$ includes the previous-token information:
-```math
-\large K_j = W_{K} (\text{embed}[j] + \text{Attn}_{\text{prev}}[j])
-```
+$$
+\large
+K_j = W_{K} (\text{embed}[j] + \text{Attn}_{\text{prev}}[j])
+$$
 
 This allows the induction head to match based on "what came before this token" rather than just the token itself.
 
@@ -427,9 +431,10 @@ Another mechanism for ICL involves **task vectors** - directions in activation s
 
 When a model processes few-shot examples, it forms an internal representation of the task in its activation space. This "task vector" then influences how it processes the query.
 
-```math
-\large h_{\text{query}} = h_{\text{base}} + \alpha \cdot v_{\text{task}}
-```
+$$
+\large
+h_{\text{query}} = h_{\text{base}} + \alpha \cdot v_{\text{task}}
+$$
 
 where:
 - $h_{\text{query}}$ is the hidden state for processing the query
@@ -552,7 +557,7 @@ print(f"\nAttention from final position to example positions:")
 print(f"Final token attends to:")
 for i, token in enumerate(tokens):
     attn_weight = attn_matrix[-1, i]
-    if attn_weight \gt 0.05:  # Significant attention
+    if attn_weight > 0.05:  # Significant attention
         print(f"  {token}: {attn_weight:.4f}")
 ```
 
@@ -566,9 +571,10 @@ Several theoretical perspectives help explain why and how ICL works:
 
 From a meta-learning perspective, pre-training is optimizing:
 
-```math
-\large \min_{\theta} \mathbb{E}_{p(\mathcal{T})} \left[ \mathbb{E}_{(x,y) \sim \mathcal{T}} \left[ \mathcal{L}(f_{\theta}(x | \text{context}_{\mathcal{T}}), y) \right] \right]
-```
+$$
+\large
+\min_{\theta} \mathbb{E}_{p(\mathcal{T})} \left[ \mathbb{E}_{(x,y) \sim \mathcal{T}} \left[ \mathcal{L}(f_{\theta}(x | \text{context}_{\mathcal{T}}), y) \right] \right]
+$$
 
 where:
 - $\mathcal{T}$ is a distribution over tasks
@@ -589,9 +595,10 @@ where:
 
 The model implicitly performs:
 
-```math
-\large p(y | x, \text{examples}) = \int p(y | x, \theta) p(\theta | \text{examples}) d\theta
-```
+$$
+\large
+p(y | x, \text{examples}) = \int p(y | x, \theta) p(\theta | \text{examples}) d\theta
+$$
 
 where $\theta$ represents task parameters (e.g., classification weights).
 
@@ -599,15 +606,17 @@ where $\theta$ represents task parameters (e.g., classification weights).
 
 Given examples $\mathcal{D} = \{(x_1, y_1), ..., (x_k, y_k)\}$ and a new input $x$:
 
-```math
-\large p(y | x, \mathcal{D}) = \int p(y | x, \theta) p(\theta | \mathcal{D}) d\theta
-```
+$$
+\large
+p(y | x, \mathcal{D}) = \int p(y | x, \theta) p(\theta | \mathcal{D}) d\theta
+$$
 
 The posterior over task parameters updates via Bayes' rule:
 
-```math
-\large p(\theta | \mathcal{D}) \propto p(\mathcal{D} | \theta) p(\theta)
-```
+$$
+\large
+p(\theta | \mathcal{D}) \propto p(\mathcal{D} | \theta) p(\theta)
+$$
 
 **Connection to transformers**:
 
@@ -625,16 +634,18 @@ Transformers can be viewed as performing approximate Bayesian inference:
 Von Oswald et al. (2023) and others showed that transformer attention can implement gradient-based learning:
 
 **Standard gradient descent** (fine-tuning):
-```math
-\large \theta_{t+1} = \theta_t - \eta \nabla_{\theta} \mathcal{L}(y_t | x_t, \theta_t)
-```
+$$
+\large
+\theta_{t+1} = \theta_t - \eta \nabla_{\theta} \mathcal{L}(y_t | x_t, \theta_t)
+$$
 
 **ICL as implicit gradient descent**:
 
 The transformer's forward pass computes something equivalent to:
-```math
-\large f_{\text{ICL}}(x | \mathcal{D}) \approx f(x; \theta - \eta \sum_{(x_i, y_i) \in \mathcal{D}} \nabla_{\theta} \mathcal{L}(y_i | x_i, \theta))
-```
+$$
+\large
+f_{\text{ICL}}(x | \mathcal{D}) \approx f(x; \theta - \eta \sum_{(x_i, y_i) \in \mathcal{D}} \nabla_{\theta} \mathcal{L}(y_i | x_i, \theta))
+$$
 
 where $\theta$ is the pre-trained parameters, but **the gradient update happens implicitly in activations** rather than explicitly updating weights.
 
@@ -648,14 +659,16 @@ A single attention layer can implement one step of gradient descent on a linear 
 - Query: new input $x$
 
 **Gradient descent solution**:
-```math
-\large w^\ast = \arg\min_w \sum_{i=1}^k (y_i - w^T x_i)^2 = (X^T X)^{-1} X^T y
-```
+$$
+\large
+w^* = \arg\min_w \sum_{i=1}^k (y_i - w^T x_i)^2 = (X^T X)^{-1} X^T y
+$$
 
 **Attention computation**:
-```math
-\large \text{Attn}(x, \{x_i, y_i\}) = \sum_{i=1}^k \frac{\exp(x^T x_i)}{\sum_j \exp(x^T x_j)} y_i
-```
+$$
+\large
+\text{Attn}(x, \{x_i, y_i\}) = \sum_{i=1}^k \frac{\exp(x^T x_i)}{\sum_j \exp(x^T x_j)} y_i
+$$
 
 With appropriate parameterization, this is exactly gradient descent on squared loss!
 
@@ -746,14 +759,16 @@ print(f"Learned weights: {learned_w}")
 This perspective views ICL as:
 
 1. **Encoding**: Map examples to a task embedding $z_{\text{task}}$
-   ```math
-\large    z_{\text{task}} = \text{Encoder}(\{(x_i, y_i)\}_{i=1}^k)
-   ```
+   $$
+   \large
+   z_{\text{task}} = \text{Encoder}(\{(x_i, y_i)\}_{i=1}^k)
+   $$
 
 2. **Conditioning**: Use task embedding to process query
-   ```math
-\large    y = \text{Decoder}(x | z_{\text{task}})
-   ```
+   $$
+   \large
+   y = \text{Decoder}(x | z_{\text{task}})
+   $$
 
 **Implementation**:
 
@@ -781,9 +796,10 @@ ICL is an **emergent capability** that appears during pre-training when models r
 
 **Why scale matters**:
 
-```math
-\large \text{ICL capability} \propto f(\text{model size}, \text{data diversity}, \text{training compute})
-```
+$$
+\large
+\text{ICL capability} \propto f(\text{model size}, \text{data diversity}, \text{training compute})
+$$
 
 Possible explanations:
 - **Capacity**: Larger models can store more task templates
@@ -1097,9 +1113,10 @@ def test_verbalizations(model, tokenizer, examples, query, verbalizations):
 
 There's a tradeoff between number of examples and context length:
 
-```math
-\large \text{Optimal k} = \arg\max_k \left[ \text{ICL benefit}(k) - \text{Context cost}(k) \right]
-```
+$$
+\large
+\text{Optimal k} = \arg\max_k \left[ \text{ICL benefit}(k) - \text{Context cost}(k) \right]
+$$
 
 **Considerations**:
 - More examples → better task understanding
@@ -1170,50 +1187,50 @@ def should_use_icl_or_finetune(
     score_ft = 0
 
     # Data availability
-    if num_examples \lt 50:
+    if num_examples < 50:
         score_icl += 3
-    elif num_examples \lt 500:
+    elif num_examples < 500:
         score_icl += 1
         score_ft += 1
     else:
         score_ft += 3
 
     # Query volume (cost considerations)
-    if query_volume \lt 100:
+    if query_volume < 100:
         score_icl += 2  # Low volume, cost matters less
-    elif query_volume \lt 10000:
+    elif query_volume < 10000:
         score_icl += 1
         score_ft += 1
     else:
         score_ft += 3  # High volume, inference cost matters
 
     # Task diversity
-    if task_diversity \gt 10:
+    if task_diversity > 10:
         score_icl += 3  # Easy to switch tasks
-    elif task_diversity \gt 3:
+    elif task_diversity > 3:
         score_icl += 2
         score_ft += 1  # Can use LoRA for multiple tasks
     else:
         score_ft += 2
 
     # Latency requirements
-    if latency_requirements \lt 100:  # \lt 100ms
+    if latency_requirements < 100:  # < 100ms
         score_ft += 3
-    elif latency_requirements \lt 500:
+    elif latency_requirements < 500:
         score_ft += 1
     else:
         score_icl += 1
 
     # Base model capability
-    if base_model_capability \gt 0.8:
+    if base_model_capability > 0.8:
         score_icl += 2  # Good base model works well with ICL
     else:
         score_ft += 2  # Weak base needs fine-tuning
 
     # Make recommendation
-    if score_icl \gt score_ft + 2:
+    if score_icl > score_ft + 2:
         return "ICL"
-    elif score_ft \gt score_icl + 2:
+    elif score_ft > score_icl + 2:
         return "fine-tuning"
     else:
         return "hybrid"  # Use both!
@@ -1440,7 +1457,7 @@ def calibrated_icl(model, tokenizer, examples, query, label_space):
     # Step 3: Calibrate (divide by baseline to remove bias)
     calibrated_probs = {}
     for label in label_space:
-        if baseline_probs[label] \gt 1e-10:
+        if baseline_probs[label] > 1e-10:
             calibrated_probs[label] = actual_probs[label] / baseline_probs[label]
         else:
             calibrated_probs[label] = actual_probs[label]
@@ -1671,7 +1688,7 @@ class ICLSystem:
                 ))
 
             # If we didn't get enough, add random ones
-            while len(selected) \lt k and len(selected) \lt len(train_pool):
+            while len(selected) < k and len(selected) < len(train_pool):
                 remaining = [ex for ex in train_pool if ex not in selected]
                 if remaining:
                     selected.append(random.choice(remaining))
@@ -1810,7 +1827,7 @@ class ICLSystem:
         for i in range(num_samples):
             # Optionally shuffle examples for diversity
             shuffled_examples = examples.copy()
-            if i \gt 0:  # Keep first sample with original order
+            if i > 0:  # Keep first sample with original order
                 random.shuffle(shuffled_examples)
 
             prompt = self.format_prompt(shuffled_examples, query, **kwargs)
@@ -1885,7 +1902,7 @@ class ICLSystem:
             print(f"Correct: {prediction.strip().lower() == test_output.strip().lower()}")
             print("-" * 50)
 
-        accuracy = correct / total if total \gt 0 else 0.0
+        accuracy = correct / total if total > 0 else 0.0
 
         return {
             "accuracy": accuracy,

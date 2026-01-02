@@ -44,9 +44,10 @@ Classifier-Free Guidance (CFG) is a technique for steering diffusion models towa
 
 Original classifier guidance (Dhariwal & Nichol, 2021) required training a separate noise-robust classifier $p_\phi(y|x_t)$ to guide the diffusion process:
 
-```math
-\large \nabla_{x_t} \log p(x_t|y) = \nabla_{x_t} \log p(x_t) + s \cdot \nabla_{x_t} \log p_\phi(y|x_t)
-```
+$$
+\large
+\nabla_{x_t} \log p(x_t|y) = \nabla_{x_t} \log p(x_t) + s \cdot \nabla_{x_t} \log p_\phi(y|x_t)
+$$
 
 where $s$ is the guidance scale.
 
@@ -67,24 +68,26 @@ Classifier-Free Guidance (Ho & Salimans, 2021) eliminates the need for a separat
 
 During sampling, interpolate between conditional and unconditional predictions:
 
-```math
-\large \tilde{\epsilon}_\theta(x_t, t, c) = \epsilon_\theta(x_t, t, \emptyset) + s \cdot (\epsilon_\theta(x_t, t, c) - \epsilon_\theta(x_t, t, \emptyset))
-```
+$$
+\large
+\tilde{\epsilon}_\theta(x_t, t, c) = \epsilon_\theta(x_t, t, \emptyset) + s \cdot (\epsilon_\theta(x_t, t, c) - \epsilon_\theta(x_t, t, \emptyset))
+$$
 
 where:
 
 - $s$ is the guidance scale (typically 7.5 for Stable Diffusion)
 - $s = 0$: unconditional generation
 - $s = 1$: standard conditional generation
-- $s \gt 1$: stronger adherence to condition (at cost of diversity)
+- $s > 1$: stronger adherence to condition (at cost of diversity)
 
 **Mathematical Intuition:**
 
 The CFG formulation approximates:
 
-```math
-\large \nabla_{x_t} \log p(x_t|c) \approx \nabla_{x_t} \log p(x_t) + s \cdot (\nabla_{x_t} \log p(x_t|c) - \nabla_{x_t} \log p(x_t))
-```
+$$
+\large
+\nabla_{x_t} \log p(x_t|c) \approx \nabla_{x_t} \log p(x_t) + s \cdot (\nabla_{x_t} \log p(x_t|c) - \nabla_{x_t} \log p(x_t))
+$$
 
 This pushes the sample toward the conditional distribution while moving away from the unconditional distribution.
 
@@ -150,7 +153,7 @@ class ClassifierFreeGuidanceMixin:
 
         # Create mask for unconditional samples
         batch_size = condition.shape[0]
-        mask = torch.rand(batch_size, device=condition.device) \lt self.p_uncond
+        mask = torch.rand(batch_size, device=condition.device) < self.p_uncond
 
         # Replace masked conditions with zeros (null condition)
         # In practice, you might use a learned null embedding
@@ -284,7 +287,7 @@ class ConditionalUNet(nn.Module):
     def _apply_cfg_training(self, condition: torch.Tensor) -> torch.Tensor:
         """Apply unconditional training dropout."""
         batch_size = condition.shape[0]
-        mask = torch.rand(batch_size, device=condition.device) \lt self.p_uncond
+        mask = torch.rand(batch_size, device=condition.device) < self.p_uncond
         masked_condition = condition.clone()
         masked_condition[mask] = 0
         return masked_condition
@@ -600,7 +603,7 @@ class VAEEncoder(nn.Module):
             )
 
             # Downsample (except last layer)
-            if i \lt len(channel_multipliers) - 1:
+            if i < len(channel_multipliers) - 1:
                 self.down_blocks.append(Downsample(out_channels))
 
             channels = out_channels
@@ -682,7 +685,7 @@ class VAEDecoder(nn.Module):
             )
 
             # Upsample (except last layer)
-            if i \lt len(channel_multipliers) - 1:
+            if i < len(channel_multipliers) - 1:
                 self.up_blocks.append(Upsample(out_channels))
 
             channels = out_channels
@@ -895,15 +898,17 @@ Noise schedulers determine how noise is added during training and removed during
 
 The noise schedule is controlled by the variance schedule $\beta_t$, which determines the forward diffusion process:
 
-```math
-\large q(x_t|x_{t-1}) = \mathcal{N}(x_{t}; \sqrt{1-\beta_t}x_{t-1}, \beta_t I)
-```
+$$
+\large
+q(x_t|x_{t-1}) = \mathcal{N}(x_{t}; \sqrt{1-\beta_t}x_{t-1}, \beta_t I)
+$$
 
 The cumulative effect is characterized by $\bar{\alpha}_t = \prod_{s=1}^t (1-\beta_s)$, which allows us to sample $x_t$ directly from $x_0$:
 
-```math
-\large q(x_t|x_0) = \mathcal{N}(x_{t}; \sqrt{\bar{\alpha}_t}x_0, (1-\bar{\alpha}_t)I)
-```
+$$
+\large
+q(x_t|x_0) = \mathcal{N}(x_{t}; \sqrt{\bar{\alpha}_t}x_0, (1-\bar{\alpha}_t)I)
+$$
 
 This enables efficient training by sampling any timestep directly without iterating through all previous steps.
 
@@ -927,9 +932,11 @@ This enables efficient training by sampling any timestep directly without iterat
 
 3. **Posterior Variance**: The scheduler also defines the posterior $q(x_{t-1}|x_t, x_0)$ variance:
 
-   ```math
-\large \tilde{\beta}_t = \frac{1-\bar{\alpha}_{t-1}}{1-\bar{\alpha}_t}\beta_t
-   ```
+
+   $$
+\large
+\tilde{\beta}_t = \frac{1-\bar{\alpha}_{t-1}}{1-\bar{\alpha}_t}\beta_t
+   $$
 
    This is crucial for proper sampling dynamics.
 
@@ -1037,7 +1044,7 @@ class DDPMScheduler:
         sqrt_one_minus_alpha_prod = self.sqrt_one_minus_alphas_cumprod[timesteps]
 
         # Reshape for broadcasting
-        while len(sqrt_alpha_prod.shape) \lt len(original_samples.shape):
+        while len(sqrt_alpha_prod.shape) < len(original_samples.shape):
             sqrt_alpha_prod = sqrt_alpha_prod.unsqueeze(-1)
             sqrt_one_minus_alpha_prod = sqrt_one_minus_alpha_prod.unsqueeze(-1)
 
@@ -1091,7 +1098,7 @@ class DDPMScheduler:
         )
 
         # Add noise (except at t=0)
-        if t \gt 0:
+        if t > 0:
             noise = torch.randn(
                 sample.shape,
                 generator=generator,
@@ -1196,8 +1203,8 @@ class DDIMScheduler(DDPMScheduler):
             pred_sample_direction
         )
 
-        # Add noise if eta \gt 0
-        if eta \gt 0 and timestep \gt 0:
+        # Add noise if eta > 0
+        if eta > 0 and timestep > 0:
             noise = torch.randn(
                 model_output.shape,
                 generator=generator,
@@ -1403,17 +1410,19 @@ Cross-attention provides a **differentiable routing mechanism** that lets the mo
 
 Self-attention (within image features):
 
-```math
-\large \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d}}\right)V
-```
+$$
+\large
+\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d}}\right)V
+$$
 
 where $Q, K, V$ all come from image features.
 
 Cross-attention (image conditioned on text):
 
-```math
-\large \text{CrossAttention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d}}\right)V
-```
+$$
+\large
+\text{CrossAttention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d}}\right)V
+$$
 
 where:
 
@@ -1917,9 +1926,10 @@ Given real images $x_r$ and generated images $x_g$, extract features using a pre
 - $\mu_r, \Sigma_r$: Mean and covariance of real image features
 - $\mu_g, \Sigma_g$: Mean and covariance of generated image features
 
-```math
-\large \text{FID} = \|\mu_r - \mu_g\|^2 + \text{Tr}(\Sigma_r + \Sigma_g - 2(\Sigma_r \Sigma_g)^{1/2})
-```
+$$
+\large
+\text{FID} = \|\mu_r - \mu_g\|^2 + \text{Tr}(\Sigma_r + \Sigma_g - 2(\Sigma_r \Sigma_g)^{1/2})
+$$
 
 **Properties:**
 
@@ -2082,9 +2092,10 @@ CLIP Score measures how well generated images match text prompts using OpenAI's 
 
 For image $I$ and text $T$:
 
-```math
-\large \text{CLIP-Score}(I, T) = \max(0, 100 \cdot \cos(\text{CLIP}_{I}(I), \text{CLIP}_{T}(T)))
-```
+$$
+\large
+\text{CLIP-Score}(I, T) = \max(0, 100 \cdot \cos(\text{CLIP}_{I}(I), \text{CLIP}_{T}(T)))
+$$
 
 where $\text{CLIP}_{I}$ and $\text{CLIP}_{T}$ are image and text encoders, and $\cos$ is cosine similarity.
 
@@ -2195,9 +2206,10 @@ Inception Score measures quality and diversity of generated images.
 
 **Formulation:**
 
-```math
-\large \text{IS} = \exp(\mathbb{E}_x[\text{KL}(p(y|x) \| p(y))])
-```
+$$
+\large
+\text{IS} = \exp(\mathbb{E}_x[\text{KL}(p(y|x) \| p(y))])
+$$
 
 where:
 
@@ -2370,17 +2382,19 @@ Flow Matching is an alternative to diffusion that learns to transform noise to d
 
 Instead of a fixed diffusion process, Flow Matching learns a time-dependent vector field $v_t(x)$ such that:
 
-```math
-\large \frac{dx_t}{dt} = v_t(x_t)
-```
+$$
+\large
+\frac{dx_t}{dt} = v_t(x_t)
+$$
 
 with $x_0 \sim p_\text{data}$ and $x_1 \sim p_\text{noise}$.
 
 **Training Objective:**
 
-```math
-\large \mathcal{L} = \mathbb{E}_{t, x_0, x_1}\left[\|v_\theta(x_t, t) - u_t(x_t|x_0, x_1)\|^2\right]
-```
+$$
+\large
+\mathcal{L} = \mathbb{E}_{t, x_0, x_1}\left[\|v_\theta(x_t, t) - u_t(x_t|x_0, x_1)\|^2\right]
+$$
 
 where $u_t$ is the conditional vector field from $x_1$ to $x_0$.
 
@@ -2437,7 +2451,7 @@ class FlowMatching(nn.Module):
         x_t = t * x1 + (1 - t) * x0
 
         # Add optional Gaussian conditioning
-        if self.sigma \gt 0:
+        if self.sigma > 0:
             noise = torch.randn_like(x0)
             x_t = x_t + self.sigma * noise
 
@@ -2738,9 +2752,10 @@ Consistency models learn: $x_t \to x_0$ in one step (for any $t$).
 
 **Consistency Property:**
 
-```math
-\large f_\theta(x_t, t) = f_\theta(x_{t'}, t') = x_0
-```
+$$
+\large
+f_\theta(x_t, t) = f_\theta(x_{t'}, t') = x_0
+$$
 
 for any $t, t'$ on the same trajectory.
 
@@ -3181,7 +3196,7 @@ class EDMSampler:
             sigma_next = sigmas[i + 1]
 
             # Optional: add noise for stochasticity
-            if s_churn \gt 0:
+            if s_churn > 0:
                 gamma = min(s_churn / num_steps, 2 ** 0.5 - 1)
                 sigma_hat = sigma_cur * (1 + gamma)
                 x = x + (sigma_hat ** 2 - sigma_cur ** 2) ** 0.5 * torch.randn_like(x)
@@ -3464,9 +3479,10 @@ Diffusion models excel at continuous data (images, audio) but language is fundam
 
 For discrete diffusion, we replace Gaussian noise with a **transition matrix** $Q_t$ that defines corruption:
 
-```math
-\large q(x_t|x_{t-1}) = \text{Cat}(x_{t}; p = x_{t-1}^T Q_t)
-```
+$$
+\large
+q(x_t|x_{t-1}) = \text{Cat}(x_{t}; p = x_{t-1}^T Q_t)
+$$
 
 where $x_t$ is a one-hot encoded token and $Q_t[i,j]$ is the probability of token $i$ transitioning to token $j$.
 
@@ -3474,22 +3490,26 @@ where $x_t$ is a one-hot encoded token and $Q_t[i,j]$ is the probability of toke
 
 1. **Absorbing State**: Gradually replace all tokens with [MASK]
 
-   ```math
-\large Q_t[i,j] = \begin{cases}
+
+   $$
+\large
+Q_t[i,j] = \begin{cases}
    \alpha_t & \text{if } i=j \\
    1-\alpha_t & \text{if } j=\text{[MASK]} \\
    0 & \text{otherwise}
    \end{cases}
-   ```
+   $$
 
 2. **Uniform**: Replace with random tokens
 
-   ```math
-\large Q_t[i,j] = \begin{cases}
+
+   $$
+\large
+Q_t[i,j] = \begin{cases}
    \alpha_t & \text{if } i=j \\
    \frac{1-\alpha_t}{V} & \text{otherwise}
    \end{cases}
-   ```
+   $$
 
 **Approaches:**
 
@@ -3539,7 +3559,7 @@ where $x_t$ is a one-hot encoded token and $Q_t[i,j]$ is the probability of toke
    - Easier to control multiple attributes simultaneously
    - Natural fit for editing (start from partially noised real text)
 
-```python
+$$python
 class DiscreteDiscreteDiffusion:
     """
     Discrete diffusion in token space.
@@ -3777,7 +3797,7 @@ class ContinuousEmbeddingDiffusion(nn.Module):
                 torch.sqrt(alpha_t)
 
             # Add noise (except at t=0)
-            if t \gt 0:
+            if t > 0:
                 noise = torch.randn_like(x)
                 sigma_t = torch.sqrt(self.betas[t])
                 x = x + sigma_t * noise
@@ -3816,9 +3836,10 @@ Continuous relaxations solve this by representing discrete distributions as **co
 
 The **Gumbel-Softmax** trick provides a continuous, differentiable approximation to categorical distributions:
 
-```math
-\large y_i = \frac{\exp((\log \pi_i + g_i)/\tau)}{\sum_j \exp((\log \pi_j + g_j)/\tau)}
-```
+$$
+\large
+y_i = \frac{\exp((\log \pi_i + g_i)/\tau)}{\sum_j \exp((\log \pi_j + g_j)/\tau)}
+$$
 
 where:
 
@@ -4018,8 +4039,8 @@ class StableDiffusionTrainer:
             text_embeddings = self.text_encoder(text_tokens)
 
         # 3. Apply CFG dropout
-        if cfg_prob \gt 0:
-            mask = torch.rand(batch_size) \lt cfg_prob
+        if cfg_prob > 0:
+            mask = torch.rand(batch_size) < cfg_prob
             text_embeddings[mask] = 0  # Replace with null embedding
 
         # 4. Sample noise and timesteps

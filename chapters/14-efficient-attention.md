@@ -31,9 +31,10 @@ Standard multi-head attention (see [Multi-Head Attention](04-multi-head-attentio
 
 For sequence length $n$ and hidden dimension $d$:
 
-```math
-\large \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
-```
+$$
+\large
+\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
+$$
 
 The $QK^T$ computation creates an $n \times n$ attention matrix, requiring $O(n^2 d)$ operations.
 
@@ -41,9 +42,10 @@ The $QK^T$ computation creates an $n \times n$ attention matrix, requiring $O(n^
 
 During autoregressive generation, we cache key and value tensors for all previous tokens:
 
-```math
-\large \text{Memory}_{\text{KV cache}} = 2 \times \text{layers} \times \text{heads} \times \text{seq\_len} \times \text{head\_dim} \times \text{bytes}
-```
+$$
+\large
+\text{Memory}_{\text{KV cache}} = 2 \times \text{layers} \times \text{heads} \times \text{seq\_len} \times \text{head\_dim} \times \text{bytes}
+$$
 
 For a 70B model with 100K context:
 
@@ -104,7 +106,7 @@ Before diving into solutions, it's crucial to understand the practical impact of
 
 **Problem**: At 128K tokens, standard attention requires ~140 teraFLOPs per forward pass - multiple GPU-seconds even on A100s. This makes training on long contexts prohibitively expensive.
 
-**Theoretical justification**: The $O(n^2)$ term dominates all other operations in transformers once $n \gt d$. For typical models where $d \approx 4096$, any sequence longer than 4K tokens means attention is the primary bottleneck.
+**Theoretical justification**: The $O(n^2)$ term dominates all other operations in transformers once $n > d$. For typical models where $d \approx 4096$, any sequence longer than 4K tokens means attention is the primary bottleneck.
 
 **Key insight**: Doubling context length quadruples compute. This superlinear scaling means we must either:
 
@@ -122,17 +124,19 @@ Linear attention approximates the softmax operation to achieve $O(nd^2)$ complex
 
 Standard attention can be viewed as:
 
-```math
-\large \text{Attention}(Q, K, V)_i = \frac{\sum_{j=1}^n \text{sim}(q_i, k_j) v_j}{\sum_{j=1}^n \text{sim}(q_i, k_j)}
-```
+$$
+\large
+\text{Attention}(Q, K, V)_i = \frac{\sum_{j=1}^n \text{sim}(q_i, k_j) v_j}{\sum_{j=1}^n \text{sim}(q_i, k_j)}
+$$
 
 where $\text{sim}(q, k) = \exp(q^T k / \sqrt{d})$.
 
 If we can approximate $\text{sim}(q, k) \approx \phi(q)^T \phi(k)$ for some feature map $\phi$, then:
 
-```math
-\large \text{Attention}(Q, K, V)_i = \frac{\phi(q_i)^T \sum_{j=1}^n \phi(k_j) v_j^T}{\phi(q_i)^T \sum_{j=1}^n \phi(k_j)}
-```
+$$
+\large
+\text{Attention}(Q, K, V)_i = \frac{\phi(q_i)^T \sum_{j=1}^n \phi(k_j) v_j^T}{\phi(q_i)^T \sum_{j=1}^n \phi(k_j)}
+$$
 
 The sums $\sum_j \phi(k_j) v_j^T$ and $\sum_j \phi(k_j)$ can be computed once in $O(nd^2)$ time!
 
@@ -279,9 +283,10 @@ def compare_linear_vs_standard():
 
 Any shift-invariant kernel $k(x-y)$ can be expressed as:
 
-```math
-\large k(x-y) = \mathbb{E}_{\omega}[\phi_{\omega}(x)^\ast \phi_{\omega}(y)]
-```
+$$
+\large
+k(x-y) = \mathbb{E}_{\omega}[\phi_{\omega}(x)^* \phi_{\omega}(y)]
+$$
 
 where $\phi_{\omega}(x) = e^{i\omega^T x}$ and $\omega$ is drawn from the Fourier transform of $k$.
 
@@ -505,7 +510,7 @@ class BigBirdAttention(nn.Module):
         for i in range(self.num_global, seq_len):
             # Sample random positions (excluding already attended positions)
             available = torch.where(~mask[i])[0]
-            if len(available) \gt 0:
+            if len(available) > 0:
                 num_random = min(self.num_random, len(available))
                 random_indices = available[torch.randperm(len(available))[:num_random]]
                 mask[i, random_indices] = True
@@ -635,7 +640,7 @@ class LongformerAttention(nn.Module):
                 # within the window
                 for offset in range(-self.window_size, self.window_size + 1, dilation):
                     j = i + offset
-                    if 0 <= j \lt seq_len:
+                    if 0 <= j < seq_len:
                         mask[i, j] = True
 
         # Global attention
@@ -793,7 +798,7 @@ class SlidingWindowAttention(nn.Module):
             v = torch.cat([v_cache, v], dim=2)
 
             # Rolling buffer: keep only last window_size tokens
-            if k.shape[2] \gt self.window_size:
+            if k.shape[2] > self.window_size:
                 k = k[:, :, -self.window_size:]
                 v = v[:, :, -self.window_size:]
 
@@ -1074,7 +1079,7 @@ class GroupedQueryAttention(nn.Module):
 
     - MHA: n_kv_heads = n_heads (each Q head has own K,V)
     - MQA: n_kv_heads = 1 (all Q heads share K,V)
-    - GQA: 1 \lt n_kv_heads \lt n_heads (groups share K,V)
+    - GQA: 1 < n_kv_heads < n_heads (groups share K,V)
 
     Example: 32 query heads, 8 KV heads -> 4 query heads per KV head
 
@@ -1537,13 +1542,13 @@ class AttentionVariantSelector:
             return "Standard MHA (cache not bottleneck)"
 
         elif model_size == 'medium':
-            if context_length \gt 32768:
+            if context_length > 32768:
                 return "GQA (4-8 groups) for cache efficiency"
             else:
                 return "GQA or MQA"
 
         else:  # large
-            if context_length \gt 100000:
+            if context_length > 100000:
                 return "MLA (DeepSeek-style) for extreme cache reduction"
             else:
                 return "GQA (8 groups) with possible sliding window"

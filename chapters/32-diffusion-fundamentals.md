@@ -65,9 +65,10 @@ This is analogous to:
 
 **Theoretical Foundation:** The forward process follows a noise schedule where at each step $t$, we can sample $\mathbf{x}_t$ directly using:
 
-```math
-\large \mathbf{x}_t = \sqrt{\bar{\alpha}_t} \mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_t} \boldsymbol{\epsilon}
-```
+$$
+\large
+\mathbf{x}_t = \sqrt{\bar{\alpha}_t} \mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_t} \boldsymbol{\epsilon}
+$$
 
 This means the noisy image is a weighted combination of the original image (scaled by $\sqrt{\bar{\alpha}_t}$) and pure noise (scaled by $\sqrt{1-\bar{\alpha}_t}$). As $t$ increases, $\bar{\alpha}_t$ decreases, so the image contribution diminishes while noise increases.
 
@@ -118,9 +119,10 @@ def visualize_diffusion_process(x0, num_steps=10):
 
 The forward diffusion process is a **fixed** Markov chain that gradually adds Gaussian noise to data $\mathbf{x}_0 \sim q(\mathbf{x}_0)$ over $T$ timesteps:
 
-```math
-\large q(\mathbf{x}_t | \mathbf{x}_{t-1}) = \mathcal{N}(\mathbf{x}_{t}; \sqrt{1 - \beta_t} \mathbf{x}_{t-1}, \beta_t \mathbf{I})
-```
+$$
+\large
+q(\mathbf{x}_t | \mathbf{x}_{t-1}) = \mathcal{N}(\mathbf{x}_{t}; \sqrt{1 - \beta_t} \mathbf{x}_{t-1}, \beta_t \mathbf{I})
+$$
 
 where:
 
@@ -133,21 +135,24 @@ where:
 
 A crucial property of this process is that we can sample $\mathbf{x}_t$ at any timestep $t$ directly from $\mathbf{x}_0$ without iterating through all previous steps. Define:
 
-```math
-\large \alpha_t := 1 - \beta_t, \quad \bar{\alpha}_t := \prod_{s=1}^{t} \alpha_s
-```
+$$
+\large
+\alpha_t := 1 - \beta_t, \quad \bar{\alpha}_t := \prod_{s=1}^{t} \alpha_s
+$$
 
 Then:
 
-```math
-\large q(\mathbf{x}_t | \mathbf{x}_0) = \mathcal{N}(\mathbf{x}_{t}; \sqrt{\bar{\alpha}_t} \mathbf{x}_0, (1 - \bar{\alpha}_t) \mathbf{I})
-```
+$$
+\large
+q(\mathbf{x}_t | \mathbf{x}_0) = \mathcal{N}(\mathbf{x}_{t}; \sqrt{\bar{\alpha}_t} \mathbf{x}_0, (1 - \bar{\alpha}_t) \mathbf{I})
+$$
 
 This can be rewritten using the **reparameterization trick**:
 
-```math
-\large \mathbf{x}_t = \sqrt{\bar{\alpha}_t} \mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_t} \boldsymbol{\epsilon}, \quad \boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})
-```
+$$
+\large
+\mathbf{x}_t = \sqrt{\bar{\alpha}_t} \mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_t} \boldsymbol{\epsilon}, \quad \boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})
+$$
 
 **Proof sketch:**
 Starting from $q(\mathbf{x}_t | \mathbf{x}_{t-1}) = \mathcal{N}(\sqrt{\alpha_t} \mathbf{x}_{t-1}, (1-\alpha_t)\mathbf{I})$, we can use the property that the sum of Gaussians is Gaussian to recursively derive this formula.
@@ -274,21 +279,27 @@ The choice of $\beta_t$ (variance schedule) significantly impacts training and s
 
 1. **Linear Schedule** (DDPM):
 
-   ```math
-\large \beta_t = \beta_1 + \frac{t-1}{T-1}(\beta_T - \beta_1)
-   ```
+
+   $$
+\large
+\beta_t = \beta_1 + \frac{t-1}{T-1}(\beta_T - \beta_1)
+   $$
 
 2. **Cosine Schedule** (Improved DDPM):
 
-   ```math
-\large \bar{\alpha}_t = \frac{f(t)}{f(0)}, \quad f(t) = \cos\left(\frac{t/T + s}{1 + s} \cdot \frac{\pi}{2}\right)^2
-   ```
+
+   $$
+\large
+\bar{\alpha}_t = \frac{f(t)}{f(0)}, \quad f(t) = \cos\left(\frac{t/T + s}{1 + s} \cdot \frac{\pi}{2}\right)^2
+   $$
 
 3. **Quadratic Schedule**:
 
-   ```math
-\large \beta_t = \beta_1 + \left(\frac{t-1}{T-1}\right)^2 (\beta_T - \beta_1)
-   ```
+
+   $$
+\large
+\beta_t = \beta_1 + \left(\frac{t-1}{T-1}\right)^2 (\beta_T - \beta_1)
+   $$
 
 ![Noise Schedules Comparison](../assets/diagrams/ch32-noise-schedules.svg)
 
@@ -375,15 +386,17 @@ plt.tight_layout()
 
 The reverse process aims to **undo** the forward diffusion, transforming noise back into data. We want to learn:
 
-```math
-\large p_\theta(\mathbf{x}_{t-1} | \mathbf{x}_t)
-```
+$$
+\large
+p_\theta(\mathbf{x}_{t-1} | \mathbf{x}_t)
+$$
 
 Starting from $\mathbf{x}_T \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$, we iteratively sample:
 
-```math
-\large p_\theta(\mathbf{x}_{0:T}) = p(\mathbf{x}_T) \prod_{t=1}^{T} p_\theta(\mathbf{x}_{t-1} | \mathbf{x}_t)
-```
+$$
+\large
+p_\theta(\mathbf{x}_{0:T}) = p(\mathbf{x}_T) \prod_{t=1}^{T} p_\theta(\mathbf{x}_{t-1} | \mathbf{x}_t)
+$$
 
 ![Reverse Denoising Process](../assets/diagrams/ch32-reverse-denoising.svg)
 
@@ -391,19 +404,22 @@ Starting from $\mathbf{x}_T \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$, we iterat
 
 A key insight: if $\beta_t$ is small, the reverse process $q(\mathbf{x}_{t-1} | \mathbf{x}_t)$ is also Gaussian (when conditioned on $\mathbf{x}_0$):
 
-```math
-\large q(\mathbf{x}_{t-1} | \mathbf{x}_t, \mathbf{x}_0) = \mathcal{N}(\mathbf{x}_{t-1}; \tilde{\boldsymbol{\mu}}_t(\mathbf{x}_t, \mathbf{x}_0), \tilde{\beta}_t \mathbf{I})
-```
+$$
+\large
+q(\mathbf{x}_{t-1} | \mathbf{x}_t, \mathbf{x}_0) = \mathcal{N}(\mathbf{x}_{t-1}; \tilde{\boldsymbol{\mu}}_t(\mathbf{x}_t, \mathbf{x}_0), \tilde{\beta}_t \mathbf{I})
+$$
 
 where:
 
-```math
-\large \tilde{\boldsymbol{\mu}}_t(\mathbf{x}_t, \mathbf{x}_0) = \frac{\sqrt{\bar{\alpha}_{t-1}} \beta_t}{1 - \bar{\alpha}_t} \mathbf{x}_0 + \frac{\sqrt{\alpha_t}(1 - \bar{\alpha}_{t-1})}{1 - \bar{\alpha}_t} \mathbf{x}_t
-```
+$$
+\large
+\tilde{\boldsymbol{\mu}}_t(\mathbf{x}_t, \mathbf{x}_0) = \frac{\sqrt{\bar{\alpha}_{t-1}} \beta_t}{1 - \bar{\alpha}_t} \mathbf{x}_0 + \frac{\sqrt{\alpha_t}(1 - \bar{\alpha}_{t-1})}{1 - \bar{\alpha}_t} \mathbf{x}_t
+$$
 
-```math
-\large \tilde{\beta}_t = \frac{1 - \bar{\alpha}_{t-1}}{1 - \bar{\alpha}_t} \beta_t
-```
+$$
+\large
+\tilde{\beta}_t = \frac{1 - \bar{\alpha}_{t-1}}{1 - \bar{\alpha}_t} \beta_t
+$$
 
 ### Parameterization Choices
 
@@ -416,9 +432,10 @@ We can parameterize $p_\theta(\mathbf{x}_{t-1} | \mathbf{x}_t)$ in several ways:
 
 The DDPM paper showed that **predicting the noise $\boldsymbol{\epsilon}$** works best. Given $\boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t)$, we can compute:
 
-```math
-\large \mathbf{x}_0 = \frac{1}{\sqrt{\bar{\alpha}_t}} \left(\mathbf{x}_t - \sqrt{1 - \bar{\alpha}_t} \boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t)\right)
-```
+$$
+\large
+\mathbf{x}_0 = \frac{1}{\sqrt{\bar{\alpha}_t}} \left(\mathbf{x}_t - \sqrt{1 - \bar{\alpha}_t} \boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t)\right)
+$$
 
 Then plug this into $\tilde{\boldsymbol{\mu}}_t$ to get the mean of the reverse distribution.
 
@@ -428,9 +445,10 @@ Then plug this into $\tilde{\boldsymbol{\mu}}_t$ to get the mean of the reverse 
 
 The **score function** is the gradient of the log-probability density:
 
-```math
-\large \mathbf{s}(\mathbf{x}) = \nabla_\mathbf{x} \log p(\mathbf{x})
-```
+$$
+\large
+\mathbf{s}(\mathbf{x}) = \nabla_\mathbf{x} \log p(\mathbf{x})
+$$
 
 The score function points in the direction of increasing probability density. If we know the score at any point, we can:
 
@@ -441,17 +459,19 @@ The score function points in the direction of increasing probability density. If
 
 There's a deep connection between denoising and score matching. The optimal denoiser for Gaussian noise is:
 
-```math
-\large \mathbb{E}[\mathbf{x}_0 | \mathbf{x}_t] = \mathbf{x}_t + (1 - \bar{\alpha}_t) \nabla_{\mathbf{x}_t} \log p(\mathbf{x}_t)
-```
+$$
+\large
+\mathbb{E}[\mathbf{x}_0 | \mathbf{x}_t] = \mathbf{x}_t + (1 - \bar{\alpha}_t) \nabla_{\mathbf{x}_t} \log p(\mathbf{x}_t)
+$$
 
 This means learning to denoise is equivalent to learning the score function!
 
 Since $\mathbf{x}_t = \sqrt{\bar{\alpha}_t} \mathbf{x}_0 + \sqrt{1 - \bar{\alpha}_t} \boldsymbol{\epsilon}$, we have:
 
-```math
-\large \nabla_{\mathbf{x}_t} \log p(\mathbf{x}_t) = -\frac{\boldsymbol{\epsilon}}{\sqrt{1 - \bar{\alpha}_t}}
-```
+$$
+\large
+\nabla_{\mathbf{x}_t} \log p(\mathbf{x}_t) = -\frac{\boldsymbol{\epsilon}}{\sqrt{1 - \bar{\alpha}_t}}
+$$
 
 Therefore, predicting the noise $\boldsymbol{\epsilon}$ is equivalent to predicting the score (up to scaling).
 
@@ -459,9 +479,10 @@ Therefore, predicting the noise $\boldsymbol{\epsilon}$ is equivalent to predict
 
 Score-based models (Song et al.) directly learn the score function $\mathbf{s}_\theta(\mathbf{x}, \sigma)$ at different noise levels $\sigma$. They use **score matching** objectives like:
 
-```math
-\large \mathcal{L}_{\text{DSM}}(\theta) = \mathbb{E}_{p(\mathbf{x})} \mathbb{E}_{p(\tilde{\mathbf{x}}|\mathbf{x})} \left[\left\| \mathbf{s}_\theta(\tilde{\mathbf{x}}, \sigma) - \nabla_{\tilde{\mathbf{x}}} \log p(\tilde{\mathbf{x}} | \mathbf{x}) \right\|^2 \right]
-```
+$$
+\large
+\mathcal{L}_{\text{DSM}}(\theta) = \mathbb{E}_{p(\mathbf{x})} \mathbb{E}_{p(\tilde{\mathbf{x}}|\mathbf{x})} \left[\left\| \mathbf{s}_\theta(\tilde{\mathbf{x}}, \sigma) - \nabla_{\tilde{\mathbf{x}}} \log p(\tilde{\mathbf{x}} | \mathbf{x}) \right\|^2 \right]
+$$
 
 where $p(\tilde{\mathbf{x}} | \mathbf{x}) = \mathcal{N}(\mathbf{x}, \sigma^2 \mathbf{I})$.
 
@@ -474,9 +495,10 @@ This is closely related to DDPM's formulation, and both frameworks can be unifie
 **Theoretical Justification:**
 The **denoising score matching** objective trains a model to predict the score without knowing the normalizing constant. For perturbed data $\tilde{\mathbf{x}} = \mathbf{x} + \sigma \boldsymbol{\epsilon}$, the true score is:
 
-```math
-\large \nabla_{\tilde{\mathbf{x}}} \log p(\tilde{\mathbf{x}} | \mathbf{x}) = -\frac{\boldsymbol{\epsilon}}{\sigma}
-```
+$$
+\large
+\nabla_{\tilde{\mathbf{x}}} \log p(\tilde{\mathbf{x}} | \mathbf{x}) = -\frac{\boldsymbol{\epsilon}}{\sigma}
+$$
 
 This is tractable! We can train by minimizing $\|\mathbf{s}_\theta(\tilde{\mathbf{x}}, \sigma) - (-\boldsymbol{\epsilon}/\sigma)\|^2$, which is exactly what diffusion models do when predicting noise.
 
@@ -566,9 +588,10 @@ So far, we've described diffusion as a **discrete-time** process with $T$ steps.
 
 In continuous time, the forward diffusion process is described by an SDE:
 
-```math
-\large d\mathbf{x} = \mathbf{f}(\mathbf{x}, t) dt + g(t) d\mathbf{w}
-```
+$$
+\large
+d\mathbf{x} = \mathbf{f}(\mathbf{x}, t) dt + g(t) d\mathbf{w}
+$$
 
 where:
 
@@ -581,9 +604,10 @@ where:
 
 The DDPM formulation corresponds to the **Variance-Preserving (VP) SDE**:
 
-```math
-\large d\mathbf{x} = -\frac{1}{2}\beta(t) \mathbf{x} dt + \sqrt{\beta(t)} d\mathbf{w}
-```
+$$
+\large
+d\mathbf{x} = -\frac{1}{2}\beta(t) \mathbf{x} dt + \sqrt{\beta(t)} d\mathbf{w}
+$$
 
 where $\beta(t)$ is the continuous-time noise schedule. This SDE:
 
@@ -595,9 +619,10 @@ where $\beta(t)$ is the continuous-time noise schedule. This SDE:
 
 An alternative is the **Variance-Exploding (VE) SDE** from score-based models:
 
-```math
-\large d\mathbf{x} = \sqrt{\frac{d[\sigma^2(t)]}{dt}} d\mathbf{w}
-```
+$$
+\large
+d\mathbf{x} = \sqrt{\frac{d[\sigma^2(t)]}{dt}} d\mathbf{w}
+$$
 
 This SDE:
 
@@ -611,9 +636,10 @@ Typical choice: $\sigma(t) = \sigma_{\min} \left(\frac{\sigma_{\max}}{\sigma_{\m
 
 Given the forward SDE, Anderson (1982) showed that the **reverse-time SDE** is:
 
-```math
-\large d\mathbf{x} = \left[\mathbf{f}(\mathbf{x}, t) - g(t)^2 \nabla_\mathbf{x} \log p_t(\mathbf{x})\right] dt + g(t) d\bar{\mathbf{w}}
-```
+$$
+\large
+d\mathbf{x} = \left[\mathbf{f}(\mathbf{x}, t) - g(t)^2 \nabla_\mathbf{x} \log p_t(\mathbf{x})\right] dt + g(t) d\bar{\mathbf{w}}
+$$
 
 where:
 
@@ -626,9 +652,10 @@ where:
 
 For the VP-SDE, the reverse process becomes:
 
-```math
-\large d\mathbf{x} = \left[-\frac{1}{2}\beta(t) \mathbf{x} - \beta(t) \nabla_\mathbf{x} \log p_t(\mathbf{x})\right] dt + \sqrt{\beta(t)} d\bar{\mathbf{w}}
-```
+$$
+\large
+d\mathbf{x} = \left[-\frac{1}{2}\beta(t) \mathbf{x} - \beta(t) \nabla_\mathbf{x} \log p_t(\mathbf{x})\right] dt + \sqrt{\beta(t)} d\bar{\mathbf{w}}
+$$
 
 Since we know that $\nabla_\mathbf{x} \log p_t(\mathbf{x}) = -\frac{\boldsymbol{\epsilon}}{\sqrt{1 - \bar{\alpha}_t}}$, this is equivalent to DDPM's reverse process!
 
@@ -650,9 +677,10 @@ Since we know that $\nabla_\mathbf{x} \log p_t(\mathbf{x}) = -\frac{\boldsymbol{
 
 Every SDE has a corresponding **probability flow ODE** with the same marginals:
 
-```math
-\large d\mathbf{x} = \left[\mathbf{f}(\mathbf{x}, t) - \frac{1}{2} g(t)^2 \nabla_\mathbf{x} \log p_t(\mathbf{x})\right] dt
-```
+$$
+\large
+d\mathbf{x} = \left[\mathbf{f}(\mathbf{x}, t) - \frac{1}{2} g(t)^2 \nabla_\mathbf{x} \log p_t(\mathbf{x})\right] dt
+$$
 
 This ODE:
 
@@ -663,9 +691,10 @@ This ODE:
 
 For VP-SDE, the probability flow ODE is:
 
-```math
-\large d\mathbf{x} = -\frac{1}{2}\beta(t) \left[\mathbf{x} + \nabla_\mathbf{x} \log p_t(\mathbf{x})\right] dt
-```
+$$
+\large
+d\mathbf{x} = -\frac{1}{2}\beta(t) \left[\mathbf{x} + \nabla_\mathbf{x} \log p_t(\mathbf{x})\right] dt
+$$
 
 ### Implementing SDE-Based Sampling
 
@@ -674,9 +703,10 @@ For VP-SDE, the probability flow ODE is:
 **Theoretical Justification:**
 The **Euler-Maruyama method** is the simplest discretization of an SDE:
 
-```math
-\large \mathbf{x}_{t+\Delta t} = \mathbf{x}_t + f(\mathbf{x}_t, t)\Delta t + g(t)\sqrt{\Delta t}\boldsymbol{\epsilon}_t
-```
+$$
+\large
+\mathbf{x}_{t+\Delta t} = \mathbf{x}_t + f(\mathbf{x}_t, t)\Delta t + g(t)\sqrt{\Delta t}\boldsymbol{\epsilon}_t
+$$
 
 This is essentially a first-order approximation where we:
 
@@ -907,15 +937,17 @@ def probability_flow_ode_sampler(sde, score_model, shape, rtol=1e-5, atol=1e-5, 
 
 The DDPM training objective is derived from the **variational lower bound (VLB)** on the negative log-likelihood:
 
-```math
-\large \mathcal{L}_{\text{VLB}} = \mathbb{E}_q \left[ \underbrace{D_{KL}(q(\mathbf{x}_T | \mathbf{x}_0) \| p(\mathbf{x}_T))}_{L_T} + \sum_{t=2}^T \underbrace{D_{KL}(q(\mathbf{x}_{t-1} | \mathbf{x}_t, \mathbf{x}_0) \| p_\theta(\mathbf{x}_{t-1} | \mathbf{x}_t))}_{L_{t-1}} \underbrace{- \log p_\theta(\mathbf{x}_0 | \mathbf{x}_1)}_{L_0} \right]
-```
+$$
+\large
+\mathcal{L}_{\text{VLB}} = \mathbb{E}_q \left[ \underbrace{D_{KL}(q(\mathbf{x}_T | \mathbf{x}_0) \| p(\mathbf{x}_T))}_{L_T} + \sum_{t=2}^T \underbrace{D_{KL}(q(\mathbf{x}_{t-1} | \mathbf{x}_t, \mathbf{x}_0) \| p_\theta(\mathbf{x}_{t-1} | \mathbf{x}_t))}_{L_{t-1}} \underbrace{- \log p_\theta(\mathbf{x}_0 | \mathbf{x}_1)}_{L_0} \right]
+$$
 
 However, Ho et al. showed that a **simplified objective** works better in practice:
 
-```math
-\large \mathcal{L}_{\text{simple}}(\theta) = \mathbb{E}_{t, \mathbf{x}_0, \boldsymbol{\epsilon}} \left[ \left\| \boldsymbol{\epsilon} - \boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t) \right\|^2 \right]
-```
+$$
+\large
+\mathcal{L}_{\text{simple}}(\theta) = \mathbb{E}_{t, \mathbf{x}_0, \boldsymbol{\epsilon}} \left[ \left\| \boldsymbol{\epsilon} - \boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t) \right\|^2 \right]
+$$
 
 where:
 
@@ -964,9 +996,10 @@ The connection to score matching also provides theoretical justification: we're 
 **Theoretical Justification:**
 The algorithm implements the simplified training objective:
 
-```math
-\large \mathcal{L}_{\text{simple}} = \mathbb{E}_{t, \mathbf{x}_0, \boldsymbol{\epsilon}} \|\boldsymbol{\epsilon} - \boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t)\|^2
-```
+$$
+\large
+\mathcal{L}_{\text{simple}} = \mathbb{E}_{t, \mathbf{x}_0, \boldsymbol{\epsilon}} \|\boldsymbol{\epsilon} - \boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t)\|^2
+$$
 
 This is remarkably simple: just predict the noise that was added. The key mathematical insight is that this simple objective is equivalent to a weighted version of the full variational bound where we:
 
@@ -1071,7 +1104,7 @@ class DDPM:
             coef2 = torch.sqrt(self.diffusion.alphas[t]) * (1 - alpha_t_prev) / (1 - alpha_t)
             mean = coef1 * x_0_pred + coef2 * x_t
 
-            if t \gt 0:
+            if t > 0:
                 # Add noise (except at t=0)
                 variance = self.diffusion.posterior_variance[t]
                 noise = torch.randn_like(x_t)
@@ -1111,7 +1144,7 @@ class DDPM:
             coef2 = torch.sqrt(self.diffusion.alphas[t]) * (1 - alpha_t_prev) / (1 - alpha_t)
             mean = coef1 * x_0_pred + coef2 * x_t
 
-            if t \gt 0:
+            if t > 0:
                 variance = self.diffusion.posterior_variance[t]
                 noise = torch.randn_like(x_t)
                 x_t = mean + torch.sqrt(variance) * noise
@@ -1276,17 +1309,19 @@ The original DDPM uses a **fixed** posterior variance $\tilde{\beta}_t$ during s
 
 Instead of only predicting noise $\boldsymbol{\epsilon}_\theta$, the model can also predict variance:
 
-```math
-\large p_\theta(\mathbf{x}_{t-1} | \mathbf{x}_t) = \mathcal{N}(\mathbf{x}_{t-1}; \boldsymbol{\mu}_\theta(\mathbf{x}_t, t), \Sigma_\theta(\mathbf{x}_t, t))
-```
+$$
+\large
+p_\theta(\mathbf{x}_{t-1} | \mathbf{x}_t) = \mathcal{N}(\mathbf{x}_{t-1}; \boldsymbol{\mu}_\theta(\mathbf{x}_t, t), \Sigma_\theta(\mathbf{x}_t, t))
+$$
 
 ### Variance Parameterization
 
 The variance is typically parameterized to interpolate between two extremes:
 
-```math
-\large \Sigma_\theta(\mathbf{x}_t, t) = \exp(v_\theta(\mathbf{x}_t, t) \log \beta_t + (1 - v_\theta(\mathbf{x}_t, t)) \log \tilde{\beta}_t) \mathbf{I}
-```
+$$
+\large
+\Sigma_\theta(\mathbf{x}_t, t) = \exp(v_\theta(\mathbf{x}_t, t) \log \beta_t + (1 - v_\theta(\mathbf{x}_t, t)) \log \tilde{\beta}_t) \mathbf{I}
+$$
 
 where:
 
@@ -1296,9 +1331,10 @@ where:
 
 Alternatively, the model can directly output $v_\theta$:
 
-```math
-\large \sigma_t^2 = \exp(v \log \beta_t + (1-v) \log \tilde{\beta}_t)
-```
+$$
+\large
+\sigma_t^2 = \exp(v \log \beta_t + (1-v) \log \tilde{\beta}_t)
+$$
 
 ### Why Learn Variance?
 
@@ -1447,7 +1483,7 @@ class DDPMWithLearnedVariance:
             coef2 = torch.sqrt(self.diffusion.alphas[t]) * (1 - alpha_t_prev) / (1 - alpha_t)
             mean = coef1 * x_0_pred + coef2 * x_t
 
-            if t \gt 0:
+            if t > 0:
                 noise = torch.randn_like(x_t)
                 x_t = mean + torch.sqrt(variance) * noise
             else:
@@ -1514,15 +1550,17 @@ Both VAEs and diffusion models optimize a variational lower bound (ELBO/VLB) on 
 
 **VAE:**
 
-```math
-\large \log p(x) \geq \mathbb{E}_{q_\phi(z|x)}[\log p_\theta(x|z)] - D_{KL}(q_\phi(z|x) \| p(z))
-```
+$$
+\large
+\log p(x) \geq \mathbb{E}_{q_\phi(z|x)}[\log p_\theta(x|z)] - D_{KL}(q_\phi(z|x) \| p(z))
+$$
 
 **Diffusion:**
 
-```math
-\large \log p(x_0) \geq \mathbb{E}_q[-D_{KL}(q(x_T|x_0) \| p(x_T))] - \sum_{t=2}^T \mathbb{E}_q[D_{KL}(q(x_{t-1}|x_t, x_0) \| p_\theta(x_{t-1}|x_t))] + \mathbb{E}_q[\log p_\theta(x_0|x_1)]
-```
+$$
+\large
+\log p(x_0) \geq \mathbb{E}_q[-D_{KL}(q(x_T|x_0) \| p(x_T))] - \sum_{t=2}^T \mathbb{E}_q[D_{KL}(q(x_{t-1}|x_t, x_0) \| p_\theta(x_{t-1}|x_t))] + \mathbb{E}_q[\log p_\theta(x_0|x_1)]
+$$
 
 ### Key Differences
 
@@ -1568,9 +1606,9 @@ All these models solve the same core problem—learning $p(\mathbf{x})$—but wi
 
 **Key Insights:**
 
-1. **Sampling speed hierarchy:** Flow/VAE (1 step) \gt GAN (1 step) \gt Diffusion (1000 steps) \gt Autoregressive (N steps)
-2. **Training stability hierarchy:** Diffusion \gt VAE/Flow \gt GAN \gt Autoregressive
-3. **Sample quality hierarchy:** Diffusion ≈ GAN \gt Flow \gt VAE (though this gap is narrowing)
+1. **Sampling speed hierarchy:** Flow/VAE (1 step) > GAN (1 step) > Diffusion (1000 steps) > Autoregressive (N steps)
+2. **Training stability hierarchy:** Diffusion > VAE/Flow > GAN > Autoregressive
+3. **Sample quality hierarchy:** Diffusion ≈ GAN > Flow > VAE (though this gap is narrowing)
 
 ```python
 # Pseudocode comparison
@@ -1682,10 +1720,10 @@ These are typical FID scores (lower is better) you should expect after training:
 
 **Debugging tips using FID:**
 
-- FID \gt 50: Model is broken, check implementation
+- FID > 50: Model is broken, check implementation
 - FID 20-50: Training issues, check hyperparameters
 - FID 10-20: Reasonable but not great, may need more training
-- FID \lt 10: Good to excellent quality
+- FID < 10: Good to excellent quality
 
 #### Learning Curves: What to Expect
 
@@ -1829,7 +1867,7 @@ These benchmarks reflect fundamental trade-offs:
 - **Loss doesn't directly predict quality:** MSE loss of 0.05 vs 0.03 can look similar visually
 - **Hardware matters significantly:** Batch size affects convergence; larger batches can train faster but need careful LR tuning
 
-**Key Takeaway:** Use these numbers as calibration points. If you're way off (e.g., FID \gt 50 on CIFAR-10), check your implementation. If you're close (within 20%), hyperparameter tuning will help.
+**Key Takeaway:** Use these numbers as calibration points. If you're way off (e.g., FID > 50 on CIFAR-10), check your implementation. If you're close (within 20%), hyperparameter tuning will help.
 
 ## Interview Questions and Answers
 
@@ -1838,15 +1876,17 @@ These benchmarks reflect fundamental trade-offs:
 **Answer:**
 The forward process adds Gaussian noise over $T$ steps:
 
-```math
-\large q(\mathbf{x}_t | \mathbf{x}_{t-1}) = \mathcal{N}(\mathbf{x}_{t}; \sqrt{1-\beta_t}\mathbf{x}_{t-1}, \beta_t\mathbf{I})
-```
+$$
+\large
+q(\mathbf{x}_t | \mathbf{x}_{t-1}) = \mathcal{N}(\mathbf{x}_{t}; \sqrt{1-\beta_t}\mathbf{x}_{t-1}, \beta_t\mathbf{I})
+$$
 
 The key insight is we can sample any $\mathbf{x}_t$ directly from $\mathbf{x}_0$ using:
 
-```math
-\large \mathbf{x}_t = \sqrt{\bar{\alpha}_t}\mathbf{x}_0 + \sqrt{1-\bar{\alpha}_t}\boldsymbol{\epsilon}
-```
+$$
+\large
+\mathbf{x}_t = \sqrt{\bar{\alpha}_t}\mathbf{x}_0 + \sqrt{1-\bar{\alpha}_t}\boldsymbol{\epsilon}
+$$
 
 where $\bar{\alpha}_t = \prod_{s=1}^t (1-\beta_s)$ and $\boldsymbol{\epsilon} \sim \mathcal{N}(0, \mathbf{I})$.
 
@@ -1904,15 +1944,17 @@ The VLB contains multiple KL divergence terms. For $L_{t-1}$, we compare:
 
 Both are Gaussians, so the KL divergence reduces to comparing means:
 
-```math
-\large L_{t-1} = \mathbb{E}_q\left[\frac{1}{2\sigma_t^2}\|\tilde{\boldsymbol{\mu}}_t - \boldsymbol{\mu}_\theta\|^2\right]
-```
+$$
+\large
+L_{t-1} = \mathbb{E}_q\left[\frac{1}{2\sigma_t^2}\|\tilde{\boldsymbol{\mu}}_t - \boldsymbol{\mu}_\theta\|^2\right]
+$$
 
 Substituting the reparameterization $\boldsymbol{\mu}_\theta = f(\boldsymbol{\epsilon}_\theta)$ and simplifying (ignoring constant factors):
 
-```math
-\large L_{t-1} \propto \mathbb{E}_{t,\mathbf{x}_0,\boldsymbol{\epsilon}}\left[\|\boldsymbol{\epsilon} - \boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t)\|^2\right]
-```
+$$
+\large
+L_{t-1} \propto \mathbb{E}_{t,\mathbf{x}_0,\boldsymbol{\epsilon}}\left[\|\boldsymbol{\epsilon} - \boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t)\|^2\right]
+$$
 
 This is the simplified objective. The full derivation involves careful algebraic manipulation shown in the DDPM paper appendix.
 
@@ -1985,9 +2027,10 @@ Implement the DDIM (Denoising Diffusion Implicit Models) deterministic sampling 
 <summary>Hint</summary>
 DDIM uses the same model but different sampling:
 
-```math
-\large \mathbf{x}_{t-1} = \sqrt{\bar{\alpha}_{t-1}}\mathbf{x}_0^{pred} + \sqrt{1-\bar{\alpha}_{t-1}}\boldsymbol{\epsilon}_\theta
-```
+$$
+\large
+\mathbf{x}_{t-1} = \sqrt{\bar{\alpha}_{t-1}}\mathbf{x}_0^{pred} + \sqrt{1-\bar{\alpha}_{t-1}}\boldsymbol{\epsilon}_\theta
+$$
 
 This is deterministic (no added noise) and allows skipping timesteps.
 </details>
