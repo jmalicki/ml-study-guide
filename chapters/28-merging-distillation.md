@@ -90,7 +90,6 @@ The $T^2$ factor is crucial for maintaining proper gradient magnitudes:
 
 2. **KL Divergence Scaling**: The KL divergence itself contains two softmax operations, so its gradients scale as $\frac{1}{T^2}$:
 
-
    ```math
 \large \frac{\partial \mathcal{L}_{\text{KL}}}{\partial z_i} \propto \frac{1}{T^2} \left( p_s^T - p_t^T \right)
    ```

@@ -1594,7 +1594,6 @@ assert torch.allclose(my_output, pt_output, atol=1e-5)
 
 9. **Additive Attention**: Implement additive attention (Bahdanau-style):
 
-
    ```math
 \large \text{score}(\mathbf{q}, \mathbf{k}) = \mathbf{v}^T \tanh(W_q \mathbf{q} + W_k \mathbf{k})
    ```

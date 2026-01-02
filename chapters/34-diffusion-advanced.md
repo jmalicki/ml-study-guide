@@ -927,7 +927,6 @@ This enables efficient training by sampling any timestep directly without iterat
 
 3. **Posterior Variance**: The scheduler also defines the posterior $q(x_{t-1}|x_t, x_0)$ variance:
 
-
    ```math
 \large \tilde{\beta}_t = \frac{1-\bar{\alpha}_{t-1}}{1-\bar{\alpha}_t}\beta_t
    ```
@@ -3475,7 +3474,6 @@ where $x_t$ is a one-hot encoded token and $Q_t[i,j]$ is the probability of toke
 
 1. **Absorbing State**: Gradually replace all tokens with [MASK]
 
-
    ```math
 \large Q_t[i,j] = \begin{cases}
    \alpha_t & \text{if } i=j \\
@@ -3485,7 +3483,6 @@ where $x_t$ is a one-hot encoded token and $Q_t[i,j]$ is the probability of toke
    ```
 
 2. **Uniform**: Replace with random tokens
-
 
    ```math
 \large Q_t[i,j] = \begin{cases}

@@ -108,7 +108,6 @@ Breaking this down:
 
 1. **Project to Q, K, V**:
 
-
    ```math
 \large Q = XW_{Q} \in \mathbb{R}^{n \times d_k}
    ```
@@ -121,7 +120,6 @@ Breaking this down:
 
 2. **Compute attention scores**:
 
-
    ```math
 \large S = \frac{QK^T}{\sqrt{d_k}} \in \mathbb{R}^{n \times m}
    ```
@@ -129,7 +127,6 @@ Breaking this down:
    Note: The score matrix is $n \times m$ (target length × source length), not $n \times n$ as in self-attention.
 
 3. **Apply softmax** (over source dimension):
-
 
    ```math
 \large A = \text{softmax}(S) \in \mathbb{R}^{n \times m}
@@ -141,13 +138,11 @@ Breaking this down:
 
 4. **Weighted sum of values**:
 
-
    ```math
 \large \text{Output} = AV \in \mathbb{R}^{n \times d_v}
    ```
 
 5. **Final projection**:
-
 
    ```math
 \large \text{CrossAttn}(X, Y) = (AV)W_{O} \in \mathbb{R}^{n \times d_{\text{model}}}

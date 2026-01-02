@@ -1707,7 +1707,6 @@ Tokenization choices affect:
 
 1. **Training Speed**: Vocabulary size impacts embedding layer size
 
-
    ```math
 \large \text{Embedding Params} = V \times d_{model}
    ```
@@ -1715,7 +1714,6 @@ Tokenization choices affect:
    where $V$ is vocab size and $d_{model}$ is embedding dimension.
 
 2. **Inference Speed**: Longer sequences → more compute
-
 
    ```math
 \large \text{Attention Cost} = O(n^2 d)

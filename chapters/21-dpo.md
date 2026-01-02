@@ -2147,13 +2147,11 @@ This is a common whiteboard question. Walk through step-by-step:
 
 1. Start with Bradley-Terry model:
 
-
    ```math
 \large P(y_w \succ y_l | x) = \frac{\exp(r(x, y_w))}{\exp(r(x, y_w)) + \exp(r(x, y_l))} = \sigma(r(x, y_w) - r(x, y_l))
    ```
 
 2. Substitute reward reparameterization:
-
 
    ```math
 \large r(x, y) = \beta \log \frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y|x)} + \beta \log Z(x)
@@ -2161,20 +2159,17 @@ This is a common whiteboard question. Walk through step-by-step:
 
 3. Compute reward difference (Z cancels):
 
-
    ```math
 \large r(x, y_w) - r(x, y_l) = \beta \left[\log \frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \log \frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)}\right]
    ```
 
 4. Substitute into Bradley-Terry:
 
-
    ```math
 \large P(y_w \succ y_l | x) = \sigma\left(\beta \left[\log \frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \log \frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)}\right]\right)
    ```
 
 5. Negative log-likelihood gives DPO loss:
-
 
    ```math
 \large \mathcal{L}_{\text{DPO}} = -\mathbb{E}_{(x,y_w,y_l)} \left[\log \sigma(\beta[\log \pi_\theta(y_w|x)/\pi_{\text{ref}}(y_w|x) - \log \pi_\theta(y_l|x)/\pi_{\text{ref}}(y_l|x)])\right]

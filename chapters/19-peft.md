@@ -3496,7 +3496,6 @@ def qlora_with_bitsandbytes():
 
 2. **Mathematical Foundation**
 
-
    ```math
 \large h = W_0 x + \frac{\alpha}{r} BAx
    ```
