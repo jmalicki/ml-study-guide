@@ -30,9 +30,10 @@ Diffusion models generate data by learning to reverse a gradual noising process.
 
 The core training objective from [Diffusion Model Fundamentals](32-diffusion-fundamentals.md) is:
 
-```math
-\large \mathcal{L}_{\text{simple}} = \mathbb{E}_{t, \mathbf{x}_0, \epsilon} \left[ \| \epsilon - \epsilon_\theta(\mathbf{x}_t, t) \|^2 \right]
-```
+$$
+\large
+\mathcal{L}_{\text{simple}} = \mathbb{E}_{t, \mathbf{x}_0, \epsilon} \left[ \| \epsilon - \epsilon_\theta(\mathbf{x}_t, t) \|^2 \right]
+$$
 
 where:
 
@@ -538,13 +539,15 @@ The sinusoidal encoding creates smooth, continuous representations where:
 
 Mathematically, for timestep $t$ and embedding dimension $i$:
 
-```math
-\large \text{emb}_{t, 2i} = \sin\left(\frac{t}{10000^{2i/d}}\right)
-```
+$$
+\large
+\text{emb}_{t, 2i} = \sin\left(\frac{t}{10000^{2i/d}}\right)
+$$
 
-```math
-\large \text{emb}_{t, 2i+1} = \cos\left(\frac{t}{10000^{2i/d}}\right)
-```
+$$
+\large
+\text{emb}_{t, 2i+1} = \cos\left(\frac{t}{10000^{2i/d}}\right)
+$$
 
 This creates a unique encoding for each timestep that the network learns to interpret.
 
@@ -566,9 +569,10 @@ From [Diffusion Model Fundamentals](32-diffusion-fundamentals.md), recall:
 
 The original DDPM paper used a linear schedule:
 
-```math
-\large \beta_t = \beta_{\min} + \frac{t-1}{T-1}(\beta_{\max} - \beta_{\min})
-```
+$$
+\large
+\beta_t = \beta_{\min} + \frac{t-1}{T-1}(\beta_{\max} - \beta_{\min})
+$$
 
 ```python
 def linear_beta_schedule(timesteps: int, beta_start: float = 0.0001, beta_end: float = 0.02):
@@ -596,9 +600,10 @@ The cosine schedule from [Improved Denoising Diffusion Probabilistic Models](htt
 - Preventing too much noise at the end
 - Maintaining more signal throughout
 
-```math
-\large \bar{\alpha}_t = \frac{f(t)}{f(0)}, \quad f(t) = \cos\left(\frac{t/T + s}{1 + s} \cdot \frac{\pi}{2}\right)^2
-```
+$$
+\large
+\bar{\alpha}_t = \frac{f(t)}{f(0)}, \quad f(t) = \cos\left(\frac{t/T + s}{1 + s} \cdot \frac{\pi}{2}\right)^2
+$$
 
 Then $\beta_t = 1 - \frac{\bar{\alpha}_t}{\bar{\alpha}_{t-1}}$
 
@@ -669,9 +674,10 @@ The forward diffusion process requires several derived quantities from the base 
 
 Precomputing these allows us to use the closed-form sampling equation:
 
-```math
-\large \mathbf{x}_t = \sqrt{\bar{\alpha}_t}\mathbf{x}_0 + \sqrt{1-\bar{\alpha}_t}\epsilon
-```
+$$
+\large
+\mathbf{x}_t = \sqrt{\bar{\alpha}_t}\mathbf{x}_0 + \sqrt{1-\bar{\alpha}_t}\epsilon
+$$
 
 This O(1) sampling replaces O(t) iterative forward diffusion, making training practical.
 
@@ -995,9 +1001,10 @@ Neural network weights during training fluctuate due to stochastic gradient desc
 
 Exponential Moving Average (EMA) computes a weighted average of past model parameters:
 
-```math
-\large \theta_{\text{EMA},t} = \beta \cdot \theta_{\text{EMA},t-1} + (1-\beta) \cdot \theta_t
-```
+$$
+\large
+\theta_{\text{EMA},t} = \beta \cdot \theta_{\text{EMA},t-1} + (1-\beta) \cdot \theta_t
+$$
 
 With decay $\beta \approx 0.9999$, the EMA weights represent roughly the average of the last 10,000 training steps. This smoothing:
 
@@ -1075,9 +1082,10 @@ Once trained, we generate samples by reversing the diffusion process. Two main a
 
 DDPM uses the full reverse process with learned variance:
 
-```math
-\large \mathbf{x}_{t-1} = \frac{1}{\sqrt{\alpha_t}} \left( \mathbf{x}_t - \frac{\beta_t}{\sqrt{1-\bar{\alpha}_t}} \epsilon_\theta(\mathbf{x}_t, t) \right) + \sigma_t \mathbf{z}
-```
+$$
+\large
+\mathbf{x}_{t-1} = \frac{1}{\sqrt{\alpha_t}} \left( \mathbf{x}_t - \frac{\beta_t}{\sqrt{1-\bar{\alpha}_t}} \epsilon_\theta(\mathbf{x}_t, t) \right) + \sigma_t \mathbf{z}
+$$
 
 where $\mathbf{z} \sim \mathcal{N}(0, \mathbf{I})$ and $\sigma_t = \sqrt{\beta_t}$ or $\sqrt{\tilde{\beta}_t}$
 
@@ -1131,7 +1139,7 @@ def sample_ddpm(
         )
 
         # Add noise (except at final step t=0)
-        if t \gt 0:
+        if t > 0:
             noise = torch.randn_like(x)
             # sigma_t = sqrt(beta_t)
             sigma = torch.sqrt(beta)
@@ -1199,7 +1207,7 @@ def sample_ddpm_with_variance(
         mean = posterior_mean_coef1 * pred_x_0 + posterior_mean_coef2 * x
 
         # Add noise
-        if t \gt 0:
+        if t > 0:
             noise = torch.randn_like(x)
             x = mean + torch.sqrt(posterior_variance) * noise
         else:
@@ -1218,9 +1226,10 @@ DDIM (Denoising Diffusion Implicit Models) enables:
 
 The key insight is replacing the stochastic reverse process with a deterministic one:
 
-```math
-\large \mathbf{x}_{t-1} = \sqrt{\bar{\alpha}_{t-1}} \underbrace{\left(\frac{\mathbf{x}_t - \sqrt{1-\bar{\alpha}_t}\epsilon_\theta(\mathbf{x}_t, t)}{\sqrt{\bar{\alpha}_t}}\right)}_{\text{predicted } \mathbf{x}_0} + \sqrt{1-\bar{\alpha}_{t-1} - \sigma_t^2} \cdot \epsilon_\theta(\mathbf{x}_t, t) + \sigma_t \epsilon_t
-```
+$$
+\large
+\mathbf{x}_{t-1} = \sqrt{\bar{\alpha}_{t-1}} \underbrace{\left(\frac{\mathbf{x}_t - \sqrt{1-\bar{\alpha}_t}\epsilon_\theta(\mathbf{x}_t, t)}{\sqrt{\bar{\alpha}_t}}\right)}_{\text{predicted } \mathbf{x}_0} + \sqrt{1-\bar{\alpha}_{t-1} - \sigma_t^2} \cdot \epsilon_\theta(\mathbf{x}_t, t) + \sigma_t \epsilon_t
+$$
 
 When $\sigma_t = 0$, this is fully deterministic.
 
@@ -1280,7 +1289,7 @@ def sample_ddim(
         alpha_bar_t = model.noise_schedule.alphas_cumprod[t]
 
         # Get alpha for previous timestep
-        if i \lt len(timesteps) - 1:
+        if i < len(timesteps) - 1:
             t_prev = timesteps[i + 1]
             alpha_bar_t_prev = model.noise_schedule.alphas_cumprod[t_prev]
         else:
@@ -1302,7 +1311,7 @@ def sample_ddim(
         x = torch.sqrt(alpha_bar_t_prev) * pred_x_0 + dir_xt
 
         # Add noise
-        if sigma_t \gt 0 and i \lt len(timesteps) - 1:
+        if sigma_t > 0 and i < len(timesteps) - 1:
             noise = torch.randn_like(x)
             x += sigma_t * noise
 
@@ -1769,15 +1778,17 @@ Unconditional generation produces random samples, but we often want control over
 
 Class conditioning modifies the denoising distribution to be class-aware:
 
-```math
-\large p_\theta(\mathbf{x}_{t-1}|\mathbf{x}_t, y) = \mathcal{N}(\mathbf{x}_{t-1}; \mu_\theta(\mathbf{x}_t, t, y), \Sigma_\theta(\mathbf{x}_t, t, y))
-```
+$$
+\large
+p_\theta(\mathbf{x}_{t-1}|\mathbf{x}_t, y) = \mathcal{N}(\mathbf{x}_{t-1}; \mu_\theta(\mathbf{x}_t, t, y), \Sigma_\theta(\mathbf{x}_t, t, y))
+$$
 
 where $y$ is the class label. We implement this by conditioning the noise prediction:
 
-```math
-\large \epsilon_\theta(\mathbf{x}_t, t, y)
-```
+$$
+\large
+\epsilon_\theta(\mathbf{x}_t, t, y)
+$$
 
 Learned embeddings map discrete labels to continuous representations that can be combined with time embeddings. This is analogous to word embeddings in NLP, where discrete tokens map to semantic vector spaces.
 
@@ -1948,7 +1959,7 @@ def sample_conditional(
             x - ((beta) / torch.sqrt(1 - alpha_bar)) * predicted_noise
         )
 
-        if t \gt 0:
+        if t > 0:
             noise = torch.randn_like(x)
             sigma = torch.sqrt(beta)
             x += sigma * noise
@@ -1991,23 +2002,26 @@ The key question: How do we make the model follow conditions more faithfully wit
 
 Classifier-free guidance (CFG) uses implicit guidance through the difference between conditional and unconditional predictions:
 
-```math
-\large \tilde{\epsilon}_\theta(\mathbf{x}_t, y) = \epsilon_\theta(\mathbf{x}_t, \emptyset) + s \cdot (\epsilon_\theta(\mathbf{x}_t, y) - \epsilon_\theta(\mathbf{x}_t, \emptyset))
-```
+$$
+\large
+\tilde{\epsilon}_\theta(\mathbf{x}_t, y) = \epsilon_\theta(\mathbf{x}_t, \emptyset) + s \cdot (\epsilon_\theta(\mathbf{x}_t, y) - \epsilon_\theta(\mathbf{x}_t, \emptyset))
+$$
 
 where $s$ is the guidance scale. This can be rewritten as:
 
-```math
-\large \tilde{\epsilon}_\theta = (1-s)\epsilon_\theta(\mathbf{x}_t, \emptyset) + s\cdot\epsilon_\theta(\mathbf{x}_t, y)
-```
+$$
+\large
+\tilde{\epsilon}_\theta = (1-s)\epsilon_\theta(\mathbf{x}_t, \emptyset) + s\cdot\epsilon_\theta(\mathbf{x}_t, y)
+$$
 
 The guidance amplifies the conditional prediction while suppressing the unconditional one. Theoretically, this approximates sampling from:
 
-```math
-\large p(\mathbf{x}_t|y) \propto p(\mathbf{x}_t)^{1-s} \cdot p(\mathbf{x}_t|y)^s
-```
+$$
+\large
+p(\mathbf{x}_t|y) \propto p(\mathbf{x}_t)^{1-s} \cdot p(\mathbf{x}_t|y)^s
+$$
 
-For $s \gt 1$, this overemphasizes the conditional distribution, leading to samples that more strongly exhibit class-specific features.
+For $s > 1$, this overemphasizes the conditional distribution, leading to samples that more strongly exhibit class-specific features.
 
 #### Comparison to Alternatives
 
@@ -2059,9 +2073,9 @@ class ClassifierFreeGuidanceUNet(ConditionalUNet):
             Predicted noise
         """
         # During training, randomly drop conditioning
-        if self.training and self.dropout_prob \gt 0:
+        if self.training and self.dropout_prob > 0:
             # Create mask for which samples to make unconditional
-            mask = torch.rand(y.shape[0], device=y.device) \lt self.dropout_prob
+            mask = torch.rand(y.shape[0], device=y.device) < self.dropout_prob
             y = torch.where(mask, self.uncond_token, y)
 
         # Rest is same as ConditionalUNet
@@ -2135,7 +2149,7 @@ def sample_with_cfg(
             x - ((beta) / torch.sqrt(1 - alpha_bar)) * predicted_noise
         )
 
-        if t \gt 0:
+        if t > 0:
             noise = torch.randn_like(x)
             sigma = torch.sqrt(beta)
             x += sigma * noise
@@ -2210,7 +2224,7 @@ The guidance scale controls the trade-off between sample quality and diversity:
 - **guidance_scale = 1.0**: No guidance, purely conditional generation
 - **guidance_scale = 3-5**: Moderate guidance, good balance
 - **guidance_scale = 7-15**: Strong guidance, high fidelity to condition but less diversity
-- **guidance_scale \gt 15**: Very strong guidance, may lead to artifacts
+- **guidance_scale > 15**: Very strong guidance, may lead to artifacts
 
 In practice, guidance scales around 7.5 work well for most applications (this is the default in Stable Diffusion).
 
@@ -2222,9 +2236,10 @@ In practice, guidance scales around 7.5 work well for most applications (this is
 
 Instead of predicting noise $\epsilon$, predict the "velocity" $v$:
 
-```math
-\large v_t = \sqrt{\bar{\alpha}_t} \epsilon - \sqrt{1 - \bar{\alpha}_t} \mathbf{x}_0
-```
+$$
+\large
+v_t = \sqrt{\bar{\alpha}_t} \epsilon - \sqrt{1 - \bar{\alpha}_t} \mathbf{x}_0
+$$
 
 Modify the training loop and sampling to use v-prediction. This is used in Stable Diffusion 2.0+.
 
@@ -2241,9 +2256,10 @@ Reference: [Progressive Distillation for Fast Sampling of Diffusion Models](http
 
 Implement classifier-free guidance for conditional generation:
 
-```math
-\large \tilde{\epsilon}_\theta(\mathbf{x}_t, c) = \epsilon_\theta(\mathbf{x}_t, \emptyset) + s \cdot (\epsilon_\theta(\mathbf{x}_t, c) - \epsilon_\theta(\mathbf{x}_t, \emptyset))
-```
+$$
+\large
+\tilde{\epsilon}_\theta(\mathbf{x}_t, c) = \epsilon_\theta(\mathbf{x}_t, \emptyset) + s \cdot (\epsilon_\theta(\mathbf{x}_t, c) - \epsilon_\theta(\mathbf{x}_t, \emptyset))
+$$
 
 where $c$ is a condition (e.g., class label) and $s$ is guidance scale.
 

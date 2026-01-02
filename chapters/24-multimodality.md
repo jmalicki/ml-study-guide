@@ -294,9 +294,10 @@ The key insight of CLIP is learning through contrastive loss on batches of image
 
 ![Contrastive Learning in CLIP](../assets/diagrams/ch24-contrastive-learning.svg)
 
-```math
-\large \mathcal{L}_{\text{CLIP}} = -\frac{1}{N} \sum_{i=1}^{N} \left[ \log \frac{\exp(\text{sim}(I_i, T_i) / \tau)}{\sum_{j=1}^{N} \exp(\text{sim}(I_i, T_j) / \tau)} \right]
-```
+$$
+\large
+\mathcal{L}_{\text{CLIP}} = -\frac{1}{N} \sum_{i=1}^{N} \left[ \log \frac{\exp(\text{sim}(I_i, T_i) / \tau)}{\sum_{j=1}^{N} \exp(\text{sim}(I_i, T_j) / \tau)} \right]
+$$
 
 where $\text{sim}(I, T) = \frac{I \cdot T}{\|I\| \|T\|}$ is cosine similarity and $\tau$ is temperature.
 
@@ -462,9 +463,10 @@ SigLIP (Sigmoid Loss for Language Image Pre-training) improves upon CLIP by usin
 - **CLIP**: Uses softmax over all pairs in batch (requires large batches)
 - **SigLIP**: Uses sigmoid on individual pairs (more stable, smaller batches)
 
-```math
-\large \mathcal{L}_{\text{SigLIP}} = -\frac{1}{N^2} \sum_{i,j} \log \sigma(y_{ij} \cdot z_{ij})
-```
+$$
+\large
+\mathcal{L}_{\text{SigLIP}} = -\frac{1}{N^2} \sum_{i,j} \log \sigma(y_{ij} \cdot z_{ij})
+$$
 
 where $y_{ij} = 1$ if image $i$ matches text $j$ else $-1$, and $z_{ij}$ is the similarity score.
 
@@ -1205,7 +1207,7 @@ class Llama32Vision(nn.Module):
                 ]
 
                 # Pad if necessary
-                if tile.shape[2] \lt tile_size or tile.shape[3] \lt tile_size:
+                if tile.shape[2] < tile_size or tile.shape[3] < tile_size:
                     tile = nn.functional.pad(
                         tile,
                         (0, tile_size - tile.shape[3], 0, tile_size - tile.shape[2])
@@ -1927,7 +1929,7 @@ class ProductionMultimodalModel:
                 prompts=prompt_tokens,
                 max_length=max_length,
                 temperature=temperature,
-                do_sample=temperature \gt 0
+                do_sample=temperature > 0
             )
 
             # Decode outputs
@@ -2023,7 +2025,7 @@ def batch_process_dataset(
 
     for i in tqdm(range(0, len(image_paths), batch_size)):
         batch_images = image_paths[i:i+batch_size]
-        batch_prompts = prompts[i:i+batch_size] if len(prompts) \gt 1 else [prompts[0]] * len(batch_images)
+        batch_prompts = prompts[i:i+batch_size] if len(prompts) > 1 else [prompts[0]] * len(batch_images)
 
         try:
             outputs = model.inference(batch_images, batch_prompts)
@@ -2091,7 +2093,7 @@ class MonitoredMultimodalModel:
         """Get performance metrics."""
         avg_latency = (
             self.stats['total_latency'] / self.stats['total_requests']
-            if self.stats['total_requests'] \gt 0
+            if self.stats['total_requests'] > 0
             else 0
         )
 
@@ -3252,9 +3254,10 @@ def train_grounding_llm(
 
 Given image $I$ and referring expression $T = \{w_1, w_2, ..., w_n\}$, predict bounding box $B = (x, y, w, h)$:
 
-```math
-\large B = f_{\text{ground}}(\text{CrossAttn}(f_{\text{text}}(T), f_{\text{vision}}(I)))
-```
+$$
+\large
+B = f_{\text{ground}}(\text{CrossAttn}(f_{\text{text}}(T), f_{\text{vision}}(I)))
+$$
 
 Where:
 
@@ -3265,9 +3268,10 @@ Where:
 
 **Loss Function:**
 
-```math
-\large \mathcal{L}_{\text{grounding}} = \lambda_1 \mathcal{L}_{\text{L1}}(B, B^\ast) + \lambda_2 \mathcal{L}_{\text{GIoU}}(B, B^\ast)
-```
+$$
+\large
+\mathcal{L}_{\text{grounding}} = \lambda_1 \mathcal{L}_{\text{L1}}(B, B^*) + \lambda_2 \mathcal{L}_{\text{GIoU}}(B, B^*)
+$$
 
 Where:
 

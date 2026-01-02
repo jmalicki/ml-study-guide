@@ -33,9 +33,10 @@ This chapter covers the fundamental problem Flash Attention solves, the algorith
 
 Standard attention has a fundamental memory problem that becomes critical for long sequences:
 
-```math
-\large \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
-```
+$$
+\large
+\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
+$$
 
 The attention matrix $S = QK^T$ has shape $(N, N)$ where $N$ is the sequence length. For modern LLMs with long contexts:
 
@@ -226,7 +227,7 @@ def calculate_memory_bandwidth_cost():
     print(f"Compute time: {compute_time*1000:.3f} ms")
     print(f"Memory bound by: {memory_time/compute_time:.2f}x")
     print(f"\nTotal memory accessed: {total_memory_bytes/1e9:.2f} GB")
-    print(f"Attention is {'memory-bound' if memory_time \gt compute_time else 'compute-bound'}")
+    print(f"Attention is {'memory-bound' if memory_time > compute_time else 'compute-bound'}")
 
     return memory_time, compute_time
 ```
@@ -559,9 +560,10 @@ The key algorithmic innovation in Flash Attention is computing softmax increment
 
 Standard softmax requires two passes over the data:
 
-```math
-\large \text{softmax}(x_i) = \frac{e^{x_i}}{\sum_{j} e^{x_j}}
-```
+$$
+\large
+\text{softmax}(x_i) = \frac{e^{x_i}}{\sum_{j} e^{x_j}}
+$$
 
 **Two-pass algorithm:**
 
@@ -763,12 +765,13 @@ class FlashAttentionSoftmax:
 
 When the max changes from $m_{old}$ to $m_{new}$, we need to rescale everything:
 
-```math
-\large \begin{align}
+$$
+\large
+\begin{align}
 l_{new} &= l_{old} \cdot e^{m_{old} - m_{new}} + \sum_{j \in \text{new block}} e^{S_{ij} - m_{new}} \\
 O_{new} &= O_{old} \cdot e^{m_{old} - m_{new}} + \sum_{j \in \text{new block}} e^{S_{ij} - m_{new}} V_j
 \end{align}
-```
+$$
 
 This allows us to maintain exact softmax while processing in blocks!
 
@@ -784,9 +787,10 @@ Standard attention computes the full N×N attention matrix and stores it in HBM 
 **Theoretical Justification:**
 Flash Attention's forward pass is based on the associativity of attention operations. Mathematically:
 
-```math
-\large \text{Attention}(Q, K, V) = \sum_{j=1}^{N} \frac{e^{q_i \cdot k_j}}{\sum_{l=1}^{N} e^{q_i \cdot k_l}} v_j
-```
+$$
+\large
+\text{Attention}(Q, K, V) = \sum_{j=1}^{N} \frac{e^{q_i \cdot k_j}}{\sum_{l=1}^{N} e^{q_i \cdot k_l}} v_j
+$$
 
 The key observation: we can compute this sum incrementally by processing K, V in blocks, as long as we maintain the correct normalization (via online softmax). This is **exact**, not approximate—we get the same result as if we computed the full attention matrix.
 
@@ -832,7 +836,7 @@ class FlashAttentionForward:
 
              Initialize O_i = 0, l_i = 0, m_i = -∞
              For each K, V block j:
-               If causal and j \gt i: skip
+               If causal and j > i: skip
                Compute S_ij = Q_i K_j^T / √d
                Update m_i, l_i, O_i using online softmax
              Normalize: O_i = O_i / l_i
@@ -884,7 +888,7 @@ class FlashAttentionForward:
             # Process each K, V block
             for j in range(Tc):
                 # Causal masking: skip future blocks
-                if causal and j \gt i:
+                if causal and j > i:
                     break
 
                 # Extract K, V block
@@ -1099,9 +1103,9 @@ def verify_flash_attention():
     # Compare
     max_diff = (standard_out - flash_out).abs().max().item()
     print(f"Max difference: {max_diff:.2e}")
-    print(f"Match: {max_diff \lt 1e-5}")
+    print(f"Match: {max_diff < 1e-5}")
 
-    return max_diff \lt 1e-5
+    return max_diff < 1e-5
 
 
 if __name__ == "__main__":
@@ -1114,9 +1118,10 @@ if __name__ == "__main__":
 
 The core innovation is how we compute softmax incrementally. Standard softmax requires:
 
-```math
-\large \text{softmax}(x_i) = \frac{e^{x_i}}{\sum_j e^{x_j}}
-```
+$$
+\large
+\text{softmax}(x_i) = \frac{e^{x_i}}{\sum_j e^{x_j}}
+$$
 
 This needs the full sequence to compute the sum in the denominator. Flash Attention solves this by maintaining:
 
@@ -1135,9 +1140,10 @@ This is **mathematically exact**—we get the same result as if we computed the 
 
 Tracking M separately provides numerical stability. In standard softmax, we compute:
 
-```math
-\large \text{softmax}(x_i) = \frac{e^{x_i - \max(x)}}{\sum_j e^{x_j - \max(x)}}
-```
+$$
+\large
+\text{softmax}(x_i) = \frac{e^{x_i - \max(x)}}{\sum_j e^{x_j - \max(x)}}
+$$
 
 Subtracting the max prevents overflow. In online softmax, when we see a new max:
 
@@ -1171,7 +1177,7 @@ This seems counterintuitive—why recompute when we could save? The answer lies 
 - For saving P: 0 FLOPs, N² bytes → intensity = 0
 - For recomputing P: 2N²d FLOPs, Nd bytes → intensity = 2Nd/d = 2N
 
-Modern GPUs (e.g., A100) can perform ~200 FLOPs in the time it takes to load 1 byte from HBM. This means for any computation with arithmetic intensity \gt 200, it's faster to recompute than to load from memory!
+Modern GPUs (e.g., A100) can perform ~200 FLOPs in the time it takes to load 1 byte from HBM. This means for any computation with arithmetic intensity > 200, it's faster to recompute than to load from memory!
 
 **Theoretical Foundation:**
 This is an instance of the classical **time-memory tradeoff**, but with a hardware-specific twist. On CPUs, memory access is relatively fast, so saving is usually better. On GPUs with massive compute but limited memory bandwidth, the crossover point favors recomputation.
@@ -1787,7 +1793,7 @@ FA3 (Overlapped):
 Use if:
 
 - ✓ Have H100/H200 GPU
-- ✓ Long sequences (N \gt 2K)
+- ✓ Long sequences (N > 2K)
 - ✓ Large batch sizes
 - ✓ Training or high-throughput inference
 
@@ -2083,7 +2089,7 @@ While Flash Attention is highly beneficial for most use cases, there are scenari
 Every algorithm has overhead—kernel launch costs, setup computations, and code complexity. Flash Attention's sophisticated tiling and online softmax add non-trivial overhead. For very short sequences, this overhead can exceed the benefits of reduced HBM traffic.
 
 **Why Short Sequences Are Different:**
-For sequence length N \lt 512, the attention matrix (N² elements) is small enough to fit in GPU caches (L2 cache on modern GPUs is ~40MB). This means standard attention doesn't actually hit HBM much—the attention matrix stays cache-resident. In this regime:
+For sequence length N < 512, the attention matrix (N² elements) is small enough to fit in GPU caches (L2 cache on modern GPUs is ~40MB). This means standard attention doesn't actually hit HBM much—the attention matrix stays cache-resident. In this regime:
 
 - Standard attention: Simple kernel, cache-friendly for small N
 - Flash Attention: Complex kernel with blocking overhead, unnecessary for cached data
@@ -2091,7 +2097,7 @@ For sequence length N \lt 512, the attention matrix (N² elements) is small enou
 **Theoretical Analysis:**
 The crossover point depends on cache size. Given L2 cache size C:
 
-- If N² × 2 bytes \lt C, attention matrix fits in cache
+- If N² × 2 bytes < C, attention matrix fits in cache
 - Standard attention becomes effectively "cache attention"
 - Flash Attention's SRAM optimization is redundant
 
@@ -2099,9 +2105,9 @@ For typical GPUs (C ≈ 40MB), this occurs around N ≈ 4000 elements (for singl
 
 **How This Relates to Alternatives:**
 
-- **Very short (N \lt 128):** Even matrix multiply overhead dominates; consider fused kernels
-- **Short (128 ≤ N \lt 512):** Standard attention is fine
-- **Medium (512 ≤ N \lt 4K):** Flash Attention starts winning
+- **Very short (N < 128):** Even matrix multiply overhead dominates; consider fused kernels
+- **Short (128 ≤ N < 512):** Standard attention is fine
+- **Medium (512 ≤ N < 4K):** Flash Attention starts winning
 - **Long (N ≥ 4K):** Flash Attention essential
 
 **Key Insight:**
@@ -2123,8 +2129,8 @@ class ShortSequenceLimitations:
 
         Typical crossover points:
 
-        - N \lt 512: Standard attention often faster
-        - 512 ≤ N \lt 1024: Roughly equal
+        - N < 512: Standard attention often faster
+        - 512 ≤ N < 1024: Roughly equal
         - N ≥ 1024: Flash Attention wins
 
         Reasoning:
@@ -2178,7 +2184,7 @@ class ShortSequenceLimitations:
                 torch.cuda.synchronize()
                 flash_time = (time.time() - start) / 100 * 1000
 
-                winner = "Flash" if flash_time \lt standard_time else "Standard"
+                winner = "Flash" if flash_time < standard_time else "Standard"
                 print(f"{seq_len:<10} {standard_time:<15.3f} {flash_time:<15.3f} {winner:<10}")
             except:
                 print(f"{seq_len:<10} {standard_time:<15.3f} {'N/A':<15} {'N/A':<10}")
@@ -2189,8 +2195,8 @@ class ShortSequenceLimitations:
         Recommendation for sequence length thresholds.
         """
         return {
-            'always_standard': 'N \lt 256',
-            'case_by_case': '256 ≤ N \lt 512',
+            'always_standard': 'N < 256',
+            'case_by_case': '256 ≤ N < 512',
             'always_flash': 'N ≥ 512',
             'note': 'Actual crossover depends on hardware, batch size, and head configuration'
         }
@@ -2240,7 +2246,7 @@ class BatchSizeLimitations:
         # A100 has 108 SMs, want to saturate them
         min_tasks_recommended = 1000
 
-        if total_tasks \lt min_tasks_recommended:
+        if total_tasks < min_tasks_recommended:
             print(f"\n⚠️  WARNING: Low parallelism ({total_tasks} tasks)")
             print(f"  Recommended: ≥{min_tasks_recommended} tasks for good GPU utilization")
             print(f"  Consider: Increasing batch size or using standard attention")
@@ -2396,7 +2402,7 @@ Sparse attention has fundamentally different characteristics:
 - **Memory access:** Irregular pattern, harder to optimize
 - **Flash Attention:** Always O(N²) FLOPs, optimized memory access
 
-For very sparse patterns (s \gt 0.9), specialized sparse kernels can skip entire blocks of computation, potentially winning despite less optimized memory access.
+For very sparse patterns (s > 0.9), specialized sparse kernels can skip entire blocks of computation, potentially winning despite less optimized memory access.
 
 **Theoretical Consideration:**
 This reveals a deep tradeoff between **computational efficiency** and **memory efficiency**:
@@ -2470,9 +2476,9 @@ class SparseAttentionConsiderations:
         print(f"  Flash Attention: {flash_bandwidth:,.0f}")
         print(f"  Sparse kernel: {sparse_bandwidth:,.0f}")
 
-        if sparsity \gt 0.9:
+        if sparsity > 0.9:
             recommendation = "Use specialized sparse kernel (e.g., block-sparse, local attention)"
-        elif sparsity \lt 0.5:
+        elif sparsity < 0.5:
             recommendation = "Use Flash Attention (sparse overhead not worth it)"
         else:
             recommendation = "Benchmark both - depends on sparsity pattern structure"
@@ -2547,8 +2553,8 @@ class FlashAttentionDecisionTree:
             return False, "No GPU available (Flash Attention requires CUDA)"
 
         # Check sequence length
-        if seq_len \lt 512:
-            return False, f"Sequence too short ({seq_len} \lt 512): overhead not worth it"
+        if seq_len < 512:
+            return False, f"Sequence too short ({seq_len} < 512): overhead not worth it"
 
         # Check head dimension support
         if head_dim not in [64, 128, 256]:
@@ -2560,11 +2566,11 @@ class FlashAttentionDecisionTree:
         n_blocks = math.ceil(seq_len / block_size)
         total_tasks = batch_size * n_heads * n_blocks
 
-        if total_tasks \lt 100:
+        if total_tasks < 100:
             return False, f"Low parallelism ({total_tasks} tasks): GPU underutilized"
 
         # Check sparsity
-        if sparsity \gt 0.9:
+        if sparsity > 0.9:
             return False, f"Very sparse attention ({sparsity:.0%}): use sparse kernels instead"
 
         # All checks passed
@@ -2604,7 +2610,7 @@ if __name__ == "__main__":
 
 **Key takeaways:**
 
-1. **Short sequences (N \lt 512):** Overhead outweighs benefits
+1. **Short sequences (N < 512):** Overhead outweighs benefits
 2. **Unsupported head dimensions:** Will fall back to slower kernels
 3. **Low parallelism:** Small batch + few heads = underutilized GPU
 4. **Very sparse patterns (>90%):** Specialized sparse kernels are better
@@ -2682,7 +2688,7 @@ def diagnose_flash_attention_availability():
     major, minor = pytorch_version.split('.')[:2]
     major, minor = int(major), int(minor)
 
-    if major \lt 2:
+    if major < 2:
         print(f"❌ PyTorch version {pytorch_version} is too old")
         print("   Solution: Upgrade to PyTorch 2.0+")
         print("   Command: pip install --upgrade torch")
@@ -2705,7 +2711,7 @@ def diagnose_flash_attention_availability():
 
     print(f"  GPU compute capability: {major_cap}.{minor_cap}")
 
-    if major_cap \lt 8:  # Ampere is 8.x
+    if major_cap < 8:  # Ampere is 8.x
         print(f"⚠️  Warning: GPU compute capability {major_cap}.{minor_cap}")
         print("   Flash Attention requires Ampere (8.0+) or newer")
         print("   Flash Attention may not be available on this GPU")
@@ -2996,13 +3002,13 @@ def profile_attention_performance():
 
     print(f"  GPU utilization: {utilization:.1f}% of A100 peak")
 
-    if tflops \lt 50:
+    if tflops < 50:
         print("\n⚠️  Performance is lower than expected")
         print("  Possible issues:")
         print("  1. Flash Attention may not be active (check with profiler)")
         print("  2. Sequence length may be too short")
         print("  3. Small batch size limiting parallelism")
-    elif tflops \lt 150:
+    elif tflops < 150:
         print("\n  Performance is acceptable but could be better")
     else:
         print("\n✓ Performance looks good!")
@@ -3137,7 +3143,7 @@ if __name__ == "__main__":
 
 **1. "Flash Attention is not supported on this GPU"**
 
-- **Cause:** GPU compute capability \lt 8.0 (pre-Ampere)
+- **Cause:** GPU compute capability < 8.0 (pre-Ampere)
 - **Solutions:**
   - Upgrade to Ampere or newer GPU (RTX 30xx, A100, etc.)
   - Use memory-efficient attention instead
@@ -3173,7 +3179,7 @@ if __name__ == "__main__":
 - **Cause:** Multiple possible causes
 - **Solutions:**
   - Verify Flash Attention is actually being used (profiler)
-  - Check sequence length \gt 512
+  - Check sequence length > 512
   - Ensure warmup before benchmarking
   - Check GPU utilization (nvidia-smi)
 
@@ -3287,8 +3293,8 @@ class HardwareRequirements:
             major, minor = capability
             print(f"  Compute capability: {major}.{minor}")
 
-            if major \lt 8:
-                print(f"  ❌ Compute capability {major}.{minor} \lt 8.0 (Ampere required)")
+            if major < 8:
+                print(f"  ❌ Compute capability {major}.{minor} < 8.0 (Ampere required)")
                 compatible = False
             else:
                 print(f"  ✓ Meets minimum requirement (8.0+)")
@@ -3299,8 +3305,8 @@ class HardwareRequirements:
         major, minor = int(major), int(minor)
 
         print(f"\nPyTorch version: {pytorch_version}")
-        if major \lt 2:
-            print("  ❌ PyTorch \lt 2.0 (Flash Attention not available)")
+        if major < 2:
+            print("  ❌ PyTorch < 2.0 (Flash Attention not available)")
             compatible = False
         else:
             print("  ✓ Meets minimum requirement (2.0+)")
@@ -3310,7 +3316,7 @@ class HardwareRequirements:
             total_memory = torch.cuda.get_device_properties(0).total_memory / 1e9
             print(f"\nGPU Memory: {total_memory:.1f} GB")
 
-            if total_memory \lt 16:
+            if total_memory < 16:
                 print("  ⚠️  Warning: <16GB may limit workload size")
             else:
                 print("  ✓ Adequate memory for most workloads")
@@ -4056,7 +4062,7 @@ def answer_q5():
     print("\n   Examples (batch=8, heads=32, d=128):")
     for seq_len in [1024, 4096, 16384, 65536, 131072]:
         mem = standard_memory(seq_len, d=128, batch=8, n_heads=32)
-        status = "✓" if mem \lt 80 else "✗ OOM"
+        status = "✓" if mem < 80 else "✗ OOM"
         print(f"     N={seq_len:>6}: {mem:>6.1f} GB  {status}")
 
     print("\n2. Flash Attention Memory Usage:")
@@ -4069,7 +4075,7 @@ def answer_q5():
         flash_mem = 8 * 32 * seq_len * 128 * 2 * 3 / 1e9
         overhead = 8 * 32 * seq_len * 4 / 1e9  # m, l statistics
         total = flash_mem + overhead
-        status = "✓" if total \lt 80 else "✗"
+        status = "✓" if total < 80 else "✗"
         print(f"     N={seq_len:>6}: {total:>6.1f} GB  {status}")
 
     print("\n3. Practical Impact:")
@@ -4118,7 +4124,7 @@ def interview_tips():
     print("   - Exact: No approximation")
 
     print("\n5. Know when NOT to use it:")
-    print("   - Short sequences (N \lt 512)")
+    print("   - Short sequences (N < 512)")
     print("   - Unsupported head dimensions")
     print("   - Very sparse patterns")
 

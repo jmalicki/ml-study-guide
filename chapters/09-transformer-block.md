@@ -59,9 +59,10 @@ Layer normalization normalizes activations across the feature dimension for each
 
 For input $\mathbf{x} \in \mathbb{R}^d$:
 
-```math
-\large \text{LayerNorm}(\mathbf{x}) = \gamma \odot \frac{\mathbf{x} - \mu}{\sqrt{\sigma^2 + \epsilon}} + \beta
-```
+$$
+\large
+\text{LayerNorm}(\mathbf{x}) = \gamma \odot \frac{\mathbf{x} - \mu}{\sqrt{\sigma^2 + \epsilon}} + \beta
+$$
 
 where:
 
@@ -80,15 +81,17 @@ where:
 
 **Root Mean Square Normalization** from [Zhang & Sennrich, 2019](https://arxiv.org/abs/1910.07467), used in modern LLMs (LLaMA, GPT-4, etc.):
 
-```math
-\large \text{RMSNorm}(\mathbf{x}) = \gamma \odot \frac{\mathbf{x}}{\text{RMS}(\mathbf{x})}
-```
+$$
+\large
+\text{RMSNorm}(\mathbf{x}) = \gamma \odot \frac{\mathbf{x}}{\text{RMS}(\mathbf{x})}
+$$
 
 where:
 
-```math
-\large \text{RMS}(\mathbf{x}) = \sqrt{\frac{1}{d}\sum_{i=1}^d x_i^2 + \epsilon}
-```
+$$
+\large
+\text{RMS}(\mathbf{x}) = \sqrt{\frac{1}{d}\sum_{i=1}^d x_i^2 + \epsilon}
+$$
 
 **Differences from LayerNorm:**
 
@@ -301,9 +304,10 @@ The feed-forward network (FFN) processes each position independently with the sa
 
 Standard FFN consists of two linear transformations with a non-linear activation:
 
-```math
-\large \text{FFN}(\mathbf{x}) = \mathbf{W}_2 \cdot \sigma(\mathbf{W}_1 \mathbf{x} + \mathbf{b}_1) + \mathbf{b}_2
-```
+$$
+\large
+\text{FFN}(\mathbf{x}) = \mathbf{W}_2 \cdot \sigma(\mathbf{W}_1 \mathbf{x} + \mathbf{b}_1) + \mathbf{b}_2
+$$
 
 where:
 
@@ -438,9 +442,10 @@ if __name__ == "__main__":
 
 Residual connections (skip connections) add the input of a sub-layer to its output:
 
-```math
-\large \mathbf{y} = \mathbf{x} + \text{SubLayer}(\mathbf{x})
-```
+$$
+\large
+\mathbf{y} = \mathbf{x} + \text{SubLayer}(\mathbf{x})
+$$
 
 ![Residual Connection Example](../assets/diagrams/ch09-residual-connection-example.svg)
 
@@ -467,12 +472,13 @@ x → [Self-Attention] → [Add & Norm] → [FFN] → [Add & Norm] → output
 
 Mathematically:
 
-```math
-\large \begin{align}
+$$
+\large
+\begin{align}
 \mathbf{y}_1 &= \text{LayerNorm}(\mathbf{x} + \text{Attention}(\mathbf{x})) \\
 \mathbf{y}_2 &= \text{LayerNorm}(\mathbf{y}_1 + \text{FFN}(\mathbf{y}_1))
 \end{align}
-```
+$$
 
 **Issues:**
 
@@ -491,12 +497,13 @@ x → [Norm] → [Self-Attention] → [Add] → [Norm] → [FFN] → [Add] → o
 
 Mathematically:
 
-```math
-\large \begin{align}
+$$
+\large
+\begin{align}
 \mathbf{y}_1 &= \mathbf{x} + \text{Attention}(\text{LayerNorm}(\mathbf{x})) \\
 \mathbf{y}_2 &= \mathbf{y}_1 + \text{FFN}(\text{LayerNorm}(\mathbf{y}_1))
 \end{align}
-```
+$$
 
 **Advantages:**
 
@@ -582,7 +589,7 @@ def compare_architectures():
     print(f"Depth: {depth} layers")
     print(f"Post-norm input gradient norm: {x_post.grad.norm():.6f}")
     print(f"Pre-norm input gradient norm: {x_pre.grad.norm():.6f}")
-    print(f"Pre-norm is more stable: {x_pre.grad.norm() \gt x_post.grad.norm()}")
+    print(f"Pre-norm is more stable: {x_pre.grad.norm() > x_post.grad.norm()}")
 
 if __name__ == "__main__":
     compare_architectures()
@@ -787,13 +794,19 @@ Attention masks implement two critical constraints:
 
 1. **Causality (autoregressive property)**: For language modeling, the probability of token $i$ must depend only on tokens $1, ..., i-1$:
 
-   $$\large P(x_i | x_1, ..., x_{i-1}, x_{i+1}, ..., x_n) = P(x_i | x_1, ..., x_{i-1})$$
+   $$
+\large
+P(x_i | x_1, ..., x_{i-1}, x_{i+1}, ..., x_n) = P(x_i | x_1, ..., x_{i-1})
+   $$
 
    Violating this makes training and inference inconsistent—the model trains with future information but can't access it during generation.
 
 2. **Padding invariance**: Padding tokens should not influence the representation of real tokens. Mathematically, for any padding position $p$:
 
-   $$\large \text{Attention}(\mathbf{q}_i, \mathbf{k}_p, \mathbf{v}_p) = 0$$
+   $$
+\large
+\text{Attention}(\mathbf{q}_i, \mathbf{k}_p, \mathbf{v}_p) = 0
+   $$
 
 **Relationship to Alternatives:**
 
@@ -1019,23 +1032,26 @@ Good initialization maintains signal propagation through both forward and backwa
 
 **Xavier/Glorot initialization** assumes linear activations and derives the variance:
 
-```math
-\large \text{Var}(W_{ij}) = \frac{2}{d_{in} + d_{out}}
-```
+$$
+\large
+\text{Var}(W_{ij}) = \frac{2}{d_{in} + d_{out}}
+$$
 
 This ensures that variance of activations and gradients remains roughly constant across layers. The symmetric form considers both forward (depends on $d_{in}$) and backward (depends on $d_{out}$) passes.
 
 **Kaiming/He initialization** accounts for ReLU activations which zero out half the neurons:
 
-```math
-\large \text{Var}(W_{ij}) = \frac{2}{d_{in}}
-```
+$$
+\large
+\text{Var}(W_{ij}) = \frac{2}{d_{in}}
+$$
 
 For very deep transformers, **scaled initialization** prevents residual path signals from growing:
 
-```math
-\large W \gets W \cdot \frac{1}{\sqrt{2L}}
-```
+$$
+\large
+W \gets W \cdot \frac{1}{\sqrt{2L}}
+$$
 
 where $L$ is the number of layers. This is based on the analysis that with $L$ residual blocks, variance grows by a factor of $L$.
 
@@ -1125,7 +1141,7 @@ class TransformerBlockWithInit(nn.Module):
 
                 # Optional: Scale by depth for very deep models
                 # This is used in some modern architectures
-                if self.depth \gt 12:
+                if self.depth > 12:
                     with torch.no_grad():
                         param.data *= (1.0 / np.sqrt(2.0 * self.depth))
             elif 'bias' in name:
@@ -1242,23 +1258,26 @@ if __name__ == "__main__":
 2. **Linear layers**:
    - **Xavier/Glorot**: Standard for transformers
 
-     ```math
-\large W \sim U\left[-\sqrt{\frac{6}{d_{\text{in}} + d_{\text{out}}}}, \sqrt{\frac{6}{d_{\text{in}} + d_{\text{out}}}}\right]
-     ```
+     $$
+\large
+W \sim U\left[-\sqrt{\frac{6}{d_{\text{in}} + d_{\text{out}}}}, \sqrt{\frac{6}{d_{\text{in}} + d_{\text{out}}}}\right]
+     $$
 
 
    - **Kaiming/He**: Better for ReLU activations
 
-     ```math
-\large W \sim U\left[-\sqrt{\frac{6}{d_{\text{in}}}}, \sqrt{\frac{6}{d_{\text{in}}}}\right]
-     ```
+     $$
+\large
+W \sim U\left[-\sqrt{\frac{6}{d_{\text{in}}}}, \sqrt{\frac{6}{d_{\text{in}}}}\right]
+     $$
 
 
    - **Scaled initialization**: For very deep models (>24 layers)
 
-     ```math
-\large W \gets W / \sqrt{2L}
-     ```
+     $$
+\large
+W \gets W / \sqrt{2L}
+     $$
 
      where $L$ is the number of layers
 
@@ -1489,12 +1508,13 @@ The parallel architecture is based on several observations:
 1. **Independence of operations**: Attention captures token relationships; FFN processes individual positions. These operations are conceptually independent and both take the same input
 2. **Additive combination**: Since both paths connect via residual additions, we can mathematically regroup:
 
-   ```math
-\large \begin{align}
+   $$
+\large
+\begin{align}
    \text{Sequential: } & \mathbf{y} = \mathbf{x} + \text{FFN}(\mathbf{x} + \text{Attn}(\mathbf{x})) \\
    \text{Parallel: } & \mathbf{y} = \mathbf{x} + \text{Attn}(\mathbf{x}) + \text{FFN}(\mathbf{x})
    \end{align}
-   ```
+   $$
 
 
 3. **Shared normalization**: Both paths can normalize the same input, reducing parameters and computation
@@ -1699,9 +1719,10 @@ Grouped Query Attention balances between MHA and MQA:
 
 **Standard MHA**: Each query head $i$ attends using its own keys and values:
 
-```math
-\large \text{head}_i = \text{Attention}(Q_i, K_i, V_i)
-```
+$$
+\large
+\text{head}_i = \text{Attention}(Q_i, K_i, V_i)
+$$
 
 
 - Maximum expressiveness: each head can learn different patterns
@@ -1709,9 +1730,10 @@ Grouped Query Attention balances between MHA and MQA:
 
 **Multi-Query Attention (MQA)**: All query heads share a single KV head:
 
-```math
-\large \text{head}_i = \text{Attention}(Q_i, K_{\text{shared}}, V_{\text{shared}})
-```
+$$
+\large
+\text{head}_i = \text{Attention}(Q_i, K_{\text{shared}}, V_{\text{shared}})
+$$
 
 
 - Minimum memory: $2 \times 1 \times d_{\text{head}} \times L$ KV cache
@@ -1719,9 +1741,10 @@ Grouped Query Attention balances between MHA and MQA:
 
 **GQA**: Groups of query heads share KV heads:
 
-```math
-\large \text{head}_i = \text{Attention}(Q_i, K_{\lfloor i / g \rfloor}, V_{\lfloor i / g \rfloor})
-```
+$$
+\large
+\text{head}_i = \text{Attention}(Q_i, K_{\lfloor i / g \rfloor}, V_{\lfloor i / g \rfloor})
+$$
 
 
 - Balanced memory: $2 \times g \times d_{\text{head}} \times L$ KV cache
@@ -2036,9 +2059,10 @@ Pre-norm provides better training stability for deep transformers:
 
 **Mathematical insight:**
 
-```math
-\large \frac{\partial L}{\partial x} = \frac{\partial L}{\partial \text{output}} \cdot \left(\mathbf{I} + \frac{\partial F(x)}{\partial x}\right)
-```
+$$
+\large
+\frac{\partial L}{\partial x} = \frac{\partial L}{\partial \text{output}} \cdot \left(\mathbf{I} + \frac{\partial F(x)}{\partial x}\right)
+$$
 
 The identity term $\mathbf{I}$ ensures gradients don't vanish, even if $\frac{\partial F(x)}{\partial x}$ is small.
 
@@ -2061,15 +2085,17 @@ RMSNorm offers similar performance with better efficiency:
 
 LayerNorm:
 
-```math
-\large \text{LN}(x) = \gamma \odot \frac{x - \mu}{\sqrt{\sigma^2 + \epsilon}} + \beta
-```
+$$
+\large
+\text{LN}(x) = \gamma \odot \frac{x - \mu}{\sqrt{\sigma^2 + \epsilon}} + \beta
+$$
 
 RMSNorm:
 
-```math
-\large \text{RMS}(x) = \gamma \odot \frac{x}{\sqrt{\frac{1}{d}\sum x_i^2 + \epsilon}}
-```
+$$
+\large
+\text{RMS}(x) = \gamma \odot \frac{x}{\sqrt{\frac{1}{d}\sum x_i^2 + \epsilon}}
+$$
 
 **Key insight**: Re-centering (mean subtraction) contributes little to training stability; scale normalization is the critical factor.
 
@@ -2092,17 +2118,19 @@ Residual connections solve the vanishing gradient and degradation problems:
 
 Without residuals:
 
-```math
-\large \frac{\partial L}{\partial x_0} = \frac{\partial L}{\partial x_{L}} \prod_{i=0}^{L-1} \frac{\partial x_{i+1}}{\partial x_i}
-```
+$$
+\large
+\frac{\partial L}{\partial x_0} = \frac{\partial L}{\partial x_{L}} \prod_{i=0}^{L-1} \frac{\partial x_{i+1}}{\partial x_i}
+$$
 
-If any Jacobian $\frac{\partial x_{i+1}}{\partial x_i}$ has norm \lt 1, gradients vanish exponentially.
+If any Jacobian $\frac{\partial x_{i+1}}{\partial x_i}$ has norm < 1, gradients vanish exponentially.
 
 With residuals ($x_{i+1} = x_i + F_i(x_i)$):
 
-```math
-\large \frac{\partial x_{i+1}}{\partial x_i} = \mathbf{I} + \frac{\partial F_i(x_i)}{\partial x_i}
-```
+$$
+\large
+\frac{\partial x_{i+1}}{\partial x_i} = \mathbf{I} + \frac{\partial F_i(x_i)}{\partial x_i}
+$$
 
 The identity ensures the derivative is always at least $\mathbf{I}$, preventing vanishing.
 
@@ -2168,7 +2196,7 @@ Approximately **60-70%** of transformer block parameters are in the feed-forward
 
 **Answer:**
 
-A causal mask prevents position $i$ from attending to positions $j \gt i$ (future positions):
+A causal mask prevents position $i$ from attending to positions $j > i$ (future positions):
 
 ```python
 def create_causal_mask(seq_len):
@@ -2245,7 +2273,7 @@ Position 2 can attend to positions 0, 1, 2 but not 3, 4.
 
 **Grouped Query Attention (GQA)**:
 
-- $n$ query heads, but only $g$ key/value heads (where $g \lt n$)
+- $n$ query heads, but only $g$ key/value heads (where $g < n$)
 - Multiple query heads share each K, V head
 - KV cache size: $2 \times g \times d_{head} \times seq\_len$
 

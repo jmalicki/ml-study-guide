@@ -54,12 +54,13 @@ For an input sequence $X = (x_1, x_2, \ldots, x_n)$:
 1. **Embedding**: $E = \text{Embed}(X) + \text{PosEnc}(X)$
 2. **Encoder layers** (repeated $L$ times):
 
-   ```math
-\large    \begin{align}
-   H' &= \text{LayerNorm}(E + \text{MultiHeadAttn}(E, E, E, \text{mask}=\text{None})) \\
-   H &= \text{LayerNorm}(H' + \text{FFN}(H'))
-   \end{align}
-   ```
+$$
+\large
+\begin{align}
+H' &= \text{LayerNorm}(E + \text{MultiHeadAttn}(E, E, E, \text{mask}=\text{None})) \\
+H &= \text{LayerNorm}(H' + \text{FFN}(H'))
+\end{align}
+$$
 
 3. **Output**: Contextualized representations for each token
 
@@ -291,12 +292,13 @@ For an input sequence $X = (x_1, x_2, \ldots, x_n)$:
 1. **Embedding**: $E = \text{Embed}(X) + \text{PosEnc}(X)$
 2. **Decoder layers** (repeated $L$ times):
 
-   ```math
-\large    \begin{align}
-   H' &= \text{LayerNorm}(E + \text{MaskedMultiHeadAttn}(E, E, E)) \\
-   H &= \text{LayerNorm}(H' + \text{FFN}(H'))
-   \end{align}
-   ```
+$$
+\large
+\begin{align}
+H' &= \text{LayerNorm}(E + \text{MaskedMultiHeadAttn}(E, E, E)) \\
+H &= \text{LayerNorm}(H' + \text{FFN}(H'))
+\end{align}
+$$
 
 3. **Language modeling head**: $\text{Logits} = H W_\text{vocab}^T$
 
@@ -304,12 +306,13 @@ Key difference from encoder: **causal mask** ensures token $i$ can only attend t
 
 The causal mask is:
 
-```math
-\large M_{ij} = \begin{cases}
-0 & \text{if } i \lt j \\
+$$
+\large
+M_{ij} = \begin{cases}
+0 & \text{if } i < j \\
 1 & \text{if } i \geq j
 \end{cases}
-```
+$$
 
 See [Bidirectional vs Causal Attention](05-bidirectional-causal-attention.md) for details.
 
@@ -593,19 +596,21 @@ Encoder-decoder models combine both architectures with **cross-attention** to co
 
 **Encoder** (same as before):
 
-```math
-\large H_\text{enc} = \text{Encoder}(X_\text{src})
-```
+$$
+\large
+H_\text{enc} = \text{Encoder}(X_\text{src})
+$$
 
 **Decoder** with cross-attention:
 
-```math
-\large \begin{align}
+$$
+\large
+\begin{align}
 H'_\text{self} &= \text{LayerNorm}(E + \text{MaskedSelfAttn}(E, E, E)) \\
 H'_\text{cross} &= \text{LayerNorm}(H'_\text{self} + \text{CrossAttn}(H'_\text{self}, H_\text{enc}, H_\text{enc})) \\
 H &= \text{LayerNorm}(H'_\text{cross} + \text{FFN}(H'_\text{cross}))
 \end{align}
-```
+$$
 
 Cross-attention uses:
 
@@ -1663,9 +1668,10 @@ Language model training requires processing massive amounts of text data efficie
 
 The causal language modeling objective is:
 
-```math
-\large \mathcal{L} = -\frac{1}{T} \sum_{t=1}^{T} \log P(x_t \mid x_{\lt t}; \theta)
-```
+$$
+\large
+\mathcal{L} = -\frac{1}{T} \sum_{t=1}^{T} \log P(x_t \mid x_{< t}; \theta)
+$$
 
 To compute this efficiently, we:
 
@@ -1899,9 +1905,10 @@ Streaming datasets implement an **iterator pattern** rather than random access:
 
 This enables:
 
-```math
-\large \text{Sample} \sim \text{Stream}(\text{DataSource}) \rightarrow \text{Process} \rightarrow \text{Batch}
-```
+$$
+\large
+\text{Sample} \sim \text{Stream}(\text{DataSource}) \rightarrow \text{Process} \rightarrow \text{Batch}
+$$
 
 **Key Advantages:**
 
@@ -2095,14 +2102,15 @@ Modern LLMs use a carefully designed training recipe that has been refined over 
 
 **1. AdamW Optimizer:**
 
-```math
-\large \begin{align}
+$$
+\large
+\begin{align}
 m_t &= \beta_1 m_{t-1} + (1-\beta_1) g_t \quad \text{(momentum)} \\
 v_t &= \beta_2 v_{t-1} + (1-\beta_2) g_t^2 \quad \text{(variance)} \\
 \hat{m}_t &= m_t / (1-\beta_1^t), \quad \hat{v}_t = v_t / (1-\beta_2^t) \quad \text{(bias correction)} \\
 \theta_t &= \theta_{t-1} - \alpha \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon} - \lambda \theta_{t-1} \quad \text{(update with weight decay)}
 \end{align}
-```
+$$
 
 Key insight: AdamW applies weight decay **directly to weights**, not to gradients (unlike Adam). This improves generalization.
 
@@ -2110,12 +2118,13 @@ Key insight: AdamW applies weight decay **directly to weights**, not to gradient
 
 Warmup + cosine decay:
 
-```math
-\large \alpha(t) = \begin{cases}
-\alpha_{\text{max}} \cdot \frac{t}{T_{\text{warmup}}} & \text{if } t \lt T_{\text{warmup}} \\
+$$
+\large
+\alpha(t) = \begin{cases}
+\alpha_{\text{max}} \cdot \frac{t}{T_{\text{warmup}}} & \text{if } t < T_{\text{warmup}} \\
 \alpha_{\text{max}} \cdot \frac{1}{2}\left(1 + \cos\left(\pi \frac{t - T_{\text{warmup}}}{T_{\text{max}} - T_{\text{warmup}}}\right)\right) & \text{otherwise}
 \end{cases}
-```
+$$
 
 - **Warmup** (1-2% of steps): Prevents large updates when Adam statistics are poorly estimated
 - **Cosine decay**: Smooth reduction allows model to settle into better minima
@@ -2124,12 +2133,13 @@ Warmup + cosine decay:
 
 Scale gradients if their norm exceeds threshold:
 
-```math
-\large \tilde{g} = \begin{cases}
+$$
+\large
+\tilde{g} = \begin{cases}
 g & \text{if } \|g\| \leq \tau \\
 \tau \frac{g}{\|g\|} & \text{otherwise}
 \end{cases}
-```
+$$
 
 This prevents rare catastrophic updates that can destabilize training.
 
@@ -2803,9 +2813,10 @@ Perplexity is the standard metric for evaluating generative language models. It 
 **Definition:**
 Perplexity is the exponential of the average negative log-likelihood:
 
-```math
-\large \text{PPL}(X) = \exp\left(-\frac{1}{T}\sum_{t=1}^{T} \log P(x_t \mid x_{\lt t}; \theta)\right)
-```
+$$
+\large
+\text{PPL}(X) = \exp\left(-\frac{1}{T}\sum_{t=1}^{T} \log P(x_t \mid x_{< t}; \theta)\right)
+$$
 
 where $T$ is the total number of tokens and $P(x_t \mid x_{\lt t}; \theta)$ is the model's predicted probability of token $x_t$.
 
@@ -2821,18 +2832,22 @@ Perplexity can be interpreted as the **effective vocabulary size** the model is 
 
 For a perfect uniform distribution over $k$ equally likely outcomes:
 
-```math
-\large H = -\sum_{i=1}^{k} \frac{1}{k} \log \frac{1}{k} = \log k
-```
-```math
-\large \text{PPL} = \exp(H) = \exp(\log k) = k
-```
+$$
+\large
+H = -\sum_{i=1}^{k} \frac{1}{k} \log \frac{1}{k} = \log k
+$$
+
+$$
+\large
+\text{PPL} = \exp(H) = \exp(\log k) = k
+$$
 
 **Relationship to Cross-Entropy:**
 
-```math
-\large \text{PPL} = \exp(\text{CrossEntropy}) = \exp\left(\mathcal{L}_{\text{CE}}\right)
-```
+$$
+\large
+\text{PPL} = \exp(\text{CrossEntropy}) = \exp\left(\mathcal{L}_{\text{CE}}\right)
+$$
 
 This means:
 

@@ -79,9 +79,10 @@ Instead of rating responses on an absolute scale, we collect **pairwise preferen
 
 We model the probability that humans prefer response $y_w$ over $y_l$ using the **Bradley-Terry model**:
 
-```math
-\large P(y_w \succ y_l | x) = \sigma(r_\phi(x, y_w) - r_\phi(x, y_l))
-```
+$$
+\large
+P(y_w \succ y_l | x) = \sigma(r_\phi(x, y_w) - r_\phi(x, y_l))
+$$
 
 where:
 
@@ -93,9 +94,10 @@ where:
 
 We train the reward model to maximize the log-likelihood of the observed preferences:
 
-```math
-\large \mathcal{L}_{\text{RM}}(\phi) = -\mathbb{E}_{(x, y_w, y_l) \sim D} \left[ \log \sigma(r_\phi(x, y_w) - r_\phi(x, y_l)) \right]
-```
+$$
+\large
+\mathcal{L}_{\text{RM}}(\phi) = -\mathbb{E}_{(x, y_w, y_l) \sim D} \left[ \log \sigma(r_\phi(x, y_w) - r_\phi(x, y_l)) \right]
+$$
 
 This is equivalent to binary cross-entropy loss.
 
@@ -350,7 +352,7 @@ class RewardNormalizer:
         m_a = self.var * self.count
         m_b = batch_var * batch_count
         M2 = m_a + m_b + delta**2 * self.count * batch_count / total_count
-        self.var = M2 / total_count if total_count \gt 1 else 1.0
+        self.var = M2 / total_count if total_count > 1 else 1.0
 
         self.count = total_count
 
@@ -433,9 +435,10 @@ We formulate language generation as an RL problem:
 
 The goal is to maximize expected reward while staying close to the reference model:
 
-```math
-\large \mathcal{J}(\theta) = \mathbb{E}_{x \sim D, y \sim \pi_\theta(\cdot|x)} \left[ r_\phi(x, y) - \beta \cdot D_{\text{KL}}(\pi_\theta(\cdot|x) || \pi_{\text{ref}}(\cdot|x)) \right]
-```
+$$
+\large
+\mathcal{J}(\theta) = \mathbb{E}_{x \sim D, y \sim \pi_\theta(\cdot|x)} \left[ r_\phi(x, y) - \beta \cdot D_{\text{KL}}(\pi_\theta(\cdot|x) || \pi_{\text{ref}}(\cdot|x)) \right]
+$$
 
 where:
 
@@ -448,9 +451,10 @@ where:
 
 PPO optimizes a clipped surrogate objective to prevent too large policy updates:
 
-```math
-\large L^{\text{CLIP}}(\theta) = \mathbb{E}_t \left[ \min(r_t(\theta) \hat{A}_t, \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon) \hat{A}_t) \right]
-```
+$$
+\large
+L^{\text{CLIP}}(\theta) = \mathbb{E}_t \left[ \min(r_t(\theta) \hat{A}_t, \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon) \hat{A}_t) \right]
+$$
 
 where:
 
@@ -462,15 +466,17 @@ where:
 
 The advantage $A(s, a)$ measures how much better action $a$ is compared to the average:
 
-```math
-\large A(s, a) = Q(s, a) - V(s)
-```
+$$
+\large
+A(s, a) = Q(s, a) - V(s)
+$$
 
 We use Generalized Advantage Estimation (GAE) for lower variance:
 
-```math
-\large \hat{A}_t = \sum_{l=0}^{\infty} (\gamma \lambda)^l \delta_{t+l}
-```
+$$
+\large
+\hat{A}_t = \sum_{l=0}^{\infty} (\gamma \lambda)^l \delta_{t+l}
+$$
 
 where $\delta_t = r_t + \gamma V(s_{t+1}) - V(s_t)$ is the TD error.
 
@@ -621,7 +627,7 @@ def apply_response_mask(
     masked_values = values * mask
     num_valid = mask.sum()
 
-    if num_valid \gt 0:
+    if num_valid > 0:
         return masked_values.sum() / num_valid
     else:
         return torch.tensor(0.0, device=values.device)
@@ -680,14 +686,15 @@ This is especially important because:
 
 **Theoretical insight**: The key innovation of PPO is the clipped ratio objective:
 
-```math
-\large \min(r_t(\theta) \hat{A}_t, \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon) \hat{A}_t)
-```
+$$
+\large
+\min(r_t(\theta) \hat{A}_t, \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon) \hat{A}_t)
+$$
 
 This ensures:
 
-- If advantage is positive ($\hat{A}_t \gt 0$), we increase probability but only up to $(1+\epsilon)$ times
-- If advantage is negative ($\hat{A}_t \lt 0$), we decrease probability but only down to $(1-\epsilon)$ times
+- If advantage is positive ($\hat{A}_t > 0$), we increase probability but only up to $(1+\epsilon)$ times
+- If advantage is negative ($\hat{A}_t < 0$), we decrease probability but only down to $(1-\epsilon)$ times
 - Beyond the clip range, gradient becomes zero, preventing excessive updates
 
 **Why this works better than alternatives**:
@@ -826,15 +833,17 @@ The KL divergence constraint is crucial for RLHF. Without it, the policy can exp
 
 For discrete distributions (language models), the KL divergence is:
 
-```math
-\large D_{\text{KL}}(\pi_\theta || \pi_{\text{ref}}) = \sum_{a} \pi_\theta(a|s) \log \frac{\pi_\theta(a|s)}{\pi_{\text{ref}}(a|s)}
-```
+$$
+\large
+D_{\text{KL}}(\pi_\theta || \pi_{\text{ref}}) = \sum_{a} \pi_\theta(a|s) \log \frac{\pi_\theta(a|s)}{\pi_{\text{ref}}(a|s)}
+$$
 
 For a generated sequence $y = (y_1, \ldots, y_T)$, we compute the average per-token KL:
 
-```math
-\large D_{\text{KL}}^{\text{avg}} = \frac{1}{T} \sum_{t=1}^{T} D_{\text{KL}}(\pi_\theta(\cdot|x, y_{\lt t}) || \pi_{\text{ref}}(\cdot|x, y_{\lt t}))
-```
+$$
+\large
+D_{\text{KL}}^{\text{avg}} = \frac{1}{T} \sum_{t=1}^{T} D_{\text{KL}}(\pi_\theta(\cdot|x, y_{< t}) || \pi_{\text{ref}}(\cdot|x, y_{< t}))
+$$
 
 ### Implementation
 
@@ -920,13 +929,14 @@ def compute_rlhf_reward(
 
 Instead of a fixed $\beta$, some implementations use adaptive KL control:
 
-```math
-\large \beta_{t+1} = \begin{cases}
-\beta_t / \alpha & \text{if } D_{\text{KL}} \lt D_{\text{target}} - \epsilon \\
-\beta_t \times \alpha & \text{if } D_{\text{KL}} \gt D_{\text{target}} + \epsilon \\
+$$
+\large
+\beta_{t+1} = \begin{cases}
+\beta_t / \alpha & \text{if } D_{\text{KL}} < D_{\text{target}} - \epsilon \\
+\beta_t \times \alpha & \text{if } D_{\text{KL}} > D_{\text{target}} + \epsilon \\
 \beta_t & \text{otherwise}
 \end{cases}
-```
+$$
 
 This keeps the KL divergence close to a target value (typically 5-10 nats).
 
@@ -1539,9 +1549,9 @@ def evaluate_reward_model(
             r_chosen = reward_model(chosen_input_ids, chosen_attention_mask)
             r_rejected = reward_model(rejected_input_ids, rejected_attention_mask)
 
-            # Check if chosen \gt rejected
+            # Check if chosen > rejected
 
-            correct += (r_chosen \gt r_rejected).sum().item()
+            correct += (r_chosen > r_rejected).sum().item()
             total += len(r_chosen)
 
             # Track reward differences
@@ -1653,7 +1663,7 @@ def compute_kl_statistics(
 
 - **Good**: KL = 2-10 nats (policy is similar to reference)
 - **Warning**: KL = 10-50 nats (significant deviation)
-- **Bad**: KL \gt 50 nats (policy may have collapsed or reward hacked)
+- **Bad**: KL > 50 nats (policy may have collapsed or reward hacked)
 
 ### 3. Generation Quality Metrics
 
@@ -2047,17 +2057,17 @@ def detect_failure_modes(
         # Check for reward hacking: very high reward, nonsensical output
 
         reward = reward_model(outputs, torch.ones_like(outputs)).item()
-        if reward \gt 10.0 and len(set(tokens)) \lt len(tokens) * 0.3:
+        if reward > 10.0 and len(set(tokens)) < len(tokens) * 0.3:
             failures["reward_hacking"].append(response)
 
         # Check for policy collapse: very short or very repetitive
 
-        if len(tokens) \lt 5:
+        if len(tokens) < 5:
             failures["policy_collapse"].append(response)
 
         # Check for length exploitation
 
-        if len(tokens) \gt 400:  # Suspiciously long
+        if len(tokens) > 400:  # Suspiciously long
             failures["length_exploitation"].append(response)
 
         # Check for repetition loops

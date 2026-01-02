@@ -29,11 +29,12 @@ Inference and generation strategies are critical for controlling how autoregress
 
 Training a language model produces a probability distribution over the vocabulary at each step:
 
-```math
-\large P(x_t | x_{\lt t}) = \text{softmax}(f_\theta(x_{\lt t}))
-```
+$$
+\large
+P(x_t | x_{< t}) = \text{softmax}(f_\theta(x_{< t}))
+$$
 
-where $f_\theta(x_{\lt t})$ are the logits (raw model outputs) for the next token given previous context.
+where $f_\theta(x_{< t})$ are the logits (raw model outputs) for the next token given previous context.
 
 However, **how we choose $x_t$ from this distribution is not specified by training**. Different sampling strategies lead to:
 
@@ -48,15 +49,16 @@ However, **how we choose $x_t$ from this distribution is not specified by traini
 
 Autoregressive models generate text token-by-token, where each token depends on all previous tokens:
 
-```math
-\large P(x_1, x_2, \ldots, x_n) = \prod_{t=1}^n P(x_t | x_1, \ldots, x_{t-1})
-```
+$$
+\large
+P(x_1, x_2, \ldots, x_n) = \prod_{t=1}^n P(x_t | x_1, \ldots, x_{t-1})
+$$
 
 At each step $t$, we have:
 
 1. **Input**: Context $x_1, \ldots, x_{t-1}$
 2. **Model output**: Logits $\mathbf{z}_t \in \mathbb{R}^{|V|}$ for each token in vocabulary $V$
-3. **Probabilities**: $P(x_t = v | x_{\lt t}) = \text{softmax}(\mathbf{z}_t)_v$
+3. **Probabilities**: $P(x_t = v | x_{< t}) = \text{softmax}(\mathbf{z}_t)_v$
 4. **Decision**: Which token to select?
 
 The choice at step $t$ affects all future steps, creating a **sequential decision problem**.
@@ -278,15 +280,17 @@ Final sequence: [[1, 2, 3, 42, 137, 501, 89, 256]]
 
 Greedy decoding selects the token with maximum probability at each step:
 
-```math
-\large x_t = \arg\max_{v \in V} P(v | x_{\lt t})
-```
+$$
+\large
+x_t = \arg\max_{v \in V} P(v | x_{< t})
+$$
 
 **Mathematical formulation**:
 
-```math
-\large x_t = \arg\max_{v \in V} \text{softmax}(\mathbf{z}_t)_v = \arg\max_{v \in V} z_{t,v}
-```
+$$
+\large
+x_t = \arg\max_{v \in V} \text{softmax}(\mathbf{z}_t)_v = \arg\max_{v \in V} z_{t,v}
+$$
 
 Since softmax is monotonic, we can skip the softmax computation and just take the argmax of logits directly.
 
@@ -432,19 +436,21 @@ Temperature scaling is the most fundamental and widely-used technique for contro
 
 Temperature modifies the logits before applying softmax:
 
-```math
-\large P(x_t = v | x_{\lt t}) = \frac{\exp(z_v / T)}{\sum_{v' \in V} \exp(z_{v'} / T)}
-```
+$$
+\large
+P(x_t = v | x_{< t}) = \frac{\exp(z_v / T)}{\sum_{v' \in V} \exp(z_{v'} / T)}
+$$
 
 where:
 - $z_v$ is the logit for token $v$
-- $T \gt 0$ is the temperature parameter
+- $T > 0$ is the temperature parameter
 
 **Effect on distribution**:
 
-```math
-\large \text{softmax}(\mathbf{z} / T) = \text{softmax}(T^{-1} \mathbf{z})
-```
+$$
+\large
+\text{softmax}(\mathbf{z} / T) = \text{softmax}(T^{-1} \mathbf{z})
+$$
 
 ### Effect of Temperature on Probability Distribution
 
@@ -452,17 +458,19 @@ where:
 
 #### $T = 1$: Original distribution
 
-```math
-\large P(v) = \frac{\exp(z_v)}{\sum_{v'} \exp(z_{v'})}
-```
+$$
+\large
+P(v) = \frac{\exp(z_v)}{\sum_{v'} \exp(z_{v'})}
+$$
 
 No change from model's original outputs.
 
-#### $T \lt 1$: Sharper (more confident)
+#### $T < 1$: Sharper (more confident)
 
-```math
-\large P(v) = \frac{\exp(z_v / 0.5)}{\sum_{v'} \exp(z_{v'} / 0.5)} = \frac{\exp(2z_v)}{\sum_{v'} \exp(2z_{v'})}
-```
+$$
+\large
+P(v) = \frac{\exp(z_v / 0.5)}{\sum_{v'} \exp(z_{v'} / 0.5)} = \frac{\exp(2z_v)}{\sum_{v'} \exp(2z_{v'})}
+$$
 
 - Exaggerates differences between logits
 - High-probability tokens become even more likely
@@ -473,11 +481,12 @@ No change from model's original outputs.
 - Original: [0.4, 0.3, 0.2, 0.1]
 - T=0.5:   [0.52, 0.28, 0.14, 0.06] (more concentrated)
 
-#### $T \gt 1$: Flatter (more random)
+#### $T > 1$: Flatter (more random)
 
-```math
-\large P(v) = \frac{\exp(z_v / 2.0)}{\sum_{v'} \exp(z_{v'} / 2.0)} = \frac{\exp(0.5z_v)}{\sum_{v'} \exp(0.5z_{v'})}
-```
+$$
+\large
+P(v) = \frac{\exp(z_v / 2.0)}{\sum_{v'} \exp(z_{v'} / 2.0)} = \frac{\exp(0.5z_v)}{\sum_{v'} \exp(0.5z_{v'})}
+$$
 
 - Smooths differences between logits
 - Makes distribution more uniform
@@ -489,17 +498,19 @@ No change from model's original outputs.
 
 #### $T \to 0$: Approaches greedy
 
-```math
-\large \lim_{T \to 0} \text{softmax}(\mathbf{z} / T) = \text{one-hot}(\arg\max \mathbf{z})
-```
+$$
+\large
+\lim_{T \to 0} \text{softmax}(\mathbf{z} / T) = \text{one-hot}(\arg\max \mathbf{z})
+$$
 
 Distribution collapses to deterministic choice.
 
 #### $T \to \infty$: Approaches uniform
 
-```math
-\large \lim_{T \to \infty} \text{softmax}(\mathbf{z} / T) = \text{uniform}(V)
-```
+$$
+\large
+\lim_{T \to \infty} \text{softmax}(\mathbf{z} / T) = \text{uniform}(V)
+$$
 
 All tokens equally likely (random sampling).
 
@@ -681,20 +692,22 @@ Top-k sampling restricts the sampling pool to the k most likely tokens.
 
 **Mathematical formulation**:
 
-Let $V_k(x_{\lt t})$ be the set of top-k tokens:
+Let $V_k(x_{< t})$ be the set of top-k tokens:
 
-```math
-\large V_k(x_{\lt t}) = \{v_1, v_2, \ldots, v_k\} \text{ where } P(v_i | x_{\lt t}) \geq P(v_{i+1} | x_{\lt t})
-```
+$$
+\large
+V_k(x_{< t}) = \{v_1, v_2, \ldots, v_k\} \text{ where } P(v_i | x_{< t}) \geq P(v_{i+1} | x_{< t})
+$$
 
 Then:
 
-```math
-\large P_{\text{top-k}}(v | x_{\lt t}) = \begin{cases}
-\frac{P(v | x_{\lt t})}{\sum_{v' \in V_k} P(v' | x_{\lt t})} & \text{if } v \in V_k \\
+$$
+\large
+P_{\text{top-k}}(v | x_{< t}) = \begin{cases}
+\frac{P(v | x_{< t})}{\sum_{v' \in V_k} P(v' | x_{< t})} & \text{if } v \in V_k \\
 0 & \text{otherwise}
 \end{cases}
-```
+$$
 
 ### Eliminates Low-Probability Tokens
 
@@ -780,7 +793,7 @@ def top_k_logits_filter(logits: torch.Tensor, k: int) -> torch.Tensor:
 
     # Set all values below k-th largest to -inf
     filtered_logits = torch.where(
-        logits \lt min_values,
+        logits < min_values,
         torch.full_like(logits, float('-inf')),
         logits
     )
@@ -819,7 +832,7 @@ def demonstrate_top_k():
         print(f"  {i+1}. Token {idx.item()}: {prob.item():.4f}")
 
     print(f"\nAfter top-{k} filtering (renormalized):")
-    nonzero_mask = filtered_probs[0] \gt 0
+    nonzero_mask = filtered_probs[0] > 0
     nonzero_probs = filtered_probs[0][nonzero_mask]
     nonzero_indices = torch.arange(vocab_size)[nonzero_mask]
     sorted_indices = torch.argsort(nonzero_probs, descending=True)
@@ -830,8 +843,8 @@ def demonstrate_top_k():
         print(f"  {i+1}. Token {token_idx.item()}: {prob.item():.4f}")
 
     print(f"\nNumber of tokens with non-zero probability:")
-    print(f"  Original: {(original_probs[0] \gt 1e-10).sum().item()}")
-    print(f"  After top-{k}: {(filtered_probs[0] \gt 0).sum().item()}")
+    print(f"  Original: {(original_probs[0] > 1e-10).sum().item()}")
+    print(f"  After top-{k}: {(filtered_probs[0] > 0).sum().item()}")
 
     # Sample multiple times to show distribution
     print(f"\nSampling 1000 times with k={k}:")
@@ -841,7 +854,7 @@ def demonstrate_top_k():
         samples.append(token.item())
 
     sample_counts = torch.bincount(torch.tensor(samples), minlength=vocab_size)
-    num_unique = (sample_counts \gt 0).sum().item()
+    num_unique = (sample_counts > 0).sum().item()
     print(f"  Unique tokens sampled: {num_unique} (out of {vocab_size})")
     print(f"  All sampled tokens are in top-{k}: {num_unique <= k}")
 
@@ -884,20 +897,22 @@ Instead of a fixed k, top-p chooses the **smallest set of tokens** whose cumulat
 
 ### Mathematical Formulation
 
-Define the nucleus $V_p(x_{\lt t})$ as the smallest set satisfying:
+Define the nucleus $V_p(x_{< t})$ as the smallest set satisfying:
 
-```math
-\large V_p(x_{\lt t}) = \min \left\{ V' \subseteq V : \sum_{v \in V'} P(v | x_{\lt t}) \geq p \right\}
-```
+$$
+\large
+V_p(x_{< t}) = \min \left\{ V' \subseteq V : \sum_{v \in V'} P(v | x_{< t}) \geq p \right\}
+$$
 
 The sampling distribution becomes:
 
-```math
-\large P_{\text{nucleus}}(v | x_{\lt t}) = \begin{cases}
-\frac{P(v | x_{\lt t})}{\sum_{v' \in V_p} P(v' | x_{\lt t})} & \text{if } v \in V_p \\
+$$
+\large
+P_{\text{nucleus}}(v | x_{< t}) = \begin{cases}
+\frac{P(v | x_{< t})}{\sum_{v' \in V_p} P(v' | x_{< t})} & \text{if } v \in V_p \\
 0 & \text{otherwise}
 \end{cases}
-```
+$$
 
 ### Why It's Often Preferred Over Top-k
 
@@ -978,9 +993,9 @@ def nucleus_sampling(
     # Compute cumulative probabilities
     cumulative_probs = torch.cumsum(sorted_probs, dim=-1)  # [batch, vocab_size]
 
-    # Find cutoff index: first position where cumulative prob \gt p
+    # Find cutoff index: first position where cumulative prob > p
     # We want to include this position, so we use >= p-1e-10
-    cutoff_mask = cumulative_probs \gt p
+    cutoff_mask = cumulative_probs > p
 
     # Keep at least one token (the most likely)
     cutoff_mask[:, 0] = False
@@ -1018,8 +1033,8 @@ def nucleus_logits_filter(logits: torch.Tensor, p: float) -> torch.Tensor:
     sorted_probs = F.softmax(sorted_logits, dim=-1)
     cumulative_probs = torch.cumsum(sorted_probs, dim=-1)
 
-    # Create mask for tokens to remove (keep tokens until cumulative_prob \gt p)
-    sorted_mask = cumulative_probs \gt p
+    # Create mask for tokens to remove (keep tokens until cumulative_prob > p)
+    sorted_mask = cumulative_probs > p
     sorted_mask[:, 0] = False  # Keep at least the top token
 
     # Scatter mask back to original indices
@@ -1066,7 +1081,7 @@ def demonstrate_nucleus_sampling():
             token_id = sorted_indices[i].item()
             prob = sorted_probs[i].item()
             cum_prob = cumulative[i].item()
-            in_nucleus = "✓" if i \lt nucleus_size else "✗"
+            in_nucleus = "✓" if i < nucleus_size else "✗"
             print(f"  {in_nucleus} Token {token_id}: p={prob:.4f}, cumulative={cum_prob:.4f}")
 
     analyze_nucleus(peaked_logits, peaked_probs, "Case 1: Peaked Distribution (Confident)")
@@ -1097,12 +1112,12 @@ def compare_topk_vs_topp():
     # Top-k
     top_k_filtered = top_k_logits_filter(logits, k)
     top_k_probs = F.softmax(top_k_filtered, dim=-1)
-    top_k_size = (top_k_probs[0] \gt 0).sum().item()
+    top_k_size = (top_k_probs[0] > 0).sum().item()
 
     # Top-p
     top_p_filtered = nucleus_logits_filter(logits, p)
     top_p_probs = F.softmax(top_p_filtered, dim=-1)
-    top_p_size = (top_p_probs[0] \gt 0).sum().item()
+    top_p_size = (top_p_probs[0] > 0).sum().item()
 
     print(f"Top-k (k={k}):    {top_k_size} tokens")
     print(f"Top-p (p={p}): {top_p_size} tokens")
@@ -1169,22 +1184,22 @@ def combined_sampling(
         logits = logits / temperature
 
     # Step 2: Optional top-k
-    if top_k is not None and top_k \gt 0:
+    if top_k is not None and top_k > 0:
         top_k_values, _ = torch.topk(logits, min(top_k, logits.size(-1)), dim=-1)
         min_values = top_k_values[:, -1, None]
         logits = torch.where(
-            logits \lt min_values,
+            logits < min_values,
             torch.full_like(logits, float('-inf')),
             logits
         )
 
     # Step 3: Top-p
-    if top_p \lt 1.0:
+    if top_p < 1.0:
         sorted_logits, sorted_indices = torch.sort(logits, dim=-1, descending=True)
         sorted_probs = F.softmax(sorted_logits, dim=-1)
         cumulative_probs = torch.cumsum(sorted_probs, dim=-1)
 
-        sorted_mask = cumulative_probs \gt top_p
+        sorted_mask = cumulative_probs > top_p
         sorted_mask[:, 0] = False
 
         mask = torch.zeros_like(logits, dtype=torch.bool)
@@ -1292,9 +1307,10 @@ Unlike sampling methods that generate one sequence at a time, beam search keeps 
 
 **Sequence score** (log probability):
 
-```math
-\large \text{score}(x_1, \ldots, x_t) = \sum_{i=1}^t \log P(x_i | x_{\lt i})
-```
+$$
+\large
+\text{score}(x_1, \ldots, x_t) = \sum_{i=1}^t \log P(x_i | x_{< i})
+$$
 
 ### Beam Width and Its Tradeoffs
 
@@ -1314,9 +1330,10 @@ Unlike sampling methods that generate one sequence at a time, beam search keeps 
 
 **Solution**: Normalize by length:
 
-```math
-\large \text{score}(x_1, \ldots, x_t) = \frac{1}{t^\alpha} \sum_{i=1}^t \log P(x_i | x_{\lt i})
-```
+$$
+\large
+\text{score}(x_1, \ldots, x_t) = \frac{1}{t^\alpha} \sum_{i=1}^t \log P(x_i | x_{< i})
+$$
 
 where $\alpha \in [0, 1]$ controls the strength of length normalization:
 - $\alpha = 0$: No normalization (biased to short)
@@ -1528,11 +1545,12 @@ Beyond the standard techniques, several advanced methods have been proposed. The
 
 **Formula**:
 
-```math
-\large P_{\text{CD}}(x_t | x_{\lt t}) \propto \frac{P_{\text{expert}}(x_t | x_{\lt t})^\alpha}{P_{\text{amateur}}(x_t | x_{\lt t})^\beta}
-```
+$$
+\large
+P_{\text{CD}}(x_t | x_{< t}) \propto \frac{P_{\text{expert}}(x_t | x_{< t})^\alpha}{P_{\text{amateur}}(x_t | x_{< t})^\beta}
+$$
 
-where $\alpha \gt \beta$ (typically $\alpha=1, \beta=0.5$).
+where $\alpha > \beta$ (typically $\alpha=1, \beta=0.5$).
 
 **Intuition**: Tokens that both models predict are likely generic/common. Tokens only the expert predicts are likely the distinctive, high-quality choices.
 
@@ -1546,9 +1564,10 @@ where $\alpha \gt \beta$ (typically $\alpha=1, \beta=0.5$).
 
 **Method**: Sample tokens close to the conditional entropy:
 
-```math
-\large \text{typicality}(v) = \left| -\log P(v | x_{\lt t}) - H(P(\cdot | x_{\lt t})) \right|
-```
+$$
+\large
+\text{typicality}(v) = \left| -\log P(v | x_{< t}) - H(P(\cdot | x_{< t})) \right|
+$$
 
 Keep tokens with low typicality (close to average information content).
 
@@ -1618,7 +1637,7 @@ def typical_decoding(logits, mass=0.9):
 
     # Keep tokens until cumulative mass
     cumulative_probs = torch.cumsum(sorted_probs, dim=-1)
-    cutoff = cumulative_probs \gt mass
+    cutoff = cumulative_probs > mass
     cutoff[:, 0] = False
 
     sorted_probs[cutoff] = 0.0
@@ -1640,9 +1659,10 @@ Repetition is a common problem in autoregressive generation. Repetition penaltie
 
 Reduce logit for each token proportional to how many times it's appeared:
 
-```math
-\large \text{logit}'(v) = \text{logit}(v) - \lambda \times \text{count}(v)
-```
+$$
+\large
+\text{logit}'(v) = \text{logit}(v) - \lambda \times \text{count}(v)
+$$
 
 where $\text{count}(v)$ is the number of times token $v$ appeared in generated sequence.
 
@@ -1652,9 +1672,10 @@ where $\text{count}(v)$ is the number of times token $v$ appeared in generated s
 
 Binary version: penalize any token that has appeared at least once:
 
-```math
-\large \text{logit}'(v) = \text{logit}(v) - \lambda \times \mathbb{1}[v \in \text{generated}]
-```
+$$
+\large
+\text{logit}'(v) = \text{logit}(v) - \lambda \times \mathbb{1}[v \in \text{generated}]
+$$
 
 **Effect**: Same penalty whether token appeared once or many times.
 
@@ -2184,24 +2205,28 @@ The only difference: beam search requires k separate KV caches (one per beam).
 ### Mathematical Summary
 
 **Temperature scaling**:
-```math
-\large P_T(v | x_{\lt t}) = \frac{\exp(z_v / T)}{\sum_{v'} \exp(z_{v'} / T)}
-```
+$$
+\large
+P_T(v | x_{< t}) = \frac{\exp(z_v / T)}{\sum_{v'} \exp(z_{v'} / T)}
+$$
 
 **Top-p (nucleus)**:
-```math
-\large V_p = \min \left\{ V' : \sum_{v \in V'} P(v | x_{\lt t}) \geq p \right\}
-```
+$$
+\large
+V_p = \min \left\{ V' : \sum_{v \in V'} P(v | x_{< t}) \geq p \right\}
+$$
 
 **Beam search score**:
-```math
-\large \text{score}(x_{1:t}) = \frac{1}{t^\alpha} \sum_{i=1}^t \log P(x_i | x_{\lt i})
-```
+$$
+\large
+\text{score}(x_{1:t}) = \frac{1}{t^\alpha} \sum_{i=1}^t \log P(x_i | x_{< i})
+$$
 
 **Repetition penalty**:
-```math
-\large \text{logit}'(v) = \text{logit}(v) - \lambda_f \cdot \text{count}(v) - \lambda_p \cdot \mathbb{1}[v \in \text{generated}]
-```
+$$
+\large
+\text{logit}'(v) = \text{logit}(v) - \lambda_f \cdot \text{count}(v) - \lambda_p \cdot \mathbb{1}[v \in \text{generated}]
+$$
 
 ### Connection to Other Chapters
 

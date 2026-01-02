@@ -24,9 +24,10 @@ This chapter covers the foundational approaches to positional encoding, from the
 
 The attention mechanism (see [Basic Attention](03-basic-attention.md)) computes relationships between tokens using queries, keys, and values:
 
-```math
-\large \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
-```
+$$
+\large
+\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
+$$
 
 Notice that this operation is **permutation invariant**: if we shuffle the input sequence, the attention scores remain the same (just reordered). The model has no inherent notion of token order.
 
@@ -87,16 +88,18 @@ A good positional encoding scheme should satisfy several properties:
 ### 1. Uniqueness
 Each position should have a unique encoding:
 
-```math
-\large \text{PE}(pos_i) \neq \text{PE}(pos_j) \quad \text{for } i \neq j
-```
+$$
+\large
+\text{PE}(pos_i) \neq \text{PE}(pos_j) \quad \text{for } i \neq j
+$$
 
 ### 2. Bounded Values
 Encodings should have bounded magnitudes to prevent numerical instability:
 
-```math
-\large \|\text{PE}(pos)\| \leq C \quad \text{for some constant } C
-```
+$$
+\large
+\|\text{PE}(pos)\| \leq C \quad \text{for some constant } C
+$$
 
 ### 3. Deterministic (for some methods)
 For sinusoidal encodings, the same position should always get the same encoding, regardless of sequence length.
@@ -117,12 +120,13 @@ The original Transformer paper ([Vaswani et al., 2017](https://arxiv.org/abs/170
 
 For a position $pos$ and dimension $i$, the positional encoding is:
 
-```math
-\large \begin{aligned}
+$$
+\large
+\begin{aligned}
 \text{PE}_{(pos, 2i)} &= \sin\left(\frac{pos}{10000^{2i/d_{model}}}\right) \\
 \text{PE}_{(pos, 2i+1)} &= \cos\left(\frac{pos}{10000^{2i/d_{model}}}\right)
 \end{aligned}
-```
+$$
 
 Where:
 
@@ -331,17 +335,19 @@ if __name__ == "__main__":
 
 **3. Relative Position Information**: The encoding at position $pos + k$ can be represented as a linear transformation of the encoding at position $pos$. Using the trigonometric angle addition formulas:
 
-```math
-\large \begin{aligned}
+$$
+\large
+\begin{aligned}
 \sin(\alpha + \beta) &= \sin(\alpha)\cos(\beta) + \cos(\alpha)\sin(\beta) \\
 \cos(\alpha + \beta) &= \cos(\alpha)\cos(\beta) - \sin(\alpha)\sin(\beta)
 \end{aligned}
-```
+$$
 
 We can express this relationship as a matrix transformation. For each frequency $\omega_i = 1/10000^{2i/d_{model}}$, the encoding at position $pos + k$ can be written as:
 
-```math
-\large \begin{bmatrix}
+$$
+\large
+\begin{bmatrix}
 \text{PE}_{(pos+k, 2i)} \\
 \text{PE}_{(pos+k, 2i+1)}
 \end{bmatrix}
@@ -354,7 +360,7 @@ We can express this relationship as a matrix transformation. For each frequency 
 \text{PE}_{(pos, 2i)} \\
 \text{PE}_{(pos, 2i+1)}
 \end{bmatrix}
-```
+$$
 
 This means $\text{PE}(pos + k) = M_k \cdot \text{PE}(pos)$, where the transformation matrix $M_k$ depends only on the offset $k$, not the absolute position $pos$. This property allows the model to easily learn to attend based on relative positions, as the relationship between positions is encoded in a linear transformation that is consistent regardless of absolute position.
 
@@ -370,9 +376,10 @@ An alternative approach is to treat positional encodings as learnable parameters
 
 For each position $pos \in \{0, 1, ..., max\_len - 1\}$, learn a vector $\mathbf{p}_{pos} \in \mathbb{R}^{d_{model}}$:
 
-```math
-\large \text{PE}(pos) = \mathbf{p}_{pos}
-```
+$$
+\large
+\text{PE}(pos) = \mathbf{p}_{pos}
+$$
 
 The positional embeddings are stored in an embedding matrix $P \in \mathbb{R}^{max\_len \times d_{model}}$ and updated during training via backpropagation.
 
@@ -436,7 +443,7 @@ class LearnedPositionalEmbedding(nn.Module):
             Embeddings with positional encoding added
 
         Raises:
-            RuntimeError: If seq_len \gt max_len
+            RuntimeError: If seq_len > max_len
         """
         batch_size, seq_len, d_model = x.shape
 
@@ -704,9 +711,10 @@ Relative encodings can be more robust to position shifts and better capture ling
 
 Relative positional encodings modify the attention mechanism to include position information:
 
-```math
-\large \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T + R}{\sqrt{d_k}}\right)V
-```
+$$
+\large
+\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T + R}{\sqrt{d_k}}\right)V
+$$
 
 Where $R$ is a matrix of relative position biases.
 
@@ -724,15 +732,17 @@ ALiBi ([Press et al., 2021](https://arxiv.org/abs/2108.12409)) provides a remark
 
 The attention mechanism is modified as follows:
 
-```math
-\large \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}} + \text{bias}_{ij}\right)V
-```
+$$
+\large
+\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}} + \text{bias}_{ij}\right)V
+$$
 
 where the bias for position pair $(i, j)$ is:
 
-```math
-\large \text{bias}_{ij} = -m \cdot |i - j|
-```
+$$
+\large
+\text{bias}_{ij} = -m \cdot |i - j|
+$$
 
 Here, $m$ is a head-specific slope (a constant, not learned), and $|i - j|$ is the distance between the query position $i$ and key position $j$. Different attention heads use different values of $m$, typically following a geometric sequence: $m \in \{2^{-1}, 2^{-2}, 2^{-3}, ..., 2^{-n}\}$ for $n$ heads.
 
@@ -908,7 +918,7 @@ Beyond ALiBi, another influential approach is the relative position bias used in
 
 **Key Insight**: By making the bias depend only on $|i - j|$ (the distance), the model learns a **distance function** rather than position embeddings. This means "5 positions apart" always has the same bias, whether that's positions (0,5), (10,15), or (100,105).
 
-**Practical Note**: T5 uses bucketing to limit the number of parameters—distances beyond a threshold are grouped into buckets (e.g., all distances \gt 128 use the same bias). This simplifies the model while retaining the relative position benefits.
+**Practical Note**: T5 uses bucketing to limit the number of parameters—distances beyond a threshold are grouped into buckets (e.g., all distances > 128 use the same bias). This simplifies the model while retaining the relative position benefits.
 
 ```python
 class SimpleRelativePositionalBias(nn.Module):
@@ -1274,7 +1284,7 @@ Different frequencies allow the model to attend to both fine-grained (adjacent p
 3. For sequences longer than 50, try:
    - Interpolating the learned embeddings
    - Using only the first 50 position embeddings repeatedly
-   - Using a sinusoidal encoding for positions \gt 50
+   - Using a sinusoidal encoding for positions > 50
 4. Compare the approaches
 
 ### Exercise 3: Relative Position Bias

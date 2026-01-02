@@ -320,3 +320,11 @@
   - Quality filtering and scoring
   - Data mixing and curriculum learning
   - Tokenizer training data considerations
+
+- [RAG and Vector Search](appendices/rag-and-vector-search.md)
+  - RAG pipeline overview (indexing and query phases)
+  - Vector embeddings for retrieval
+  - Exact vs Approximate Nearest Neighbor search
+  - FAISS index types (Flat, IVF, PQ, HNSW)
+  - Composite indexes for billion-scale search
+  - Advanced techniques (HyDE, reranking, hybrid search)

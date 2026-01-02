@@ -12,9 +12,10 @@ Perplexity is the fundamental metric for language models, measuring how "surpris
 
 **Definition**: For a sequence of tokens $x_1, x_2, \ldots, x_{N}$:
 
-```math
-\large \text{PPL}(x) = \exp\left(-\frac{1}{N} \sum_{i=1}^{N} \log P(x_i | x_{\lt i})\right)
-```
+$$
+\large
+\text{PPL}(x) = \exp\left(-\frac{1}{N} \sum_{i=1}^{N} \log P(x_i | x_{< i})\right)
+$$
 
 Lower perplexity indicates better performance. A perplexity of $k$ means the model is as uncertain as if it had to choose uniformly among $k$ possibilities at each step.
 
@@ -23,7 +24,7 @@ Lower perplexity indicates better performance. A perplexity of $k$ means the mod
 **Theoretical Foundation**: Perplexity is the exponential of cross-entropy, which measures the expected number of bits needed to encode data using the model's predicted distribution. It's rooted in information theory:
 
 - Cross-entropy: $H(p, q) = -\sum_x p(x) \log q(x)$
-- For language modeling: $H = -\frac{1}{N} \sum_{i=1}^{N} \log P(x_i | x_{\lt i})$
+- For language modeling: $H = -\frac{1}{N} \sum_{i=1}^{N} \log P(x_i | x_{< i})$
 - Perplexity: $\text{PPL} = 2^H = \exp(H)$
 
 **Relationship to Alternatives**:
@@ -153,9 +154,10 @@ def example_perplexity():
 
 For multilingual or byte-level models, bits per byte (BPB) or bits per character (BPC) normalizes across different tokenizations:
 
-```math
-\large \text{BPB} = \frac{-\sum_{i=1}^{N} \log_2 P(x_i | x_{\lt i})}{\text{num\_bytes}}
-```
+$$
+\large
+\text{BPB} = \frac{-\sum_{i=1}^{N} \log_2 P(x_i | x_{< i})}{\text{num\_bytes}}
+$$
 
 **Why Bits Per Byte Matters**: When comparing models with different tokenization schemes (e.g., BPE with different vocabulary sizes, character-level, byte-level), perplexity becomes incomparable because it depends on token granularity. BPB provides a tokenization-agnostic metric by normalizing to the underlying byte representation, making it essential for multilingual model evaluation and cross-model comparisons.
 
@@ -451,8 +453,8 @@ HellaSwag ([Zellers et al., 2019](https://arxiv.org/abs/1905.07830)) tests commo
 
 **Theoretical Foundation**: HellaSwag evaluation is based on **conditional likelihood scoring**:
 
-- For each ending $e_i$, we compute the conditional probability: $P(e_i | \text{context}) = \prod_{t=1}^{|e_i|} P(w_t | \text{context}, e_{i,\lt t})$
-- We take the log to avoid numerical underflow: $\log P(e_i | \text{context}) = \sum_{t=1}^{|e_i|} \log P(w_t | \text{context}, e_{i,\lt t})$
+- For each ending $e_i$, we compute the conditional probability: $P(e_i | \text{context}) = \prod_{t=1}^{|e_i|} P(w_t | \text{context}, e_{i,< t})$
+- We take the log to avoid numerical underflow: $\log P(e_i | \text{context}) = \sum_{t=1}^{|e_i|} \log P(w_t | \text{context}, e_{i,< t})$
 - The model selects: $\arg\max_{i} \log P(e_i | \text{context})$
 - Critically, we must **length-normalize** because language models naturally assign higher probability to shorter sequences (fewer opportunities for low-probability tokens).
 

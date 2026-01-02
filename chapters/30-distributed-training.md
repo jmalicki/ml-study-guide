@@ -110,25 +110,28 @@ This doesn't even include **activations** (intermediate outputs stored for backp
 
 The memory breakdown for training a transformer:
 
-```math
-\large M_{\text{total}} = M_{\text{params}} + M_{\text{gradients}} + M_{\text{optimizer}} + M_{\text{activations}}
-```
+$$
+\large
+M_{\text{total}} = M_{\text{params}} + M_{\text{gradients}} + M_{\text{optimizer}} + M_{\text{activations}}
+$$
 
 ### Parameter Memory
 
 For a model with $\Theta$ parameters in mixed precision (FP16/BF16):
 
-```math
-\large M_{\text{params}} = 2\Theta \text{ bytes}
-```
+$$
+\large
+M_{\text{params}} = 2\Theta \text{ bytes}
+$$
 
 ### Gradient Memory
 
 Same as parameters:
 
-```math
-\large M_{\text{gradients}} = 2\Theta \text{ bytes}
-```
+$$
+\large
+M_{\text{gradients}} = 2\Theta \text{ bytes}
+$$
 
 ### Optimizer Memory (AdamW)
 
@@ -138,9 +141,10 @@ AdamW maintains:
 - First moment estimate: $4\Theta$ bytes
 - Second moment estimate: $4\Theta$ bytes
 
-```math
-\large M_{\text{optimizer}} = 12\Theta \text{ bytes}
-```
+$$
+\large
+M_{\text{optimizer}} = 12\Theta \text{ bytes}
+$$
 
 Total without activations: $16\Theta$ bytes
 
@@ -473,9 +477,10 @@ For training large models efficiently, we need a truly distributed approach wher
 
 Mathematically, for loss $\mathcal{L}$ and data shards $\mathcal{D}_1, \ldots, \mathcal{D}_{N}$:
 
-```math
-\large \frac{1}{N}\sum_{i=1}^{N} \nabla_\theta \mathcal{L}(\theta; \mathcal{D}_i) = \nabla_\theta \mathcal{L}\left(\theta; \bigcup_{i=1}^{N} \mathcal{D}_i\right)
-```
+$$
+\large
+\frac{1}{N}\sum_{i=1}^{N} \nabla_\theta \mathcal{L}(\theta; \mathcal{D}_i) = \nabla_\theta \mathcal{L}\left(\theta; \bigcup_{i=1}^{N} \mathcal{D}_i\right)
+$$
 
 This means we can:
 
@@ -626,9 +631,10 @@ def run_ddp_demo(world_size=2):
 
 For $N$ GPUs, each with gradient tensor $g_i$:
 
-```math
-\large g_{\text{avg}} = \frac{1}{N} \sum_{i=1}^{N} g_i
-```
+$$
+\large
+g_{\text{avg}} = \frac{1}{N} \sum_{i=1}^{N} g_i
+$$
 
 Ring all-reduce achieves this in $2(N-1)$ steps with bandwidth-optimal communication.
 
@@ -713,22 +719,25 @@ Split individual layers across GPUs. Each GPU computes part of a matrix multipli
 
 Split output dimension:
 
-```math
-\large Y = XA = X[A_1 | A_2] = [XA_1 | XA_2] = [Y_1 | Y_2]
-```
+$$
+\large
+Y = XA = X[A_1 | A_2] = [XA_1 | XA_2] = [Y_1 | Y_2]
+$$
 
 **Problem Being Solved**: When a single layer's parameters exceed GPU memory, or when data parallelism alone provides insufficient parallelism, we need to split the layer itself across GPUs. The challenge is: how do we partition a linear layer $Y = XW$ across GPUs while minimizing communication?
 
 **Theoretical Justification**: Matrix multiplication exhibits algebraic properties that allow specific partitioning strategies. For column parallelism, we partition the weight matrix $W \in \mathbb{R}^{d_{in} \times d_{out}}$ along columns:
 
-```math
-\large W = [W_1 | W_2 | \cdots | W_{N}]
-```
+$$
+\large
+W = [W_1 | W_2 | \cdots | W_{N}]
+$$
 
 where $W_i \in \mathbb{R}^{d_{in} \times d_{out}/N}$. Then:
 
-```math
-\large Y = XW = X[W_1 | W_2 | \cdots | W_{N}] = [XW_1 | XW_2 | \cdots | XW_{N}] = [Y_1 | Y_2 | \cdots | Y_{N}]
+$$
+\large
+Y = XW = X[W_1 | W_2 | \cdots | W_{N}] = [XW_1 | XW_2 | \cdots | XW_{N}] = [Y_1 | Y_2 | \cdots | Y_{N}]
 ```
 
 **Key insight**: Each GPU can compute its portion $Y_i = XW_i$ independently using the full input $X$. No communication needed during the computation, only when gathering outputs (if required).
@@ -969,15 +978,17 @@ class RowParallelLinear(nn.Module):
 
 **Multi-Head Attention** (column parallel):
 
-```math
-\large Q = XW_{Q}, \quad K = XW_{K}, \quad V = XW_{V}
-```
+$$
+\large
+Q = XW_{Q}, \quad K = XW_{K}, \quad V = XW_{V}
+$$
 
 **Why Split Heads Across GPUs?** Multi-head attention naturally decomposes into independent head computations. Each head operates on its own subspace:
 
-```math
-\large \text{head}_i = \text{Attention}(QW_i^{Q}, KW_i^{K}, VW_i^{V})
-```
+$$
+\large
+\text{head}_i = \text{Attention}(QW_i^{Q}, KW_i^{K}, VW_i^{V})
+$$
 
 **Key Insight**: Since heads are computed independently and only combined at the output projection, we can:
 
@@ -1080,9 +1091,10 @@ class TensorParallelAttention(nn.Module):
 
 **Feed-Forward Network**:
 
-```math
-\large \text{FFN}(x) = \text{GELU}(xW_1 + b_1)W_2 + b_2
-```
+$$
+\large
+\text{FFN}(x) = \text{GELU}(xW_1 + b_1)W_2 + b_2
+$$
 
 **Why This Specific Pattern?** The FFN has two linear layers with a non-linear activation in between. The key insight: element-wise activations (GELU, ReLU) don't require communication.
 
@@ -1449,7 +1461,7 @@ For a transformer with sequence length $S$, batch size $B$, hidden dimension $d$
 
 **Use when**:
 
-- Very long sequences ($S \gt 32K$)
+- Very long sequences ($S > 32K$)
 - Activation memory exceeds model parameter memory
 - Already using tensor parallelism (they work together)
 - High-bandwidth interconnect available (for all-gather operations)
@@ -1541,9 +1553,10 @@ The white space represents **bubble time** - wasted computation where GPUs are i
 
 **Theoretical Justification (GPipe)**: The key insight is that gradient descent is *additive* across mini-batches. If we split a batch $\mathcal{B}$ into $M$ micro-batches $\{\mathcal{B}_1, \ldots, \mathcal{B}_M\}$:
 
-```math
-\large \nabla_\theta \mathcal{L}(\theta; \mathcal{B}) = \sum_{i=1}^{M} \nabla_\theta \mathcal{L}(\theta; \mathcal{B}_i)
-```
+$$
+\large
+\nabla_\theta \mathcal{L}(\theta; \mathcal{B}) = \sum_{i=1}^{M} \nabla_\theta \mathcal{L}(\theta; \mathcal{B}_i)
+$$
 
 This means we can:
 
@@ -1668,7 +1681,7 @@ With $M$ micro-batches and $P$ pipeline stages:
 
 Bubble ratio: $\frac{P - 1}{M + P - 1} \approx \frac{P}{M}$ for large $M$
 
-**Rule of thumb**: Use $M \geq 4P$ to keep bubble overhead \lt 20%
+**Rule of thumb**: Use $M \geq 4P$ to keep bubble overhead < 20%
 
 ### Bubble Reduction Strategies
 
@@ -2202,9 +2215,10 @@ def train_with_fsdp(rank, world_size):
 
 **Solution**: Accumulate gradients over 8 micro-batches of size 16 each:
 
-```math
-\large \nabla_\theta \mathcal{L}_{\text{total}} = \frac{1}{K} \sum_{k=1}^{K} \nabla_\theta \mathcal{L}_k
-```
+$$
+\large
+\nabla_\theta \mathcal{L}_{\text{total}} = \frac{1}{K} \sum_{k=1}^{K} \nabla_\theta \mathcal{L}_k
+$$
 
 where $K$ is the number of accumulation steps.
 
