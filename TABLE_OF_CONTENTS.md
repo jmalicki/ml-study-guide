@@ -124,7 +124,7 @@
     - Batch size scaling
     - Troubleshooting training issues
 
-18. [Scaling Laws and Training Dynamics](chapters/12-scaling-dynamics.md)
+18. [Scaling Laws and Training Dynamics](chapters/18-scaling-dynamics.md)
     - Kaplan and Chinchilla scaling laws
     - Compute-optimal training
     - Grokking: delayed generalization
