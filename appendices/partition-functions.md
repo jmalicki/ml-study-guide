@@ -20,23 +20,26 @@ In probability theory, when we define an unnormalized probability distribution, 
 
 Given an energy function $E(x)$ or score function $s(x)$, we define:
 
-```math
+$$
+\large
 p(x) = \frac{1}{Z} \exp(-E(x)) = \frac{1}{Z} \exp(s(x))
-```
+$$
 
 where the partition function $Z$ is:
 
-```math
+$$
+\large
 Z = \sum_{x \in \mathcal{X}} \exp(s(x))
-```
+$$
 
 For continuous distributions, the sum becomes an integral.
 
 **The partition function ensures probabilities sum to 1:**
 
-```math
+$$
+\large
 \sum_{x} p(x) = \sum_{x} \frac{\exp(s(x))}{Z} = \frac{1}{Z} \sum_{x} \exp(s(x)) = \frac{Z}{Z} = 1
-```
+$$
 
 ---
 
@@ -48,21 +51,24 @@ In the context of language models and RLHF, the partition function appears when 
 
 In RLHF, we optimize:
 
-```math
+$$
+\large
 \max_\pi \mathbb{E}_{y \sim \pi(\cdot|x)}[r(x, y)] - \beta \cdot \text{KL}(\pi \| \pi_{\text{ref}})
-```
+$$
 
 The optimal solution has a closed form:
 
-```math
+$$
+\large
 \pi^*(y \mid x) = \frac{1}{Z(x)} \pi_{\text{ref}}(y \mid x) \exp\left(\frac{r(x, y)}{\beta}\right)
-```
+$$
 
 where:
 
-```math
+$$
+\large
 Z(x) = \sum_{y \in \mathcal{Y}} \pi_{\text{ref}}(y \mid x) \exp\left(\frac{r(x, y)}{\beta}\right)
-```
+$$
 
 **Here, $\mathcal{Y}$ is the set of ALL possible responses** - every possible sequence of tokens the model could generate.
 
@@ -80,9 +86,10 @@ For a language model with:
 
 The number of possible responses is:
 
-```math
-|\mathcal{Y}| = V^L = 50,000^{1000}
-```
+$$
+\large
+|\mathcal{Y}| = V^L = 50{,}000^{1000}
+$$
 
 To put this in perspective:
 - The number of atoms in the observable universe is approximately $10^{80}$
@@ -94,9 +101,10 @@ To put this in perspective:
 
 Computing $Z(x)$ requires:
 
-```math
+$$
+\large
 Z(x) = \sum_{y \in \mathcal{Y}} \pi_{\text{ref}}(y \mid x) \exp\left(\frac{r(x, y)}{\beta}\right)
-```
+$$
 
 This means:
 1. **Enumerate** every possible response $y$ (impossible - there are too many)
@@ -140,15 +148,17 @@ This is **impossible to enumerate**. There is no algorithm, no computer, no amou
 
 You might think: "But LLMs generate token-by-token, so can't we use the chain rule?"
 
-```math
-\pi(y|x) = \prod_{t=1}^{T} \pi(y_t | x, y_{<t})
-```
+$$
+\large
+\pi(y|x) = \prod_{t=1}^{T} \pi(y_t | x, y_{\lt t})
+$$
 
 This factorization helps us **sample** from the distribution and **compute the probability of a specific sequence**, but it doesn't help compute the partition function because:
 
-```math
-Z(x) = \sum_{y_1} \sum_{y_2} \cdots \sum_{y_T} \prod_{t=1}^{T} \pi_{\text{ref}}(y_t | x, y_{<t}) \exp\left(\frac{r(x, y_{1:T})}{\beta}\right)
-```
+$$
+\large
+Z(x) = \sum_{y_1} \sum_{y_2} \cdots \sum_{y_T} \prod_{t=1}^{T} \pi_{\text{ref}}(y_t | x, y_{\lt t}) \exp\left(\frac{r(x, y_{1:T})}{\beta}\right)
+$$
 
 The reward $r(x, y)$ depends on the **complete** sequence, so we can't factorize the exponential term. The sums don't simplify.
 
@@ -164,15 +174,17 @@ This is not just a minor optimization—it transforms an utterly intractable pro
 
 Recall the optimal RLHF policy:
 
-```math
+$$
+\large
 \pi^*(y \mid x) = \frac{1}{Z(x)} \pi_{\text{ref}}(y \mid x) \exp\left(\frac{r(x, y)}{\beta}\right)
-```
+$$
 
 We can rearrange this to express the reward in terms of the policy:
 
-```math
+$$
+\large
 r(x, y) = \beta \log \frac{\pi^*(y|x)}{\pi_{\text{ref}}(y|x)} + \beta \log Z(x)
-```
+$$
 
 **Notice that $Z(x)$ appears as an additive constant.** It depends only on the prompt $x$, not on which response $y$ we're evaluating.
 
@@ -182,19 +194,22 @@ Now consider two responses to the same prompt: a preferred response $y_w$ (winne
 
 The reward for each is:
 
-```math
+$$
+\large
 r(x, y_w) = \beta \log \frac{\pi^*(y_w|x)}{\pi_{\text{ref}}(y_w|x)} + \beta \log Z(x)
-```
+$$
 
-```math
+$$
+\large
 r(x, y_l) = \beta \log \frac{\pi^*(y_l|x)}{\pi_{\text{ref}}(y_l|x)} + \beta \log Z(x)
-```
+$$
 
 When we compute the **difference** in rewards:
 
-```math
+$$
+\large
 r(x, y_w) - r(x, y_l) = \beta \log \frac{\pi^*(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \beta \log \frac{\pi^*(y_l|x)}{\pi_{\text{ref}}(y_l|x)} + \cancel{\beta \log Z(x)} - \cancel{\beta \log Z(x)}
-```
+$$
 
 **The $Z(x)$ terms cancel exactly!** The intractable partition function—the sum over $10^{4,699}$ possible sequences—simply disappears from the equation.
 
@@ -213,9 +228,10 @@ This is why DPO is called "Direct" Preference Optimization—it bypasses the int
 
 The reason preferences work is the Bradley-Terry model of pairwise comparison:
 
-```math
+$$
+\large
 p(y_w \succ y_l | x) = \sigma(r(x, y_w) - r(x, y_l))
-```
+$$
 
 Human preferences are modeled as depending only on the **difference** in rewards, not their absolute values. This is psychologically motivated—humans compare options relative to each other, not against some absolute scale.
 
@@ -225,9 +241,10 @@ Since the Bradley-Terry model only uses reward differences, and $Z(x)$ cancels i
 
 Substituting our reward expression (with $Z(x)$ cancelled) into the Bradley-Terry model, we get the DPO loss:
 
-```math
+$$
+\large
 \mathcal{L}_{\text{DPO}}(\pi_\theta) = -\mathbb{E}_{(x, y_w, y_l)}\left[\log \sigma\left(\beta \log \frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \beta \log \frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)}\right)\right]
-```
+$$
 
 This loss requires only:
 1. Forward pass to compute $\pi_\theta(y_w|x)$ and $\pi_\theta(y_l|x)$
@@ -260,9 +277,10 @@ While DPO's Z-cancellation is the most elegant solution for preference learning,
 
 Instead of computing $Z(x)$, we sample responses from the current policy and estimate gradients:
 
-```math
+$$
+\large
 \nabla_\theta J(\theta) = \mathbb{E}_{y \sim \pi_\theta}[\nabla_\theta \log \pi_\theta(y|x) \cdot A(x, y)]
-```
+$$
 
 This requires only:
 - Sampling (which LLMs do naturally via autoregressive generation)
@@ -277,9 +295,10 @@ This requires only:
 
 Approximate the partition function using negative samples:
 
-```math
+$$
+\large
 Z \approx 1 + \sum_{i=1}^{k} \frac{p_{\text{model}}(y_i)}{p_{\text{noise}}(y_i)}
-```
+$$
 
 This approach powered Word2Vec's negative sampling, which transformed an intractable $O(V)$ softmax into an $O(k)$ binary classification problem. The same insight—avoiding direct computation of the partition function—laid conceptual groundwork for DPO's more elegant algebraic cancellation. See [Chapter 2: Embeddings](../chapters/02-embeddings.md#word2vec) for the Word2Vec treatment.
 
@@ -289,9 +308,10 @@ This approach powered Word2Vec's negative sampling, which transformed an intract
 
 For standard language modeling, the partition function at each step is just a sum over the vocabulary:
 
-```math
+$$
+\large
 Z_t = \sum_{v \in V} \exp(\text{logit}_v)
-```
+$$
 
 With vocabulary size 50,000, this is completely tractable - it's what softmax computes!
 
@@ -323,9 +343,10 @@ This is why DPO is more computationally efficient than RLHF - it avoids the RL l
 
 The preference model:
 
-```math
+$$
+\large
 p(y_w \succ y_l | x) = \sigma(r(x, y_w) - r(x, y_l))
-```
+$$
 
 Only depends on reward **differences**, which is why the partition function cancels. This is the key mathematical insight that makes DPO possible.
 
