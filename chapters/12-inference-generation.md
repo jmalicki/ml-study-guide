@@ -901,7 +901,7 @@ Define the nucleus $V_p(x_{< t})$ as the smallest set satisfying:
 
 $$
 \large
-V_p(x_{< t}) = \min \left\{ V' \subseteq V : \sum_{v \in V'} P(v | x_{< t}) \geq p \right\}
+V_p(x_{< t}) = \min \left\lbrace V' \subseteq V : \sum_{v \in V'} P(v | x_{< t}) \geq p \right\rbrace
 $$
 
 The sampling distribution becomes:
@@ -2140,9 +2140,9 @@ Most modern LLMs (GPT-4, Claude, Gemini) use top-p by default.
 ### Q7: What's the computational cost of different sampling strategies?
 
 **A**:
-- **Greedy**: O(vocab_size) for argmax, no sampling
-- **Temperature/top-p/top-k**: O(vocab_size) for filtering, O(log vocab_size) for sampling
-- **Beam search (width k)**: O(k × vocab_size) per step, k× memory for KV cache
+- **Greedy**: $O(\text{vocab\_size})$ for argmax, no sampling
+- **Temperature/top-p/top-k**: $O(\text{vocab\_size})$ for filtering, $O(\log \text{vocab\_size})$ for sampling
+- **Beam search (width k)**: $O(k \times \text{vocab\_size})$ per step, $k \times$ memory for KV cache
 
 Beam search is k× slower and uses k× memory. Other methods have similar cost.
 
