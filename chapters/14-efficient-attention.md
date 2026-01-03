@@ -44,8 +44,10 @@ During autoregressive generation, we cache key and value tensors for all previou
 
 $$
 \large
-\text{Memory}_{\text{KV cache}} = 2 \times \text{layers} \times \text{heads} \times \text{seq\_len} \times \text{head\_dim} \times \text{bytes}
+\text{Memory}_{\text{KV cache}} = 2 \times L \times H \times S \times D \times B
 $$
+
+where $L$ = layers, $H$ = heads, $S$ = sequence length, $D$ = head dimension, $B$ = bytes per element.
 
 For a 70B model with 100K context:
 
