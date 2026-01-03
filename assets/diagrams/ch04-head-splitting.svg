@@ -123,15 +123,15 @@
 
   <!-- Individual heads -->
   <g id="head1">
-    <rect x="280" y="75" width="140" height="395" fill="#E57373" opacity="0.05" stroke="#E57373" stroke-width="1" stroke-dasharray="5,5" rx="10" />
+    <rect x="280" y="120" width="140" height="265" fill="#E57373" opacity="0.05" stroke="#E57373" stroke-width="1" stroke-dasharray="5,5" rx="10" />
     <text x="350" y="95" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" fill="#E57373">Head 1</text>
     <text x="350" y="112" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#666">"Adjective-Noun"</text>
 
     <!-- Head 1 attention pattern -->
-    <rect x="295" y="130" width="110" height="90" class="bg-box" stroke="#E57373" stroke-width="1.5" rx="5" />
+    <rect x="295" y="130" width="110" height="130" class="bg-box" stroke="#E57373" stroke-width="1.5" rx="5" />
     <text x="350" y="150" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#333">Attention Pattern:</text>
 
-    <!-- Mini heatmap for head 1 -->
+    <!-- Mini heatmap for head 1 - 4x4 grid -->
     <rect x="305" y="160" width="20" height="20" class="bg-indigo-light" stroke="#ccc" stroke-width="0.5" />
     <rect x="327" y="160" width="20" height="20" class="bg-indigo-light" stroke="#ccc" stroke-width="0.5" />
     <rect x="349" y="160" width="20" height="20" class="bg-indigo-light" stroke="#ccc" stroke-width="0.5" />
@@ -147,31 +147,35 @@
     <rect x="349" y="204" width="20" height="20" fill="#E57373" opacity="0.8" stroke="#ccc" stroke-width="0.5" />
     <rect x="371" y="204" width="20" height="20" class="bg-indigo-light" stroke="#ccc" stroke-width="0.5" />
 
-    <text x="350" y="245" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#666">"fox" → "brown"</text>
+    <rect x="305" y="226" width="20" height="20" class="bg-indigo-light" stroke="#ccc" stroke-width="0.5" />
+    <rect x="327" y="226" width="20" height="20" fill="#E57373" opacity="0.5" stroke="#ccc" stroke-width="0.5" />
+    <rect x="349" y="226" width="20" height="20" fill="#E57373" opacity="0.9" stroke="#ccc" stroke-width="0.5" />
+    <rect x="371" y="226" width="20" height="20" class="bg-indigo-light" stroke="#ccc" stroke-width="0.5" />
+
+    <text x="350" y="255" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#666">"fox" → "brown"</text>
 
     <!-- Head 1 Q, K, V -->
-    <rect x="295" y="260" width="110" height="65" class="bg-box" stroke="#999" stroke-width="1" rx="3" />
-    <text x="315" y="280" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#E57373">Q₁</text>
-    <text x="345" y="280" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#81C784">K₁</text>
-    <text x="375" y="280" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#FFB74D">V₁</text>
-    <text x="350" y="300" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#666">[4, 64] each</text>
-    <text x="350" y="315" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#666">d<tspan baseline-shift="sub" font-size="6">k</tspan> = 512/8 = 64</text>
+    <rect x="295" y="270" width="110" height="55" class="bg-box" stroke="#999" stroke-width="1" rx="3" />
+    <text x="315" y="290" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#E57373">Q₁</text>
+    <text x="345" y="290" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#81C784">K₁</text>
+    <text x="375" y="290" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#FFB74D">V₁</text>
+    <text x="350" y="310" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#666">[4, 64] each</text>
 
     <!-- Head 1 output -->
-    <rect x="295" y="340" width="110" height="35" fill="#4DB6AC" opacity="0.3" stroke="#4DB6AC" stroke-width="1.5" rx="3" />
-    <text x="350" y="362" font-family="system-ui, -apple-system, sans-serif" font-size="11" text-anchor="middle" fill="#4DB6AC">out₁ [4, 64]</text>
+    <rect x="295" y="335" width="110" height="35" fill="#4DB6AC" opacity="0.3" stroke="#4DB6AC" stroke-width="1.5" rx="3" />
+    <text x="350" y="357" font-family="system-ui, -apple-system, sans-serif" font-size="11" text-anchor="middle" fill="#4DB6AC">out₁ [4, 64]</text>
   </g>
 
   <g id="head2">
-    <rect x="480" y="75" width="140" height="395" fill="#81C784" opacity="0.05" stroke="#81C784" stroke-width="1" stroke-dasharray="5,5" rx="10" />
+    <rect x="480" y="120" width="140" height="265" fill="#81C784" opacity="0.05" stroke="#81C784" stroke-width="1" stroke-dasharray="5,5" rx="10" />
     <text x="550" y="95" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" fill="#81C784">Head 2</text>
     <text x="550" y="112" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#666">"Positional"</text>
 
     <!-- Head 2 attention pattern -->
-    <rect x="495" y="130" width="110" height="90" class="bg-box" stroke="#81C784" stroke-width="1.5" rx="5" />
+    <rect x="495" y="130" width="110" height="130" class="bg-box" stroke="#81C784" stroke-width="1.5" rx="5" />
     <text x="550" y="150" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#333">Attention Pattern:</text>
 
-    <!-- Mini heatmap for head 2 - diagonal pattern (positional) -->
+    <!-- Mini heatmap for head 2 - diagonal pattern (positional) - 4x4 grid -->
     <rect x="505" y="160" width="20" height="20" fill="#81C784" opacity="0.7" stroke="#ccc" stroke-width="0.5" />
     <rect x="527" y="160" width="20" height="20" class="bg-indigo-light" stroke="#ccc" stroke-width="0.5" />
     <rect x="549" y="160" width="20" height="20" class="bg-indigo-light" stroke="#ccc" stroke-width="0.5" />
@@ -187,31 +191,35 @@
     <rect x="549" y="204" width="20" height="20" fill="#81C784" opacity="0.7" stroke="#ccc" stroke-width="0.5" />
     <rect x="571" y="204" width="20" height="20" class="bg-indigo-light" stroke="#ccc" stroke-width="0.5" />
 
-    <text x="550" y="245" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#666">attends to neighbors</text>
+    <rect x="505" y="226" width="20" height="20" class="bg-indigo-light" stroke="#ccc" stroke-width="0.5" />
+    <rect x="527" y="226" width="20" height="20" class="bg-indigo-light" stroke="#ccc" stroke-width="0.5" />
+    <rect x="549" y="226" width="20" height="20" fill="#81C784" opacity="0.4" stroke="#ccc" stroke-width="0.5" />
+    <rect x="571" y="226" width="20" height="20" fill="#81C784" opacity="0.7" stroke="#ccc" stroke-width="0.5" />
+
+    <text x="550" y="255" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#666">attends to neighbors</text>
 
     <!-- Head 2 Q, K, V -->
-    <rect x="495" y="260" width="110" height="65" class="bg-box" stroke="#999" stroke-width="1" rx="3" />
-    <text x="515" y="280" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#E57373">Q₂</text>
-    <text x="545" y="280" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#81C784">K₂</text>
-    <text x="575" y="280" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#FFB74D">V₂</text>
-    <text x="550" y="300" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#666">[4, 64] each</text>
-    <text x="550" y="315" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#666">d<tspan baseline-shift="sub" font-size="6">k</tspan> = 512/8 = 64</text>
+    <rect x="495" y="270" width="110" height="55" class="bg-box" stroke="#999" stroke-width="1" rx="3" />
+    <text x="515" y="290" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#E57373">Q₂</text>
+    <text x="545" y="290" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#81C784">K₂</text>
+    <text x="575" y="290" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#FFB74D">V₂</text>
+    <text x="550" y="310" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#666">[4, 64] each</text>
 
     <!-- Head 2 output -->
-    <rect x="495" y="340" width="110" height="35" fill="#4DB6AC" opacity="0.3" stroke="#4DB6AC" stroke-width="1.5" rx="3" />
-    <text x="550" y="362" font-family="system-ui, -apple-system, sans-serif" font-size="11" text-anchor="middle" fill="#4DB6AC">out₂ [4, 64]</text>
+    <rect x="495" y="335" width="110" height="35" fill="#4DB6AC" opacity="0.3" stroke="#4DB6AC" stroke-width="1.5" rx="3" />
+    <text x="550" y="357" font-family="system-ui, -apple-system, sans-serif" font-size="11" text-anchor="middle" fill="#4DB6AC">out₂ [4, 64]</text>
   </g>
 
   <g id="head8">
-    <rect x="680" y="75" width="140" height="395" fill="#FFB74D" opacity="0.05" stroke="#FFB74D" stroke-width="1" stroke-dasharray="5,5" rx="10" />
+    <rect x="680" y="120" width="140" height="265" fill="#FFB74D" opacity="0.05" stroke="#FFB74D" stroke-width="1" stroke-dasharray="5,5" rx="10" />
     <text x="750" y="95" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" fill="#FFB74D">Head 8</text>
     <text x="750" y="112" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#666">"Subject-Verb"</text>
 
     <!-- Head 8 attention pattern -->
-    <rect x="695" y="130" width="110" height="90" class="bg-box" stroke="#FFB74D" stroke-width="1.5" rx="5" />
+    <rect x="695" y="130" width="110" height="130" class="bg-box" stroke="#FFB74D" stroke-width="1.5" rx="5" />
     <text x="750" y="150" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#333">Attention Pattern:</text>
 
-    <!-- Mini heatmap for head 8 -->
+    <!-- Mini heatmap for head 8 - 4x4 grid -->
     <rect x="705" y="160" width="20" height="20" fill="#FFB74D" opacity="0.6" stroke="#ccc" stroke-width="0.5" />
     <rect x="727" y="160" width="20" height="20" class="bg-indigo-light" stroke="#ccc" stroke-width="0.5" />
     <rect x="749" y="160" width="20" height="20" class="bg-indigo-light" stroke="#ccc" stroke-width="0.5" />
@@ -225,21 +233,25 @@
     <rect x="705" y="204" width="20" height="20" class="bg-indigo-light" stroke="#ccc" stroke-width="0.5" />
     <rect x="727" y="204" width="20" height="20" class="bg-indigo-light" stroke="#ccc" stroke-width="0.5" />
     <rect x="749" y="204" width="20" height="20" class="bg-indigo-light" stroke="#ccc" stroke-width="0.5" />
-    <rect x="771" y="204" width="20" height="20" fill="#FFB74D" opacity="0.7" stroke="#ccc" stroke-width="0.5" />
+    <rect x="771" y="204" width="20" height="20" fill="#FFB74D" opacity="0.5" stroke="#ccc" stroke-width="0.5" />
 
-    <text x="750" y="245" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#666">"fox" → "The" (subj)</text>
+    <rect x="705" y="226" width="20" height="20" fill="#FFB74D" opacity="0.8" stroke="#ccc" stroke-width="0.5" />
+    <rect x="727" y="226" width="20" height="20" class="bg-indigo-light" stroke="#ccc" stroke-width="0.5" />
+    <rect x="749" y="226" width="20" height="20" class="bg-indigo-light" stroke="#ccc" stroke-width="0.5" />
+    <rect x="771" y="226" width="20" height="20" fill="#FFB74D" opacity="0.7" stroke="#ccc" stroke-width="0.5" />
+
+    <text x="750" y="255" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#666">"fox" → "The" (subj)</text>
 
     <!-- Head 8 Q, K, V -->
-    <rect x="695" y="260" width="110" height="65" class="bg-box" stroke="#999" stroke-width="1" rx="3" />
-    <text x="715" y="280" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#E57373">Q₈</text>
-    <text x="745" y="280" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#81C784">K₈</text>
-    <text x="775" y="280" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#FFB74D">V₈</text>
-    <text x="750" y="300" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#666">[4, 64] each</text>
-    <text x="750" y="315" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#666">d<tspan baseline-shift="sub" font-size="6">k</tspan> = 512/8 = 64</text>
+    <rect x="695" y="270" width="110" height="55" class="bg-box" stroke="#999" stroke-width="1" rx="3" />
+    <text x="715" y="290" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#E57373">Q₈</text>
+    <text x="745" y="290" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#81C784">K₈</text>
+    <text x="775" y="290" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#FFB74D">V₈</text>
+    <text x="750" y="310" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#666">[4, 64] each</text>
 
     <!-- Head 8 output -->
-    <rect x="695" y="340" width="110" height="35" fill="#4DB6AC" opacity="0.3" stroke="#4DB6AC" stroke-width="1.5" rx="3" />
-    <text x="750" y="362" font-family="system-ui, -apple-system, sans-serif" font-size="11" text-anchor="middle" fill="#4DB6AC">out₈ [4, 64]</text>
+    <rect x="695" y="335" width="110" height="35" fill="#4DB6AC" opacity="0.3" stroke="#4DB6AC" stroke-width="1.5" rx="3" />
+    <text x="750" y="357" font-family="system-ui, -apple-system, sans-serif" font-size="11" text-anchor="middle" fill="#4DB6AC">out₈ [4, 64]</text>
   </g>
 
   <!-- Ellipsis between heads -->
