@@ -410,6 +410,117 @@ def check_dark_mode_consistency(content: str) -> List[str]:
     return issues
 
 
+def check_text_on_light_background_in_dark_mode(content: str) -> List[str]:
+    """Check for text on light backgrounds where contrast will fail in dark mode.
+
+    Detects cases where:
+    1. Text uses a CSS class that becomes light-colored in dark mode (e.g., .annotation -> #aaaaaa)
+    2. The text is inside/on a rect with a light fill (e.g., fill="#f5f5f5")
+    3. The rect's fill is not changed to dark in dark mode
+
+    This catches the case where text inherits color from CSS and sits on a hardcoded light background.
+    """
+    issues = []
+
+    if not has_dark_mode_css(content):
+        return issues
+
+    # Extract and parse CSS
+    css = extract_css_from_svg(content)
+    dark_mode_rules = parse_dark_mode_css(css)
+    regular_rules = parse_regular_css(css)
+
+    # Find CSS classes that become light-colored (not white) in dark mode
+    # These are classes like .annotation that go from #555555 to #aaaaaa
+    # Light gray text on light gray background = poor contrast
+    classes_going_light_gray = {}
+    for selector, props in dark_mode_rules.items():
+        if 'fill' in props:
+            fill_value = props['fill'].lower().strip()
+            # Check for light gray colors (not white, but still light)
+            # These include #aaa, #aaaaaa, #bbb, #bbbbbb, #ccc, #cccccc, #999, #888
+            light_gray_pattern = r'^#(?:[89a-c]{3}|[89a-c]{6})$'
+            if re.match(light_gray_pattern, fill_value):
+                # Extract class name from selector
+                class_match = re.search(r'\.([a-zA-Z_-][a-zA-Z0-9_-]*)', selector)
+                if class_match:
+                    class_name = class_match.group(1)
+                    classes_going_light_gray[class_name] = fill_value
+
+    if not classes_going_light_gray:
+        return issues
+
+    # Find rects with hardcoded light fills that don't have dark mode overrides
+    # Pattern: <rect ... fill="#f5f5f5" ... > or similar light colors
+    light_bg_pattern = r'<rect[^>]*\bfill\s*=\s*["\']([^"\']+)["\'][^>]*>'
+
+    try:
+        tree = ET.parse(Path('assets/diagrams') / Path(content).name if '/' not in content else content)
+    except:
+        # Content is the file content, not a path - need to parse differently
+        pass
+
+    # Find all rects with light fills
+    rect_matches = re.finditer(light_bg_pattern, content, re.IGNORECASE)
+    light_rects = []
+    for match in rect_matches:
+        fill_color = match.group(1).lower().strip()
+        normalized = normalize_color(fill_color)
+        if normalized.startswith('#'):
+            try:
+                if is_light_color(normalized):
+                    line_num = content[:match.start()].count('\n') + 1
+                    # Check if this rect has a CSS class that changes in dark mode
+                    rect_text = match.group(0)
+                    class_match = re.search(r'\bclass\s*=\s*["\']([^"\']+)["\']', rect_text)
+                    rect_class = class_match.group(1) if class_match else None
+
+                    # Check if this class changes the fill in dark mode
+                    class_changes_in_dark = False
+                    if rect_class:
+                        for selector, props in dark_mode_rules.items():
+                            if rect_class in selector and 'fill' in props:
+                                class_changes_in_dark = True
+                                break
+
+                    if not class_changes_in_dark:
+                        light_rects.append((line_num, fill_color, rect_class))
+            except:
+                pass
+
+    if not light_rects:
+        return issues
+
+    # Now check if any text with light-gray-in-dark-mode classes is near these rects
+    # This is a heuristic - we look for text elements with matching classes
+    for class_name, dark_mode_color in classes_going_light_gray.items():
+        # Find text elements using this class
+        text_with_class_pattern = rf'<text[^>]*\bclass\s*=\s*["\'][^"\']*\b{re.escape(class_name)}\b[^"\']*["\'][^>]*>'
+        text_matches = list(re.finditer(text_with_class_pattern, content, re.IGNORECASE))
+
+        if text_matches and light_rects:
+            # We have text with this class AND light backgrounds
+            # This is a potential contrast issue
+            for line_num, fill_color, rect_class in light_rects:
+                # Calculate contrast between the dark mode text color and the light background
+                try:
+                    ratio = contrast_ratio(dark_mode_color, normalize_color(fill_color))
+                    if ratio < 3.0:
+                        issues.append(
+                            f"  ERROR: Poor dark mode contrast - text with class '{class_name}' "
+                            f"will be {dark_mode_color} in dark mode, but rect at line {line_num} "
+                            f"stays {fill_color} (contrast ratio: {ratio:.2f}:1, need 3:1)"
+                        )
+                        issues.append(
+                            f"    Fix: Add CSS class to rect and change fill to dark color in dark mode, "
+                            f"or use a dedicated class for text on this background"
+                        )
+                except:
+                    pass
+
+    return issues
+
+
 def check_dark_text_in_dark_mode(content: str) -> List[str]:
     """Check for dark text that won't be visible in dark mode.
 
@@ -543,6 +654,10 @@ def check_svg_file(svg_path: Path) -> List[str]:
     # Check for dark mode consistency issues
     dark_mode_issues = check_dark_mode_consistency(content)
     issues.extend(dark_mode_issues)
+
+    # NEW CHECK: Check for text on light backgrounds that won't have good contrast in dark mode
+    light_bg_issues = check_text_on_light_background_in_dark_mode(content)
+    issues.extend(light_bg_issues)
 
     # NEW CHECK: Check for dark text that won't be visible in dark mode
     dark_text_issues = check_dark_text_in_dark_mode(content)
