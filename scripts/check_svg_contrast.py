@@ -536,6 +536,10 @@ def check_svg_file(svg_path: Path) -> List[str]:
     issues = []
     content = svg_path.read_text()
 
+    # Check for lint-disable comment to skip file
+    if '<!-- lint-disable contrast -->' in content:
+        return []
+
     # Check for dark mode consistency issues
     dark_mode_issues = check_dark_mode_consistency(content)
     issues.extend(dark_mode_issues)
