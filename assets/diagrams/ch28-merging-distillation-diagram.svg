@@ -1,39 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg viewBox="0 0 880 900" xmlns="http://www.w3.org/2000/svg">
   <style>
-    .node { fill: #f5f5f5; stroke: #4A90A4; stroke-width: 2; }
-    .decision { fill: #e8f4f8; stroke: #4A90A4; stroke-width: 2; }
-    .text { font-family: system-ui, -apple-system, sans-serif; font-size: 13px; fill: #333; }
-    .label { font-family: system-ui, -apple-system, sans-serif; font-size: 12px; fill: #666; }
+    .node { fill: #4A90A4; stroke: #2d5a6b; stroke-width: 2; }
+    .decision { fill: #5a9bb5; stroke: #2d5a6b; stroke-width: 2; }
+    .text { font-family: system-ui, -apple-system, sans-serif; font-size: 13px; fill: #ffffff; }
+    .label { font-family: system-ui, -apple-system, sans-serif; font-size: 12px; fill: #333; }
     .arrow { stroke: #4A90A4; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
-    .result { fill: #d4edda; stroke: #4A90A4; stroke-width: 2; }
-  
-      /* Dark mode support */
-      @media (prefers-color-scheme: dark) {
-        text { fill: #ffffff; }
-        text[fill="#333"] { fill: #ffffff; }
-        text[fill="#666"] { fill: #cccccc; }
-        text[fill="#555"] { fill: #cccccc; }
-        text[fill="white"],
-        text[fill="#fff"] { fill: #ffffff; }
+    .result { fill: #3d8b5a; stroke: #2d5a3b; stroke-width: 2; }
 
-        .title { fill: #ffffff; }
-        .subtitle { fill: #ffffff; }
-        .label { fill: #ffffff; }
-        .small-label { fill: #cccccc; }
-        .axis-label { fill: #cccccc; }
-        .small { fill: #cccccc; }
-        .annotation { fill: #cccccc; }
-
-        line[stroke="#333"] { stroke: #cccccc; }
-        rect[stroke="#333"] { stroke: #cccccc; }
-        rect[fill="white"] { fill: #1a1a1a; }
-        rect[fill="#ffffff"] { fill: #1a1a1a; }
-
-        .grid { stroke: #444444; }
-        .axis { stroke: #cccccc; }
-      }
-    </style>
+    /* Dark mode support */
+    @media (prefers-color-scheme: dark) {
+      .node { fill: #2d5a6b; stroke: #4A90A4; }
+      .decision { fill: #3a6b7b; stroke: #4A90A4; }
+      .result { fill: #2d5a3b; stroke: #3d8b5a; }
+      .text { fill: #ffffff; }
+      .label { fill: #cccccc; }
+      .arrow { stroke: #6ab0c4; }
+    }
+  </style>
 
   <defs>
     <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
