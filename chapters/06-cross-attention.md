@@ -2554,10 +2554,10 @@ Mathematical formulation with gating (Flamingo-style):
 
 $$
 \large
-x \leftarrow x + \tanh(\alpha) \cdot \text{CrossAttn}(x, \text{vision\_features})
+x \leftarrow x + \tanh(\alpha) \cdot \text{CrossAttn}(x, V)
 $$
 
-where $\alpha$ is a learned gate, initialized to 0 (so initially vision has no effect).
+where $\alpha$ is a learned gate (initialized to 0 so initially vision has no effect) and $V$ represents the vision features.
 
 **Why This Works:**
 
