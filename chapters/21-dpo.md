@@ -1222,7 +1222,7 @@ Understanding the computational requirements of DPO is crucial for practical dep
 
 **Time Complexity:**
 
-- Per training step: $O(2 \times \text{forward\_pass})$
+- Per training step: $O(2 \times F)$ where $F$ = forward pass cost
   - One forward pass for chosen response through policy model
   - One forward pass for rejected response through policy model
   - Two forward passes through reference model (no gradients)
@@ -1231,8 +1231,8 @@ Understanding the computational requirements of DPO is crucial for practical dep
 **Memory Complexity:**
 
 - Model parameters: $2 \times |\theta|$ (policy model + reference model)
-- Activations: $\sim 2 \times |\text{activations}|$ for policy model (forward + backward)
-- Total GPU memory: $\sim 3 \times \text{model\_size}$ (policy + ref + gradients/activations)
+- Activations: $\sim 2 \times A$ for policy model (forward + backward), where $A$ = activation memory
+- Total GPU memory: $\sim 3 \times M$ where $M$ = model size (policy + ref + gradients/activations)
 
 **Comparison to RLHF:**
 
