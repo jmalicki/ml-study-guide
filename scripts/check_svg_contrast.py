@@ -428,7 +428,6 @@ def check_text_on_light_background_in_dark_mode(content: str) -> List[str]:
     # Extract and parse CSS
     css = extract_css_from_svg(content)
     dark_mode_rules = parse_dark_mode_css(css)
-    regular_rules = parse_regular_css(css)
 
     # Find CSS classes that become light-colored (not white) in dark mode
     # These are classes like .annotation that go from #555555 to #aaaaaa
@@ -453,12 +452,6 @@ def check_text_on_light_background_in_dark_mode(content: str) -> List[str]:
     # Find rects with hardcoded light fills that don't have dark mode overrides
     # Pattern: <rect ... fill="#f5f5f5" ... > or similar light colors
     light_bg_pattern = r'<rect[^>]*\bfill\s*=\s*["\']([^"\']+)["\'][^>]*>'
-
-    try:
-        tree = ET.parse(Path('assets/diagrams') / Path(content).name if '/' not in content else content)
-    except:
-        # Content is the file content, not a path - need to parse differently
-        pass
 
     # Find all rects with light fills
     rect_matches = re.finditer(light_bg_pattern, content, re.IGNORECASE)
@@ -485,7 +478,8 @@ def check_text_on_light_background_in_dark_mode(content: str) -> List[str]:
 
                     if not class_changes_in_dark:
                         light_rects.append((line_num, fill_color, rect_class))
-            except:
+            except (ValueError, AttributeError):
+                # Skip rects with invalid color values
                 pass
 
     if not light_rects:
@@ -501,7 +495,7 @@ def check_text_on_light_background_in_dark_mode(content: str) -> List[str]:
         if text_matches and light_rects:
             # We have text with this class AND light backgrounds
             # This is a potential contrast issue
-            for line_num, fill_color, rect_class in light_rects:
+            for line_num, fill_color, _ in light_rects:
                 # Calculate contrast between the dark mode text color and the light background
                 try:
                     ratio = contrast_ratio(dark_mode_color, normalize_color(fill_color))
@@ -512,10 +506,11 @@ def check_text_on_light_background_in_dark_mode(content: str) -> List[str]:
                             f"stays {fill_color} (contrast ratio: {ratio:.2f}:1, need 3:1)"
                         )
                         issues.append(
-                            f"    Fix: Add CSS class to rect and change fill to dark color in dark mode, "
-                            f"or use a dedicated class for text on this background"
+                            "    Fix: Add CSS class to rect and change fill to dark color in dark mode, "
+                            "or use a dedicated class for text on this background"
                         )
-                except:
+                except (ValueError, AttributeError, KeyError):
+                    # Skip if contrast calculation fails due to invalid colors
                     pass
 
     return issues

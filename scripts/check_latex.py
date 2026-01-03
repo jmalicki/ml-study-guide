@@ -578,7 +578,15 @@ class LatexValidator:
                     if in_display_math:
                         # This closes a display math block
                         in_display_math = False
-                        continue  # Skip this line (it's the closing $$)
+                        # Check if there's content after the closing $$
+                        closing_pos = stripped_line.find('$$')
+                        content_after = stripped_line[closing_pos + 2:].strip()
+                        if not content_after:
+                            continue  # Skip this line (it's just the closing $$)
+                        # Otherwise, update line to only contain content after $$
+                        # and fall through to check it
+                        line = content_after
+                        stripped_line = content_after
                     else:
                         # This opens a display math block
                         in_display_math = True
