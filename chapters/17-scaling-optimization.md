@@ -41,7 +41,7 @@ Training large language models requires careful selection of optimization algori
 
 - Basic gradient descent and backpropagation ([Chapter 15](16-lm-training.md))
 - Distributed training concepts ([Chapter 31](30-distributed-training.md))
-- Understanding of compute budgets and model sizing ([Chapter 18](12-scaling-dynamics.md))
+- Understanding of compute budgets and model sizing ([Chapter 18](18-scaling-dynamics.md))
 
 ---
 
@@ -2468,7 +2468,7 @@ class LLMTrainer:
 5. **Start training** with monitoring
 6. **Adjust if needed** based on loss curves and gradient norms
 
-For guidance on choosing model size and compute budgets, see [Chapter 13: Scaling Laws and Training Dynamics](12-scaling-dynamics.md).
+For guidance on choosing model size and compute budgets, see [Chapter 18: Scaling Laws and Training Dynamics](18-scaling-dynamics.md).
 
 ---
 
@@ -2564,4 +2564,4 @@ For guidance on choosing model size and compute budgets, see [Chapter 13: Scalin
 
 **Previous Chapter**: [Distributed Training and Parallelism](30-distributed-training.md) - Multi-GPU training strategies.
 
-**Next Chapter**: [Scaling Laws and Training Dynamics](12-scaling-dynamics.md) - Understanding how model performance scales and fascinating training phenomena.
+**Next Chapter**: [Scaling Laws and Training Dynamics](18-scaling-dynamics.md) - Understanding how model performance scales and fascinating training phenomena.

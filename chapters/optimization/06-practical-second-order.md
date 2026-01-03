@@ -88,7 +88,7 @@ Inverting two small matrices is much cheaper than one huge matrix:
 The damping terms $\lambda, \mu$ are critical:
 - Ensure $A$ and $G$ are invertible
 - Control step size (trust region)
-- Often set as: $\lambda = \mu = \sqrt{\text{global_damping}}$
+- Often set as: $\lambda = \mu = \sqrt{\text{global\_damping}}$
 
 ---
 

@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450">
+  <style>
+    /* Light mode (default) */
+    text { fill: #000000; }
+    .title { fill: #333333; }
+    .axis-label { fill: #666666; }
+    .annotation { fill: #555555; }
+    line.axis { stroke: #333333; }
+    rect.kept { fill: #4caf50; }
+    rect.filtered { fill: #e0e0e0; }
+    rect.box { fill: #f5f5f5; stroke: #cccccc; }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .title { fill: #ffffff; }
+      .axis-label { fill: #cccccc; }
+      .annotation { fill: #aaaaaa; }
+      line.axis { stroke: #cccccc; }
+      rect.kept { fill: #66bb6a; }
+      rect.filtered { fill: #555555; }
+      rect.box { fill: #2d2d2d; stroke: #555555; }
+    }
+  </style>
+
+  <!-- Title -->
+  <text x="400" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="bold" text-anchor="middle" class="title">
+    Top-k Sampling: Keep Only the k Most Likely Tokens
+  </text>
+
+  <!-- Left: Original Distribution -->
+  <g transform="translate(50, 80)">
+    <text x="150" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" class="title">Original Distribution</text>
+    <text x="150" y="18" font-family="system-ui, -apple-system, sans-serif" font-size="11" text-anchor="middle" class="annotation">(All tokens eligible)</text>
+
+    <!-- Y-axis -->
+    <line x1="30" y1="40" x2="30" y2="200" class="axis" stroke-width="1.5"/>
+    <text x="20" y="45" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="end" class="axis-label">0.30</text>
+    <text x="20" y="120" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="end" class="axis-label">0.15</text>
+    <text x="20" y="200" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="end" class="axis-label">0</text>
+
+    <!-- X-axis -->
+    <line x1="30" y1="200" x2="280" y2="200" class="axis" stroke-width="1.5"/>
+
+    <!-- Bars: sorted probabilities [0.28, 0.22, 0.18, 0.12, 0.08, 0.05, 0.04, 0.03] -->
+    <rect x="40" y="53" width="25" height="147" class="kept"/>
+    <rect x="70" y="85" width="25" height="115" class="kept"/>
+    <rect x="100" y="105" width="25" height="95" class="kept"/>
+    <rect x="130" y="137" width="25" height="63" fill="#90caf9"/>
+    <rect x="160" y="158" width="25" height="42" fill="#90caf9"/>
+    <rect x="190" y="174" width="25" height="26" fill="#90caf9"/>
+    <rect x="220" y="179" width="25" height="21" fill="#90caf9"/>
+    <rect x="250" y="184" width="25" height="16" fill="#90caf9"/>
+
+    <!-- Probability labels on top bars -->
+    <text x="52" y="48" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" class="annotation">28%</text>
+    <text x="82" y="80" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" class="annotation">22%</text>
+    <text x="112" y="100" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" class="annotation">18%</text>
+
+    <!-- Token labels -->
+    <text x="52" y="215" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" class="axis-label">the</text>
+    <text x="82" y="215" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" class="axis-label">a</text>
+    <text x="112" y="215" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" class="axis-label">an</text>
+    <text x="142" y="215" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" class="axis-label">this</text>
+    <text x="172" y="215" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" class="axis-label">one</text>
+    <text x="202" y="215" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" class="axis-label">my</text>
+    <text x="232" y="215" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" class="axis-label">his</text>
+    <text x="262" y="215" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" class="axis-label">...</text>
+  </g>
+
+  <!-- Arrow -->
+  <g transform="translate(360, 180)">
+    <line x1="0" y1="0" x2="60" y2="0" stroke="#666666" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <text x="30" y="-10" font-family="system-ui, -apple-system, sans-serif" font-size="11" text-anchor="middle" class="annotation">k=3</text>
+  </g>
+
+  <!-- Arrowhead marker -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#666666"/>
+    </marker>
+  </defs>
+
+  <!-- Right: After Top-k Filtering -->
+  <g transform="translate(450, 80)">
+    <text x="150" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" class="title">After Top-k (k=3)</text>
+    <text x="150" y="18" font-family="system-ui, -apple-system, sans-serif" font-size="11" text-anchor="middle" class="annotation">(Renormalized probabilities)</text>
+
+    <!-- Y-axis -->
+    <line x1="30" y1="40" x2="30" y2="200" class="axis" stroke-width="1.5"/>
+    <text x="20" y="45" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="end" class="axis-label">0.45</text>
+    <text x="20" y="120" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="end" class="axis-label">0.22</text>
+    <text x="20" y="200" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="end" class="axis-label">0</text>
+
+    <!-- X-axis -->
+    <line x1="30" y1="200" x2="280" y2="200" class="axis" stroke-width="1.5"/>
+
+    <!-- Bars: renormalized [0.41, 0.32, 0.27, 0, 0, 0, 0, 0] -->
+    <rect x="40" y="55" width="25" height="145" class="kept"/>
+    <rect x="70" y="87" width="25" height="113" class="kept"/>
+    <rect x="100" y="110" width="25" height="90" class="kept"/>
+    <rect x="130" y="200" width="25" height="0" class="filtered"/>
+    <rect x="160" y="200" width="25" height="0" class="filtered"/>
+    <rect x="190" y="200" width="25" height="0" class="filtered"/>
+    <rect x="220" y="200" width="25" height="0" class="filtered"/>
+    <rect x="250" y="200" width="25" height="0" class="filtered"/>
+
+    <!-- Filtered indicators -->
+    <text x="142" y="195" font-family="system-ui, -apple-system, sans-serif" font-size="16" text-anchor="middle" fill="#e57373">✗</text>
+    <text x="172" y="195" font-family="system-ui, -apple-system, sans-serif" font-size="16" text-anchor="middle" fill="#e57373">✗</text>
+    <text x="202" y="195" font-family="system-ui, -apple-system, sans-serif" font-size="16" text-anchor="middle" fill="#e57373">✗</text>
+    <text x="232" y="195" font-family="system-ui, -apple-system, sans-serif" font-size="16" text-anchor="middle" fill="#e57373">✗</text>
+    <text x="262" y="195" font-family="system-ui, -apple-system, sans-serif" font-size="16" text-anchor="middle" fill="#e57373">✗</text>
+
+    <!-- Probability labels -->
+    <text x="52" y="50" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" class="annotation">41%</text>
+    <text x="82" y="82" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" class="annotation">32%</text>
+    <text x="112" y="105" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" class="annotation">27%</text>
+
+    <!-- Token labels -->
+    <text x="52" y="215" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" class="axis-label">the</text>
+    <text x="82" y="215" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" class="axis-label">a</text>
+    <text x="112" y="215" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" class="axis-label">an</text>
+    <text x="142" y="215" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#999999">this</text>
+    <text x="172" y="215" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#999999">one</text>
+    <text x="202" y="215" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#999999">my</text>
+    <text x="232" y="215" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#999999">his</text>
+    <text x="262" y="215" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#999999">...</text>
+  </g>
+
+  <!-- Info box -->
+  <g transform="translate(50, 330)">
+    <rect x="0" y="0" width="700" height="100" rx="8" class="box" stroke-width="1"/>
+
+    <text x="20" y="25" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="bold" class="title">How Top-k Works:</text>
+    <text x="20" y="45" font-family="system-ui, -apple-system, sans-serif" font-size="11" class="annotation">1. Sort tokens by probability (highest first)</text>
+    <text x="20" y="62" font-family="system-ui, -apple-system, sans-serif" font-size="11" class="annotation">2. Keep only the top k tokens, set others to probability 0</text>
+    <text x="20" y="79" font-family="system-ui, -apple-system, sans-serif" font-size="11" class="annotation">3. Renormalize remaining probabilities to sum to 1</text>
+
+    <text x="400" y="25" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="bold" class="title">Trade-offs:</text>
+    <text x="400" y="45" font-family="system-ui, -apple-system, sans-serif" font-size="11" class="annotation">+ Prevents sampling very unlikely tokens</text>
+    <text x="400" y="62" font-family="system-ui, -apple-system, sans-serif" font-size="11" class="annotation">+ Simple, fixed compute cost</text>
+    <text x="400" y="79" font-family="system-ui, -apple-system, sans-serif" font-size="11" class="annotation">- Fixed k may be too restrictive or too loose</text>
+  </g>
+</svg>

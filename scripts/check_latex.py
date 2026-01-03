@@ -73,6 +73,45 @@ class LatexValidator:
                     math_expressions.append((start_line, 'block', latex_code))
             i += 1
 
+        # Extract display math $$...$$ blocks (can span multiple lines)
+        i = 0
+        while i < len(lines):
+            line = lines[i]
+            # Look for $$ that starts a display math block
+            if '$$' in line:
+                # Find the start of $$
+                start_pos = line.find('$$')
+                # Check if there's content after $$ on same line, then closing $$ on same line
+                rest_of_line = line[start_pos + 2:]
+                if '$$' in rest_of_line:
+                    # Single-line display math: $$ ... $$
+                    end_pos = rest_of_line.find('$$')
+                    latex_code = rest_of_line[:end_pos]
+                    if latex_code.strip():
+                        math_expressions.append((i + 1, 'block', latex_code.strip()))
+                else:
+                    # Multi-line display math block
+                    start_line = i + 1
+                    math_lines = []
+                    # Check if there's content after $$ on the opening line
+                    if rest_of_line.strip():
+                        math_lines.append(rest_of_line)
+                    i += 1
+                    while i < len(lines):
+                        if '$$' in lines[i]:
+                            # Found closing $$
+                            closing_pos = lines[i].find('$$')
+                            if closing_pos > 0:
+                                # There's content before the closing $$
+                                math_lines.append(lines[i][:closing_pos])
+                            break
+                        math_lines.append(lines[i])
+                        i += 1
+                    if math_lines:
+                        latex_code = '\n'.join(math_lines)
+                        math_expressions.append((start_line, 'block', latex_code))
+            i += 1
+
         # Extract inline $...$ math (but not $$, and not escaped \$)
         for line_num, line in enumerate(lines, 1):
             # Find all inline math expressions
@@ -460,7 +499,8 @@ class LatexValidator:
 
         # Track code blocks and math blocks to avoid false positives
         in_code_block = False
-        in_math_block = False
+        in_math_block = False  # For ```math blocks
+        in_display_math = False  # For $$...$$ blocks (can span multiple lines)
         code_block_pattern = re.compile(r'^```')
 
         # Common LaTeX error messages that shouldn't appear in content
@@ -521,6 +561,40 @@ class LatexValidator:
 
             # Skip lines inside code blocks or math blocks
             if in_code_block or in_math_block:
+                continue
+
+            # Track display math blocks ($$...$$)
+            # Handle lines that might start or end a display math block
+            if '$$' in stripped_line:
+                # Count $$ occurrences on this line
+                dollar_dollar_count = stripped_line.count('$$')
+
+                if dollar_dollar_count == 2:
+                    # Both opening and closing on same line - line contains math but isn't a block
+                    # Will be handled by inline removal below
+                    pass
+                elif dollar_dollar_count == 1:
+                    # Either opening or closing a multi-line block
+                    if in_display_math:
+                        # This closes a display math block
+                        in_display_math = False
+                        # Check if there's content after the closing $$
+                        closing_pos = stripped_line.find('$$')
+                        content_after = stripped_line[closing_pos + 2:].strip()
+                        if not content_after:
+                            continue  # Skip this line (it's just the closing $$)
+                        # Otherwise, update line to only contain content after $$
+                        # and fall through to check it
+                        line = content_after
+                        stripped_line = content_after
+                    else:
+                        # This opens a display math block
+                        in_display_math = True
+                        continue  # Skip this line (it's the opening $$)
+                # If more than 2 $$, something unusual - just proceed with normal checks
+
+            # Skip lines inside display math blocks
+            if in_display_math:
                 continue
 
             # Check for literal LaTeX error messages in the content
@@ -760,10 +834,10 @@ class LatexValidator:
 
     def validate_all_markdown(self) -> None:
         """Validate LaTeX in all markdown files."""
-        # Check chapters directory
+        # Check chapters directory (including subdirectories like optimization/)
         chapters_dir = self.root_dir / "chapters"
         if chapters_dir.exists():
-            for md_file in sorted(chapters_dir.glob("*.md")):
+            for md_file in sorted(chapters_dir.glob("**/*.md")):
                 self.validate_file(md_file)
 
         # Check review directory
