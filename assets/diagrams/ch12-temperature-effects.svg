@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
+  <style>
+    /* Light mode (default) */
+    text { fill: #000000; }
+    .title { fill: #333333; }
+    .axis-label { fill: #666666; }
+    .annotation { fill: #555555; }
+    line.axis { stroke: #333333; }
+    line.grid { stroke: #e0e0e0; }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .title { fill: #ffffff; }
+      .axis-label { fill: #cccccc; }
+      .annotation { fill: #aaaaaa; }
+      line.axis { stroke: #cccccc; }
+      line.grid { stroke: #444444; }
+
+      /* Keep colored elements readable */
+      .bar-t05 { fill: #ef5350; }
+      .bar-t10 { fill: #42a5f5; }
+      .bar-t20 { fill: #66bb6a; }
+    }
+  </style>
+
+  <!-- Title -->
+  <text x="400" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="bold" text-anchor="middle" class="title">
+    Effect of Temperature on Probability Distribution
+  </text>
+
+  <!-- Subtitle -->
+  <text x="400" y="55" font-family="system-ui, -apple-system, sans-serif" font-size="14" text-anchor="middle" class="annotation">
+    Same logits [1.0, 1.5, 3.0, 0.5, 0.8] with different temperature values
+  </text>
+
+  <!-- Chart 1: T=0.5 (Sharp) -->
+  <g transform="translate(60, 100)">
+    <!-- Title -->
+    <text x="100" y="-10" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" class="title">T = 0.5 (Sharp)</text>
+
+    <!-- Y-axis -->
+    <line x1="0" y1="0" x2="0" y2="150" class="axis" stroke-width="1.5"/>
+    <text x="-10" y="5" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="end" class="axis-label">1.0</text>
+    <text x="-10" y="80" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="end" class="axis-label">0.5</text>
+    <text x="-10" y="155" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="end" class="axis-label">0</text>
+
+    <!-- X-axis -->
+    <line x1="0" y1="150" x2="200" y2="150" class="axis" stroke-width="1.5"/>
+
+    <!-- Bars: probs after T=0.5: [0.05, 0.10, 0.76, 0.03, 0.04] -->
+    <rect x="10" y="142.5" width="30" height="7.5" fill="#e57373" class="bar-t05"/>
+    <rect x="50" y="135" width="30" height="15" fill="#e57373" class="bar-t05"/>
+    <rect x="90" y="36" width="30" height="114" fill="#e57373" class="bar-t05"/>
+    <rect x="130" y="145.5" width="30" height="4.5" fill="#e57373" class="bar-t05"/>
+    <rect x="170" y="144" width="30" height="6" fill="#e57373" class="bar-t05"/>
+
+    <!-- Token labels -->
+    <text x="25" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" class="axis-label">A</text>
+    <text x="65" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" class="axis-label">B</text>
+    <text x="105" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" class="axis-label">C</text>
+    <text x="145" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" class="axis-label">D</text>
+    <text x="185" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" class="axis-label">E</text>
+
+    <!-- Probability labels -->
+    <text x="105" y="28" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" font-weight="bold" class="annotation">76%</text>
+
+    <!-- Annotation -->
+    <text x="100" y="185" font-family="system-ui, -apple-system, sans-serif" font-size="11" text-anchor="middle" class="annotation">More deterministic</text>
+  </g>
+
+  <!-- Chart 2: T=1.0 (Original) -->
+  <g transform="translate(300, 100)">
+    <!-- Title -->
+    <text x="100" y="-10" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" class="title">T = 1.0 (Original)</text>
+
+    <!-- Y-axis -->
+    <line x1="0" y1="0" x2="0" y2="150" class="axis" stroke-width="1.5"/>
+    <text x="-10" y="5" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="end" class="axis-label">1.0</text>
+    <text x="-10" y="80" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="end" class="axis-label">0.5</text>
+    <text x="-10" y="155" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="end" class="axis-label">0</text>
+
+    <!-- X-axis -->
+    <line x1="0" y1="150" x2="200" y2="150" class="axis" stroke-width="1.5"/>
+
+    <!-- Bars: probs after T=1.0: [0.10, 0.16, 0.49, 0.06, 0.08] (approx) -->
+    <rect x="10" y="135" width="30" height="15" fill="#64b5f6" class="bar-t10"/>
+    <rect x="50" y="126" width="30" height="24" fill="#64b5f6" class="bar-t10"/>
+    <rect x="90" y="76.5" width="30" height="73.5" fill="#64b5f6" class="bar-t10"/>
+    <rect x="130" y="141" width="30" height="9" fill="#64b5f6" class="bar-t10"/>
+    <rect x="170" y="138" width="30" height="12" fill="#64b5f6" class="bar-t10"/>
+
+    <!-- Token labels -->
+    <text x="25" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" class="axis-label">A</text>
+    <text x="65" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" class="axis-label">B</text>
+    <text x="105" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" class="axis-label">C</text>
+    <text x="145" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" class="axis-label">D</text>
+    <text x="185" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" class="axis-label">E</text>
+
+    <!-- Probability labels -->
+    <text x="105" y="68" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" font-weight="bold" class="annotation">49%</text>
+
+    <!-- Annotation -->
+    <text x="100" y="185" font-family="system-ui, -apple-system, sans-serif" font-size="11" text-anchor="middle" class="annotation">Model's learned distribution</text>
+  </g>
+
+  <!-- Chart 3: T=2.0 (Flat) -->
+  <g transform="translate(540, 100)">
+    <!-- Title -->
+    <text x="100" y="-10" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" class="title">T = 2.0 (Flat)</text>
+
+    <!-- Y-axis -->
+    <line x1="0" y1="0" x2="0" y2="150" class="axis" stroke-width="1.5"/>
+    <text x="-10" y="5" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="end" class="axis-label">1.0</text>
+    <text x="-10" y="80" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="end" class="axis-label">0.5</text>
+    <text x="-10" y="155" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="end" class="axis-label">0</text>
+
+    <!-- X-axis -->
+    <line x1="0" y1="150" x2="200" y2="150" class="axis" stroke-width="1.5"/>
+
+    <!-- Bars: probs after T=2.0: [0.14, 0.18, 0.32, 0.11, 0.13] (approx) -->
+    <rect x="10" y="129" width="30" height="21" fill="#81c784" class="bar-t20"/>
+    <rect x="50" y="123" width="30" height="27" fill="#81c784" class="bar-t20"/>
+    <rect x="90" y="102" width="30" height="48" fill="#81c784" class="bar-t20"/>
+    <rect x="130" y="133.5" width="30" height="16.5" fill="#81c784" class="bar-t20"/>
+    <rect x="170" y="130.5" width="30" height="19.5" fill="#81c784" class="bar-t20"/>
+
+    <!-- Token labels -->
+    <text x="25" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" class="axis-label">A</text>
+    <text x="65" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" class="axis-label">B</text>
+    <text x="105" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" class="axis-label">C</text>
+    <text x="145" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" class="axis-label">D</text>
+    <text x="185" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" class="axis-label">E</text>
+
+    <!-- Probability labels -->
+    <text x="105" y="94" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" font-weight="bold" class="annotation">32%</text>
+
+    <!-- Annotation -->
+    <text x="100" y="185" font-family="system-ui, -apple-system, sans-serif" font-size="11" text-anchor="middle" class="annotation">More random/creative</text>
+  </g>
+
+  <!-- Formula box -->
+  <g transform="translate(60, 340)">
+    <rect x="0" y="0" width="680" height="70" rx="8" fill="#f5f5f5" stroke="#cccccc" stroke-width="1"/>
+    <text x="340" y="25" font-family="system-ui, -apple-system, sans-serif" font-size="14" text-anchor="middle" class="title" font-weight="bold">Temperature Scaling Formula</text>
+    <text x="340" y="50" font-family="Georgia, serif" font-size="16" text-anchor="middle" class="annotation">
+      P(token) = softmax(logits / T) = exp(z / T) / sum(exp(z' / T))
+    </text>
+  </g>
+
+  <!-- Key insights -->
+  <g transform="translate(60, 430)">
+    <text x="0" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" class="title">Key Insights:</text>
+    <text x="0" y="20" font-family="system-ui, -apple-system, sans-serif" font-size="11" class="annotation">
+      <tspan fill="#e57373">T &lt; 1:</tspan> Sharpens distribution, increases confidence, more deterministic output
+    </text>
+    <text x="0" y="38" font-family="system-ui, -apple-system, sans-serif" font-size="11" class="annotation">
+      <tspan fill="#64b5f6">T = 1:</tspan> Original model probabilities, default behavior
+    </text>
+    <text x="0" y="56" font-family="system-ui, -apple-system, sans-serif" font-size="11" class="annotation">
+      <tspan fill="#81c784">T &gt; 1:</tspan> Flattens distribution, increases randomness, more creative output
+    </text>
+  </g>
+</svg>

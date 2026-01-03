@@ -67,16 +67,7 @@ The choice at step $t$ affects all future steps, creating a **sequential decisio
 
 The complete inference pipeline:
 
-```text
-Input Tokens → Model Forward Pass → Logits → [Decoding Strategy] → Next Token
-                                              ↑
-                                         [Parameters]
-                                    - Temperature
-                                    - Top-k
-                                    - Top-p
-                                    - Repetition penalty
-                                    - etc.
-```
+![The Decoding Pipeline](../assets/diagrams/ch12-decoding-pipeline.svg)
 
 **Interview tip**: Understand that decoding happens **after** the model forward pass. The model always outputs the same logits for a given input; the strategy determines how we interpret those logits.
 
@@ -514,6 +505,10 @@ $$
 
 All tokens equally likely (random sampling).
 
+**Temperature Effects Visualization:**
+
+![Temperature Effects on Probability Distribution](../assets/diagrams/ch12-temperature-effects.svg)
+
 ### Code Example with Visualization
 
 ```python
@@ -708,6 +703,10 @@ P_{\text{top-k}}(v | x_{< t}) = \begin{cases}
 0 & \text{otherwise}
 \end{cases}
 $$
+
+**Top-k Sampling Visualization:**
+
+![Top-k Sampling](../assets/diagrams/ch12-top-k-sampling.svg)
 
 ### Eliminates Low-Probability Tokens
 
@@ -913,6 +912,10 @@ P_{\text{nucleus}}(v | x_{< t}) = \begin{cases}
 0 & \text{otherwise}
 \end{cases}
 $$
+
+**Top-p (Nucleus) Sampling Visualization:**
+
+![Top-p Sampling](../assets/diagrams/ch12-top-p-sampling.svg)
 
 ### Why It's Often Preferred Over Top-k
 
@@ -1290,6 +1293,8 @@ if __name__ == "__main__":
 ## Beam Search
 
 Beam search maintains multiple candidate sequences and explores them in parallel.
+
+![Beam Search Tree](../assets/diagrams/ch12-beam-search.svg)
 
 ### Maintaining Multiple Candidate Sequences
 
@@ -2179,6 +2184,10 @@ The only difference: beam search requires k separate KV caches (one per beam).
 ---
 
 ## Summary
+
+**Sampling Strategies Comparison:**
+
+![Sampling Strategies Comparison](../assets/diagrams/ch12-sampling-comparison.svg)
 
 ### Key Takeaways
 
