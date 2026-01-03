@@ -1222,7 +1222,7 @@ Understanding the computational requirements of DPO is crucial for practical dep
 
 **Time Complexity:**
 
-- Per training step: $O(2 \times \text{forward\_pass})$
+- Per training step: $O(2 \times F)$ where $F$ = forward pass cost
   - One forward pass for chosen response through policy model
   - One forward pass for rejected response through policy model
   - Two forward passes through reference model (no gradients)
@@ -1231,8 +1231,8 @@ Understanding the computational requirements of DPO is crucial for practical dep
 **Memory Complexity:**
 
 - Model parameters: $2 \times |\theta|$ (policy model + reference model)
-- Activations: $\sim 2 \times |\text{activations}|$ for policy model (forward + backward)
-- Total GPU memory: $\sim 3 \times \text{model\_size}$ (policy + ref + gradients/activations)
+- Activations: $\sim 2 \times A$ for policy model (forward + backward), where $A$ = activation memory
+- Total GPU memory: $\sim 3 \times M$ where $M$ = model size (policy + ref + gradients/activations)
 
 **Comparison to RLHF:**
 
@@ -2164,33 +2164,38 @@ This is a common whiteboard question. Walk through step-by-step:
 
 1. Start with Bradley-Terry model:
 
-   ```math
-\large P(y_w \succ y_l | x) = \frac{\exp(r(x, y_w))}{\exp(r(x, y_w)) + \exp(r(x, y_l))} = \sigma(r(x, y_w) - r(x, y_l))
-   ```
+$$
+\large
+P(y_w \succ y_l | x) = \frac{\exp(r(x, y_w))}{\exp(r(x, y_w)) + \exp(r(x, y_l))} = \sigma(r(x, y_w) - r(x, y_l))
+$$
 
 2. Substitute reward reparameterization:
 
-   ```math
-\large r(x, y) = \beta \log \frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y|x)} + \beta \log Z(x)
-   ```
+$$
+\large
+r(x, y) = \beta \log \frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y|x)} + \beta \log Z(x)
+$$
 
 3. Compute reward difference (Z cancels):
 
-   ```math
-\large r(x, y_w) - r(x, y_l) = \beta \left[\log \frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \log \frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)}\right]
-   ```
+$$
+\large
+r(x, y_w) - r(x, y_l) = \beta \left[\log \frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \log \frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)}\right]
+$$
 
 4. Substitute into Bradley-Terry:
 
-   ```math
-\large P(y_w \succ y_l | x) = \sigma\left(\beta \left[\log \frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \log \frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)}\right]\right)
-   ```
+$$
+\large
+P(y_w \succ y_l | x) = \sigma\left(\beta \left[\log \frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \log \frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)}\right]\right)
+$$
 
 5. Negative log-likelihood gives DPO loss:
 
-   ```math
-\large \mathcal{L}_{\text{DPO}} = -\mathbb{E}_{(x,y_w,y_l)} \left[\log \sigma(\beta[\log \pi_\theta(y_w|x)/\pi_{\text{ref}}(y_w|x) - \log \pi_\theta(y_l|x)/\pi_{\text{ref}}(y_l|x)])\right]
-   ```
+$$
+\large
+\mathcal{L}_{\text{DPO}} = -\mathbb{E}_{(x,y_w,y_l)} \left[\log \sigma\left(\beta\left[\log \frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \log \frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)}\right]\right)\right]
+$$
 
 **Emphasize:** The key step is recognizing that $Z(x)$ cancels in the difference.
 
@@ -2202,14 +2207,14 @@ This is a common whiteboard question. Walk through step-by-step:
 
 - 4 forward passes: 2 through policy (chosen + rejected), 2 through reference
 - 2 backward passes: only through policy model (reference is frozen)
-- Total: $O(2 \times \text{forward} + 2 \times \text{backward})$
+- Total: $O(2F + 2B)$ where $F$ = forward pass, $B$ = backward pass
 
 **Memory complexity:**
 
 - Policy model parameters + gradients: $2 \times |\theta|$
 - Reference model parameters (no gradients): $|\theta|$
-- Activations for backprop: $\sim 2 \times |\text{activation}|$
-- Total: $\sim 3-4 \times$ single model size
+- Activations for backprop: $\sim 2A$ where $A$ = activation memory
+- Total: $\sim 3\text{-}4 \times$ single model size
 
 **Comparison to RLHF:**
 

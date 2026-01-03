@@ -111,45 +111,44 @@ Breaking this down:
 
 1. **Project to Q, K, V**:
 
-   ```math
-\large Q = XW_{Q} \in \mathbb{R}^{n \times d_k}
-   ```
-   ```math
-\large K = YW_{K} \in \mathbb{R}^{m \times d_k}
-   ```
-   ```math
-\large V = YW_{V} \in \mathbb{R}^{m \times d_v}
-   ```
+$$
+\large
+Q = XW_{Q} \in \mathbb{R}^{n \times d_k}, \quad K = YW_{K} \in \mathbb{R}^{m \times d_k}, \quad V = YW_{V} \in \mathbb{R}^{m \times d_v}
+$$
 
 2. **Compute attention scores**:
 
-   ```math
-\large S = \frac{QK^T}{\sqrt{d_k}} \in \mathbb{R}^{n \times m}
-   ```
+$$
+\large
+S = \frac{QK^T}{\sqrt{d_k}} \in \mathbb{R}^{n \times m}
+$$
 
-   Note: The score matrix is $n \times m$ (target length × source length), not $n \times n$ as in self-attention.
+Note: The score matrix is $n \times m$ (target length × source length), not $n \times n$ as in self-attention.
 
 3. **Apply softmax** (over source dimension):
 
-   ```math
-\large A = \text{softmax}(S) \in \mathbb{R}^{n \times m}
-   ```
+$$
+\large
+A = \text{softmax}(S) \in \mathbb{R}^{n \times m}
+$$
 
-   For each target position $i$: $A_{i,:} = \text{softmax}(S_{i,:})$
+For each target position $i$: $A_{i,:} = \text{softmax}(S_{i,:})$
 
-   This gives us a probability distribution over source positions for each target position.
+This gives us a probability distribution over source positions for each target position.
 
 4. **Weighted sum of values**:
 
-   ```math
-\large \text{Output} = AV \in \mathbb{R}^{n \times d_v}
-   ```
+$$
+\large
+\text{Output} = AV \in \mathbb{R}^{n \times d_v}
+$$
 
 5. **Final projection**:
 
-   ```math
-\large \text{CrossAttn}(X, Y) = (AV)W_{O} \in \mathbb{R}^{n \times d_{\text{model}}}
-   ```
+$$
+\large
+\text{CrossAttn}(X, Y) = (AV)W_{O} \in \mathbb{R}^{n \times d_{\text{model}}}
+$$
 
 ### Multi-Head Cross-Attention
 
@@ -2555,10 +2554,10 @@ Mathematical formulation with gating (Flamingo-style):
 
 $$
 \large
-x \leftarrow x + \tanh(\alpha) \cdot \text{CrossAttn}(x, \text{vision\_features})
+x \leftarrow x + \tanh(\alpha) \cdot \text{CrossAttn}(x, V)
 $$
 
-where $\alpha$ is a learned gate, initialized to 0 (so initially vision has no effect).
+where $\alpha$ is a learned gate (initialized to 0 so initially vision has no effect) and $V$ represents the vision features.
 
 **Why This Works:**
 
