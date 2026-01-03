@@ -313,6 +313,7 @@ Induction head predicts: "sat" (completing the repeated pattern)
 The circuit works through **composition of attention heads**:
 
 **Step 1** (Previous-token head at layer $\ell$):
+
 $$
 \large
 \text{Attn}_{\text{prev}}[i] \approx \text{embed}[i-1]
@@ -321,12 +322,14 @@ $$
 Copies the embedding from the previous token position.
 
 **Step 2** (Induction head at layer $\ell + 1$):
+
 $$
 \large
 \text{Attn}_{\text{ind}}[i] = \text{softmax}\left(\frac{Q_i K^T}{\sqrt{d}}\right) V
 $$
 
 Where the key $K_j$ includes the previous-token information:
+
 $$
 \large
 K_j = W_{K} (\text{embed}[j] + \text{Attn}_{\text{prev}}[j])
@@ -573,13 +576,10 @@ From a meta-learning perspective, pre-training is optimizing:
 
 $$
 \large
-\min_{\theta} \mathbb{E}_{p(\mathcal{T})} \left[ \mathbb{E}_{(x,y) \sim \mathcal{T}} \left[ \mathcal{L}(f_{\theta}(x | \text{context}_{\mathcal{T}}), y) \right] \right]
+\min_{\theta} \mathbb{E}_{p(\mathcal{T})} \left[ \mathbb{E}_{(x,y) \sim \mathcal{T}} \left[ \mathcal{L}(f_{\theta}(x | C_{\mathcal{T}}), y) \right] \right]
 $$
 
-where:
-- $\mathcal{T}$ is a distribution over tasks
-- $\text{context}_{\mathcal{T}}$ contains examples from task $\mathcal{T}$
-- The model $f_{\theta}$ learns to use context to perform well on new examples from the same task
+where $C_{\mathcal{T}}$ is the context containing examples from task $\mathcal{T}$, $\mathcal{T}$ is a distribution over tasks, and the model $f_{\theta}$ learns to use context to perform well on new examples from the same task.
 
 **Key insight**: Language modeling naturally creates a meta-learning setup because:
 - Documents often have consistent style/topic (define a "task")
@@ -634,6 +634,7 @@ Transformers can be viewed as performing approximate Bayesian inference:
 Von Oswald et al. (2023) and others showed that transformer attention can implement gradient-based learning:
 
 **Standard gradient descent** (fine-tuning):
+
 $$
 \large
 \theta_{t+1} = \theta_t - \eta \nabla_{\theta} \mathcal{L}(y_t | x_t, \theta_t)
@@ -642,6 +643,7 @@ $$
 **ICL as implicit gradient descent**:
 
 The transformer's forward pass computes something equivalent to:
+
 $$
 \large
 f_{\text{ICL}}(x | \mathcal{D}) \approx f(x; \theta - \eta \sum_{(x_i, y_i) \in \mathcal{D}} \nabla_{\theta} \mathcal{L}(y_i | x_i, \theta))
@@ -659,12 +661,14 @@ A single attention layer can implement one step of gradient descent on a linear 
 - Query: new input $x$
 
 **Gradient descent solution**:
+
 $$
 \large
 w^* = \arg\min_w \sum_{i=1}^k (y_i - w^T x_i)^2 = (X^T X)^{-1} X^T y
 $$
 
 **Attention computation**:
+
 $$
 \large
 \text{Attn}(x, \{x_i, y_i\}) = \sum_{i=1}^k \frac{\exp(x^T x_i)}{\sum_j \exp(x^T x_j)} y_i
@@ -759,12 +763,14 @@ print(f"Learned weights: {learned_w}")
 This perspective views ICL as:
 
 1. **Encoding**: Map examples to a task embedding $z_{\text{task}}$
+
    $$
    \large
    z_{\text{task}} = \text{Encoder}(\{(x_i, y_i)\}_{i=1}^k)
    $$
 
 2. **Conditioning**: Use task embedding to process query
+
    $$
    \large
    y = \text{Decoder}(x | z_{\text{task}})
