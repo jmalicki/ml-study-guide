@@ -160,6 +160,14 @@ This reduces complexity from $O(V)$ to $O(k)$ per training example—a 1000x spe
 
 Negative sampling is based on **Noise Contrastive Estimation (NCE)**: if we can distinguish real data from noise, we've learned the data distribution. By learning to discriminate context words from random words, the model implicitly learns which words co-occur frequently.
 
+**Connection to Partition Function Intractability**:
+
+The softmax denominator $\sum_{w=1}^{V} \exp(\mathbf{v}_w^\top \mathbf{v}_{w_{I}})$ is a **partition function**—the normalizing constant that makes probabilities sum to 1. While summing over 50K vocabulary items is merely expensive (not impossible), this foreshadows a deeper problem in language models.
+
+In modern LLMs with RLHF, we face the same issue but far worse: the partition function becomes a sum over all possible *token sequences*, not just vocabulary items. With a 50K vocabulary and 1000-token responses, this means $50,000^{1000} \approx 10^{4,699}$ terms—utterly intractable.
+
+The insight that NCE can avoid computing the partition function directly was foundational. This same principle—finding ways to sidestep intractable normalization—later enabled [Direct Preference Optimization (DPO)](../chapters/21-dpo.md), where the partition function *cancels algebraically* when comparing preference pairs. See [Appendix: Partition Functions](../appendices/partition-functions.md) for the full treatment of why this intractability matters and how DPO elegantly solves it.
+
 **Why This Preserves the Distributional Hypothesis**:
 
 Words with similar contexts will:

@@ -281,7 +281,7 @@ Approximate the partition function using negative samples:
 Z \approx 1 + \sum_{i=1}^{k} \frac{p_{\text{model}}(y_i)}{p_{\text{noise}}(y_i)}
 ```
 
-This is used in word2vec and some energy-based models.
+This approach powered Word2Vec's negative sampling, which transformed an intractable $O(V)$ softmax into an $O(k)$ binary classification problem. The same insight—avoiding direct computation of the partition function—laid conceptual groundwork for DPO's more elegant algebraic cancellation. See [Chapter 2: Embeddings](../chapters/02-embeddings.md#word2vec) for the Word2Vec treatment.
 
 ### 4. Design Models Where Z is Tractable
 
