@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- lint-disable contrast -->
+<!-- Note: Contrast checker produces false positives due to not handling <g transform> -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 550" style="max-width: 900px; width: 100%; height: auto">
+
+  <style>
+    text { fill: #000000; }
+    .bg-main { fill: #f5f5f5; }
+    .bg-box { fill: white; }
+
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .bg-main { fill: #1a1a1a; }
+      .bg-box { fill: #2d2d2d; }
+      text[fill="#333"] { fill: #ffffff; }
+      text[fill="#666"] { fill: #cccccc; }
+      text[fill="#1565C0"] { fill: #64B5F6; }
+      text[fill="#2E7D32"] { fill: #81C784; }
+      text[fill="#7B1FA2"] { fill: #CE93D8; }
+      text[fill="#E65100"] { fill: #FFB74D; }
+      text[fill="#C62828"] { fill: #EF5350; }
+      line[stroke="#ccc"] { stroke: #555; }
+    }
+  </style>
+
+  <rect width="900" height="550" class="bg-main"/>
+
+  <!-- Title -->
+  <text x="450" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="bold" text-anchor="middle" fill="#333">HNSW: Hierarchical Navigable Small World Graphs</text>
+
+  <!-- Layer labels on left -->
+  <!-- lint-disable spacing -->
+  <g transform="translate(30, 70)">
+    <text x="0" y="25" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#E65100">Layer 2</text>
+    <text x="0" y="40" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">Sparse</text>
+
+    <text x="0" y="125" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#7B1FA2">Layer 1</text>
+    <text x="0" y="140" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">Medium</text>
+
+    <text x="0" y="250" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#2E7D32">Layer 0</text>
+    <text x="0" y="265" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">Dense</text>
+  </g>
+
+  <!-- HNSW Graph Structure -->
+  <g transform="translate(100, 50)">
+    <!-- Layer 2 (Top - Sparse) -->
+    <g>
+      <rect x="0" y="0" width="700" height="70" fill="none" stroke="#E65100" stroke-width="2" stroke-dasharray="5,5" rx="8"/>
+
+      <!-- Layer 2 nodes -->
+      <circle cx="150" cy="35" r="15" fill="#FFE0B2" stroke="#E65100" stroke-width="2"/>
+      <text x="150" y="40" font-family="monospace" font-size="10" text-anchor="middle" fill="#E65100">A</text>
+
+      <circle cx="400" cy="35" r="15" fill="#FFE0B2" stroke="#E65100" stroke-width="2"/>
+      <text x="400" y="40" font-family="monospace" font-size="10" text-anchor="middle" fill="#E65100">E</text>
+
+      <circle cx="600" cy="35" r="15" fill="#FFE0B2" stroke="#E65100" stroke-width="2"/>
+      <text x="600" y="40" font-family="monospace" font-size="10" text-anchor="middle" fill="#E65100">H</text>
+
+      <!-- Layer 2 edges -->
+      <line x1="165" y1="35" x2="385" y2="35" stroke="#E65100" stroke-width="2"/>
+      <line x1="415" y1="35" x2="585" y2="35" stroke="#E65100" stroke-width="2"/>
+    </g>
+
+    <!-- Layer 1 (Middle) -->
+    <g transform="translate(0, 80)">
+      <rect x="0" y="0" width="700" height="90" fill="none" stroke="#7B1FA2" stroke-width="2" stroke-dasharray="5,5" rx="8"/>
+
+      <!-- Layer 1 nodes -->
+      <circle cx="100" cy="45" r="14" fill="#E1BEE7" stroke="#7B1FA2" stroke-width="2"/>
+      <text x="100" y="50" font-family="monospace" font-size="10" text-anchor="middle" fill="#7B1FA2">A</text>
+
+      <circle cx="220" cy="45" r="14" fill="#E1BEE7" stroke="#7B1FA2" stroke-width="2"/>
+      <text x="220" y="50" font-family="monospace" font-size="10" text-anchor="middle" fill="#7B1FA2">C</text>
+
+      <circle cx="350" cy="45" r="14" fill="#E1BEE7" stroke="#7B1FA2" stroke-width="2"/>
+      <text x="350" y="50" font-family="monospace" font-size="10" text-anchor="middle" fill="#7B1FA2">E</text>
+
+      <circle cx="480" cy="45" r="14" fill="#E1BEE7" stroke="#7B1FA2" stroke-width="2"/>
+      <text x="480" y="50" font-family="monospace" font-size="10" text-anchor="middle" fill="#7B1FA2">G</text>
+
+      <circle cx="600" cy="45" r="14" fill="#E1BEE7" stroke="#7B1FA2" stroke-width="2"/>
+      <text x="600" y="50" font-family="monospace" font-size="10" text-anchor="middle" fill="#7B1FA2">H</text>
+
+      <!-- Layer 1 edges -->
+      <line x1="114" y1="45" x2="206" y2="45" stroke="#7B1FA2" stroke-width="1.5"/>
+      <line x1="234" y1="45" x2="336" y2="45" stroke="#7B1FA2" stroke-width="1.5"/>
+      <line x1="364" y1="45" x2="466" y2="45" stroke="#7B1FA2" stroke-width="1.5"/>
+      <line x1="494" y1="45" x2="586" y2="45" stroke="#7B1FA2" stroke-width="1.5"/>
+      <!-- Cross connections -->
+      <line x1="114" y1="40" x2="336" y2="40" stroke="#7B1FA2" stroke-width="1" opacity="0.5"/>
+      <line x1="364" y1="50" x2="586" y2="50" stroke="#7B1FA2" stroke-width="1" opacity="0.5"/>
+    </g>
+
+    <!-- Layer 0 (Bottom - Dense) -->
+    <g transform="translate(0, 180)">
+      <rect x="0" y="0" width="700" height="110" fill="none" stroke="#2E7D32" stroke-width="2" stroke-dasharray="5,5" rx="8"/>
+
+      <!-- Layer 0 nodes -->
+      <circle cx="50" cy="55" r="12" fill="#C8E6C9" stroke="#2E7D32" stroke-width="2"/>
+      <text x="50" y="59" font-family="monospace" font-size="9" text-anchor="middle" fill="#2E7D32">A</text>
+
+      <circle cx="120" cy="55" r="12" fill="#C8E6C9" stroke="#2E7D32" stroke-width="2"/>
+      <text x="120" y="59" font-family="monospace" font-size="9" text-anchor="middle" fill="#2E7D32">B</text>
+
+      <circle cx="190" cy="55" r="12" fill="#C8E6C9" stroke="#2E7D32" stroke-width="2"/>
+      <text x="190" y="59" font-family="monospace" font-size="9" text-anchor="middle" fill="#2E7D32">C</text>
+
+      <circle cx="260" cy="55" r="12" fill="#C8E6C9" stroke="#2E7D32" stroke-width="2"/>
+      <text x="260" y="59" font-family="monospace" font-size="9" text-anchor="middle" fill="#2E7D32">D</text>
+
+      <circle cx="330" cy="55" r="12" fill="#C8E6C9" stroke="#2E7D32" stroke-width="2"/>
+      <text x="330" y="59" font-family="monospace" font-size="9" text-anchor="middle" fill="#2E7D32">E</text>
+
+      <circle cx="400" cy="55" r="12" fill="#C8E6C9" stroke="#2E7D32" stroke-width="2"/>
+      <text x="400" y="59" font-family="monospace" font-size="9" text-anchor="middle" fill="#2E7D32">F</text>
+
+      <circle cx="470" cy="55" r="12" fill="#C8E6C9" stroke="#2E7D32" stroke-width="2"/>
+      <text x="470" y="59" font-family="monospace" font-size="9" text-anchor="middle" fill="#2E7D32">G</text>
+
+      <circle cx="540" cy="55" r="12" fill="#C8E6C9" stroke="#2E7D32" stroke-width="2"/>
+      <text x="540" y="59" font-family="monospace" font-size="9" text-anchor="middle" fill="#2E7D32">H</text>
+
+      <circle cx="610" cy="55" r="12" fill="#C8E6C9" stroke="#2E7D32" stroke-width="2"/>
+      <text x="610" y="59" font-family="monospace" font-size="9" text-anchor="middle" fill="#2E7D32">I</text>
+
+      <circle cx="650" cy="55" r="12" fill="#C8E6C9" stroke="#2E7D32" stroke-width="2"/>
+      <text x="650" y="59" font-family="monospace" font-size="9" text-anchor="middle" fill="#2E7D32">J</text>
+
+      <!-- Target node -->
+      <circle cx="380" cy="90" r="12" fill="#FFCDD2" stroke="#C62828" stroke-width="3"/>
+      <text x="380" y="94" font-family="monospace" font-size="9" text-anchor="middle" fill="#C62828">Q</text>
+      <text x="395" y="94" font-family="system-ui, -apple-system, sans-serif" font-size="8" text-anchor="start" fill="#C62828">query</text>
+
+      <!-- Layer 0 edges (dense) -->
+      <line x1="62" y1="55" x2="108" y2="55" stroke="#2E7D32" stroke-width="1"/>
+      <line x1="132" y1="55" x2="178" y2="55" stroke="#2E7D32" stroke-width="1"/>
+      <line x1="202" y1="55" x2="248" y2="55" stroke="#2E7D32" stroke-width="1"/>
+      <line x1="272" y1="55" x2="318" y2="55" stroke="#2E7D32" stroke-width="1"/>
+      <line x1="342" y1="55" x2="388" y2="55" stroke="#2E7D32" stroke-width="1"/>
+      <line x1="412" y1="55" x2="458" y2="55" stroke="#2E7D32" stroke-width="1"/>
+      <line x1="482" y1="55" x2="528" y2="55" stroke="#2E7D32" stroke-width="1"/>
+      <line x1="552" y1="55" x2="598" y2="55" stroke="#2E7D32" stroke-width="1"/>
+      <line x1="622" y1="55" x2="638" y2="55" stroke="#2E7D32" stroke-width="1"/>
+
+      <!-- Some cross-connections for small world property -->
+      <line x1="62" y1="50" x2="178" y2="50" stroke="#2E7D32" stroke-width="0.8" opacity="0.4"/>
+      <line x1="132" y1="60" x2="248" y2="60" stroke="#2E7D32" stroke-width="0.8" opacity="0.4"/>
+      <line x1="272" y1="60" x2="388" y2="60" stroke="#2E7D32" stroke-width="0.8" opacity="0.4"/>
+      <line x1="342" y1="50" x2="458" y2="50" stroke="#2E7D32" stroke-width="0.8" opacity="0.4"/>
+      <line x1="412" y1="60" x2="528" y2="60" stroke="#2E7D32" stroke-width="0.8" opacity="0.4"/>
+      <line x1="482" y1="50" x2="598" y2="50" stroke="#2E7D32" stroke-width="0.8" opacity="0.4"/>
+    </g>
+
+    <!-- Vertical connections between layers -->
+    <line x1="150" y1="50" x2="100" y2="120" stroke="#ccc" stroke-width="1.5" stroke-dasharray="3,3"/>
+    <line x1="400" y1="50" x2="350" y2="120" stroke="#ccc" stroke-width="1.5" stroke-dasharray="3,3"/>
+    <line x1="600" y1="50" x2="600" y2="120" stroke="#ccc" stroke-width="1.5" stroke-dasharray="3,3"/>
+
+    <line x1="100" y1="135" x2="50" y2="225" stroke="#ccc" stroke-width="1.5" stroke-dasharray="3,3"/>
+    <line x1="220" y1="135" x2="190" y2="225" stroke="#ccc" stroke-width="1.5" stroke-dasharray="3,3"/>
+    <line x1="350" y1="135" x2="330" y2="225" stroke="#ccc" stroke-width="1.5" stroke-dasharray="3,3"/>
+    <line x1="480" y1="135" x2="470" y2="225" stroke="#ccc" stroke-width="1.5" stroke-dasharray="3,3"/>
+    <line x1="600" y1="135" x2="540" y2="225" stroke="#ccc" stroke-width="1.5" stroke-dasharray="3,3"/>
+  </g>
+
+  <!-- Search path illustration -->
+  <!-- lint-disable spacing -->
+  <!-- lint-disable delimiter -->
+  <g transform="translate(100, 360)">
+    <rect x="0" y="0" width="700" height="85" class="bg-box" stroke="#C62828" stroke-width="2" rx="8"/>
+    <text x="350" y="25" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#C62828">Search Path: Greedy traversal from top to bottom</text>
+
+    <!-- Search path visualization -->
+    <g transform="translate(30, 40)">
+      <!-- Entry point -->
+      <circle cx="30" cy="20" r="10" fill="#FFE0B2" stroke="#E65100" stroke-width="2"/>
+      <text x="30" y="24" font-family="monospace" font-size="9" text-anchor="middle" fill="#E65100">A</text>
+      <text x="30" y="55" font-family="system-ui, -apple-system, sans-serif" font-size="8" text-anchor="middle" fill="#666">Entry</text>
+
+      <line x1="45" y1="20" x2="85" y2="20" stroke="#C62828" stroke-width="2" marker-end="url(#arrowRed)"/>
+
+      <!-- Layer 2 hop -->
+      <circle cx="100" cy="20" r="10" fill="#FFE0B2" stroke="#E65100" stroke-width="2"/>
+      <text x="100" y="24" font-family="monospace" font-size="9" text-anchor="middle" fill="#E65100">E</text>
+      <text x="100" y="55" font-family="system-ui, -apple-system, sans-serif" font-size="8" text-anchor="middle" fill="#666">L2</text>
+
+      <line x1="115" y1="20" x2="155" y2="20" stroke="#C62828" stroke-width="2" marker-end="url(#arrowRed)"/>
+
+      <!-- Drop to Layer 1 -->
+      <circle cx="170" cy="20" r="10" fill="#E1BEE7" stroke="#7B1FA2" stroke-width="2"/>
+      <text x="170" y="24" font-family="monospace" font-size="9" text-anchor="middle" fill="#7B1FA2">E</text>
+      <text x="170" y="55" font-family="system-ui, -apple-system, sans-serif" font-size="8" text-anchor="middle" fill="#666">↓L1</text>
+
+      <line x1="185" y1="20" x2="225" y2="20" stroke="#C62828" stroke-width="2" marker-end="url(#arrowRed)"/>
+
+      <!-- Layer 1 search -->
+      <circle cx="240" cy="20" r="10" fill="#E1BEE7" stroke="#7B1FA2" stroke-width="2"/>
+      <text x="240" y="24" font-family="monospace" font-size="9" text-anchor="middle" fill="#7B1FA2">G</text>
+      <text x="240" y="55" font-family="system-ui, -apple-system, sans-serif" font-size="8" text-anchor="middle" fill="#666">L1</text>
+
+      <line x1="255" y1="20" x2="295" y2="20" stroke="#C62828" stroke-width="2" marker-end="url(#arrowRed)"/>
+
+      <!-- Drop to Layer 0 -->
+      <circle cx="310" cy="20" r="10" fill="#C8E6C9" stroke="#2E7D32" stroke-width="2"/>
+      <text x="310" y="24" font-family="monospace" font-size="9" text-anchor="middle" fill="#2E7D32">G</text>
+      <text x="310" y="55" font-family="system-ui, -apple-system, sans-serif" font-size="8" text-anchor="middle" fill="#666">↓L0</text>
+
+      <line x1="325" y1="20" x2="365" y2="20" stroke="#C62828" stroke-width="2" marker-end="url(#arrowRed)"/>
+
+      <!-- Layer 0 refinement -->
+      <circle cx="380" cy="20" r="10" fill="#C8E6C9" stroke="#2E7D32" stroke-width="2"/>
+      <text x="380" y="24" font-family="monospace" font-size="9" text-anchor="middle" fill="#2E7D32">F</text>
+      <text x="380" y="55" font-family="system-ui, -apple-system, sans-serif" font-size="8" text-anchor="middle" fill="#666">L0</text>
+
+      <line x1="395" y1="20" x2="435" y2="20" stroke="#C62828" stroke-width="2" marker-end="url(#arrowRed)"/>
+
+      <!-- Final result -->
+      <circle cx="450" cy="20" r="12" fill="#FFCDD2" stroke="#C62828" stroke-width="3"/>
+      <text x="450" y="24" font-family="monospace" font-size="9" text-anchor="middle" fill="#C62828">F</text>
+      <text x="450" y="55" font-family="system-ui, -apple-system, sans-serif" font-size="8" text-anchor="middle" fill="#C62828">Found!</text>
+
+      <!-- Complexity note -->
+      <text x="580" y="10" font-family="system-ui, -apple-system, sans-serif" font-size="11" text-anchor="middle" fill="#666">Complexity:</text>
+      <text x="580" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#2E7D32">O(log n)</text>
+    </g>
+  </g>
+
+  <!-- Parameters box -->
+  <!-- lint-disable spacing -->
+  <g transform="translate(100, 455)">
+    <rect x="0" y="0" width="340" height="85" class="bg-box" stroke="#666" stroke-width="1" rx="8"/>
+    <text x="170" y="20" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#333">Key Parameters</text>
+
+    <text x="20" y="40" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" fill="#1565C0">M</text>
+    <text x="45" y="40" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">= Max connections per node, e.g. 32</text>
+
+    <text x="20" y="57" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" fill="#2E7D32">efConstruction</text>
+    <text x="115" y="57" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">= Build-time beam width</text>
+
+    <text x="20" y="74" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" fill="#E65100">efSearch</text>
+    <text x="85" y="74" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">= Query-time beam width</text>
+  </g>
+
+  <!-- Trade-offs box -->
+  <!-- lint-disable delimiter -->
+  <g transform="translate(460, 455)">
+    <rect x="0" y="0" width="340" height="85" class="bg-box" stroke="#666" stroke-width="1" rx="8"/>
+    <text x="170" y="20" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#333">Trade-offs</text>
+
+    <text x="20" y="40" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#2E7D32">+ Very high recall ~99%</text>
+    <text x="180" y="40" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#2E7D32">+ O(log n) search time</text>
+
+    <text x="20" y="57" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#C62828">- Higher memory for graph edges</text>
+
+    <text x="20" y="74" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#C62828">- Slower index build time</text>
+    <text x="180" y="74" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#C62828">- Not updatable in-place</text>
+  </g>
+
+  <!-- Arrow marker -->
+  <defs>
+    <marker id="arrowRed" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#C62828"/>
+    </marker>
+  </defs>
+</svg>

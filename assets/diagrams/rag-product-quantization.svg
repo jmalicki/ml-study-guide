@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- lint-disable contrast -->
+<!-- Note: Contrast checker produces false positives due to not handling <g transform> -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" style="max-width: 900px; width: 100%; height: auto">
+
+  <style>
+    text { fill: #000000; }
+    .bg-main { fill: #f5f5f5; }
+    .bg-box { fill: white; }
+
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .bg-main { fill: #1a1a1a; }
+      .bg-box { fill: #2d2d2d; }
+      text[fill="#333"] { fill: #ffffff; }
+      text[fill="#666"] { fill: #cccccc; }
+      text[fill="#1565C0"] { fill: #64B5F6; }
+      text[fill="#2E7D32"] { fill: #81C784; }
+      text[fill="#7B1FA2"] { fill: #CE93D8; }
+      text[fill="#E65100"] { fill: #FFB74D; }
+    }
+  </style>
+
+  <rect width="900" height="520" class="bg-main"/>
+
+  <!-- Title -->
+  <text x="450" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="bold" text-anchor="middle" fill="#333">Product Quantization: Vector Compression</text>
+
+  <!-- Original Vector -->
+  <!-- lint-disable spacing -->
+  <g transform="translate(30, 60)">
+    <text x="0" y="20" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" fill="#1565C0">1. Original Vector: 768 dimensions, 3072 bytes</text>
+
+    <rect x="0" y="35" width="840" height="40" class="bg-box" stroke="#1565C0" stroke-width="2" rx="3"/>
+
+    <!-- Dimension markers -->
+    <text x="10" y="60" font-family="monospace" font-size="10" fill="#1565C0">[0.23, -0.45, 0.12, 0.78, -0.34, 0.56, 0.91, -0.23, ...]</text>
+    <text x="420" y="60" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#666">768 float32 values</text>
+    <text x="780" y="60" font-family="monospace" font-size="10" text-anchor="end" fill="#1565C0">[..., 0.67, -0.89]</text>
+  </g>
+
+  <!-- Split into subvectors -->
+  <g transform="translate(30, 140)">
+    <text x="0" y="20" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" fill="#2E7D32">2. Split into m=8 Subvectors (96 dims each)</text>
+
+    <g transform="translate(0, 35)">
+      <!-- 8 subvector boxes -->
+      <rect x="0" y="0" width="100" height="40" fill="#E8F5E9" stroke="#2E7D32" stroke-width="2" rx="3"/>
+      <text x="50" y="25" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#2E7D32">Sub<tspan baseline-shift="sub" font-size="7">1</tspan></text>
+
+      <rect x="105" y="0" width="100" height="40" fill="#C8E6C9" stroke="#2E7D32" stroke-width="2" rx="3"/>
+      <text x="155" y="25" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#2E7D32">Sub<tspan baseline-shift="sub" font-size="7">2</tspan></text>
+
+      <rect x="210" y="0" width="100" height="40" fill="#E8F5E9" stroke="#2E7D32" stroke-width="2" rx="3"/>
+      <text x="260" y="25" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#2E7D32">Sub<tspan baseline-shift="sub" font-size="7">3</tspan></text>
+
+      <rect x="315" y="0" width="100" height="40" fill="#C8E6C9" stroke="#2E7D32" stroke-width="2" rx="3"/>
+      <text x="365" y="25" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#2E7D32">Sub<tspan baseline-shift="sub" font-size="7">4</tspan></text>
+
+      <rect x="420" y="0" width="100" height="40" fill="#E8F5E9" stroke="#2E7D32" stroke-width="2" rx="3"/>
+      <text x="470" y="25" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#2E7D32">Sub<tspan baseline-shift="sub" font-size="7">5</tspan></text>
+
+      <rect x="525" y="0" width="100" height="40" fill="#C8E6C9" stroke="#2E7D32" stroke-width="2" rx="3"/>
+      <text x="575" y="25" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#2E7D32">Sub<tspan baseline-shift="sub" font-size="7">6</tspan></text>
+
+      <rect x="630" y="0" width="100" height="40" fill="#E8F5E9" stroke="#2E7D32" stroke-width="2" rx="3"/>
+      <text x="680" y="25" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#2E7D32">Sub<tspan baseline-shift="sub" font-size="7">7</tspan></text>
+
+      <rect x="735" y="0" width="100" height="40" fill="#C8E6C9" stroke="#2E7D32" stroke-width="2" rx="3"/>
+      <text x="785" y="25" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#2E7D32">Sub<tspan baseline-shift="sub" font-size="7">8</tspan></text>
+
+      <text x="420" y="55" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#666">Each subvector: 96 dimensions</text>
+    </g>
+  </g>
+
+  <!-- Codebook learning -->
+  <g transform="translate(30, 250)">
+    <text x="0" y="20" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" fill="#7B1FA2">3. Learn Codebook for Each Subspace: 256 centroids via k-means</text>
+
+    <g transform="translate(0, 40)">
+      <!-- Codebook visualization for first subvector -->
+      <rect x="0" y="0" width="200" height="90" class="bg-box" stroke="#7B1FA2" stroke-width="2" rx="5"/>
+      <text x="100" y="18" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" text-anchor="middle" fill="#7B1FA2">Codebook<tspan baseline-shift="sub" font-size="8">1</tspan></text>
+
+      <!-- Centroids grid -->
+      <g transform="translate(10, 28)">
+        <rect x="0" y="0" width="15" height="12" fill="#E1BEE7" stroke="#7B1FA2" stroke-width="0.5" rx="1"/>
+        <text x="7" y="9" font-family="monospace" font-size="6" text-anchor="middle" fill="#7B1FA2">0</text>
+
+        <rect x="18" y="0" width="15" height="12" fill="#E1BEE7" stroke="#7B1FA2" stroke-width="0.5" rx="1"/>
+        <text x="25" y="9" font-family="monospace" font-size="6" text-anchor="middle" fill="#7B1FA2">1</text>
+
+        <rect x="36" y="0" width="15" height="12" fill="#E1BEE7" stroke="#7B1FA2" stroke-width="0.5" rx="1"/>
+        <text x="43" y="9" font-family="monospace" font-size="6" text-anchor="middle" fill="#7B1FA2">2</text>
+
+        <rect x="54" y="0" width="15" height="12" fill="#7B1FA2" stroke="#7B1FA2" stroke-width="1" rx="1"/>
+        <text x="61" y="9" font-family="monospace" font-size="6" text-anchor="middle" style="fill: white !important">3</text>
+
+        <text x="75" y="9" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">...</text>
+
+        <rect x="90" y="0" width="20" height="12" fill="#E1BEE7" stroke="#7B1FA2" stroke-width="0.5" rx="1"/>
+        <text x="100" y="9" font-family="monospace" font-size="6" text-anchor="middle" fill="#7B1FA2">255</text>
+      </g>
+
+      <text x="100" y="58" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#666">256 centroids, each 96-dim</text>
+      <text x="100" y="75" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#7B1FA2">Sub<tspan baseline-shift="sub" font-size="7">1</tspan> → centroid #3</text>
+
+      <!-- Dots indicating more codebooks -->
+      <text x="240" y="45" font-family="system-ui, -apple-system, sans-serif" font-size="24" fill="#666">...</text>
+
+      <!-- Last codebook -->
+      <rect x="300" y="0" width="200" height="90" class="bg-box" stroke="#7B1FA2" stroke-width="2" rx="5"/>
+      <text x="400" y="18" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" text-anchor="middle" fill="#7B1FA2">Codebook<tspan baseline-shift="sub" font-size="8">8</tspan></text>
+
+      <g transform="translate(310, 28)">
+        <rect x="0" y="0" width="15" height="12" fill="#E1BEE7" stroke="#7B1FA2" stroke-width="0.5" rx="1"/>
+        <text x="7" y="9" font-family="monospace" font-size="6" text-anchor="middle" fill="#7B1FA2">0</text>
+
+        <text x="25" y="9" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">...</text>
+
+        <rect x="40" y="0" width="20" height="12" fill="#7B1FA2" stroke="#7B1FA2" stroke-width="1" rx="1"/>
+        <text x="50" y="9" font-family="monospace" font-size="6" text-anchor="middle" style="fill: white !important">142</text>
+
+        <text x="70" y="9" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">...</text>
+
+        <rect x="90" y="0" width="20" height="12" fill="#E1BEE7" stroke="#7B1FA2" stroke-width="0.5" rx="1"/>
+        <text x="100" y="9" font-family="monospace" font-size="6" text-anchor="middle" fill="#7B1FA2">255</text>
+      </g>
+
+      <text x="400" y="58" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#666">256 centroids, each 96-dim</text>
+      <text x="400" y="75" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#7B1FA2">Sub<tspan baseline-shift="sub" font-size="7">8</tspan> → centroid #142</text>
+    </g>
+  </g>
+
+  <!-- Compressed representation -->
+  <g transform="translate(30, 400)">
+    <text x="0" y="20" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" fill="#E65100">4. Compressed Code: 8 bytes instead of 3072</text>
+
+    <g transform="translate(0, 35)">
+      <rect x="0" y="0" width="400" height="50" fill="#FFF3E0" stroke="#E65100" stroke-width="2" rx="5"/>
+
+      <!-- 8 code bytes -->
+      <rect x="10" y="10" width="40" height="30" fill="#FFE0B2" stroke="#E65100" stroke-width="1" rx="3"/>
+      <text x="30" y="30" font-family="monospace" font-size="12" font-weight="bold" text-anchor="middle" fill="#E65100">3</text>
+
+      <rect x="55" y="10" width="40" height="30" fill="#FFCC80" stroke="#E65100" stroke-width="1" rx="3"/>
+      <text x="75" y="30" font-family="monospace" font-size="12" font-weight="bold" text-anchor="middle" fill="#E65100">87</text>
+
+      <rect x="100" y="10" width="40" height="30" fill="#FFE0B2" stroke="#E65100" stroke-width="1" rx="3"/>
+      <text x="120" y="30" font-family="monospace" font-size="12" font-weight="bold" text-anchor="middle" fill="#E65100">204</text>
+
+      <rect x="145" y="10" width="40" height="30" fill="#FFCC80" stroke="#E65100" stroke-width="1" rx="3"/>
+      <text x="165" y="30" font-family="monospace" font-size="12" font-weight="bold" text-anchor="middle" fill="#E65100">51</text>
+
+      <rect x="190" y="10" width="40" height="30" fill="#FFE0B2" stroke="#E65100" stroke-width="1" rx="3"/>
+      <text x="210" y="30" font-family="monospace" font-size="12" font-weight="bold" text-anchor="middle" fill="#E65100">19</text>
+
+      <rect x="235" y="10" width="40" height="30" fill="#FFCC80" stroke="#E65100" stroke-width="1" rx="3"/>
+      <text x="255" y="30" font-family="monospace" font-size="12" font-weight="bold" text-anchor="middle" fill="#E65100">233</text>
+
+      <rect x="280" y="10" width="40" height="30" fill="#FFE0B2" stroke="#E65100" stroke-width="1" rx="3"/>
+      <text x="300" y="30" font-family="monospace" font-size="12" font-weight="bold" text-anchor="middle" fill="#E65100">78</text>
+
+      <rect x="325" y="10" width="40" height="30" fill="#FFCC80" stroke="#E65100" stroke-width="1" rx="3"/>
+      <text x="345" y="30" font-family="monospace" font-size="12" font-weight="bold" text-anchor="middle" fill="#E65100">142</text>
+
+      <text x="385" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">← 8 bytes</text>
+    </g>
+
+    <!-- Compression stats -->
+    <g transform="translate(450, 20)">
+      <rect x="0" y="0" width="380" height="80" class="bg-box" stroke="#2E7D32" stroke-width="2" rx="5"/>
+      <text x="190" y="22" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#2E7D32">Compression Ratio</text>
+
+      <text x="20" y="46" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666">Original: 768 × 4 bytes = 3072 bytes</text>
+      <text x="20" y="66" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666">Compressed: 8 bytes</text>
+      <text x="250" y="56" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" fill="#2E7D32">384× smaller!</text>
+    </g>
+  </g>
+</svg>

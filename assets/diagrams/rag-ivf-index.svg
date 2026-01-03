@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- lint-disable contrast -->
+<!-- Note: Contrast checker produces false positives due to not handling <g transform> -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 480" style="max-width: 850px; width: 100%; height: auto">
+
+  <style>
+    text { fill: #000000; }
+    .bg-main { fill: #f5f5f5; }
+    .bg-box { fill: white; }
+
+    @media (prefers-color-scheme: dark) {
+      text { fill: #ffffff; }
+      .bg-main { fill: #1a1a1a; }
+      .bg-box { fill: #2d2d2d; }
+      text[fill="#333"] { fill: #ffffff; }
+      text[fill="#666"] { fill: #cccccc; }
+      text[fill="#1565C0"] { fill: #64B5F6; }
+      text[fill="#2E7D32"] { fill: #81C784; }
+      text[fill="#E65100"] { fill: #FFB74D; }
+      text[fill="#C62828"] { fill: #EF5350; }
+      circle[fill="#E3F2FD"] { fill: #1a3a5c; }
+      circle[fill="#C8E6C9"] { fill: #1a3a1a; }
+      circle[fill="#FFECB3"] { fill: #5c4a1a; }
+      circle[fill="#F3E5F5"] { fill: #3a1a3a; }
+    }
+  </style>
+
+  <rect width="850" height="480" class="bg-main"/>
+
+  <!-- Title -->
+  <text x="425" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="bold" text-anchor="middle" fill="#333">IVF (Inverted File Index): Voronoi Partitioning</text>
+
+  <!-- Left side: Training phase -->
+  <g transform="translate(30, 60)">
+    <rect x="0" y="0" width="380" height="200" fill="none" stroke="#2E7D32" stroke-width="2" stroke-dasharray="5,5" rx="8"/>
+    <text x="190" y="25" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#2E7D32">Training Phase: K-Means Clustering</text>
+
+    <!-- Vector space with clusters -->
+    <g transform="translate(20, 40)">
+      <!-- Voronoi-like boundaries -->
+      <path d="M 170 0 L 100 80 L 170 150" stroke="#666" stroke-width="1" stroke-dasharray="4,4" fill="none"/>
+      <path d="M 0 60 L 100 80 L 170 150 L 100 160" stroke="#666" stroke-width="1" stroke-dasharray="4,4" fill="none"/>
+      <path d="M 170 0 L 250 50 L 340 0" stroke="#666" stroke-width="1" stroke-dasharray="4,4" fill="none"/>
+      <path d="M 250 50 L 340 80 L 340 150 L 250 120 L 170 150" stroke="#666" stroke-width="1" stroke-dasharray="4,4" fill="none"/>
+
+      <!-- Cluster 1 (blue) -->
+      <circle cx="60" cy="40" r="25" fill="#E3F2FD" stroke="#1565C0" stroke-width="1"/>
+      <circle cx="50" cy="35" r="4" fill="#1565C0"/>
+      <circle cx="70" cy="45" r="4" fill="#1565C0"/>
+      <circle cx="55" cy="50" r="4" fill="#1565C0"/>
+      <circle cx="75" cy="35" r="4" fill="#1565C0"/>
+      <circle cx="60" cy="40" r="6" fill="#0D47A1"/>
+      <text x="60" y="75" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#1565C0">C<tspan baseline-shift="sub" font-size="7">1</tspan></text>
+
+      <!-- Cluster 2 (green) -->
+      <circle cx="140" cy="120" r="30" fill="#C8E6C9" stroke="#2E7D32" stroke-width="1"/>
+      <circle cx="130" cy="110" r="4" fill="#2E7D32"/>
+      <circle cx="155" cy="115" r="4" fill="#2E7D32"/>
+      <circle cx="135" cy="130" r="4" fill="#2E7D32"/>
+      <circle cx="150" cy="125" r="4" fill="#2E7D32"/>
+      <circle cx="125" cy="125" r="4" fill="#2E7D32"/>
+      <circle cx="140" cy="120" r="6" fill="#1B5E20"/>
+      <text x="140" y="160" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#2E7D32">C<tspan baseline-shift="sub" font-size="7">2</tspan></text>
+
+      <!-- Cluster 3 (orange) -->
+      <circle cx="260" cy="40" r="28" fill="#FFECB3" stroke="#E65100" stroke-width="1"/>
+      <circle cx="250" cy="35" r="4" fill="#E65100"/>
+      <circle cx="270" cy="45" r="4" fill="#E65100"/>
+      <circle cx="255" cy="50" r="4" fill="#E65100"/>
+      <circle cx="275" cy="35" r="4" fill="#E65100"/>
+      <circle cx="245" cy="45" r="4" fill="#E65100"/>
+      <circle cx="260" cy="40" r="6" fill="#BF360C"/>
+      <text x="260" y="78" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#E65100">C<tspan baseline-shift="sub" font-size="7">3</tspan></text>
+
+      <!-- Cluster 4 (purple) -->
+      <circle cx="290" cy="110" r="25" fill="#F3E5F5" stroke="#7B1FA2" stroke-width="1"/>
+      <circle cx="280" cy="105" r="4" fill="#7B1FA2"/>
+      <circle cx="300" cy="115" r="4" fill="#7B1FA2"/>
+      <circle cx="285" cy="120" r="4" fill="#7B1FA2"/>
+      <circle cx="295" cy="100" r="4" fill="#7B1FA2"/>
+      <circle cx="290" cy="110" r="6" fill="#4A148C"/>
+      <text x="290" y="145" font-family="system-ui, -apple-system, sans-serif" font-size="9" text-anchor="middle" fill="#7B1FA2">C<tspan baseline-shift="sub" font-size="7">4</tspan></text>
+    </g>
+
+    <!-- Legend -->
+    <circle cx="30" cy="185" r="5" fill="#0D47A1"/>
+    <text x="45" y="189" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">= Centroid</text>
+    <circle cx="130" cy="185" r="4" fill="#666"/>
+    <text x="145" y="189" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">= Data vectors</text>
+  </g>
+
+  <!-- Right side: Query phase -->
+  <g transform="translate(440, 60)">
+    <rect x="0" y="0" width="380" height="200" fill="none" stroke="#E65100" stroke-width="2" stroke-dasharray="5,5" rx="8"/>
+    <text x="190" y="25" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#E65100">Query Phase: Search nprobe Clusters</text>
+
+    <!-- Same layout but showing query -->
+    <g transform="translate(20, 40)">
+      <!-- Voronoi boundaries (faded) -->
+      <path d="M 170 0 L 100 80 L 170 150" stroke="#ccc" stroke-width="1" stroke-dasharray="4,4" fill="none"/>
+      <path d="M 0 60 L 100 80 L 170 150 L 100 160" stroke="#ccc" stroke-width="1" stroke-dasharray="4,4" fill="none"/>
+      <path d="M 170 0 L 250 50 L 340 0" stroke="#ccc" stroke-width="1" stroke-dasharray="4,4" fill="none"/>
+      <path d="M 250 50 L 340 80 L 340 150 L 250 120 L 170 150" stroke="#ccc" stroke-width="1" stroke-dasharray="4,4" fill="none"/>
+
+      <!-- Cluster 1 (not searched - faded) -->
+      <circle cx="60" cy="40" r="25" fill="#E3F2FD" stroke="#ccc" stroke-width="1" opacity="0.4"/>
+      <circle cx="50" cy="35" r="4" fill="#ccc"/>
+      <circle cx="70" cy="45" r="4" fill="#ccc"/>
+      <circle cx="55" cy="50" r="4" fill="#ccc"/>
+      <circle cx="75" cy="35" r="4" fill="#ccc"/>
+      <circle cx="60" cy="40" r="6" fill="#999"/>
+
+      <!-- Cluster 2 (SEARCHED - highlighted) -->
+      <circle cx="140" cy="120" r="30" fill="#C8E6C9" stroke="#2E7D32" stroke-width="3"/>
+      <circle cx="130" cy="110" r="4" fill="#2E7D32"/>
+      <circle cx="155" cy="115" r="4" fill="#2E7D32"/>
+      <circle cx="135" cy="130" r="4" fill="#2E7D32"/>
+      <circle cx="150" cy="125" r="4" fill="#2E7D32"/>
+      <circle cx="125" cy="125" r="4" fill="#2E7D32"/>
+      <circle cx="140" cy="120" r="6" fill="#1B5E20"/>
+      <text x="140" y="160" font-family="system-ui, -apple-system, sans-serif" font-size="9" font-weight="bold" text-anchor="middle" fill="#2E7D32">SEARCH</text>
+
+      <!-- Cluster 3 (SEARCHED - highlighted) -->
+      <circle cx="260" cy="40" r="28" fill="#FFECB3" stroke="#E65100" stroke-width="3"/>
+      <circle cx="250" cy="35" r="4" fill="#E65100"/>
+      <circle cx="270" cy="45" r="4" fill="#E65100"/>
+      <circle cx="255" cy="50" r="4" fill="#E65100"/>
+      <circle cx="275" cy="35" r="4" fill="#E65100"/>
+      <circle cx="245" cy="45" r="4" fill="#E65100"/>
+      <circle cx="260" cy="40" r="6" fill="#BF360C"/>
+      <text x="260" y="78" font-family="system-ui, -apple-system, sans-serif" font-size="9" font-weight="bold" text-anchor="middle" fill="#E65100">SEARCH</text>
+
+      <!-- Cluster 4 (not searched - faded) -->
+      <circle cx="290" cy="110" r="25" fill="#F3E5F5" stroke="#ccc" stroke-width="1" opacity="0.4"/>
+      <circle cx="280" cy="105" r="4" fill="#ccc"/>
+      <circle cx="300" cy="115" r="4" fill="#ccc"/>
+      <circle cx="285" cy="120" r="4" fill="#ccc"/>
+      <circle cx="295" cy="100" r="4" fill="#ccc"/>
+      <circle cx="290" cy="110" r="6" fill="#999"/>
+
+      <!-- Query point -->
+      <circle cx="200" cy="70" r="8" fill="#C62828" stroke="#C62828" stroke-width="2"/>
+      <text x="200" y="60" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="#C62828">Q</text>
+
+      <!-- Lines to searched clusters -->
+      <line x1="200" y1="70" x2="260" y2="40" stroke="#C62828" stroke-width="2" stroke-dasharray="4,2"/>
+      <line x1="200" y1="70" x2="140" y2="120" stroke="#C62828" stroke-width="2" stroke-dasharray="4,2"/>
+    </g>
+
+    <text x="190" y="185" font-family="system-ui, -apple-system, sans-serif" font-size="10" text-anchor="middle" fill="#666">nprobe = 2: Search only 2 nearest clusters</text>
+  </g>
+
+  <!-- Bottom: Parameters and complexity -->
+  <!-- lint-disable spacing -->
+  <g transform="translate(30, 280)">
+    <rect x="0" y="0" width="790" height="180" class="bg-box" stroke="#666" stroke-width="1" rx="8"/>
+
+    <!-- Parameters -->
+    <text x="20" y="28" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" fill="#333">Key Parameters</text>
+
+    <text x="40" y="52" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#1565C0">nlist</text>
+    <text x="100" y="52" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666">Number of clusters (Voronoi cells)</text>
+    <text x="40" y="72" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">• Rule of thumb: √n to 4√n where n = dataset size</text>
+    <text x="40" y="87" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">• More clusters → faster search, more training time</text>
+
+    <text x="40" y="112" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#2E7D32">nprobe</text>
+    <text x="100" y="112" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666">Clusters to search at query time</text>
+    <text x="40" y="132" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">• Higher nprobe → better recall, slower search</text>
+    <text x="40" y="147" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">• Typical: 1-10% of nlist</text>
+
+    <!-- Complexity -->
+    <g transform="translate(420, 0)">
+      <text x="0" y="28" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" fill="#333">Complexity Analysis</text>
+
+      <text x="20" y="52" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666">Training: O(n × nlist × iterations)</text>
+      <text x="20" y="72" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666">Search:   O(nprobe × n/nlist × d)</text>
+      <text x="20" y="92" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#666">Memory:   O(n × d) + O(nlist × d)</text>
+
+      <text x="20" y="122" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="bold" fill="#E65100">Example: 1M vectors, d=768</text>
+      <text x="20" y="142" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">nlist=1000, nprobe=10 → search 1% of data</text>
+      <text x="20" y="157" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#666">~100× speedup over brute force</text>
+    </g>
+  </g>
+</svg>
