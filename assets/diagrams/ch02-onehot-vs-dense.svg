@@ -7,6 +7,7 @@
       .label { font-size: 14px; }
       .small { font-size: 12px; }
       .math { font-family: 'Times New Roman', serif; font-style: italic; }
+      .light-bg { fill: #ddd; }
     
       /* Dark mode support */
       @media (prefers-color-scheme: dark) {
@@ -32,6 +33,8 @@
 
         .grid { stroke: #444444; }
         .axis { stroke: #cccccc; }
+
+        .light-bg { fill: #333333; }
       }
     </style>
   </defs>
@@ -53,16 +56,16 @@
     <!-- Sample one-hot -->
     <g transform="translate(50, 200)">
       <text y="-5" class="small">Token "cat" (ID=42):</text>
-      <rect x="0" y="5" width="3" height="15" fill="#ddd"/>
-      <rect x="5" y="5" width="3" height="15" fill="#ddd"/>
-      <rect x="10" y="5" width="3" height="15" fill="#ddd"/>
-      <rect x="15" y="5" width="3" height="15" fill="#ddd"/>
+      <rect x="0" y="5" width="3" height="15" class="light-bg"/>
+      <rect x="5" y="5" width="3" height="15" class="light-bg"/>
+      <rect x="10" y="5" width="3" height="15" class="light-bg"/>
+      <rect x="15" y="5" width="3" height="15" class="light-bg"/>
       <text x="20" y="17" class="small">...</text>
       <rect x="40" y="5" width="3" height="15" fill="#E57373"/>
       <text x="45" y="17" class="small">1</text>
       <text x="50" y="17" class="small">...</text>
-      <rect x="70" y="5" width="3" height="15" fill="#ddd"/>
-      <rect x="75" y="5" width="3" height="15" fill="#ddd"/>
+      <rect x="70" y="5" width="3" height="15" class="light-bg"/>
+      <rect x="75" y="5" width="3" height="15" class="light-bg"/>
     </g>
 
     <!-- Distance calculation -->

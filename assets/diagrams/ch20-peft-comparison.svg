@@ -8,6 +8,8 @@
     .label-text { fill: #666666; }
     line[stroke="#333"] { stroke: #333333; }
     .bg-summary { fill: #F5F5F5; }
+    .bg-orange { fill: #FFB74D; }
+    .bg-lightgray { fill: #E8E8E8; }
 
     /* Dark mode */
     @media (prefers-color-scheme: dark) {
@@ -16,6 +18,8 @@
       .label-text { fill: #cccccc; }
       line[stroke="#333"] { stroke: #cccccc; }
       .bg-summary { fill: #2d2d2d; }
+      .bg-orange { fill: #b8631d; }
+      .bg-lightgray { fill: #424242; }
 
       /* Darken colored backgrounds in dark mode for proper contrast with white text */
       rect[fill="#E57373"] { fill: #7a2e2e; }
@@ -127,15 +131,15 @@
 
 
   <g id="prefix">
-    <rect x="40" y="365" width="220" height="50" fill="#FFB74D" fill-opacity="0.3" stroke="#333" stroke-width="2" rx="5" />
+    <rect x="40" y="365" width="220" height="50" class="bg-orange" fill-opacity="0.3" stroke="#333" stroke-width="2" rx="5" />
     <text x="150" y="395" font-size="14" font-weight="bold" text-anchor="middle" >Prefix Tuning</text>
 
 
-    <rect x="280" y="365" width="1.2" height="50" fill="#FFB74D" fill-opacity="0.9" stroke="#333" stroke-width="1" rx="2" />
+    <rect x="280" y="365" width="1.2" height="50" class="bg-orange" fill-opacity="0.9" stroke="#333" stroke-width="1" rx="2" />
     <text x="340" y="395" font-size="14" font-weight="bold" text-anchor="middle">~0.1%</text>
 
 
-    <rect x="430" y="365" width="34" height="50" fill="#FFB74D" fill-opacity="0.5" stroke="#333" stroke-width="2" rx="5" />
+    <rect x="430" y="365" width="34" height="50" class="bg-orange" fill-opacity="0.5" stroke="#333" stroke-width="2" rx="5" />
     <text x="550" y="395" font-size="14" font-weight="bold" text-anchor="middle">~14 GB</text>
 
 
@@ -158,9 +162,9 @@
   <line x1="280" y1="75" x2="280" y2="435" stroke="#CCC" stroke-width="1" stroke-dasharray="5,5" />
   <line x1="400" y1="75" x2="400" y2="435" stroke="#CCC" stroke-width="1" stroke-dasharray="5,5" />
 
-  
+
   <g id="frozen-trainable">
-    <rect x="730" y="90" width="15" height="15" fill="#E8E8E8" stroke="#333" stroke-width="1" />
+    <rect x="730" y="90" width="15" height="15" class="bg-lightgray" stroke="#333" stroke-width="1" />
     <text x="750" y="102" font-size="11" class="label-text">Frozen (base model)</text>
 
     <rect x="730" y="110" width="15" height="15" fill="#4A90A4" fill-opacity="0.7" stroke="#333" stroke-width="1" />

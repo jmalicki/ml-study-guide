@@ -11,6 +11,15 @@
 
       .bg-main { fill: #f5f5f5; }
 
+      /* Bias cell colors - lightest to darkest */
+      .bias-cell-lightest { fill: #dbeafe; }
+      .bias-cell-lighter { fill: #bfdbfe; }
+      .bias-cell-light { fill: #93c5fd; }
+      .bias-cell-medium { fill: #60a5fa; }
+      .bias-cell-dark { fill: #3b82f6; }
+      .bias-cell-darker { fill: #2563eb; }
+      .bias-cell-darkest { fill: #1e3a8a; }
+
       /* Dark mode support */
       @media (prefers-color-scheme: dark) {
         text { fill: #ffffff; }
@@ -24,8 +33,8 @@
         .subtitle { fill: #ffffff; }
         .label { fill: #ffffff; }
         .small-label { fill: #cccccc; }
-        .axis-label { fill: #cccccc; }
-        .small { fill: #cccccc; }
+        .axis-label { fill: #ffffff; }
+        .small { fill: #ffffff; }
         .annotation { fill: #cccccc; }
 
         line[stroke="#333"] { stroke: #cccccc; }
@@ -37,6 +46,15 @@
 
         .grid { stroke: #444444; }
         .axis { stroke: #cccccc; }
+
+        /* Dark mode bias cell colors - inverted for good contrast with white text */
+        .bias-cell-lightest { fill: #1e3a5f; }
+        .bias-cell-lighter { fill: #1a3555; }
+        .bias-cell-light { fill: #16304b; }
+        .bias-cell-medium { fill: #122a41; }
+        .bias-cell-dark { fill: #0e2337; }
+        .bias-cell-darker { fill: #0a1d2d; }
+        .bias-cell-darkest { fill: #061623; }
       }
     </style>
   </defs>
@@ -73,88 +91,88 @@
       <!-- Bias = -m * |query_pos - key_pos| -->
       <g id="cells">
         <!-- Diagonal (distance 0) - lightest -->
-        <rect x="0" y="0" width="18" height="18" fill="#dbeafe"/>
-        <rect x="20" y="20" width="18" height="18" fill="#dbeafe"/>
-        <rect x="40" y="40" width="18" height="18" fill="#dbeafe"/>
-        <rect x="60" y="60" width="18" height="18" fill="#dbeafe"/>
-        <rect x="80" y="80" width="18" height="18" fill="#dbeafe"/>
-        <rect x="100" y="100" width="18" height="18" fill="#dbeafe"/>
-        <rect x="120" y="120" width="18" height="18" fill="#dbeafe"/>
-        <rect x="140" y="140" width="18" height="18" fill="#dbeafe"/>
-        <rect x="160" y="160" width="18" height="18" fill="#dbeafe"/>
-        <rect x="180" y="180" width="18" height="18" fill="#dbeafe"/>
-        <rect x="200" y="200" width="18" height="18" fill="#dbeafe"/>
-        <rect x="220" y="220" width="18" height="18" fill="#dbeafe"/>
-        <rect x="240" y="240" width="18" height="18" fill="#dbeafe"/>
-        <rect x="260" y="260" width="18" height="18" fill="#dbeafe"/>
-        <rect x="280" y="280" width="18" height="18" fill="#dbeafe"/>
+        <rect x="0" y="0" width="18" height="18" class="bias-cell-lightest"/>
+        <rect x="20" y="20" width="18" height="18" class="bias-cell-lightest"/>
+        <rect x="40" y="40" width="18" height="18" class="bias-cell-lightest"/>
+        <rect x="60" y="60" width="18" height="18" class="bias-cell-lightest"/>
+        <rect x="80" y="80" width="18" height="18" class="bias-cell-lightest"/>
+        <rect x="100" y="100" width="18" height="18" class="bias-cell-lightest"/>
+        <rect x="120" y="120" width="18" height="18" class="bias-cell-lightest"/>
+        <rect x="140" y="140" width="18" height="18" class="bias-cell-lightest"/>
+        <rect x="160" y="160" width="18" height="18" class="bias-cell-lightest"/>
+        <rect x="180" y="180" width="18" height="18" class="bias-cell-lightest"/>
+        <rect x="200" y="200" width="18" height="18" class="bias-cell-lightest"/>
+        <rect x="220" y="220" width="18" height="18" class="bias-cell-lightest"/>
+        <rect x="240" y="240" width="18" height="18" class="bias-cell-lightest"/>
+        <rect x="260" y="260" width="18" height="18" class="bias-cell-lightest"/>
+        <rect x="280" y="280" width="18" height="18" class="bias-cell-lightest"/>
 
         <!-- Distance 1 -->
-        <rect x="20" y="0" width="18" height="18" fill="#bfdbfe"/>
-        <rect x="0" y="20" width="18" height="18" fill="#bfdbfe"/>
-        <rect x="40" y="20" width="18" height="18" fill="#bfdbfe"/>
-        <rect x="20" y="40" width="18" height="18" fill="#bfdbfe"/>
-        <rect x="60" y="40" width="18" height="18" fill="#bfdbfe"/>
-        <rect x="40" y="60" width="18" height="18" fill="#bfdbfe"/>
-        <rect x="80" y="60" width="18" height="18" fill="#bfdbfe"/>
-        <rect x="60" y="80" width="18" height="18" fill="#bfdbfe"/>
-        <rect x="100" y="80" width="18" height="18" fill="#bfdbfe"/>
-        <rect x="80" y="100" width="18" height="18" fill="#bfdbfe"/>
-        <rect x="120" y="100" width="18" height="18" fill="#bfdbfe"/>
-        <rect x="100" y="120" width="18" height="18" fill="#bfdbfe"/>
-        <rect x="140" y="120" width="18" height="18" fill="#bfdbfe"/>
-        <rect x="120" y="140" width="18" height="18" fill="#bfdbfe"/>
-        <rect x="160" y="140" width="18" height="18" fill="#bfdbfe"/>
-        <rect x="140" y="160" width="18" height="18" fill="#bfdbfe"/>
-        <rect x="180" y="160" width="18" height="18" fill="#bfdbfe"/>
-        <rect x="160" y="180" width="18" height="18" fill="#bfdbfe"/>
-        <rect x="200" y="180" width="18" height="18" fill="#bfdbfe"/>
-        <rect x="180" y="200" width="18" height="18" fill="#bfdbfe"/>
-        <rect x="220" y="200" width="18" height="18" fill="#bfdbfe"/>
-        <rect x="200" y="220" width="18" height="18" fill="#bfdbfe"/>
-        <rect x="240" y="220" width="18" height="18" fill="#bfdbfe"/>
-        <rect x="220" y="240" width="18" height="18" fill="#bfdbfe"/>
-        <rect x="260" y="240" width="18" height="18" fill="#bfdbfe"/>
-        <rect x="240" y="260" width="18" height="18" fill="#bfdbfe"/>
-        <rect x="280" y="260" width="18" height="18" fill="#bfdbfe"/>
-        <rect x="260" y="280" width="18" height="18" fill="#bfdbfe"/>
+        <rect x="20" y="0" width="18" height="18" class="bias-cell-lighter"/>
+        <rect x="0" y="20" width="18" height="18" class="bias-cell-lighter"/>
+        <rect x="40" y="20" width="18" height="18" class="bias-cell-lighter"/>
+        <rect x="20" y="40" width="18" height="18" class="bias-cell-lighter"/>
+        <rect x="60" y="40" width="18" height="18" class="bias-cell-lighter"/>
+        <rect x="40" y="60" width="18" height="18" class="bias-cell-lighter"/>
+        <rect x="80" y="60" width="18" height="18" class="bias-cell-lighter"/>
+        <rect x="60" y="80" width="18" height="18" class="bias-cell-lighter"/>
+        <rect x="100" y="80" width="18" height="18" class="bias-cell-lighter"/>
+        <rect x="80" y="100" width="18" height="18" class="bias-cell-lighter"/>
+        <rect x="120" y="100" width="18" height="18" class="bias-cell-lighter"/>
+        <rect x="100" y="120" width="18" height="18" class="bias-cell-lighter"/>
+        <rect x="140" y="120" width="18" height="18" class="bias-cell-lighter"/>
+        <rect x="120" y="140" width="18" height="18" class="bias-cell-lighter"/>
+        <rect x="160" y="140" width="18" height="18" class="bias-cell-lighter"/>
+        <rect x="140" y="160" width="18" height="18" class="bias-cell-lighter"/>
+        <rect x="180" y="160" width="18" height="18" class="bias-cell-lighter"/>
+        <rect x="160" y="180" width="18" height="18" class="bias-cell-lighter"/>
+        <rect x="200" y="180" width="18" height="18" class="bias-cell-lighter"/>
+        <rect x="180" y="200" width="18" height="18" class="bias-cell-lighter"/>
+        <rect x="220" y="200" width="18" height="18" class="bias-cell-lighter"/>
+        <rect x="200" y="220" width="18" height="18" class="bias-cell-lighter"/>
+        <rect x="240" y="220" width="18" height="18" class="bias-cell-lighter"/>
+        <rect x="220" y="240" width="18" height="18" class="bias-cell-lighter"/>
+        <rect x="260" y="240" width="18" height="18" class="bias-cell-lighter"/>
+        <rect x="240" y="260" width="18" height="18" class="bias-cell-lighter"/>
+        <rect x="280" y="260" width="18" height="18" class="bias-cell-lighter"/>
+        <rect x="260" y="280" width="18" height="18" class="bias-cell-lighter"/>
 
         <!-- Distance 2 and beyond - progressively darker -->
-        <rect x="40" y="0" width="18" height="18" fill="#93c5fd"/>
-        <rect x="0" y="40" width="18" height="18" fill="#93c5fd"/>
-        <rect x="60" y="0" width="18" height="18" fill="#60a5fa"/>
-        <rect x="0" y="60" width="18" height="18" fill="#60a5fa"/>
-        <rect x="80" y="0" width="18" height="18" fill="#3b82f6"/>
-        <rect x="0" y="80" width="18" height="18" fill="#3b82f6"/>
-        <rect x="100" y="0" width="18" height="18" fill="#2563eb"/>
-        <rect x="0" y="100" width="18" height="18" fill="#2563eb"/>
+        <rect x="40" y="0" width="18" height="18" class="bias-cell-light"/>
+        <rect x="0" y="40" width="18" height="18" class="bias-cell-light"/>
+        <rect x="60" y="0" width="18" height="18" class="bias-cell-medium"/>
+        <rect x="0" y="60" width="18" height="18" class="bias-cell-medium"/>
+        <rect x="80" y="0" width="18" height="18" class="bias-cell-dark"/>
+        <rect x="0" y="80" width="18" height="18" class="bias-cell-dark"/>
+        <rect x="100" y="0" width="18" height="18" class="bias-cell-darker"/>
+        <rect x="0" y="100" width="18" height="18" class="bias-cell-darker"/>
 
         <!-- Fill remaining cells with gradient pattern -->
-        <rect x="60" y="20" width="18" height="18" fill="#93c5fd"/>
-        <rect x="20" y="60" width="18" height="18" fill="#93c5fd"/>
-        <rect x="80" y="20" width="18" height="18" fill="#60a5fa"/>
-        <rect x="20" y="80" width="18" height="18" fill="#60a5fa"/>
-        <rect x="100" y="20" width="18" height="18" fill="#3b82f6"/>
-        <rect x="20" y="100" width="18" height="18" fill="#3b82f6"/>
+        <rect x="60" y="20" width="18" height="18" class="bias-cell-light"/>
+        <rect x="20" y="60" width="18" height="18" class="bias-cell-light"/>
+        <rect x="80" y="20" width="18" height="18" class="bias-cell-medium"/>
+        <rect x="20" y="80" width="18" height="18" class="bias-cell-medium"/>
+        <rect x="100" y="20" width="18" height="18" class="bias-cell-dark"/>
+        <rect x="20" y="100" width="18" height="18" class="bias-cell-dark"/>
 
         <!-- Continue pattern for middle sections -->
-        <rect x="120" y="60" width="18" height="18" fill="#93c5fd"/>
-        <rect x="60" y="120" width="18" height="18" fill="#93c5fd"/>
-        <rect x="140" y="60" width="18" height="18" fill="#60a5fa"/>
-        <rect x="60" y="140" width="18" height="18" fill="#60a5fa"/>
-        <rect x="160" y="60" width="18" height="18" fill="#3b82f6"/>
-        <rect x="60" y="160" width="18" height="18" fill="#3b82f6"/>
+        <rect x="120" y="60" width="18" height="18" class="bias-cell-light"/>
+        <rect x="60" y="120" width="18" height="18" class="bias-cell-light"/>
+        <rect x="140" y="60" width="18" height="18" class="bias-cell-medium"/>
+        <rect x="60" y="140" width="18" height="18" class="bias-cell-medium"/>
+        <rect x="160" y="60" width="18" height="18" class="bias-cell-dark"/>
+        <rect x="60" y="160" width="18" height="18" class="bias-cell-dark"/>
 
-        <rect x="200" y="140" width="18" height="18" fill="#93c5fd"/>
-        <rect x="140" y="200" width="18" height="18" fill="#93c5fd"/>
-        <rect x="220" y="140" width="18" height="18" fill="#60a5fa"/>
-        <rect x="140" y="220" width="18" height="18" fill="#60a5fa"/>
-        <rect x="240" y="140" width="18" height="18" fill="#3b82f6"/>
-        <rect x="140" y="240" width="18" height="18" fill="#3b82f6"/>
-        <rect x="260" y="140" width="18" height="18" fill="#2563eb"/>
-        <rect x="140" y="260" width="18" height="18" fill="#2563eb"/>
-        <rect x="280" y="140" width="18" height="18" fill="#1e3a8a"/>
-        <rect x="140" y="280" width="18" height="18" fill="#1e3a8a"/>
+        <rect x="200" y="140" width="18" height="18" class="bias-cell-light"/>
+        <rect x="140" y="200" width="18" height="18" class="bias-cell-light"/>
+        <rect x="220" y="140" width="18" height="18" class="bias-cell-medium"/>
+        <rect x="140" y="220" width="18" height="18" class="bias-cell-medium"/>
+        <rect x="240" y="140" width="18" height="18" class="bias-cell-dark"/>
+        <rect x="140" y="240" width="18" height="18" class="bias-cell-dark"/>
+        <rect x="260" y="140" width="18" height="18" class="bias-cell-darker"/>
+        <rect x="140" y="260" width="18" height="18" class="bias-cell-darker"/>
+        <rect x="280" y="140" width="18" height="18" class="bias-cell-darkest"/>
+        <rect x="140" y="280" width="18" height="18" class="bias-cell-darkest"/>
       </g>
 
       <!-- Grid lines -->

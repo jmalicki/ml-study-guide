@@ -11,6 +11,12 @@
     .bg-main { fill: #F5F5F5; }
     .bg-info { fill: #E3F2FD; }
 
+    /* Token box classes for consistent dark mode handling */
+    .token-char { fill: #E57373; fill-opacity: 0.2; stroke: #E57373; }
+    .token-word { fill: #FFB74D; fill-opacity: 0.2; stroke: #FFB74D; }
+    .token-bpe { fill: #81C784; fill-opacity: 0.2; stroke: #81C784; }
+    .token-wp { fill: #9575CD; fill-opacity: 0.2; stroke: #9575CD; }
+
     /* Dark mode */
     @media (prefers-color-scheme: dark) {
       text { fill: #ffffff; }
@@ -20,6 +26,12 @@
 
       .bg-main { fill: #2d2d2d; }
       .bg-info { fill: #1e3a4a; }
+
+      /* Token boxes: darken backgrounds, keep stroke visible */
+      .token-char { fill: #5a2d2d; fill-opacity: 0.6; stroke: #E57373; }
+      .token-word { fill: #5a3d1d; fill-opacity: 0.6; stroke: #FFB74D; }
+      .token-bpe { fill: #2d4a2d; fill-opacity: 0.6; stroke: #81C784; }
+      .token-wp { fill: #3d2d5a; fill-opacity: 0.6; stroke: #9575CD; }
 
       /* Keep white text white in dark mode (for colored backgrounds) */
       text[fill="#fff"],
@@ -45,12 +57,6 @@
       text[fill="#666"] {
         fill: #ffffff;
       }
-
-      /* Darken colored backgrounds for dark mode */
-      rect[fill="#E57373"] { fill: #8b3d3d; }
-      rect[fill="#FFB74D"] { fill: #8b5e28; }
-      rect[fill="#81C784"] { fill: #4a7c4e; }
-      rect[fill="#9575CD"] { fill: #5c4a7a; }
     }
   </style><text x="400" y="30" text-anchor="middle" font-size="18" font-weight="bold" font-family="system-ui, -apple-system, sans-serif" fill="#333">
     Tokenization Methods Compared: Same Text, Different Splits
@@ -69,31 +75,31 @@
     <text x="650" y="0" text-anchor="end" font-size="11" font-family="system-ui, -apple-system, sans-serif" fill="#666">25 tokens</text>
 
     <g transform="translate(0, 10)">
-      <rect x="0" y="1" width="25" height="30" fill="#E57373" fill-opacity="0.2" stroke="#E57373" stroke-width="1" rx="2" />
+      <rect x="0" y="1" width="25" height="30" class="token-char" stroke-width="1" rx="2" />
       <text x="12.5" y="21" text-anchor="middle" font-size="11" font-family="monospace">T</text>
 
-      <rect x="30" y="1" width="25" height="30" fill="#E57373" fill-opacity="0.2" stroke="#E57373" stroke-width="1" rx="2" />
+      <rect x="30" y="1" width="25" height="30" class="token-char" stroke-width="1" rx="2" />
       <text x="42.5" y="21" text-anchor="middle" font-size="11" font-family="monospace">h</text>
 
-      <rect x="60" y="1" width="25" height="30" fill="#E57373" fill-opacity="0.2" stroke="#E57373" stroke-width="1" rx="2" />
+      <rect x="60" y="1" width="25" height="30" class="token-char" stroke-width="1" rx="2" />
       <text x="72.5" y="21" text-anchor="middle" font-size="11" font-family="monospace">e</text>
 
-      <rect x="90" y="1" width="25" height="30" fill="#E57373" fill-opacity="0.2" stroke="#E57373" stroke-width="1" rx="2" />
+      <rect x="90" y="1" width="25" height="30" class="token-char" stroke-width="1" rx="2" />
       <text x="102.5" y="21" text-anchor="middle" font-size="11" font-family="monospace">_</text>
 
-      <rect x="120" y="1" width="25" height="30" fill="#E57373" fill-opacity="0.2" stroke="#E57373" stroke-width="1" rx="2" />
+      <rect x="120" y="1" width="25" height="30" class="token-char" stroke-width="1" rx="2" />
       <text x="132.5" y="21" text-anchor="middle" font-size="11" font-family="monospace">t</text>
 
-      <rect x="150" y="1" width="25" height="30" fill="#E57373" fill-opacity="0.2" stroke="#E57373" stroke-width="1" rx="2" />
+      <rect x="150" y="1" width="25" height="30" class="token-char" stroke-width="1" rx="2" />
       <text x="162.5" y="21" text-anchor="middle" font-size="11" font-family="monospace">o</text>
 
-      <rect x="180" y="1" width="25" height="30" fill="#E57373" fill-opacity="0.2" stroke="#E57373" stroke-width="1" rx="2" />
+      <rect x="180" y="1" width="25" height="30" class="token-char" stroke-width="1" rx="2" />
       <text x="192.5" y="21" text-anchor="middle" font-size="11" font-family="monospace">k</text>
 
-      <rect x="210" y="1" width="25" height="30" fill="#E57373" fill-opacity="0.2" stroke="#E57373" stroke-width="1" rx="2" />
+      <rect x="210" y="1" width="25" height="30" class="token-char" stroke-width="1" rx="2" />
       <text x="222.5" y="21" text-anchor="middle" font-size="11" font-family="monospace">e</text>
 
-      <rect x="240" y="1" width="25" height="30" fill="#E57373" fill-opacity="0.2" stroke="#E57373" stroke-width="1" rx="2" />
+      <rect x="240" y="1" width="25" height="30" class="token-char" stroke-width="1" rx="2" />
       <text x="252.5" y="21" text-anchor="middle" font-size="11" font-family="monospace">n</text>
 
       <text x="275" y="20" font-size="11" font-family="monospace">... (16 more)</text>
@@ -110,13 +116,13 @@
     <text x="650" y="0" text-anchor="end" font-size="11" font-family="system-ui, -apple-system, sans-serif" fill="#666">3 tokens</text>
 
     <g transform="translate(0, 10)">
-      <rect x="0" y="0" width="50" height="30" fill="#FFB74D" fill-opacity="0.2" stroke="#FFB74D" stroke-width="1" rx="2" />
+      <rect x="0" y="0" width="50" height="30" class="token-word" stroke-width="1" rx="2" />
       <text x="25" y="20" text-anchor="middle" font-size="11" font-family="monospace">The</text>
 
-      <rect x="60" y="0" width="120" height="30" fill="#FFB74D" fill-opacity="0.2" stroke="#FFB74D" stroke-width="1" rx="2" />
+      <rect x="60" y="0" width="120" height="30" class="token-word" stroke-width="1" rx="2" />
       <text x="120" y="20" text-anchor="middle" font-size="11" font-family="monospace">tokenization</text>
 
-      <rect x="190" y="0" width="80" height="30" fill="#FFB74D" fill-opacity="0.2" stroke="#FFB74D" stroke-width="1" rx="2" />
+      <rect x="190" y="0" width="80" height="30" class="token-word" stroke-width="1" rx="2" />
       <text x="230" y="20" text-anchor="middle" font-size="11" font-family="monospace">process</text>
     </g>
 
@@ -131,19 +137,19 @@
     <text x="650" y="0" text-anchor="end" font-size="11" font-family="system-ui, -apple-system, sans-serif" fill="#666">6 tokens</text>
 
     <g transform="translate(0, 10)">
-      <rect x="0" y="0" width="50" height="30" fill="#81C784" fill-opacity="0.2" stroke="#81C784" stroke-width="1" rx="2" />
+      <rect x="0" y="0" width="50" height="30" class="token-bpe" stroke-width="1" rx="2" />
       <text x="25" y="20" text-anchor="middle" font-size="11" font-family="monospace">The</text>
 
-      <rect x="60" y="0" width="60" height="30" fill="#81C784" fill-opacity="0.2" stroke="#81C784" stroke-width="1" rx="2" />
+      <rect x="60" y="0" width="60" height="30" class="token-bpe" stroke-width="1" rx="2" />
       <text x="90" y="20" text-anchor="middle" font-size="11" font-family="monospace">token</text>
 
-      <rect x="130" y="0" width="50" height="30" fill="#81C784" fill-opacity="0.2" stroke="#81C784" stroke-width="1" rx="2" />
+      <rect x="130" y="0" width="50" height="30" class="token-bpe" stroke-width="1" rx="2" />
       <text x="155" y="20" text-anchor="middle" font-size="11" font-family="monospace">ization</text>
 
-      <rect x="190" y="0" width="50" height="30" fill="#81C784" fill-opacity="0.2" stroke="#81C784" stroke-width="1" rx="2" />
+      <rect x="190" y="0" width="50" height="30" class="token-bpe" stroke-width="1" rx="2" />
       <text x="215" y="20" text-anchor="middle" font-size="11" font-family="monospace">pro</text>
 
-      <rect x="250" y="0" width="50" height="30" fill="#81C784" fill-opacity="0.2" stroke="#81C784" stroke-width="1" rx="2" />
+      <rect x="250" y="0" width="50" height="30" class="token-bpe" stroke-width="1" rx="2" />
       <text x="275" y="20" text-anchor="middle" font-size="11" font-family="monospace">cess</text>
     </g>
 
@@ -158,19 +164,19 @@
     <text x="650" y="0" text-anchor="end" font-size="11" font-family="system-ui, -apple-system, sans-serif" fill="#666">7 tokens</text>
 
     <g transform="translate(0, 10)">
-      <rect x="0" y="0" width="50" height="30" fill="#9575CD" fill-opacity="0.2" stroke="#9575CD" stroke-width="1" rx="2" />
+      <rect x="0" y="0" width="50" height="30" class="token-wp" stroke-width="1" rx="2" />
       <text x="25" y="20" text-anchor="middle" font-size="11" font-family="monospace">the</text>
 
-      <rect x="60" y="0" width="60" height="30" fill="#9575CD" fill-opacity="0.2" stroke="#9575CD" stroke-width="1" rx="2" />
+      <rect x="60" y="0" width="60" height="30" class="token-wp" stroke-width="1" rx="2" />
       <text x="90" y="20" text-anchor="middle" font-size="11" font-family="monospace">token</text>
 
-      <rect x="130" y="0" width="50" height="30" fill="#9575CD" fill-opacity="0.2" stroke="#9575CD" stroke-width="1" rx="2" />
+      <rect x="130" y="0" width="50" height="30" class="token-wp" stroke-width="1" rx="2" />
       <text x="155" y="20" text-anchor="middle" font-size="10" font-family="monospace">##ization</text>
 
-      <rect x="190" y="0" width="50" height="30" fill="#9575CD" fill-opacity="0.2" stroke="#9575CD" stroke-width="1" rx="2" />
+      <rect x="190" y="0" width="50" height="30" class="token-wp" stroke-width="1" rx="2" />
       <text x="215" y="20" text-anchor="middle" font-size="11" font-family="monospace">pro</text>
 
-      <rect x="250" y="0" width="50" height="30" fill="#9575CD" fill-opacity="0.2" stroke="#9575CD" stroke-width="1" rx="2" />
+      <rect x="250" y="0" width="50" height="30" class="token-wp" stroke-width="1" rx="2" />
       <text x="275" y="20" text-anchor="middle" font-size="11" font-family="monospace">##cess</text>
     </g>
 

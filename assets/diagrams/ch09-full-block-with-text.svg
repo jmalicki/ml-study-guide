@@ -5,6 +5,7 @@
     text { fill: #000000; }
     .label-text { fill: #666666; }
     .bg-box { fill: #f5f5f5; }
+    .text-on-box { fill: #333333; }
 
     /* Dark mode */
 
@@ -15,6 +16,7 @@
       text { fill: #ffffff; }
       .label-text { fill: #cccccc; }
       .bg-box { fill: #2d2d2d; }
+      .text-on-box { fill: #ffffff; }
 
       text[fill="#000"], text[fill="#000000"], text[fill="#333"], text[fill="#666"] {
         fill: #ffffff;
@@ -166,12 +168,12 @@
   <text x="495" y="248" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#333">• output = input + sublayer(input)</text>
 
   <rect x="480" y="275" width="250" height="100" fill="#f9f9f9" stroke="#ccc" stroke-width="1" rx="5" />
-  <text x="495" y="295" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="bold" fill="#333">Dimension Tracking:</text>
-  <text x="500" y="315" font-family="monospace" font-size="9" fill="#333">Input:  [4, 512]</text>
-  <text x="500" y="330" font-family="monospace" font-size="9" fill="#333">→ LN:   [4, 512]</text>
-  <text x="500" y="345" font-family="monospace" font-size="9" fill="#333">→ Attn: [4, 512]</text>
-  <text x="500" y="360" font-family="monospace" font-size="9" fill="#333">→ FFN:  [4, 512]</text>
-  <text x="500" y="375" font-family="monospace" font-size="9" fill="#333">Output: [4, 512]</text>
+  <text x="495" y="295" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="bold" class="text-on-box">Dimension Tracking:</text>
+  <text x="500" y="315" font-family="monospace" font-size="9" class="text-on-box">Input:  [4, 512]</text>
+  <text x="500" y="330" font-family="monospace" font-size="9" class="text-on-box">→ LN:   [4, 512]</text>
+  <text x="500" y="345" font-family="monospace" font-size="9" class="text-on-box">→ Attn: [4, 512]</text>
+  <text x="500" y="360" font-family="monospace" font-size="9" class="text-on-box">→ FFN:  [4, 512]</text>
+  <text x="500" y="375" font-family="monospace" font-size="9" class="text-on-box">Output: [4, 512]</text>
 
   <!-- Block boundary indicator -->
   <rect x="120" y="65" width="310" height="535" fill="none" stroke="#999" stroke-width="1" stroke-dasharray="8,4" rx="10" />

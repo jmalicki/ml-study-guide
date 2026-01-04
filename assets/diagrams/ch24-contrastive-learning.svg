@@ -5,6 +5,7 @@
     /* Light mode (default) */
     text { fill: #000000; }
     .label-text { fill: #666666; }
+    .text-on-white { fill: #333333; }
 
     /* Adaptive backgrounds */
     .bg-main { fill: #f5f5f5; }
@@ -28,6 +29,7 @@
     @media (prefers-color-scheme: dark) {
       text { fill: #ffffff; }
       .label-text { fill: #cccccc; }
+      .text-on-white { fill: #ffffff; }
       .bg-main { fill: #1a1a1a; }
       .bg-box { fill: #2d2d2d; }
       .positive { fill: #2E7D32; }
@@ -105,26 +107,26 @@
 
     <!-- Text 1 -->
     <rect x="10" y="35" width="160" height="60" class="bg-white" stroke="#E65100" stroke-width="2" rx="3"/>
-    <text x="90" y="60" font-family="Georgia, serif" font-size="10" font-style="italic" text-anchor="middle" fill="#333">"A cute orange cat</text>
-    <text x="90" y="75" font-family="Georgia, serif" font-size="10" font-style="italic" text-anchor="middle" fill="#333">with pointy ears"</text>
+    <text x="90" y="60" font-family="Georgia, serif" font-size="10" font-style="italic" text-anchor="middle" class="text-on-white">"A cute orange cat</text>
+    <text x="90" y="75" font-family="Georgia, serif" font-size="10" font-style="italic" text-anchor="middle" class="text-on-white">with pointy ears"</text>
     <text x="185" y="65" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#E65100">T<tspan baseline-shift="sub" font-size="7">1</tspan></text>
 
     <!-- Text 2 -->
     <rect x="10" y="120" width="160" height="60" class="bg-white" stroke="#E65100" stroke-width="2" rx="3"/>
-    <text x="90" y="145" font-family="Georgia, serif" font-size="10" font-style="italic" text-anchor="middle" fill="#333">"A brown dog</text>
-    <text x="90" y="160" font-family="Georgia, serif" font-size="10" font-style="italic" text-anchor="middle" fill="#333">with floppy ears"</text>
+    <text x="90" y="145" font-family="Georgia, serif" font-size="10" font-style="italic" text-anchor="middle" class="text-on-white">"A brown dog</text>
+    <text x="90" y="160" font-family="Georgia, serif" font-size="10" font-style="italic" text-anchor="middle" class="text-on-white">with floppy ears"</text>
     <text x="185" y="150" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#E65100">T<tspan baseline-shift="sub" font-size="7">2</tspan></text>
 
     <!-- Text 3 -->
     <rect x="10" y="205" width="160" height="60" class="bg-white" stroke="#E65100" stroke-width="2" rx="3"/>
-    <text x="90" y="230" font-family="Georgia, serif" font-size="10" font-style="italic" text-anchor="middle" fill="#333">"A red sports car</text>
-    <text x="90" y="245" font-family="Georgia, serif" font-size="10" font-style="italic" text-anchor="middle" fill="#333">on a road"</text>
+    <text x="90" y="230" font-family="Georgia, serif" font-size="10" font-style="italic" text-anchor="middle" class="text-on-white">"A red sports car</text>
+    <text x="90" y="245" font-family="Georgia, serif" font-size="10" font-style="italic" text-anchor="middle" class="text-on-white">on a road"</text>
     <text x="185" y="235" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#E65100">T<tspan baseline-shift="sub" font-size="7">3</tspan></text>
 
     <!-- Text 4 -->
     <rect x="10" y="290" width="160" height="60" class="bg-white" stroke="#E65100" stroke-width="2" rx="3"/>
-    <text x="90" y="315" font-family="Georgia, serif" font-size="10" font-style="italic" text-anchor="middle" fill="#333">"A sunny beach</text>
-    <text x="90" y="330" font-family="Georgia, serif" font-size="10" font-style="italic" text-anchor="middle" fill="#333">with golden sand"</text>
+    <text x="90" y="315" font-family="Georgia, serif" font-size="10" font-style="italic" text-anchor="middle" class="text-on-white">"A sunny beach</text>
+    <text x="90" y="330" font-family="Georgia, serif" font-size="10" font-style="italic" text-anchor="middle" class="text-on-white">with golden sand"</text>
     <text x="185" y="320" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#E65100">T<tspan baseline-shift="sub" font-size="7">4</tspan></text>
   </g>
 
